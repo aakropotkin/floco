@@ -88,14 +88,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config = {
-    key = lib.mkDefault ( config.ident + "/" + config.version );
-    lifecycle.build = lib.mkDefault ( config.ltype != "file" );
-  };  # End `config'
-
-
-# ---------------------------------------------------------------------------- #
-
 }
 
 

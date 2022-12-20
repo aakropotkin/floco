@@ -5,35 +5,13 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, pkgs, options, config, ... }: let
-  nt  = lib.types;
-in {
-
-# ---------------------------------------------------------------------------- #
-
-  options.flocoPackages = lib.mkOption {
-    type = nt.submodule {
-      options.packages = lib.mkOption {
-        type = nt.listOf ( nt.submodule ./interface.nix );
-      };
-    };
-  };
-
+{ lib, config, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
   config = {
-
-# ---------------------------------------------------------------------------- #
-    # Example
-    flocoPackages.packages = [{
-      ident   = "lodash";
-      version = "4.17.21";
-      ltype   = "file";
-    }];
-
-# ---------------------------------------------------------------------------- #
-
+    key = lib.mkDefault ( config.ident + "/" + config.version );
+    lifecycle.build = lib.mkDefault ( config.ltype != "file" );
   };  # End `config'
 
 
