@@ -148,8 +148,51 @@ in {
         Arguments passed to fetcher.
         By default any `builtins.fetchTree' or `builtins.path' argset is
         supported, and the correct fetcher can be inferred from these values.
+
+        If set to `null', `sourceInfo' must be set explicitly.
       '';
-      type = nt.attrsOf ( nt.oneOf [nt.bool nt.str] );
+      type = nt.nullOr ( nt.attrsOf ( nt.oneOf [nt.bool nt.str] ) );
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
+    sourceInfo = lib.mkOption {
+      description = ''
+        Information about the source tree a package resides in.
+        This record is analogous to that returned by `builtins.fetchTree' for
+        flake inputs.
+
+        Used in combination with `fetchInfo' and `fsInfo.dir', these three
+        nuggets of metadata are isomorphic with a flake input.
+
+        However, unlike flake inputs, `sourceInfo.outPath' may set to a derived
+        store path if and only if `fetchInfo' is explicitly set to `null'.
+        In this case `fsInfo.dir' is still used to identify a pacakage/module's
+        root directory where we will attempt to read `package.json'
+        ( must exist ) and similar metadata files will be read from
+        ( if they exist ).
+        In this case you may avoid IFD by explicitly setting top level fields,
+        specifically `lifecycle', `sysInfo', `binInfo', and `treeInfo' or
+        `depInfo' which are required by builders.
+        Alternatively you may explicitly set `metaFiles.{pjs,plock,plent,trees}'
+        fields directly - but keep in mind that these fields are never
+        guaranteed to be stable and their schema may change at any time
+        ( so set the top level ones unless you're up for the maintanence ).
+      '';
+      type = nt.submodule {
+        freeformType = nt.attrsOf ( nt.oneOf [nt.bool nt.int nt.str] );
+        options.outPath      = lib.mkOption {
+          description = ''
+            A Nix Store path containing the unpacked source tree in which this
+            package/module resides.
+            The package need not be at the root this path; but when the project
+            root is a subdir the option `fsInfo.dir' must be set in order for
+            `package.json' and other metadata to be translated.
+          '';
+          type = nt.path;
+        };
+      };
     };
 
 
@@ -320,7 +363,7 @@ in {
         treated as "stable" - `metaFiles' fields should be thought of as
         "internal" and may change or be extended to support new translators.
 
-        For this reason let me be loud and clear :
+        For this reason let me be loud and clear:
         If you write a builder that directly refers to a `metaFiles' field, and
         it breaks because of a change to the `metaFiles' schema, and you proceed
         to file a bug report - you will be asked to stand in the corner of the
