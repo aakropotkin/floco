@@ -94,11 +94,13 @@ in {
         See Also: ltype
       '';
       type = nt.submodule {
+        freeformType = nt.attrsOf nt.bool;
         options = {
           build   = lib.mkOption { type = nt.bool; default = false; };
           install = lib.mkOption { type = nt.bool; default = false; };
         };
       };
+      default = { build = false; install = false; };
     };
 
 
@@ -169,6 +171,11 @@ in {
           };
         };
       };
+      default = {
+        os           = ["*"];
+        cpu          = ["*"];
+        engines.node = "*";
+      };
     };
 
 
@@ -186,6 +193,7 @@ in {
             exposed executables scripts to their associated sources.
           '';
           type = nt.attrsOf nt.str;
+          default = {};
         };
         options.binDir = lib.mkOption {
           description = ''
@@ -198,6 +206,7 @@ in {
           default = null;
         };
       };
+      default.binPairs = {};
     };
 
 
@@ -230,9 +239,10 @@ in {
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf nt.str;
-        options.dev  = nt.attrsOf nt.str;
-        options.prod = nt.attrsOf nt.str;
+        options.dev  = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
+        options.prod = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
       };
+      default = { dev = {}; prod = {}; };
     };
 
 
@@ -266,8 +276,108 @@ in {
           type    = nt.bool;
           default = false;
         };
+        options.dir = lib.mkOption {
+          description = ''
+            Relative path from `sourceInfo.outPath' to the package's root.
+            This field is analogous to a flake input's `dir' field, and is
+            used in combination with `fetchInfo' in exactly the same way as
+            a flake input.
+
+            You should almost never need to set this field for distributed
+            tarballs ( only if it contains bundled dependencies ).
+
+            While this field is useful for working with monorepos I strongly
+            recommend that you avoid abusing it.
+            Its use inherently causes rebuilds of all projects in associated
+            with a single `sourceInfo' record for any change in the subtree.
+            It is much more efficient to split a subtree into multiple sources,
+            but I've left you enough rope to learn things the hard way if you
+            insist on doing so.
+            Consider yourself warned.
+          '';
+          type    = nt.str;
+          default = ".";
+        };
       };
+      default = { gypfile = false; dir = "."; };
     };
+
+
+# ---------------------------------------------------------------------------- #
+
+    metaFiles = lib.mkOption {
+      description = ''
+        Misc. raw config info pulled from various config files.
+        In general these are used to fill other fields as fallbacks when
+        explicit definitions are not given.
+
+        Note that while builders will never directly refer to these fields -
+        unless explicitly locked, these sub-options may trigger impure
+        evaluation if builders attempt to reference them indirectly to derive
+        defaults/fallbacks for other options.
+
+        While other parts of a package's schema are strictly defined and can be
+        treated as "stable" - `metaFiles' fields should be thought of as
+        "internal" and may change or be extended to support new translators.
+
+        For this reason let me be loud and clear :
+        If you write a builder that directly refers to a `metaFiles' field, and
+        it breaks because of a change to the `metaFiles' schema, and you proceed
+        to file a bug report - you will be asked to stand in the corner of the
+        classroom on top of your desk for the remainder of the day.
+        Consider yourself warned.
+      '';
+      type = nt.submodule {
+        options = {
+          pjsDir  = lib.mkOption { type = nt.path; };
+          lockDir = lib.mkOption {
+            type    = nt.nullOr nt.path;
+            default = null;
+          };
+          packumentUrl  = lib.mkOption { type = nt.nullOr nt.str; };
+          packumentHash = lib.mkOption {
+            type    = nt.nullOr nt.str;
+            default = null;
+          };
+          vinfoUrl  = lib.mkOption { type = nt.nullOr nt.str; };
+          vinfoHash = lib.mkOption {
+            type = nt.nullOr nt.str;
+            default = null;
+          };
+          metaRaw = lib.mkOption {
+            type    = nt.attrsOf nt.anything;
+            default = {};
+          };
+          pjs   = lib.mkOption { type = nt.attrsOf nt.anything; };
+          plock = lib.mkOption {
+            type    = nt.nullOr ( nt.attrsOf nt.anything );
+            default = null;
+          };
+          plent = lib.mkOption {
+            type    = nt.nullOr ( nt.attrsOf nt.anything );
+            default = null;
+          };
+          vinfo = lib.mkOption {
+            type    = nt.nullOr ( nt.attrsOf nt.anything );
+            default = null;
+          };
+          packument = lib.mkOption {
+            type    = nt.nullOr ( nt.attrsOf nt.anything );
+            default = null;
+          };
+          trees = lib.mkOption {
+            type    = nt.nullOr ( nt.attrsOf nt.anything );
+            default = null;
+          };
+          pjsKey   = lib.mkOption { type = nt.str; default = ""; };
+          plentKey = lib.mkOption {
+            type = nt.nullOr nt.str;
+            default = null;
+          };
+        };
+      };
+      default = {};
+    };  # End `metaFiles'
 
 
 # ---------------------------------------------------------------------------- #
