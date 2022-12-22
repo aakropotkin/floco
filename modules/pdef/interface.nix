@@ -5,9 +5,10 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: let
+{ lib, ... }: let
 
   nt = lib.types;
+  ft = import ./types.nix { inherit lib; };
 
 in {
 
@@ -21,7 +22,7 @@ in {
       description = ''
         Package identifier/name as found in `package.json:.name'.
       '';
-      type = nt.strMatching "(@[^@/]+/)?[^@/]+";
+      type = ft.ident;
     };
 
 
@@ -31,16 +32,7 @@ in {
       description = ''
         Package version as found in `package.json:.version'.
       '';
-      type = let
-        da_c      = "[[:alpha:]-]";
-        dan_c     = "[[:alnum:]-]";
-        num_p     = "(0|[1-9][[:digit:]]*)";
-        part_p    = "(${num_p}|[0-9]*${da_c}${dan_c}*)";
-        core_p    = "${num_p}(\\.${num_p}(\\.${num_p})?)?";
-        tag_p     = "${part_p}(\\.${part_p})*";
-        build_p   = "${dan_c}+(\\.[[:alnum:]]+)*";
-        version_p = "${core_p}(-${tag_p})?(\\+${build_p})?";
-      in nt.strMatching version_p;
+      type = ft.version;
     };
 
 
@@ -51,7 +43,7 @@ in {
         Unique key used to refer to this package in `tree' submodules and other
         `floco' configs, metadata, and structures.
       '';
-      type = nt.str;
+      type = ft.key;
     };
 
 
@@ -75,7 +67,7 @@ in {
 
         See Also: lifecycle, fetchInfo
       '';
-      type    = nt.enum ["file" "link" "dir" "git"];
+      type    = ft.ltype;
       default = "file";
     };
 
@@ -93,14 +85,8 @@ in {
 
         See Also: ltype
       '';
-      type = nt.submodule {
-        freeformType = nt.attrsOf nt.bool;
-        options = {
-          build   = lib.mkOption { type = nt.bool; default = false; };
-          install = lib.mkOption { type = nt.bool; default = false; };
-        };
-      };
       default = { build = false; install = false; };
+      type    = ft.lifecycle;
     };
 
 
