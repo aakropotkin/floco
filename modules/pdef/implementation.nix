@@ -148,6 +148,10 @@
       if config.metaFiles.packumentUrl != null then attrs else null
     );
 
+    metaFiles.packumentRev =
+      if config.metaFiles.packument == null then null else
+      config.metaFiles.packument._rev;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -170,6 +174,25 @@
     in lib.mkDefault (
       if config.metaFiles.vinfoUrl != null then attrs else null
     );
+
+
+# ---------------------------------------------------------------------------- #
+
+  _export = {
+    inherit (config)
+      ident version key ltype depInfo binInfo fsInfo lifecycle sysInfo
+      # TODO: This needs special handling.
+      # `fetchInfo' needs to make `path' fetchers use relative paths.
+      fetchInfo
+    ;
+    metaFiles = builtins.intersectAttrs {
+      vinfoUrl      = true;
+      vinfoHash     = true;
+      packumentUrl  = true;
+      packumentHash = true;
+      packumentRev  = true;
+    } config.metaFiles;
+  } // ( if config ? treeInfo then { inherit (config) treeInfo; } else {} );
 
 
 # ---------------------------------------------------------------------------- #

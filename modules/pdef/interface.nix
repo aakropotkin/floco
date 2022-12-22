@@ -382,6 +382,7 @@ in {
             type    = nt.nullOr nt.str;
             default = null;
           };
+          packumentRev = lib.mkOption { type = nt.nullOr nt.str; };
           vinfoUrl  = lib.mkOption { type = nt.nullOr nt.str; };
           vinfoHash = lib.mkOption {
             type = nt.nullOr nt.str;
@@ -421,6 +422,20 @@ in {
       };
       default = {};
     };  # End `metaFiles'
+
+
+# ---------------------------------------------------------------------------- #
+
+    _export = lib.mkOption {
+      description = ''
+        This should never be explicitly defined by users or config files.
+        This field exists to allow a locked representation of a package
+        definition to be made available at eval time in order to debug/trace
+        the fields available to builders, and restrict the fields which are
+        readable across modules for the formation of `treeInfo' options.
+      '';
+      type = nt.submodule { freeformType = nt.attrsOf nt.anything; };
+    };
 
 
 # ---------------------------------------------------------------------------- #
