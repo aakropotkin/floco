@@ -118,9 +118,18 @@ in {
       '';
       type = nt.attrsOf ( nt.submodule {
         options = {
-          descriptor     = lib.mkOption { type = nt.str; };
-          peerDescriptor = lib.mkOption { type = nt.str; };
-          pin            = lib.mkOption { type = nt.str; };
+          descriptor = lib.mkOption {
+            type    = nt.nullOr nt.str;
+            default = null;
+          };
+          peerDescriptor = lib.mkOption {
+            type    = nt.nullOr nt.str;
+            default = null;
+          };
+          pin = lib.mkOption {
+            type    = nt.nullOr nt.str;
+            default = null;
+          };
 
           optional = lib.mkOption { type = nt.bool; default = false; };
           peer     = lib.mkOption { type = nt.bool; default = false; };
@@ -133,9 +142,6 @@ in {
           test    = lib.mkOption { type = nt.bool; default = false; };
           lint    = lib.mkOption { type = nt.bool; default = false; };
         };
-        check = v:
-          ( ( v ? descriptor ) || ( v ? peerDescriptor ) ) &&
-          ( ( v.peer or false ) -> ( v ? peerDescriptor ) );
       } );
       default = {};
     };

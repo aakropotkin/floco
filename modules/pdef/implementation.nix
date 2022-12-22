@@ -31,6 +31,30 @@
 
 # ---------------------------------------------------------------------------- #
 
+    depInfo = let
+      getDfs = builtins.intersectAttrs {
+        requires             = true;
+        dependencies         = true;
+        devDependencies      = true;
+        peerDependencies     = true;
+        devDependenciesMeta  = true;
+        peerDependenciesMeta = true;
+        optionalDependencies = true;
+        bundleDependencies   = true;
+        bundledDependencies  = true;
+      };
+    in lib.mkDefault ( import ./depinfo.implementation.nix {
+      inherit lib;
+      config =
+        builtins.foldl' ( acc: f:
+          if config.metaFiles.${f} == null then acc else
+          acc // ( getDfs config.metaFiles.${f} )
+        ) {} ["plent" "pjs" "metaRaw"];
+    } );
+
+
+# ---------------------------------------------------------------------------- #
+
     lifecycle.build = let
       fromLtype   = config.ltype != "file";
       fromScripts = let
