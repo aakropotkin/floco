@@ -6,6 +6,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
+set -eu;
+set -o pipefail;
+
+# ---------------------------------------------------------------------------- #
+
 _as_me='floco install-module';
 
 _usage_msg="
@@ -55,7 +60,10 @@ reading the contents of \`package.json'.
   CP          Absolute path to \`cp' executable.    ( Optional )
               This is useful for adding additional flags or wrapping the
               program used to copy files.
+  LN          Absolute path to \`ln' executable.       ( Optional )
   REALPATH    Absolute path to \`realpath' executable. ( Optional )
+  FIND        Absolute path to \`find' executable.     ( Optional )
+  BASH        Absolute path to \`bash' executable.     ( Optional )
 ";
 
 
@@ -67,7 +75,6 @@ usage() {
 }
 
 
-
 # ---------------------------------------------------------------------------- #
 
 : "${JQ:=jq}";
@@ -75,6 +82,9 @@ usage() {
 : "${MKDIR:=mkdir}";
 : "${CP:=cp}";
 : "${REALPATH:=realpath}";
+: "${FIND:=find}";
+: "${LN:=ln}";
+: "${BASH:=bash}";
 
 unset FROM NMDIR TO;
 
@@ -111,7 +121,103 @@ if [[ -z "${NODEJS:-}${NO_PATCH:-}" ]]; then
   NODEJS="$( $REALPATH "$( command -v node; )"; )";
 fi
 
-# TODO
+if [[ -z "${IDENT:-}" ]]; then
+  IDENT="$( $JQ '.name // "_undeclared"' "$FROM/package.json"; )";
+  if [[ "$IDENT" = '_undeclared' ]]; then
+    echo "$_as_me: Cannot install module which lacks an identifier/name" >&2;
+    exit 1;
+  fi
+fi
+
+if [[ -z "${SCOPED+y}" ]]; then
+  case "$IDENT" in
+    @*/*) SCOPED=:; ;;
+    *)    SCOPED=''; ;;
+  esac
+fi
+
+TO="$NMDIR/$IDENT";
+
+
+# ---------------------------------------------------------------------------- #
+
+# Copy package/module
+$MKDIR -p "$TO";
+$CHMOD 0755 "$TO";
+if [[ -z "$_NO_PERM" ]]; then
+  $CP -r --reflink=auto -T -- "$FROM" "$TO";
+else
+  pushd "$FROM";
+  $FIND . -type d -exec $BASH -c "cd $TO; $MKDIR -p {};" \+ ;
+  $FIND . -type f -exec $CP -p --reflink=auto -- {} "$TO/{}" \; ;
+  $FIND . -type x -exec $CHMOD +x "$TO/{}" \; ;
+  popd;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+pjsHasBin() {
+  $JQ -e 'has( "bin" )' "$TO/package.json" >/dev/null;
+}
+
+pjsHasBindir() {
+  $JQ -e 'has( "directories" ) and ( .directories|has( "bin" ) )'  \
+      "$TO/package.json" >/dev/null;
+}
+
+pjsHasBinString() {
+  $JQ -e 'has( "bin" ) and ( ( .bin|type ) == "string" )'  \
+      "$TO/package.json" >/dev/null;
+}
+
+pjsHasAnyBin() {
+  $JQ -e 'has( "bin" ) or ( has( "directories" ) and
+          ( .directories|has( "bin" ) ) )'  \
+      "$TO/package.json" >/dev/null;
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+: "${NO_BINS=$( if pjsHasAnyBin; then echo ':'; else echo ''; fi; )}";
+
+if [[ -z "$NO_BINS" ]]; then
+  if [[ -z "${BIN_DIR:-}${BIN_PAIRS:-}" ]]; then
+    if pjsHasBindir; then
+      BIN_DIR="$( $JQ -r '.directories.bin' "$TO/package.json"; )";
+      BIN_PAIRS="$(
+        for f in "$TO/$BIN_DIR/"*; do
+          [[ -d "$f" ]] && continue;
+          bname="${f##*/}";
+          printf '%s,%s ' "${bname%%.*}" "${f#"$TO"}";
+        done
+      )";
+      BIN_PAIRS="${BIN_PAIRS% }";
+    elif pjsHasBinString; then
+      unset BIN_DIR;
+      BIN_PAIRS="${IDENT#@*/},$( $JQ -r '.bin' "$TO/package.json"; )";
+    else
+      unset BIN_DIR;
+      BIN_PAIRS="$( $JQ -r '
+        .bin|to_entries|map( .key + "," + .value )|join( " " )
+      ' "$TO/package.json"; )";
+    fi
+  fi
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+if [[ -z "$NO_BINS${NO_PERMS:-}" ]]; then
+  pushd "$TO";
+  if [[ -n "${BIN_DIR:-}" ]]; then
+    $CHMOD -r +wx "$BIN_DIR";
+  else
+    $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
+  fi
+  popd;
+fi
 
 
 # ---------------------------------------------------------------------------- #
