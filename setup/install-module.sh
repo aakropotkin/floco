@@ -105,9 +105,9 @@ while [[ "$#" -gt 0 ]]; do
     -h|--help)     usage -f; exit 0; ;;
     *)
       if [[ -z "${FROM:-}" ]]; then
-        FROM="$( $REALPATH "$1"; )";
+        FROM="$( $REALPATH -m "$1"; )";
       elif [[ -z "${NMDIR:-}" ]]; then
-        NMDIR="$( $REALPATH "$1"; )";
+        NMDIR="$( $REALPATH -m "$1"; )";
       else
         echo "$_as_me: Unexpected argument(s) '$*'" >&2;
         usage -f >&2;
@@ -120,10 +120,6 @@ done
 
 
 # ---------------------------------------------------------------------------- #
-
-if [[ -z "${NODEJS:-}${NO_PATCH:-}" ]]; then
-  NODEJS="$( $REALPATH "$( command -v node; )"; )";
-fi
 
 if [[ -z "${IDENT:-}" ]]; then
   IDENT="$( $JQ -r '.name // "_undeclared"' "$FROM/package.json"; )";
@@ -204,6 +200,13 @@ if [[ -z "$NO_BINS" ]]; then
       ' "$TO/package.json"; )";
     fi
   fi
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+if [[ -z "${NODEJS:-}$NO_PATCH" ]]; then
+  NODEJS="$( $REALPATH "$( command -v node; )"; )";
 fi
 
 
