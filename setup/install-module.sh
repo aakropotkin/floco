@@ -55,7 +55,9 @@ reading the contents of \`package.json'.
   JQ          Absolute path to \`jq' executable. ( Optional )
               May be omitted if \`IDENT' is known and any \`*BIN*' variable is
               is non-empty ( it is only needed to read \`package.json' ).
+  ID          Absolute path to \`id' executable.    ( Optional )
   CHMOD       Absolute path to \`chmod' executable. ( Optional )
+  CHOWN       Absolute path to \`chown' executable. ( Optional )
   MKDIR       Absolute path to \`mkdir' executable. ( Optional )
   CP          Absolute path to \`cp' executable.    ( Optional )
               This is useful for adding additional flags or wrapping the
@@ -79,12 +81,14 @@ usage() {
 
 : "${JQ:=jq}";
 : "${CHMOD:=chmod}";
+: "${CHOWN:=chown}";
 : "${MKDIR:=mkdir}";
 : "${CP:=cp}";
 : "${REALPATH:=realpath}";
 : "${FIND:=find}";
 : "${LN:=ln}";
 : "${BASH:=bash}";
+: "${ID:=id}";
 
 unset FROM NMDIR TO;
 
@@ -101,9 +105,9 @@ while [[ "$#" -gt 0 ]]; do
     -h|--help)     usage -f; exit 0; ;;
     *)
       if [[ -z "${FROM:-}" ]]; then
-        FROM="$1";
+        FROM="$( $REALPATH "$1"; )";
       elif [[ -z "${NMDIR:-}" ]]; then
-        NMDIR="$1";
+        NMDIR="$( $REALPATH "$1"; )";
       else
         echo "$_as_me: Unexpected argument(s) '$*'" >&2;
         usage -f >&2;
@@ -122,21 +126,18 @@ if [[ -z "${NODEJS:-}${NO_PATCH:-}" ]]; then
 fi
 
 if [[ -z "${IDENT:-}" ]]; then
-  IDENT="$( $JQ '.name // "_undeclared"' "$FROM/package.json"; )";
+  IDENT="$( $JQ -r '.name // "_undeclared"' "$FROM/package.json"; )";
   if [[ "$IDENT" = '_undeclared' ]]; then
     echo "$_as_me: Cannot install module which lacks an identifier/name" >&2;
     exit 1;
   fi
 fi
 
-if [[ -z "${SCOPED+y}" ]]; then
-  case "$IDENT" in
-    @*/*) SCOPED=:; ;;
-    *)    SCOPED=''; ;;
-  esac
-fi
-
 TO="$NMDIR/$IDENT";
+: "${NO_PERMS=}";
+: "${NO_PATCH=:}";
+: "${OWNER:=$( $ID -un; )}";
+: "${GROUP:=$( $ID -gn; )}";
 
 
 # ---------------------------------------------------------------------------- #
@@ -144,13 +145,12 @@ TO="$NMDIR/$IDENT";
 # Copy package/module
 $MKDIR -p "$TO";
 $CHMOD 0755 "$TO";
-if [[ -z "$_NO_PERM" ]]; then
-  $CP -r --reflink=auto -T -- "$FROM" "$TO";
-else
+$CP -r --no-preserve=mode,ownership --preserve=timestamp --reflink=auto -T  \
+    -- "$FROM" "$TO";
+if [[ -z "$NO_PERMS" ]]; then
+  $CHOWN -R "$OWNER:$GROUP" "$TO";
   pushd "$FROM";
-  $FIND . -type d -exec $BASH -c "cd $TO; $MKDIR -p {};" \+ ;
-  $FIND . -type f -exec $CP -p --reflink=auto -- {} "$TO/{}" \; ;
-  $FIND . -type x -exec $CHMOD +x "$TO/{}" \; ;
+  $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
   popd;
 fi
 
@@ -180,7 +180,7 @@ pjsHasAnyBin() {
 
 # ---------------------------------------------------------------------------- #
 
-: "${NO_BINS=$( if pjsHasAnyBin; then echo ':'; else echo ''; fi; )}";
+: "${NO_BINS=$( if pjsHasAnyBin; then echo ''; else echo ':'; fi; )}";
 
 if [[ -z "$NO_BINS" ]]; then
   if [[ -z "${BIN_DIR:-}${BIN_PAIRS:-}" ]]; then
@@ -209,7 +209,7 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -z "$NO_BINS${NO_PERMS:-}" ]]; then
+if [[ -z "$NO_BINS$NO_PERMS" ]]; then
   pushd "$TO";
   if [[ -n "${BIN_DIR:-}" ]]; then
     $CHMOD -r +wx "$BIN_DIR";
@@ -217,6 +217,30 @@ if [[ -z "$NO_BINS${NO_PERMS:-}" ]]; then
     $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
   fi
   popd;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+# TODO
+#if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
+#  pushd "$TO";
+#  if [[ -n "${BIN_DIR:-}" ]]; then
+#    $CHMOD -r +wx "$BIN_DIR";
+#  else
+#    $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
+#  fi
+#  popd;
+#fi
+
+
+# ---------------------------------------------------------------------------- #
+
+if [[ -z "$NO_BINS" ]]; then
+  $MKDIR -p "$NMDIR/.bin";
+  for bp in $BIN_PAIRS; do
+    $LN -sr -- "$TO/${bp#*,}" "$NMDIR/.bin/${bp%,*}";
+  done
 fi
 
 
