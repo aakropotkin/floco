@@ -49,6 +49,9 @@ in {
           resolved         = true;
           link             = true;
           hasInstallScript = true;
+          bin              = true;
+          sha1             = true;
+          integrity        = true;
         };
         values = ( realEntry plentKey ) // plentRaw;
         ix     = builtins.intersectAttrs keeps values;
