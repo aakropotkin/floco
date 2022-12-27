@@ -46,14 +46,12 @@ in {
           optional         = true;
           os               = true;
           cpu              = true;
-          engines          = true;
           resolved         = true;
           link             = true;
           hasInstallScript = true;
         };
         values = ( realEntry plentKey ) // plentRaw;
         ix     = builtins.intersectAttrs keeps values;
-      in ix // {
 
         ident = let
           n   = plentKeyName plentKey;
@@ -73,7 +71,16 @@ in {
           if plentKey == "" then plock.version else
           ( realEntry plentKey ).version
         );
-
+      in ix // {
+        inherit ident version;
+        key     = ident + "/" + version;
+        engines = let
+          proc = acc: eng: let
+            s = builtins.match "([^ ]+) (.*)" eng;
+          in acc // { ${builtins.head s} = builtins.elemAt s 1; };
+        in if ! ( values ? engines ) then {} else
+           if builtins.isAttrs values.engines then values.engines else
+           builtins.foldl' proc {} values.engines;
       };
     in builtins.mapAttrs proc ( plock.packages or {} );
   };

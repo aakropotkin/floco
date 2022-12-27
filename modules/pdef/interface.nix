@@ -381,6 +381,15 @@ in {
             default = null;
           };
           metaRaw = lib.mkOption {
+            description = ''
+              Explicit metadata provided by users as a form of override or
+              method of caching.
+              This field is optional and while many translators may reference it
+              I want to once again highlight that ALL `metaFiles' fields are
+              strictly internal and should never be relied upon by builders or
+              external extensions to `floco' since they may change without
+              warning or indication in semantic versioning of the framework.
+            '';
             type    = nt.attrsOf nt.anything;
             default = {};
           };

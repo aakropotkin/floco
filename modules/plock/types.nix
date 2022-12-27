@@ -37,6 +37,14 @@ in {
         type        = ft.version;
       };
 
+      key = lib.mkOption {
+        description = ''
+          Unique key used to refer to this package in `tree' submodules and
+          other `floco' configs, metadata, and structures.
+        '';
+        type = ft.key;
+      };
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -63,15 +71,11 @@ in {
 
       os      = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
       cpu     = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
-      engines = lib.mkOption {
-        # The fact that this can be a list of strings is fucking infuriating.
-        # `{ "node" = ">= 0.8.0"; }' is equivalent to `[ "node >= 0.8.0" ];'.
-        # A special circle of hell exists for the NPM devs that approved
-        # the schema for `package-lock.json' - they normalize other fields all
-        # the time, this makes absolutely no sense.
-        type = nt.either ( nt.attrsOf nt.str ) ( nt.listOf nt.str );
-        default = {};
-      };
+      # In the lockfile this can also be a list of strings as:
+      #   ["node >= 8.0.0"]
+      # Which is fucking infuriating but whatever.
+      # We normalize it in our implementation.
+      engines = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
 
 
 # ---------------------------------------------------------------------------- #
