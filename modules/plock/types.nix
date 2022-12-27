@@ -63,6 +63,26 @@ in {
         default = {};
       };
 
+      devDependenciesMeta = lib.mkOption {
+        type    = nt.attrsOf ( nt.attrsOf nt.bool );
+        default = {};
+      };
+
+      peerDependencies = lib.mkOption {
+        type    = nt.attrsOf nt.str;
+        default = {};
+      };
+
+      peerDependenciesMeta = lib.mkOption {
+        type    = nt.attrsOf ( nt.attrsOf nt.bool );
+        default = {};
+      };
+
+      optionalDependencies = lib.mkOption {
+        type    = nt.attrsOf nt.str;
+        default = {};
+      };
+
       dev      = lib.mkOption { type = nt.bool; default = false; };
       optional = lib.mkOption { type = nt.bool; default = false; };
       peer     = lib.mkOption { type = nt.bool; default = false; };
@@ -137,6 +157,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
       hasInstallScript = lib.mkOption { type = nt.bool; default = false; };
+      gypfile          = lib.mkOption { type = nt.bool; default = false; };
 
 
 # ---------------------------------------------------------------------------- #

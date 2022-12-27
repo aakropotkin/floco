@@ -39,19 +39,25 @@ in {
     plents = let
       proc = plentKey: plentRaw: let
         keeps = {
-          version          = true;
-          dependencies     = true;
-          devDependencies  = true;
-          dev              = true;
-          optional         = true;
-          os               = true;
-          cpu              = true;
-          resolved         = true;
-          link             = true;
-          hasInstallScript = true;
-          bin              = true;
-          sha1             = true;
-          integrity        = true;
+          version              = true;
+          requires             = true;
+          dependencies         = true;
+          devDependencies      = true;
+          devDependenciesMeta  = true;
+          peerDependencies     = true;
+          peerDependenciesMeta = true;
+          optionalDependencies = true;
+          dev                  = true;
+          optional             = true;
+          os                   = true;
+          cpu                  = true;
+          resolved             = true;
+          link                 = true;
+          hasInstallScript     = true;
+          gypfile              = true;
+          bin                  = true;
+          sha1                 = true;
+          integrity            = true;
         };
         values = ( realEntry plentKey ) // plentRaw;
         ix     = builtins.intersectAttrs keeps values;
@@ -59,16 +65,14 @@ in {
         ident = let
           n   = plentKeyName plentKey;
           lts = linksTo plentKey;
-        in plentRaw.name or
-           ( if n != null then n else
-             if plentKey == "" then plock.name else
-             if plentRaw.link or false then ( realEntry plentKey ).name else
-             if lts != [] then plentKeyName ( builtins.head lts ) else
-             throw (
-                "Cannot derive package name from: " +
-                "'<PLOCK>.packages.${plentKey}'."
-             )
-           );
+        in plentRaw.name or (
+          if n != null then n else
+          if plentKey == "" then plock.name else
+          if plentRaw.link or false then ( realEntry plentKey ).name else
+          if lts != [] then plentKeyName ( builtins.head lts ) else
+          throw
+             "Cannot derive package name from: '<PLOCK>.packages.${plentKey}'."
+        );
 
         version = plentRaw.version or (
           if plentKey == "" then plock.version else
@@ -76,7 +80,9 @@ in {
         );
       in ix // {
         inherit ident version;
+
         key     = ident + "/" + version;
+
         engines = let
           proc = acc: eng: let
             s = builtins.match "([^ ]+) (.*)" eng;
@@ -84,6 +90,10 @@ in {
         in if ! ( values ? engines ) then {} else
            if builtins.isAttrs values.engines then values.engines else
            builtins.foldl' proc {} values.engines;
+
+        resolved = values.resolved or (
+          if plentKey == "" then "." else plentKey
+        );
       };
     in builtins.mapAttrs proc ( plock.packages or {} );
   };
