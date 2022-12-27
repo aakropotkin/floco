@@ -15,13 +15,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  plent = nt.submodule ( {
-    lockDir
-  , plentKey
-  , plock    ? lib.importJSON "${lockDir}/package-lock.sjon"
-  , plentRaw ? plock.packages.${plentKey}
-  , ...
-  }: {
+  plent = nt.submodule {
 
 # ---------------------------------------------------------------------------- #
 
@@ -69,7 +63,15 @@ in {
 
       os      = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
       cpu     = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
-      engines = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
+      engines = lib.mkOption {
+        # The fact that this can be a list of strings is fucking infuriating.
+        # `{ "node" = ">= 0.8.0"; }' is equivalent to `[ "node >= 0.8.0" ];'.
+        # A special circle of hell exists for the NPM devs that approved
+        # the schema for `package-lock.json' - they normalize other fields all
+        # the time, this makes absolutely no sense.
+        type = nt.either ( nt.attrsOf nt.str ) ( nt.listOf nt.str );
+        default = {};
+      };
 
 
 # ---------------------------------------------------------------------------- #
@@ -77,12 +79,16 @@ in {
       resolved = lib.mkOption { type = nt.str; default = "."; };
       link     = lib.mkOption { type = nt.bool; default = false; };
 
+# ---------------------------------------------------------------------------- #
+
+      hasInstallScript = lib.mkOption { type = nt.bool; default = false; };
+
 
 # ---------------------------------------------------------------------------- #
 
     };  # End `options'
 
-  } );  # End `plent'
+  };  # End `plent'
 
 }  # End `types.nix'
 

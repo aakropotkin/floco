@@ -1,0 +1,87 @@
+# ============================================================================ #
+#
+# Typed representation of a `package-lock.json(v2/3)' file.
+#
+# ---------------------------------------------------------------------------- #
+
+{ lib
+, lockDir
+, plock   ? lib.importJSON "${lockDir}/package-lock.json"
+, ...
+}: let
+
+  nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+  plentKeyName = s: let
+    m = builtins.match ".*node_modules/((@[^@/]+/)?[^@/]+)" s;
+  in if m == null then null else builtins.head m;
+
+  realEntry = k: let
+    e = plock.packages.${k};
+  in if e.link or false then realEntry e.resolved else e;
+
+  linksTo = plentKey: let
+    pred = k:
+      ( plock.packages.${k}.link or false ) &&
+      ( plock.packages.${k}.resolved == plentKey );
+  in builtins.filter pred ( builtins.attrNames ( plock.packages or {} ) );
+
+
+# ---------------------------------------------------------------------------- #
+
+in {
+
+  config = {
+    inherit plock lockDir;
+    inherit (plock) lockfileVersion;
+    plents = let
+      proc = plentKey: plentRaw: let
+        keeps = {
+          version          = true;
+          dependencies     = true;
+          devDependencies  = true;
+          dev              = true;
+          optional         = true;
+          os               = true;
+          cpu              = true;
+          engines          = true;
+          resolved         = true;
+          link             = true;
+          hasInstallScript = true;
+        };
+        values = ( realEntry plentKey ) // plentRaw;
+        ix     = builtins.intersectAttrs keeps values;
+      in ix // {
+
+        ident = let
+          n   = plentKeyName plentKey;
+          lts = linksTo plentKey;
+        in plentRaw.name or
+           ( if n != null then n else
+             if plentKey == "" then plock.name else
+             if plentRaw.link or false then ( realEntry plentKey ).name else
+             if lts != [] then plentKeyName ( builtins.head lts ) else
+             throw (
+                "Cannot derive package name from: " +
+                "'<PLOCK>.packages.${plentKey}'."
+             )
+           );
+
+        version = plentRaw.version or (
+          if plentKey == "" then plock.version else
+          ( realEntry plentKey ).version
+        );
+
+      };
+    in builtins.mapAttrs proc ( plock.packages or {} );
+  };
+
+}
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #
