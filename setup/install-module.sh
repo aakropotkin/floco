@@ -24,6 +24,7 @@ _help_msg="
 $_usage_msg
 
 OPTIONS
+  -t,--to         Treat \`NM-DIR' as literal install dir as \`node_modules/foo'
   -i,--ident ID   Treat \`ID' as the package identifier/name
   -b,--bins       Force processing of bins
   -B,--no-bins    Skip processing bins
@@ -90,10 +91,11 @@ usage() {
 : "${BASH:=bash}";
 : "${ID:=id}";
 
-unset FROM NMDIR TO;
+unset FROM NMDIR TO NM_IS_TO;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    -t|--to)       NM_IS_TO=:; ;;
     -i|--ident)    IDENT="$1"; shift; ;;
     -b|--bins)     NO_BINS=''; ;;
     -B|--no-bins)  NO_BINS=:; unset BIN_PAIRS BIN_DIR; ;;
@@ -122,14 +124,23 @@ done
 # ---------------------------------------------------------------------------- #
 
 if [[ -z "${IDENT:-}" ]]; then
-  IDENT="$( $JQ -r '.name // "_undeclared"' "$FROM/package.json"; )";
-  if [[ "$IDENT" = '_undeclared' ]]; then
-    echo "$_as_me: Cannot install module which lacks an identifier/name" >&2;
-    exit 1;
+  if [[ -n "${NM_IS_TO:-}" ]]; then
+    IDENT="${NMDIR##*node_modules/}";
+  else
+    IDENT="$( $JQ -r '.name // "_undeclared"' "$FROM/package.json"; )";
+    if [[ "$IDENT" = '_undeclared' ]]; then
+      echo "$_as_me: Cannot install module which lacks an identifier/name" >&2;
+      exit 1;
+    fi
   fi
 fi
 
-TO="$NMDIR/$IDENT";
+if [[ -n "${NM_IS_TO:-}" ]]; then
+  TO="$NMDIR";
+  NMDIR="${TO%/"$IDENT"}";
+else
+  TO="$NMDIR/$IDENT";
+fi
 : "${NO_PERMS=}";
 : "${NO_PATCH=:}";
 : "${OWNER:=$( $ID -un; )}";
@@ -145,9 +156,9 @@ $CP -r --no-preserve=mode,ownership --preserve=timestamp --reflink=auto -T  \
     -- "$FROM" "$TO";
 if [[ -z "$NO_PERMS" ]]; then
   $CHOWN -R "$OWNER:$GROUP" "$TO";
-  pushd "$FROM";
+  pushd "$FROM" >/dev/null;
   $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
-  popd;
+  popd >/dev/null;
 fi
 
 
@@ -213,13 +224,13 @@ fi
 # ---------------------------------------------------------------------------- #
 
 if [[ -z "$NO_BINS$NO_PERMS" ]]; then
-  pushd "$TO";
+  pushd "$TO" >/dev/null;
   if [[ -n "${BIN_DIR:-}" ]]; then
     $CHMOD -r +wx "$BIN_DIR";
   else
     $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
   fi
-  popd;
+  popd >/dev/null;
 fi
 
 
