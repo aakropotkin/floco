@@ -143,7 +143,7 @@ in {
 
         If set to `null', `sourceInfo' must be set explicitly.
       '';
-      type = nt.nullOr ( nt.attrsOf ( nt.oneOf [nt.bool nt.str] ) );
+      type = nt.nullOr ( nt.attrsOf ( nt.oneOf [nt.bool nt.path nt.str] ) );
     };
 
 
@@ -341,6 +341,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
     metaFiles = lib.mkOption {
+      internal    = true;
       description = ''
         Misc. raw config info pulled from various config files.
         In general these are used to fill other fields as fallbacks when

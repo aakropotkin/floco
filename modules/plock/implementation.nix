@@ -38,6 +38,12 @@ in {
     inherit (plock) lockfileVersion;
     plents = let
       proc = plentKey: plentRaw: let
+        # We inherit these fields "as is" from the lockfile.
+        # Please note that some of these fields end up being ignored during
+        # translation for the time being; but future optimizations depend on
+        # these fields.
+        # As routines are migrated from `github:aameen-tulip/at-node-nix' these
+        # fields will be used again for various purposes.
         keeps = {
           version              = true;
           requires             = true;
@@ -48,6 +54,7 @@ in {
           peerDependenciesMeta = true;
           optionalDependencies = true;
           dev                  = true;
+          peer                 = true;
           optional             = true;
           os                   = true;
           cpu                  = true;
@@ -81,7 +88,7 @@ in {
       in ix // {
         inherit ident version;
 
-        key     = ident + "/" + version;
+        key = ident + "/" + version;
 
         engines = let
           proc = acc: eng: let

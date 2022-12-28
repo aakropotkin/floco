@@ -1,6 +1,19 @@
 # ============================================================================ #
 #
+# This is a naive implementation of an impure tranflator that does not use IFD.
+# Note that in the beta repository `github:aameen-tulip/at-node-nix' these same
+# processes can be done purely, and support a wider range of options concerning
+# fetchers; but for the time being I am focusing on migrating the simplest
+# translation flow.
 #
+# NOTE: This translator is designed for `package-lock.json' of
+# `lockfileVersion' 2 or 3.
+# The beta repository implements a version 1 translator; but that is not being
+# migrated at this time.
+# While I do plan to eventually migrate this - I strongly suggest that users
+# upgrade their projects to use the newer lockfile schema, since it carries
+# significant performance improvements for NPM usage ( `floco' routines perform
+# roughly the same using either lockfile, this isn't a bottleneck for us ).
 #
 # ---------------------------------------------------------------------------- #
 
@@ -37,6 +50,12 @@
   , engines
   , bin
   , resolved
+  # NOTE: We intentionally ignore hash fields, instead we operate under the
+  # assumption that translation will be run in impure mode, allowing optimized
+  # SHA256 hashes to be locked instead.
+  # In the beta repository `github:aameen-tulip/at-node-nix' there is an
+  # implementation which uses the `builtins:fetchurl' to purely convert SHA1 or
+  # SHA512 to SHA256, but that has not been migrated at this time.
   #, integrity
   #, sha1
   , link
@@ -69,6 +88,7 @@
           optionalDependencies
           requires
         ;
+        # We intentionally ignore `dev', `peer', and `optional' fields.
       };
     };
 
@@ -77,14 +97,11 @@
       plent = plock.packages.${plentKey};
     } // ( if plentKey != "" then {} else { inherit plock; } );
 
-    fsInfo = {
-      inherit gypfile;
-      dir = ".";
-    };
+    fsInfo = { inherit gypfile; dir = "."; };
 
     fetchInfo = if builtins.elem ltype ["dir" "link"] then {
       type = "path";
-      path = lockDir + "/" + resolved;
+      path = lockDir + ( "/" + resolved );
     } else {  # TODO: `github'
       type = ltype;
       url  = resolved;
@@ -97,7 +114,11 @@
 # ---------------------------------------------------------------------------- #
 
 in {
-
+  packages = let
+    proc = plentKey: plentRaw: ( lib.evalModules {
+      modules = [../pdef ( toPdef plentKey plentRaw )];
+    } ).config;
+  in builtins.attrValues ( builtins.mapAttrs proc plconf.config.plents );
 }
 
 # ---------------------------------------------------------------------------- #
