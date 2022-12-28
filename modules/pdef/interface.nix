@@ -635,6 +635,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
     _export = lib.mkOption {
+      internal    = true;
       description = ''
         This should never be explicitly defined by users or config files.
         This field exists to allow a locked representation of a package
