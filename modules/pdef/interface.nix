@@ -340,6 +340,16 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    # TODO: These fields really don't need to exist anymore since the NixOS
+    # module system itself already provides these abstractions.
+    # Because the entire beta repository uses `metaFiles.*' as its equivalent
+    # of `config.*' "submodules" I'm basically just including this as a
+    # temporary submodule to assist with migration.
+    #
+    # Whether or not this field will exist in the future is uncertain - but from
+    # the perspective of users these fields are strictly internal and the
+    # documentation below is eventually going to be moved into individual
+    # translators associated with each filetype.
     metaFiles = lib.mkOption {
       internal    = true;
       description = ''
@@ -365,22 +375,123 @@ in {
       '';
       type = nt.submodule {
         options = {
-          pjsDir  = lib.mkOption { type = nt.path; };
+          pjsDir = lib.mkOption {
+            description = ''
+              Path to the directory containing `package.json'.
+              We require this path so that we can fetch source trees declared as
+              relative paths in the `package.json' under `dependencies' ( and
+              similar ) and `workspaces' fields.
+
+              NOTE: If your `package.json' contains `../*' relative paths it is
+              strongly recommended that this option be set to a non-store path.
+              If a store path such as `/nix/store/xxxxx-source/../some-dir' is
+              given, Nix will crash and burn attempting to fetch `some-dir'.
+              A common trick to ensure that you are passing a regular filesystem
+              path is to stringize as: `pjsDir = toString ./.;'.
+            '';
+            type    = nt.path;
+            example = toString ./my-project;
+          };
+
           lockDir = lib.mkOption {
+            description = ''
+              Path to the directory containing `package-lock.json'.
+              We require this path so that we can fetch source trees declared as
+              relative paths in the lockfile.
+
+              NOTE: If your lockfile contains `../*' relative paths it is
+              strongly recommended that this option be set to a non-store path.
+              If a store path such as `/nix/store/xxxxx-source/../some-dir' is
+              given, Nix will crash and burn attempting to fetch `some-dir'.
+              A common trick to ensure that you are passing a regular filesystem
+              path is to stringize as: `lockDir = toString ./.;'.
+            '';
             type    = nt.nullOr nt.path;
             default = null;
+            example = toString ./my-project;
           };
-          packumentUrl  = lib.mkOption { type = nt.nullOr nt.str; };
+
+          packumentUrl = lib.mkOption {
+            description = ''
+              Registry URL where "packument" information can be fetched.
+              A packument contains information about all published versions of
+              a package, and is commonly used to resolve package `descriptors'
+              such as `^1.0.0' to a version such as `1.2.3'.
+
+              This field is optional and may be set to `null' to avoid looking
+              up projects which are not published to a registry, or to avoid
+              processing packument metadata.
+
+              NOTE: Processing packument metadata is not required when another
+              form metadata such as `treeInfo' or `depInfo' is available for
+              `floco' to construct a `node_modules/' tree with.
+              Packuments are most useful for extensions to `floco' to perform
+              tasks like auto-updating projects when new versions are published.
+            '';
+            type    = nt.nullOr nt.str;
+            default = null;
+            example = "https://registry.npmjs.org/lodash";
+          };
           packumentHash = lib.mkOption {
+            description = ''
+              SHA256 hash used to lock and purify fetching of
+              packument metadata.
+              In practice you likely want to automate updates to this hash since
+              it will be invalidated every time a new version of a package is
+              published to the registry.
+
+              To lock onto a specific version of a package you may find that the
+              `vinfo' metadata is better suited for locking.
+
+              See Also: packumentUrl, packumentRev, vinfoUrl
+            '';
             type    = nt.nullOr nt.str;
             default = null;
           };
-          packumentRev = lib.mkOption { type = nt.nullOr nt.str; };
-          vinfoUrl  = lib.mkOption { type = nt.nullOr nt.str; };
+          packumentRev = lib.mkOption {
+            description = ''
+              Revision information associated with a packument.
+              In combination with `packumentHash' this value could potentially
+              be used to immitate a Nix input's lockfile entry.
+
+              This revision information is provided under the `_rev' field of
+              a packument, and is formatted as `<REV-COUNT>-<COMMITISH-HASH>'.
+
+              NOTE: At time of writing this field is unused, but future
+              extensions to `floco' intend to use this field to write packument
+              information to `flake.lock'.
+            '';
+            type    = nt.nullOr nt.str;
+            default = null;
+            example = "2722-2d3b98d05acf18018581dd0b19bc2bfc";
+          };
+
+          vinfoUrl = lib.mkOption {
+            description = ''
+              Short for "version information".
+
+              Registry metadata concerning a specific version of a package.
+              This record is an expanded form of the
+              "abbreviated version information" found in a
+              `packument.versions.*' field.
+
+              Because `vinfo' records are almost never updated, if you intend to
+              lock and purify lookups of project metadata - it is strongly
+              recommended that you do so using `vinfo' rather an packument.
+            '';
+            type = nt.nullOr nt.str;
+            default = null;
+            example = "https://registry.npmjs.org/lodash/4.17.21";
+          };
           vinfoHash = lib.mkOption {
+            description = ''
+              SHA256 hash used to lock and purify fetching of
+              version-info metadata.
+            '';
             type = nt.nullOr nt.str;
             default = null;
           };
+
           metaRaw = lib.mkOption {
             description = ''
               Explicit metadata provided by users as a form of override or
@@ -394,31 +505,98 @@ in {
             type    = nt.attrsOf nt.anything;
             default = {};
           };
-          pjs   = lib.mkOption { type = nt.attrsOf nt.anything; };
+
+          pjs = lib.mkOption {
+            description = "Raw contents of `package.json'.";
+            type = nt.attrsOf nt.anything;
+          };
+
           plock = lib.mkOption {
+            description = ''
+              Raw contents of `package-lock.json'.
+
+              NOTE: This field must only be set when the "root" package in the
+              lockfile is associated this the package being declared.
+              Information concerning dependencies is instead stashed
+              in `metaFiles.plent.*'.
+
+              See Also: plent
+            '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
           };
+
           plent = lib.mkOption {
+            description = ''
+              Raw contents of a `package-lock.json:.packages.*' record.
+
+              See Also: plock plentKey
+            '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
           };
+
           vinfo = lib.mkOption {
+            description = ''
+              Raw contents from a package registry concerning a specific version
+              of a package/module.
+
+              See Also: vinfoUrl, packument
+            '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
           };
+
           packument = lib.mkOption {
+            description = ''
+              Raw contents from a package registry concerning all published
+              versions of a package/module.
+
+              See Also: packumentUrl, vinfo
+            '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
           };
+
           trees = lib.mkOption {
+            description = ''
+              Raw `treeInfo' style metadata, conventionally being sets of
+              `{ test = { "node_modules/@foo/bar" = "@foo/bar/1.0.0"; ... }; }'
+              mappings used for deriving a full `treeInfo' record.
+
+              NOTE: It is strongly recommended that users write `treeInfo'
+              directly if they wish to declare those settings.
+              This attribute exists for interop with the beta implementation of
+              `floco' ( `github:aameen-tulip/at-node-nix' ).
+            '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
           };
-          pjsKey   = lib.mkOption { type = nt.str; default = ""; };
+
+          pjsKey = lib.mkOption {
+            description = ''
+              For `package.json' files with workspaces, the `pjsKey' is used to
+              identify a workspace member.
+
+              These keys are simply a relative path from the "root" `pjsDir' to
+              a sub-project's `pjsDir'.
+
+              NOTE: This field is currently unused by `floco', but is future
+              extensions will use it to support workspaces.
+            '';
+            type    = nt.str;
+            default = "";
+          };
+
           plentKey = lib.mkOption {
-            type = nt.nullOr nt.str;
+            description = ''
+              The key used to lookup a plent in `package-lock.json:.packages.*'.
+              This key is a relative path from `lockDir' to the prospective
+              `pjsDir' of a package/module.
+            '';
+            type    = nt.nullOr nt.str;
             default = null;
+            example = "node_modules/@babel/core/node_modules/semver";
           };
         };
       };
