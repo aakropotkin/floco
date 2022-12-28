@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# This is a naive implementation of an impure tranflator that does not use IFD.
+# This is a naive implementation of an impure translator that does not use IFD.
 # Note that in the beta repository `github:aameen-tulip/at-node-nix' these same
 # processes can be done purely, and support a wider range of options concerning
 # fetchers; but for the time being I am focusing on migrating the simplest
@@ -65,8 +65,8 @@
   } @ plent: let
     pp    = lib.generators.toPretty {} plent;
     ltype = if plentKey == "" then "dir" else
-            if lib.hasPrefix "." plentKey then "dir" else
             if link then "link" else
+            if lib.hasPrefix "." plentKey then "dir" else
             if lib.hasPrefix "git+" resolved then "git" else
             if lib.hasPrefix "https" resolved then "file" else
             throw "Unable to derived lifecycle type from entry: '${pp}'.";
