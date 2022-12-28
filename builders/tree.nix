@@ -1,8 +1,22 @@
 # ============================================================================ #
 #
+# Produces a `node_moules/' tree from either a `pathTree' or `keyTree' and
+# `flocoPackages' structure(s).
 #
+# This is a draft implementation based on the `mkNmDirCmd' builder in
+# `github:aameen-tulip/at-node-nix', deferring to `install-module.sh' to do
+# most processing.
+#
+# This implementation makes no attempt to optimize the install process using
+# package metadata making it slow but reliable.
+# This should serve as a baseline for optimized implementations that leverage
+# known pacakge/module information to flatten/inline calls to `cp' and `ln'.
+# While those optimizations make a significant impact on performance; they are
+# difficult to trace, and having "ol' reliable" available in times of need is
+# a necessity.
 #
 # ---------------------------------------------------------------------------- #
+
 let
 
   keyToPath = lib: fpkgs: key: let
@@ -74,6 +88,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
 in checkDotDot drv
+
 
 # ---------------------------------------------------------------------------- #
 #
