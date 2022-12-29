@@ -13,7 +13,8 @@
   builder = "${pkgsFor.bash}/bin/bash";
   PATH    = "${pkgsFor.coreutils}/bin:${pkgsFor.findutils}/bin:" +
             "${pkgsFor.jq}/bin:${pkgsFor.bash}/bin";
-  args = ["-exc" ''
+  args = ["-euc" ''
+    set -o pipefail;
     install-module() { bash "$install_module" "$@"; };
     install-module "$lodash" "$out/node_modules";
     ls -Rla "$out" >&2;

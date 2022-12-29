@@ -31,7 +31,24 @@ run_test() {
 
 # ---------------------------------------------------------------------------- #
 
-run_test "Packages Module" ./tests/modules/packages/check.sh;
+: "${NIX:=nix}";
+: "${REALPATH:=realpath}"
+
+SPATH="$( $REALPATH "${BASH_SOURCE[0]}"; )";
+SDIR="${SPATH%/*}";
+
+
+# ---------------------------------------------------------------------------- #
+
+run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
+
+run_test "install-module lodash"                   \
+  $NIX build --no-link --show-trace                \
+       -f "$SDIR/tests/setup/lodash-install.nix";
+
+run_test "run-script trivial"                  \
+  $NIX build --no-link --show-trace            \
+       -f "$SDIR/tests/setup/run-script.nix";
 
 
 # ---------------------------------------------------------------------------- #

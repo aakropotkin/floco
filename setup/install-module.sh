@@ -104,7 +104,10 @@ while [[ "$#" -gt 0 ]]; do
       declare -a _args;
       _args=();
       shift;
-      while read -r -N1 opt; do
+      while read -r -n1 opt; do
+        if [[ -z "$opt" ]]; then
+          break;
+        fi
         _args+=( "-$opt" );
       done <<<"${_arg#-}";
       set -- "${_args[@]}" "$@";
@@ -121,6 +124,11 @@ while [[ "$#" -gt 0 ]]; do
     -S|--no-patch) NO_PATCH=:; unset NODEJS; ;;
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
+    -?|--*)
+      echo "$_as_me: Unrecognized option: '$1'" >&2;
+      usage -f >&2;
+      exit 1;
+    ;;
     *)
       if [[ -z "${FROM:-}" ]]; then
         FROM="$( $REALPATH -m "$1"; )";

@@ -88,7 +88,10 @@ while [[ "$#" -gt 0 ]]; do
       declare -a _args;
       _args=();
       shift;
-      while read -r -N1 opt; do
+      while read -r -n1 opt; do
+        if [[ -z "$opt" ]]; then
+          break;
+        fi
         _args+=( "-$opt" );
       done <<<"${_arg#-}";
       set -- "${_args[@]}" "$@";
@@ -103,6 +106,11 @@ while [[ "$#" -gt 0 ]]; do
     -i|--ignore-missing)    IGNORE_MISSING=:; ;;
     -u|--usage)             usage;    exit 0; ;;
     -h|--help)              usage -f; exit 0; ;;
+    -?|--*)
+      echo "$_as_me: Unrecognized option: '$1'" >&2;
+      usage -f >&2;
+      exit 1;
+    ;;
     *)                      SCRIPTS+=( "$1" ); ;;
   esac
   shift;
