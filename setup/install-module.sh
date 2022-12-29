@@ -26,17 +26,19 @@ _help_msg="
 $_usage_msg
 
 OPTIONS
-  -t,--to         Treat \`NM-DIR' as literal install dir as \`node_modules/foo'
-  -i,--ident ID   Treat \`ID' as the package identifier/name
-  -b,--bins       Force processing of bins
-  -B,--no-bins    Skip processing bins
-  -p,--perms      Force fixing of \`FROM' permissions for +wrx dirs, and +x bins
-  -P,--no-perms   Skip checking of \`FROM' permissions, copy them \"as is\"
-  -s,--patch      Force patching shebangs
-  -S,--no-patch   Skip patching shebangs
-  -u,--usage      Print usage message to STDOUT
-  -h,--help       Print this message to STDOUT
-  -V,--version    Print version to STDOUT
+  -t,--to             Treat \`NM-DIR' as literal install dir
+  -i,--ident ID       Treat \`ID' as the package identifier/name
+  -b,--bins           Force processing of bins
+  -B,--no-bins        Skip processing bins
+  -p,--perms          Force fixing of \`FROM' permissions for dirs and bins
+  -P,--no-perms       Skip checking of \`FROM' permissions, copy them \"as is\"
+  -s,--patch          Force patching shebangs
+  -S,--no-patch       Skip patching shebangs
+  -l,--bin-links      Force creation of executable symlinks
+  -L,--no-bin-links   Skip creation of executable symlinks
+  -u,--usage          Print usage message to STDOUT
+  -h,--help           Print this message to STDOUT
+  -V,--version        Print version to STDOUT
 
 ENVIRONMENT
 The following environment variables may be used unless explicitly overridden by
@@ -47,32 +49,33 @@ reading the contents of \`package.json'.
 Variables marked as \"Bool\" are treated as false when unset or set to the empty
 string, or true for any non-empty value.
 
-  IDENT       Treat \`IDENT' as the package identifier/name.
-  NO_BINS     Skip processing of bins if non-empty. ( Bool )
-  BIN_PAIRS   Space separated tuples of executables to be installed as:
-              \`BIN-NAME,REL-PATH BIN-NAME2,REL-PATH...\'
-  BIN_DIR     Relative path to directory containing scripts to be installed as
-              executables ( drops any extension for exposed bin ).
-              This variable is ignored if \`BIN_PAIRS' is non-empty.
-  NO_PERMS    Skip checking/fixup of directory and executable permissions
-              when non-empty. ( Bool )
-  NO_PATCH    Skip patching shebangs in scripts when non-empty. ( Bool )
-  NODEJS      Absolute path to \`node' executable.
-              May be omitted if patching shebangs is disabled.
-  JQ          Absolute path to \`jq' executable. ( Optional )
-              May be omitted if \`IDENT' is known and any \`*BIN*' variable is
-              is non-empty ( it is only needed to read \`package.json' ).
-  ID          Absolute path to \`id' executable.    ( Optional )
-  CHMOD       Absolute path to \`chmod' executable. ( Optional )
-  CHOWN       Absolute path to \`chown' executable. ( Optional )
-  MKDIR       Absolute path to \`mkdir' executable. ( Optional )
-  CP          Absolute path to \`cp' executable.    ( Optional )
-              This is useful for adding additional flags or wrapping the
-              program used to copy files.
-  LN          Absolute path to \`ln' executable.       ( Optional )
-  REALPATH    Absolute path to \`realpath' executable. ( Optional )
-  FIND        Absolute path to \`find' executable.     ( Optional )
-  BASH        Absolute path to \`bash' executable.     ( Optional )
+  IDENT         Treat \`IDENT' as the package identifier/name.
+  NO_BINS       Skip processing of bins if non-empty. ( Bool )
+  BIN_PAIRS     Space separated tuples of executables to be installed as:
+                \`BIN-NAME,REL-PATH BIN-NAME2,REL-PATH...\'
+  BIN_DIR       Relative path to directory containing scripts to be installed as
+                executables ( drops any extension for exposed bin ).
+                This variable is ignored if \`BIN_PAIRS' is non-empty.
+  NO_BIN_LINKS  Skip creation of executable symlinks. ( Bool )
+  NO_PERMS      Skip checking/fixup of directory and executable permissions
+                when non-empty. ( Bool )
+  NO_PATCH      Skip patching shebangs in scripts when non-empty. ( Bool )
+  NODEJS        Absolute path to \`node' executable.
+                May be omitted if patching shebangs is disabled.
+  JQ            Absolute path to \`jq' executable. ( Optional )
+                May be omitted if \`IDENT' is known and any \`*BIN*' variable is
+                is non-empty ( it is only needed to read \`package.json' ).
+  ID            Absolute path to \`id' executable.    ( Optional )
+  CHMOD         Absolute path to \`chmod' executable. ( Optional )
+  CHOWN         Absolute path to \`chown' executable. ( Optional )
+  MKDIR         Absolute path to \`mkdir' executable. ( Optional )
+  CP            Absolute path to \`cp' executable.    ( Optional )
+                This is useful for adding additional flags or wrapping the
+                program used to copy files.
+  LN            Absolute path to \`ln' executable.       ( Optional )
+  REALPATH      Absolute path to \`realpath' executable. ( Optional )
+  FIND          Absolute path to \`find' executable.     ( Optional )
+  BASH          Absolute path to \`bash' executable.     ( Optional )
 ";
 
 
@@ -117,17 +120,19 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg _args;
       continue;
     ;;
-    -t|--to)       NM_IS_TO=:; ;;
-    -i|--ident)    IDENT="$1"; shift; ;;
-    -b|--bins)     NO_BINS=''; ;;
-    -B|--no-bins)  NO_BINS=:; unset BIN_PAIRS BIN_DIR; ;;
-    -p|--perms)    NO_PERMS=''; ;;
-    -P|--no-perms) NO_PERMS=:; unset CHMOD; ;;
-    -s|--patch)    NO_PATCH=''; ;;
-    -S|--no-patch) NO_PATCH=:; unset NODEJS; ;;
-    -u|--usage)    usage;    exit 0; ;;
-    -h|--help)     usage -f; exit 0; ;;
-    -v|--version)  echo "$_version"; exit 0; ;;
+    -t|--to)           NM_IS_TO=:; ;;
+    -i|--ident)        IDENT="$1"; shift; ;;
+    -b|--bins)         NO_BINS=''; ;;
+    -B|--no-bins)      NO_BINS=:; unset BIN_PAIRS BIN_DIR; ;;
+    -p|--perms)        NO_PERMS=''; ;;
+    -P|--no-perms)     NO_PERMS=:; ;;
+    -s|--patch)        NO_PATCH=''; ;;
+    -S|--no-patch)     NO_PATCH=:; unset NODEJS; ;;
+    -l|--bin-links)    NO_BIN_LINKS=; ;;
+    -L|--no-bin-links) NO_BIN_LINKS=:; ;;
+    -u|--usage)        usage;    exit 0; ;;
+    -h|--help)         usage -f; exit 0; ;;
+    -v|--version)      echo "$_version"; exit 0; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
@@ -169,6 +174,7 @@ if [[ -n "${NM_IS_TO:-}" ]]; then
 else
   TO="$NMDIR/$IDENT";
 fi
+: "${NO_BIN_LINKS=}";
 : "${NO_PERMS=}";
 : "${NO_PATCH=:}";
 : "${OWNER:=$( $ID -un; )}";
@@ -279,7 +285,7 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -z "$NO_BINS" ]]; then
+if [[ -z "$NO_BINS$NO_BIN_LINKS" ]]; then
   $MKDIR -p "$NMDIR/.bin";
   for bp in $BIN_PAIRS; do
     $LN -sr -- "$TO/${bp#*,}" "$NMDIR/.bin/${bp%,*}";

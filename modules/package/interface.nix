@@ -15,6 +15,8 @@ in {
 
   options = {
 
+  pkgs = lib.mkOption { type = nt.raw; };
+
 # ---------------------------------------------------------------------------- #
 
     key = lib.mkOption {
