@@ -1,3 +1,13 @@
+# ============================================================================ #
+#
+# Tests the use of `run-scripts.sh' on a trivial project.
+#
+# This test does not search for `node_modules/.bin' directories in parent paths,
+# but does ensure that the flags `-i' and `-I' for `--[no-]ignore-missing'
+# works properly.
+#
+# ---------------------------------------------------------------------------- #
+
 { nixpkgs    ? builtins.getFlake "nixpkgs"
 , system     ? builtins.currentSystem
 , pkgsFor    ? nixpkgs.legacyPackages.${system}
@@ -7,8 +17,7 @@
   name    = "run-script-trivial";
   builder = "${pkgsFor.bash}/bin/bash";
   PATH    = "${pkgsFor.coreutils}/bin:${pkgsFor.jq}/bin:${pkgsFor.bash}/bin";
-  args = ["-euc" ''
-    set -o pipefail;
+  args = ["-eu" "-o" "pipefail" "-c" ''
     cat <<EOF >package.json
     {
       "name":    "@floco/test",
@@ -20,9 +29,16 @@
       }
     }
     EOF
-    bash -c "$run_script -BPi prebuild build postbuild";
-    bash -c "$run_script -BPI test"|tee "$out";
+    bash -eu "$run_script" -BPi prebuild build postbuild;
+    bash -eu "$run_script" -BPI test|tee "$out";
   ''];
   preferLocalBuild = true;
   allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
 }
+
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #

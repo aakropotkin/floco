@@ -1,3 +1,16 @@
+# ============================================================================ #
+#
+# Tests the use of `install-module.sh' on a trivial project: `lodash'.
+#
+# This test is the "softball" case since this package has no `bin' executables,
+# and its default permissions when unpacked are suitable for consumption.
+#
+# The only real aspect of this test we may want to pay attention to is how
+# file modification time and file ownership are treated once installed; however
+# this test case will not PASS/FAIL based on these values.
+#
+# ---------------------------------------------------------------------------- #
+
 { nixpkgs ? builtins.getFlake "nixpkgs"
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
@@ -13,12 +26,17 @@
   builder = "${pkgsFor.bash}/bin/bash";
   PATH    = "${pkgsFor.coreutils}/bin:${pkgsFor.findutils}/bin:" +
             "${pkgsFor.jq}/bin:${pkgsFor.bash}/bin";
-  args = ["-euc" ''
-    set -o pipefail;
-    install-module() { bash "$install_module" "$@"; };
-    install-module "$lodash" "$out/node_modules";
+  args = ["-eu" "-o" "pipefail" "-c" ''
+    bash -eu "$install_module" "$lodash" "$out/node_modules";
     ls -Rla "$out" >&2;
   ''];
   preferLocalBuild = true;
   allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
 }
+
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #

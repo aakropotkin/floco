@@ -173,7 +173,7 @@ for s in "${SCRIPTS[@]}"; do
     continue;
   fi
   # TODO: set `npm_config_*' vars
-  $BASH -euc "set -o pipefail; $body";
+  $BASH -eu -o pipefail -c "$body";
 done
 
 
