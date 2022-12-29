@@ -12,6 +12,8 @@ set -o pipefail
 
 _as_me='floco run';
 
+_version='0.1.0';
+
 _usage_msg="
 run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
 
@@ -31,6 +33,7 @@ OPTIONS
   -B,--no-parent-bins     Do not search up for bin directories
   -u,--usage              Print usage message to STDOUT
   -h,--help               Print this message to STDOUT
+  -V,--version            Print version to STDOUT
 
 ENVIRONMENT
 The following environment variables may be used to locate various executables
@@ -55,20 +58,6 @@ usage() {
   echo "$_usage_msg";
   [[ "${1:-}" = "-f" ]] && echo "$_help_msg";
 }
-
-
-# ---------------------------------------------------------------------------- #
-
-if [[ ! -r ./package.json ]]; then
-  if [[ ! -e ./package.json ]]; then
-    echo "$_as_me: No \`$PWD/package.json' file found." >&2;
-  else
-    echo "$_as_me: Cannot read \`$PWD/package.json'." >&2;
-  fi
-  echo '' >&2;
-  usage >&2;
-  exit 1;
-fi
 
 
 # ---------------------------------------------------------------------------- #
@@ -106,6 +95,7 @@ while [[ "$#" -gt 0 ]]; do
     -i|--ignore-missing)    IGNORE_MISSING=:; ;;
     -u|--usage)             usage;    exit 0; ;;
     -h|--help)              usage -f; exit 0; ;;
+    -v|--version)           echo "$_version"; exit 0; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
@@ -122,6 +112,20 @@ done
 
 if [[ "${#SCRIPTS[@]}" -le 0 ]]; then
   echo "$_as_me: You must provide the names of one or more scripts." >&2;
+  usage >&2;
+  exit 1;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+if [[ ! -r ./package.json ]]; then
+  if [[ ! -e ./package.json ]]; then
+    echo "$_as_me: No \`$PWD/package.json' file found." >&2;
+  else
+    echo "$_as_me: Cannot read \`$PWD/package.json'." >&2;
+  fi
+  echo '' >&2;
   usage >&2;
   exit 1;
 fi

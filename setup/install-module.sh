@@ -13,6 +13,8 @@ set -o pipefail;
 
 _as_me='floco install-module';
 
+_version='0.1.0';
+
 _usage_msg="
 install-module.sh [OPTIONS] FROM NM-DIR
 
@@ -34,6 +36,7 @@ OPTIONS
   -S,--no-patch   Skip patching shebangs
   -u,--usage      Print usage message to STDOUT
   -h,--help       Print this message to STDOUT
+  -V,--version    Print version to STDOUT
 
 ENVIRONMENT
 The following environment variables may be used unless explicitly overridden by
@@ -124,6 +127,7 @@ while [[ "$#" -gt 0 ]]; do
     -S|--no-patch) NO_PATCH=:; unset NODEJS; ;;
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
+    -v|--version)  echo "$_version"; exit 0; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
