@@ -244,6 +244,7 @@ if [[ -z "$NO_BINS$NO_PERMS" ]]; then
   if [[ -n "${BIN_DIR:-}" ]]; then
     $CHMOD -r +wx "$BIN_DIR";
   else
+    # shellcheck disable=SC2046
     $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
   fi
   popd >/dev/null;
