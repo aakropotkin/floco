@@ -74,4 +74,4 @@ jobs:
           #nix registry add head "github:aakropotkin/floco/$GITHUB_REF";
 
       - name: Checks
-        run: ./checks.sh
+        run: ./check.sh
