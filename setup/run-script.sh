@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-#
+# Run one or more scripts from \`package.json' in a wrapped runtime environment.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -23,18 +23,24 @@ _help_msg="
 $_usage_msg
 
 OPTIONS
-  -P,--no-modify-path   Do not modify \`PATH' with bin directories
-  -i,--ignore-missing   Do not throw an error if a script is undefined
-  -B,--no-parent-bins   Do not search up for bin directories
-  -u,--usage            Print usage message to STDOUT
-  -h,--help             Print this message to STDOUT
+  -p,--modify-path        Force modification of \`PATH' with bin directories
+  -P,--no-modify-path     Do not modify \`PATH' with bin directories
+  -I,--no-ignore-missing  Throw an error if a script is undefined
+  -i,--ignore-missing     Do not throw an error if a script is undefined
+  -b,--parent-bins        Force searching up for bin directories
+  -B,--no-parent-bins     Do not search up for bin directories
+  -u,--usage              Print usage message to STDOUT
+  -h,--help               Print this message to STDOUT
 
 ENVIRONMENT
 The following environment variables may be used to locate various executables
 or in place of options/flags.
+
+Variables marked as \"Bool\" are treated as false when unset or set to the empty
+string, or true for any non-empty value.
 Presence of flags will always take priority over environment variables.
 
-  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.
+  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories. ( Bool )
   NO_PARENT_BINS    Do not search up for bin directories.
   IGNORE_MISSING    Do not throw an error if a script is undefined.
                     Setting to any non-empty string enables this setting.
@@ -77,12 +83,15 @@ SCRIPTS=();
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
-    -P|--no-modify-path) NO_MODIFY_PATH=:; ;;
-    -B|--no-parent-bins) NO_PARENT_BINS=:; ;;
-    -i|--ignore-missing) IGNORE_MISSING=:; ;;
-    -u|--usage)          usage;    exit 0; ;;
-    -h|--help)           usage -f; exit 0; ;;
-    *)                   scripts+=( "$1" ); ;;
+    -p|--modify-path)       NO_MODIFY_PATH=; ;;
+    -P|--no-modify-path)    NO_MODIFY_PATH=:; ;;
+    -b|--parent-bins)       NO_PARENT_BINS=; ;;
+    -B|--no-parent-bins)    NO_PARENT_BINS=:; ;;
+    -I|--no-ignore-missing) IGNORE_MISSING=; ;;
+    -i|--ignore-missing)    IGNORE_MISSING=:; ;;
+    -u|--usage)             usage;    exit 0; ;;
+    -h|--help)              usage -f; exit 0; ;;
+    *)                      SCRIPTS+=( "$1" ); ;;
   esac
   shift;
 done
@@ -102,7 +111,9 @@ fi
 
 # Set `PATH', adding bin directories
 if [[ -z "$NO_MODIFY_PATH" ]]; then
-  PATH="$PATH:$PWD/node_modules/.bin";
+  if [[ -d "$PWD/node_modules/.bin" ]]; then
+    PATH="$PATH:$PWD/node_modules/.bin";
+  fi
   # Search upwards into parent directories for additional `node_modules/.bin'
   # directories until finding a `.git/' directory, a nix store ceiling,
   # or the filesystem root.
@@ -123,7 +134,26 @@ if [[ -z "$NO_MODIFY_PATH" ]]; then
     done
     unset _curr;
   fi
+  export PATH;
 fi
+
+
+# ---------------------------------------------------------------------------- #
+
+for s in "${SCRIPTS[@]}"; do
+  body="$(
+    $JQ -r --arg sname "$s" '.scripts[$sname] // null' ./package.json;
+  )";
+  if [[ "$body" = 'null' ]]; then
+    if [[ -z "$IGNORE_MISSING" ]]; then
+      echo "$_as_me: No script \`$s' is defined." >&2;
+      exit 1;
+    fi
+    continue;
+  fi
+  # TODO: set `npm_config_*' vars
+  $BASH -euc "set -o pipefail; $body";
+done
 
 
 # ---------------------------------------------------------------------------- #
