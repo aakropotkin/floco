@@ -43,10 +43,9 @@ Presence of flags will always take priority over environment variables.
   NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.     ( Bool )
   NO_PARENT_BINS    Do not search up for bin directories.           ( Bool )
   IGNORE_MISSING    Do not throw an error if a script is undefined. ( Bool )
-                    Setting to any non-empty string enables this setting.
-  NODEJS            Absolute path to \`node' executable.     ( Optional )
-  JQ                Absolute path to \`jq' executable.       ( Optional )
-  BASH              Absolute path to \`bash' executable.     ( Optional )
+  NODEJS            Absolute path to \`node' executable.            ( Optional )
+  JQ                Absolute path to \`jq' executable.              ( Optional )
+  BASH              Absolute path to \`bash' executable.            ( Optional )
 ";
 
 
@@ -83,6 +82,7 @@ SCRIPTS=();
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    # Split short options such as `-abc' -> `-a -b -c'
     -[^-]?*)
       _arg="$1";
       declare -a _args;

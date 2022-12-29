@@ -98,6 +98,7 @@ unset FROM NMDIR TO NM_IS_TO;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    # Split short options such as `-abc' -> `-a -b -c'
     -[^-]?*)
       _arg="$1";
       declare -a _args;
