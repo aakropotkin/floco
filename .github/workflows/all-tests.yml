@@ -1,0 +1,77 @@
+name: All Tests
+on:
+  push:
+    branches:
+      -  main
+    paths:
+      - .github/workflows/all-tests.yml
+      - '!**/README*'
+      - builders/**
+      - tests/**
+      - modules/**
+      - setup/**
+      
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/all-tests.yml
+      - '!**/README*'
+      - builders/**
+      - tests/**
+      - modules/**
+      - setup/**
+      
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  all-tests:
+    runs-on: ubuntu-latest
+    env:
+      SYSTEM: x86_64-linux
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: cachix/install-nix-action@11f4ad19be46fd34c005a2864996d8f197fb51c6
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-22.05
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            substituters = https://cache.nixos.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+            max-jobs = auto
+            cores = 0
+            substitute = true
+            builders-use-substitutes = true
+            fallback = true
+            connect-timeout = 5
+            stalled-download-timeout = 90
+            timeout = 0
+
+      - uses: cachix/cachix-action@d035f0e386f7e6337c647d9bf46dad8e13274eb9
+        with:
+          name: floco
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+            
+      - name: Setup
+        run: |
+          mkdir -p /home/runner/.ssh;
+          ssh-keyscan github.com >> /home/runner/.ssh/known_hosts;
+          echo "${{ secrets.FLOCO_SSH_KEY }}" > /home/runner/.ssh/id_rsa;
+          echo "${{ secrets.FLOCO_SSH_PUBKEY }}" > /home/runner/.ssh/id_rsa.pub;
+          chmod 600 /home/runner/.ssh/id_rsa;
+          ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null;
+          ssh-add /home/runner/.ssh/id_rsa;
+          git config --global user.email "alex.ameen.tx@gmail.com";
+          git config --global user.name "Floco GHA";
+
+          echo "# ============================================================================ #" >&2;
+          { printf '    bash   version: '; bash   --version|head -n1; } >&2;
+          { printf '    nix    version: '; nix    --version; } >&2;
+          echo "# ---------------------------------------------------------------------------- #" >&2;
+          # Register aliases to avoid the long ref
+          #nix registry add head "github:aakropotkin/floco/$GITHUB_REF";
+
+      - name: Checks
+        run: ./checks.sh
