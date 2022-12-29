@@ -41,16 +41,19 @@ options/flags mentioned above.
 These variables are not required, but may be used as an optimization to skip
 reading the contents of \`package.json'.
 
+Variables marked as \"Bool\" are treated as false when unset or set to the empty
+string, or true for any non-empty value.
+
   IDENT       Treat \`IDENT' as the package identifier/name.
-  NO_BINS     Skip processing of bins if non-empty. 
+  NO_BINS     Skip processing of bins if non-empty. ( Bool )
   BIN_PAIRS   Space separated tuples of executables to be installed as:
               \`BIN-NAME,REL-PATH BIN-NAME2,REL-PATH...\'
   BIN_DIR     Relative path to directory containing scripts to be installed as
               executables ( drops any extension for exposed bin ).
               This variable is ignored if \`BIN_PAIRS' is non-empty.
   NO_PERMS    Skip checking/fixup of directory and executable permissions
-              when non-empty.
-  NO_PATCH    Skip patching shebangs in scripts when non-empty.
+              when non-empty. ( Bool )
+  NO_PATCH    Skip patching shebangs in scripts when non-empty. ( Bool )
   NODEJS      Absolute path to \`node' executable.
               May be omitted if patching shebangs is disabled.
   JQ          Absolute path to \`jq' executable. ( Optional )
@@ -95,6 +98,18 @@ unset FROM NMDIR TO NM_IS_TO;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    -[^-]?*)
+      _arg="$1";
+      declare -a _args;
+      _args=();
+      shift;
+      while read -r -N1 opt; do
+        _args+=( "-$opt" );
+      done <<<"${_arg#-}";
+      set -- "${_args[@]}" "$@";
+      unset _arg _args;
+      continue;
+    ;;
     -t|--to)       NM_IS_TO=:; ;;
     -i|--ident)    IDENT="$1"; shift; ;;
     -b|--bins)     NO_BINS=''; ;;

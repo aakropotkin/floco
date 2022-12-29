@@ -40,9 +40,9 @@ Variables marked as \"Bool\" are treated as false when unset or set to the empty
 string, or true for any non-empty value.
 Presence of flags will always take priority over environment variables.
 
-  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories. ( Bool )
-  NO_PARENT_BINS    Do not search up for bin directories.
-  IGNORE_MISSING    Do not throw an error if a script is undefined.
+  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.     ( Bool )
+  NO_PARENT_BINS    Do not search up for bin directories.           ( Bool )
+  IGNORE_MISSING    Do not throw an error if a script is undefined. ( Bool )
                     Setting to any non-empty string enables this setting.
   NODEJS            Absolute path to \`node' executable.     ( Optional )
   JQ                Absolute path to \`jq' executable.       ( Optional )
@@ -83,6 +83,18 @@ SCRIPTS=();
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    -[^-]?*)
+      _arg="$1";
+      declare -a _args;
+      _args=();
+      shift;
+      while read -r -N1 opt; do
+        _args+=( "-$opt" );
+      done <<<"${_arg#-}";
+      set -- "${_args[@]}" "$@";
+      unset _arg _args;
+      continue;
+    ;;
     -p|--modify-path)       NO_MODIFY_PATH=; ;;
     -P|--no-modify-path)    NO_MODIFY_PATH=:; ;;
     -b|--parent-bins)       NO_PARENT_BINS=; ;;
