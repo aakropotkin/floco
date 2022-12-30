@@ -34,7 +34,7 @@ in {
       description = ''
         Package's declared metadata normalized as `pdef' submodule.
       '';
-      type = nt.submoduleWith { modules = [../pdef]; };
+      type = nt.submodule ../pdef;
     };
 
 
@@ -53,6 +53,18 @@ in {
         module of an "unpatched" point of reference to work with.
       '';
       type = nt.package;
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
+    trees = lib.mkOption {
+      type = nt.submodule {
+        freeformType = nt.attrsOf nt.package;
+        prod = lib.mkOption { type = nt.nullOr nt.package; default = null; };
+        dev  = lib.mkOption { type = nt.nullOr nt.package; default = null; };
+      };
+      default = { prod = null; dev = null; };
     };
 
 
