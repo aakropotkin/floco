@@ -103,15 +103,19 @@
       # Locks `fetchInfo'
       fii = import ../fetchInfo/implementations.nix { inherit lib; };
     in if builtins.elem ltype ["dir" "link"] then {
-      type = "path";
-      path = lockDir + ( "/" + resolved );
-    } else fii.fetchInfo {  # TODO: `github'
-      config.type = ltype;
+      path = if resolved == "." then lockDir else lockDir + ( "/" + resolved );
+    } else fii.fetchTree.any {  # TODO: `github'
+      config.type = if ltype == "file" then "tarball" else "git";
       config.url  = resolved;
     };
 
     # TODO: lifecycle
   };
+
+
+# ---------------------------------------------------------------------------- #
+
+  # TODO: treeInfo
 
 
 # ---------------------------------------------------------------------------- #

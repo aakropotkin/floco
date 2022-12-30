@@ -1,0 +1,7 @@
+{
+  "name": "@floco/test",
+  "version": "4.2.0",
+  "dependencies": {
+    "@babel/core": "^7.20.7"
+  }
+}

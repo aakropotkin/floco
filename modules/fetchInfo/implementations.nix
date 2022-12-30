@@ -69,8 +69,9 @@
     } // config;
 
     fetchInfo = { config, ... } @ args:
-      if config ? type then optDefs.fetchTree.${config.type} args else
-      optDefs.path args;
+      if optDefs.fetchTree ? ${config.type or "unknown"}
+      then optDefs.fetchTree.${config.type} args
+      else optDefs.path args;
 
   };  # End `optDefs'
 

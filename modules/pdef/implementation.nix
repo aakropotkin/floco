@@ -114,7 +114,7 @@
         in "https://registry.npmjs.org/${config.ident}/-/" +
            "${bname}-${version}.tgz";
       } // ( config.metaFiles.metaRaw.fetchInfo or {} );
-    in lib.mkDefault ( fii.fetchInfo { config = unlocked; } );
+    in lib.mkDefault ( fii.fetchTree.tarball { config = unlocked; } );
 
 
     sourceInfo = let
@@ -153,14 +153,18 @@
 
 # ---------------------------------------------------------------------------- #
 
-    metaFiles.packumentUrl =
-      lib.mkDefault "https://registry.npmjs.org/${config.ident}";
+    metaFiles.packumentUrl = lib.mkDefault (
+      if config.ltype != "file" then null else
+      "https://registry.npmjs.org/${config.ident}"
+    );
 
-    metaFiles.packumentHash =
-      lib.mkDefault ( builtins.fetchTree {
+    metaFiles.packumentHash = lib.mkDefault (
+      if config.metaFiles.packumentUrl == null then null else
+      ( builtins.fetchTree {
         type = "file";
         url  = config.metaFiles.packumentUrl;
-      } ).narHash;
+      } ).narHash
+    );
 
     metaFiles.packument = let
       fetched = builtins.fetchTree {
@@ -180,14 +184,18 @@
 
 # ---------------------------------------------------------------------------- #
 
-    metaFiles.vinfoUrl =
-      "https://registry.npmjs.org/${config.ident}/${config.version}";
+    metaFiles.vinfoUrl = lib.mkDefault (
+      if config.ltype != "file" then null else
+      "https://registry.npmjs.org/${config.ident}/${config.version}"
+    );
 
-    metaFiles.vinfoHash =
-      lib.mkDefault ( builtins.fetchTree {
+    metaFiles.vinfoHash = lib.mkDefault (
+      if config.metaFiles.vinfoUrl == null then null else
+      ( builtins.fetchTree {
         type = "file";
         url  = config.metaFiles.vinfoUrl;
-      } ).narHash;
+      } ).narHash
+    );
 
     metaFiles.vinfo = let
       fetched = builtins.fetchTree {

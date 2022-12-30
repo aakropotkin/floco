@@ -9,6 +9,7 @@
 
 # ---------------------------------------------------------------------------- #
 
+  nt = lib.types;
   ft = import ./types.nix { inherit lib; };
 
 # ---------------------------------------------------------------------------- #
@@ -53,7 +54,10 @@ in {
 
       If set to `null', `sourceInfo' must be set explicitly.
     '';
-    type = ft.fetchInfo;
+    type = ( nt.submodule {
+      freeformType =
+        nt.attrsOf ( nt.nullOr ( nt.oneOf [nt.str nt.int nt.bool] ) );
+    } ) // { inherit (ft.fetchInfo) check; };
   };
 
 }
