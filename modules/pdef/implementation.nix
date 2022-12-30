@@ -118,9 +118,17 @@
 
 
     sourceInfo = let
+      pathW = { path, ... } @ args: let
+        args' = if lib.hasPrefix "/" ( toString path ) then args else args // {
+          name = args.name or "source";
+          path =
+            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
+            + "/" + path;
+        };
+      in builtins.path args';
       isFT    = ( config.fetchInfo.type or null ) != null;
       isFile  = ( config.fetchInfo.type or null ) == "file";
-      fetcher = if isFT then builtins.fetchTree else builtins.path;
+      fetcher = if isFT then builtins.fetchTree else pathW;
       src     = if isFile then builtins.fetchTarball {
         url = "file:${
           builtins.unsafeDiscardStringContext ( fetcher config.fetchInfo )
@@ -211,12 +219,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  _export = {
+  _export  = {
     inherit (config)
       ident version key ltype depInfo binInfo fsInfo lifecycle sysInfo
-      # TODO: This needs special handling.
-      # `fetchInfo' needs to make `path' fetchers use relative paths.
-      fetchInfo
     ;
     metaFiles = builtins.intersectAttrs {
       vinfoUrl      = true;
@@ -225,6 +230,14 @@
       packumentHash = true;
       packumentRev  = true;
     } config.metaFiles;
+    fetchInfo =
+      if ( config.fetchInfo.type or "path" ) != "path"
+      then config.fetchInfo
+      else config.fetchInfo // {
+        path = builtins.replaceStrings [
+          ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
+        ] ["."] config.fetchInfo.path;
+      };
   } // ( if config ? treeInfo then { inherit (config) treeInfo; } else {} );
 
 
