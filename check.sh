@@ -42,6 +42,9 @@ SDIR="${SPATH%/*}";
 
 run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
 
+run_test "Pdef lodash registry"                                      \
+  $NIX eval --json -f "$SDIR/tests/modules/pdef/from-registry.nix";
+
 run_test "install-module lodash"                   \
   $NIX build --no-link --show-trace                \
        -f "$SDIR/tests/setup/lodash-install.nix";
