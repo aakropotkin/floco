@@ -104,6 +104,8 @@
 # ---------------------------------------------------------------------------- #
 
     fetchInfo = let
+      # Locks `fetchInfo'
+      fii = import ../fetchInfo/implementations.nix { inherit lib; };
       unlocked = {
         type = "tarball";
         url  = let
@@ -112,8 +114,7 @@
         in "https://registry.npmjs.org/${config.ident}/-/" +
            "${bname}-${version}.tgz";
       } // ( config.metaFiles.metaRaw.fetchInfo or {} );
-      locked = { inherit (builtins.fetchTree unlocked) narHash; } // unlocked;
-    in lib.mkDefault locked;
+    in lib.mkDefault ( fii.fetchInfo { config = unlocked; } );
 
 
     sourceInfo = let

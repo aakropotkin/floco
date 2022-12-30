@@ -135,17 +135,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    fetchInfo = lib.mkOption {
-      description = ''
-        Arguments passed to fetcher.
-        By default any `builtins.fetchTree' or `builtins.path' argset is
-        supported, and the correct fetcher can be inferred from these values.
-
-        If set to `null', `sourceInfo' must be set explicitly.
-      '';
-      type = nt.nullOr ( nt.attrsOf ( nt.oneOf [nt.bool nt.path nt.str] ) );
-    };
-
+    inherit (import ../fetchInfo/interfaces.nix { inherit lib; }) fetchInfo;
 
 # ---------------------------------------------------------------------------- #
 

@@ -46,8 +46,14 @@ in {
   };
 
   fetchInfo = lib.mkOption {
-    description = "Arguments for a builtins fetcher";
-    type        = ft.fetchInfo;
+    description = ''
+      Arguments passed to fetcher.
+      By default any `builtins.fetchTree' or `builtins.path' argset is
+      supported, and the correct fetcher can be inferred from these values.
+
+      If set to `null', `sourceInfo' must be set explicitly.
+    '';
+    type = ft.fetchInfo;
   };
 
 }

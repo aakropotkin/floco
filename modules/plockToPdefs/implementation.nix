@@ -99,12 +99,15 @@
 
     fsInfo = { inherit gypfile; dir = "."; };
 
-    fetchInfo = if builtins.elem ltype ["dir" "link"] then {
+    fetchInfo = let
+      # Locks `fetchInfo'
+      fii = import ../fetchInfo/implementations.nix { inherit lib; };
+    in if builtins.elem ltype ["dir" "link"] then {
       type = "path";
       path = lockDir + ( "/" + resolved );
-    } else {  # TODO: `github'
-      type = ltype;
-      url  = resolved;
+    } else fii.fetchInfo {  # TODO: `github'
+      config.type = ltype;
+      config.url  = resolved;
     };
 
     # TODO: lifecycle
