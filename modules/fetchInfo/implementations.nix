@@ -5,6 +5,15 @@
 #
 # These implementations lock unlocked configs.
 #
+# NOTE: These are regular functions and do NOT treat `config' recursively.
+# They must not be used in a module fixed point.
+# Translators should call these functions directly in their own implementation
+# files when they need to lock fetchInfo.
+#
+# Honestly some of this module shit is nauseating - the type system was really
+# not intended to handle polymorphism and while you /could/ make it work it
+# quickly becomes an incomprehensible mess.
+#
 # ---------------------------------------------------------------------------- #
 
 { lib, ... }: let
@@ -18,46 +27,46 @@
   optDefs = {
 
     fetchTree.tarball = { config, ... }: {
-      type = lib.mkDefault "tarball";
-      narHash = lib.mkDefault (builtins.fetchTree {
+      type    = "tarball";
+      narHash = (builtins.fetchTree {
         type = "tarball";
         inherit (config) url;
       }).narHash;
-    };
+    } // config;
 
     fetchTree.file = { config, ... }: {
-      type    = lib.mkDefault "file";
-      narHash = lib.mkDefault (builtins.fetchTree {
+      type    = "file";
+      narHash = (builtins.fetchTree {
         type = "file";
         inherit (config) url;
       }).narHash;
-    };
+    } // config;
 
     fetchTree.github = { config, ... }: {
       type = "github";
-      rev  = lib.mkDefault (builtins.fetchTree {
+      rev  = (builtins.fetchTree {
         type = "github";
         inherit (config) owner repo ref;
       }).rev;
-    };
+    } // config;
 
     fetchTree.git = { config, ... }: {
       type = "git";
-      rev  = lib.mkDefault (builtins.fetchTree {
+      rev  = (builtins.fetchTree {
         type = "github";
         inherit (config) owner repo ref;
       }).rev;
-    };
+    } // config;
 
     fetchTree.any = { config, ... } @ args:
       optDefs.fetchTree.${config.type} args;
 
     path = { config, ... }: {
-      sha256 = lib.mkDefault (builtins.fetchTree {
+      sha256 = (builtins.fetchTree {
         type = "path";
         path = builtins.path config;
       }).narHash;
-    };
+    } // config;
 
     fetchInfo = { config, ... } @ args:
       if config ? type then optDefs.fetchTree.${config.type} args else
