@@ -51,6 +51,8 @@ ENVIRONMENT
   JQ            path to \`jq' executable.
   REALPATH      path to \`realpath' executable.
   FLOCO_CONFIG  path to a \`floco' configuration file. Used as \`--config'.
+  FLOCO_REF     flake URI ref to use for \`floco'.
+                defaults to \`github:aakropotkin/floco'.
 ";
 
 
@@ -128,6 +130,21 @@ if [[ -n "${FLOCO_CONFIG:-}" ]]; then
 fi
 : "${LOCKDIR:=$PWD}";
 : "${OUTFILE:=$LOCKDIR/pdefs.nix}";
+: "${FLAKE_REF:=github:aakropotkin/floco}";
+
+
+# ---------------------------------------------------------------------------- #
+
+# Make relative flake ref absolute
+case "$FLAKE_REF" in
+  *:*) :; ;;
+  .*|/*) FLAKE_REF="$( $REALPATH "$FLAKE_REF"; )"; ;;
+  *)
+    if [[ -r "$FLAKE_REF/flake.nix" ]]; then
+      FLAKE_REF="$( $REALPATH "$FLAKE_REF"; )";
+    fi
+  ;;
+esac
 
 
 # ---------------------------------------------------------------------------- #
@@ -156,7 +173,8 @@ fi
 # Backup existing lockfile if one exists
 if [[ -r "$LOCKDIR/package-lock.json" ]]; then
   printf '%s' "$_as_me: backup up existing \`package-lock.json' to "  \
-              "\`$LOCKDIR/package-lock.json~'\n" >&2;
+              "\`$LOCKDIR/package-lock.json~'" >&2;
+  echo '' >&2;
   cp -p -- "$LOCKDIR/package-lock.json" "$LOCKDIR/package-lock.json~";
 fi
 
@@ -172,7 +190,14 @@ fi
 # ---------------------------------------------------------------------------- #
 
 pushd "$LOCKDIR" >/dev/null;
-$NPM install --package-lock-only --ignore-scripts --lockfile-version=3;
+$NPM install            \
+  --package-lock-only   \
+  --ignore-scripts      \
+  --lockfile-version=3  \
+  --no-audit            \
+  --no-funding          \
+  --no-color            \
+;
 
 
 # ---------------------------------------------------------------------------- #
@@ -189,7 +214,7 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 # TODO: unstringize `fetchInfo' relative paths.
 $NIX --no-substitute eval --impure --raw -f - <<'EOF' >"$OUTFILE"
 let
-  floco = builtins.getFlake "github:aakropotkin/floco";
+  floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco.inputs.nixpkgs) lib;
   # TODO: use `old' and `cfg' as modules.
   #cfgPath = builtins.getEnv "FLOCO_CONFIG";

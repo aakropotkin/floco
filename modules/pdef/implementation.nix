@@ -5,7 +5,18 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib, config, ... } @ args: {
+
+# ---------------------------------------------------------------------------- #
+
+  imports =
+    ( if args.specialArgs.packument.enable or false then [
+        ./packument.implementation.nix
+      ] else [] ) ++
+    ( if args.specialArgs.vinfo.enable or false then [
+        ./vinfo.implementation.nix
+      ] else [] );
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -166,64 +177,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-    metaFiles.packumentUrl = lib.mkDefault (
-      if config.ltype != "file" then null else
-      "https://registry.npmjs.org/${config.ident}"
-    );
-
-    metaFiles.packumentHash = lib.mkDefault (
-      if config.metaFiles.packumentUrl == null then null else
-      ( builtins.fetchTree {
-        type = "file";
-        url  = config.metaFiles.packumentUrl;
-      } ).narHash
-    );
-
-    metaFiles.packument = let
-      fetched = builtins.fetchTree {
-        type    = "file";
-        url     = config.metaFiles.packumentUrl;
-        narHash = config.metaFiles.packumentHash;
-      };
-      attrs = lib.importJSON fetched;
-    in lib.mkDefault (
-      if config.metaFiles.packumentUrl != null then attrs else null
-    );
-
-    metaFiles.packumentRev =
-      if config.metaFiles.packument == null then null else
-      config.metaFiles.packument._rev;
-
-
-# ---------------------------------------------------------------------------- #
-
-    metaFiles.vinfoUrl = lib.mkDefault (
-      if config.ltype != "file" then null else
-      "https://registry.npmjs.org/${config.ident}/${config.version}"
-    );
-
-    metaFiles.vinfoHash = lib.mkDefault (
-      if config.metaFiles.vinfoUrl == null then null else
-      ( builtins.fetchTree {
-        type = "file";
-        url  = config.metaFiles.vinfoUrl;
-      } ).narHash
-    );
-
-    metaFiles.vinfo = let
-      fetched = builtins.fetchTree {
-        type    = "file";
-        url     = config.metaFiles.vinfoUrl;
-        narHash = config.metaFiles.vinfoHash;
-      };
-      attrs = lib.importJSON fetched;
-    in lib.mkDefault (
-      if config.metaFiles.vinfoUrl != null then attrs else null
-    );
-
-
-# ---------------------------------------------------------------------------- #
-
   # TODO: in order to handle relative paths in a sane way this routine really
   # needs to be outside of the module fixed point, and needs to accept an
   # argument indicating `basedir' to make paths relative from.
@@ -232,13 +185,6 @@
     inherit (config)
       ident version key ltype depInfo binInfo fsInfo lifecycle sysInfo
     ;
-    metaFiles = builtins.intersectAttrs {
-      vinfoUrl      = true;
-      vinfoHash     = true;
-      packumentUrl  = true;
-      packumentHash = true;
-      packumentRev  = true;
-    } config.metaFiles;
     fetchInfo =
       if ( config.fetchInfo.type or "path" ) != "path"
       then config.fetchInfo
