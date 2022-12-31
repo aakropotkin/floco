@@ -4,9 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: let
-
-  nt = lib.types;
+{ lib, config, ... }:
 
 # ---------------------------------------------------------------------------- #
 #
@@ -38,8 +36,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-
-in builtins.foldl' lib.recursiveUpdate {} [
+builtins.foldl' lib.recursiveUpdate {} [
   ( builtins.mapAttrs ( _: descriptor: {
       inherit descriptor; runtime = true; dev = true; test = true; lint = true;
     } ) ( ( config.dependencies or {} ) // ( config.requires or {} ) ) )
