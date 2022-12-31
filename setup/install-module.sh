@@ -60,20 +60,20 @@ ENVIRONMENT
   NO_PATCH      Skip patching shebangs in scripts when non-empty. ( Bool )
   NODEJS        Absolute path to \`node' executable.
                 May be omitted if patching shebangs is disabled.
-  JQ            Absolute path to \`jq' executable. ( Optional )
+  JQ            Absolute path to \`jq' executable.
                 May be omitted if \`IDENT' is known and any \`*BIN*' variable is
                 is non-empty ( it is only needed to read \`package.json' ).
-  ID            Absolute path to \`id' executable.    ( Optional )
-  CHMOD         Absolute path to \`chmod' executable. ( Optional )
-  CHOWN         Absolute path to \`chown' executable. ( Optional )
-  MKDIR         Absolute path to \`mkdir' executable. ( Optional )
-  CP            Absolute path to \`cp' executable.    ( Optional )
+  ID            Absolute path to \`id' executable.
+  CHMOD         Absolute path to \`chmod' executable.
+  CHOWN         Absolute path to \`chown' executable.
+  MKDIR         Absolute path to \`mkdir' executable.
+  CP            Absolute path to \`cp' executable.
                 This is useful for adding additional flags or wrapping the
                 program used to copy files.
-  LN            Absolute path to \`ln' executable.       ( Optional )
-  REALPATH      Absolute path to \`realpath' executable. ( Optional )
-  FIND          Absolute path to \`find' executable.     ( Optional )
-  BASH          Absolute path to \`bash' executable.     ( Optional )
+  LN            Absolute path to \`ln' executable.
+  REALPATH      Absolute path to \`realpath' executable.
+  FIND          Absolute path to \`find' executable.
+  BASH          Absolute path to \`bash' executable.
 ";
 
 
@@ -90,6 +90,7 @@ usage() {
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${JQ:=jq}";
 : "${CHMOD:=chmod}";
 : "${CHOWN:=chown}";
@@ -98,7 +99,6 @@ usage() {
 : "${REALPATH:=realpath}";
 : "${FIND:=find}";
 : "${LN:=ln}";
-: "${BASH:=bash}";
 : "${ID:=id}";
 
 unset FROM NMDIR TO NM_IS_TO;

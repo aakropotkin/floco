@@ -11,7 +11,8 @@
 , coreutils ? pkgsFor.coreutils
 , jq        ? pkgsFor.jq
 , findutils ? pkgsFor.findutils
-, nodejs    ? pkgsFor.nodejs-14_x
+, nodejs    ? pkgsFor.nodejs-slim-14_x
+, gnused    ? pkgsFor.gnused
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -30,24 +31,34 @@ in {
     inherit system pname version scripts bash coreutils findutils jq nodejs;
     preferLocalBuild = true;
     allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
-    PATH    = "${coreutils}/bin";
+    PATH    = "${coreutils}/bin:${gnused}/bin";
     builder = "${bash}/bin/bash";
     args    = ["-eu" "-o" "pipefail" "-c" ''
+      common_path="$bash/bin:$jq/bin";
       mkdir -p "$out/bin";
       for script in $scripts; do
         bname="''${script##*/}";
         bname="''${bname:33}";
+        case "$bname" in
+          install-module.sh)
+            spath="$common_path:$coreutils/bin:$findutils/bin";
+          ;;
+          run-script.sh)
+            spath="$common_path:$nodejs/bin";
+          ;;
+          *) spath="$common_path"; ;;
+        esac
         {
-          echo "#\! $bash/bin/bash";
-          echo "PATH=\"\$PATH:$bash/bin:$coreutils/bin:$findutils/bin\";";
-          echo "PATH=\"\$PATH:$jq/bin:$nodejs/bin\";";
+          echo "#! $bash/bin/bash";
           tail -n +2 "$script";
-        } >"$out/bin/$bname";
+        }|sed "s,^# @BEGIN_INJECT_UTILS@\$,PATH=\\\"\\\$PATH:$spath\\\";,"  \
+              >"$out/bin/$bname";
         chmod +x "$out/bin/$bname";
       done
     ''];
   };
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

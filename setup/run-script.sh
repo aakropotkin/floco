@@ -43,9 +43,9 @@ ENVIRONMENT
   NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.      ( Bool )
   NO_PARENT_BINS    Do not search up for bin directories.           ( Bool )
   IGNORE_MISSING    Do not throw an error if a script is undefined. ( Bool )
-  NODEJS            Absolute path to \`node' executable.             ( Optional )
-  JQ                Absolute path to \`jq' executable.               ( Optional )
-  BASH              Absolute path to \`bash' executable.             ( Optional )
+  NODEJS            Absolute path to \`node' executable.
+  JQ                Absolute path to \`jq' executable.
+  BASH              Absolute path to \`bash' executable.
 ";
 
 
@@ -62,6 +62,7 @@ usage() {
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${JQ:=jq}";
 : "${BASH:=bash}";
 : "${NODEJS:=node}";
@@ -101,7 +102,7 @@ while [[ "$#" -gt 0 ]]; do
       usage -f >&2;
       exit 1;
     ;;
-    *)                      SCRIPTS+=( "$1" ); ;;
+    *) SCRIPTS+=( "$1" ); ;;
   esac
   shift;
 done

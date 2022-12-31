@@ -8,6 +8,11 @@
 
 # ---------------------------------------------------------------------------- #
 
+  description = "Yet another Nix+Node.js framework";
+
+
+# ---------------------------------------------------------------------------- #
+
   outputs = { nixpkgs, ... } @ inputs: let
 
 # ---------------------------------------------------------------------------- #
@@ -27,8 +32,8 @@
     overlays.default = overlays.floco;
     overlays.floco = final: prev: {
       inherit (import ./setup {
-        inherit (final) system bash coreutils findutils jq;
-        nodejs = final.nodejs-14_x;
+        inherit (final) system bash coreutils findutils jq gnused;
+        nodejs = final.nodejs-slim-14_x;
       }) floco-utils;
     };
 
