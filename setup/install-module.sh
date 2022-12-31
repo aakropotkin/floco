@@ -15,15 +15,13 @@ _as_me='floco install-module';
 
 _version='0.1.0';
 
-_usage_msg="
-install-module.sh [OPTIONS] FROM NM-DIR
+_usage_msg="install-module.sh [OPTIONS] FROM NM-DIR
 
 Module rooted at \`FROM' ( as \`FROM/package.json' ), will be installed to
 \`NM-DIR/<NAME>' symlinking any executables to \`NM-DIR/.bin'.
 ";
 
-_help_msg="
-$_usage_msg
+_help_msg="$_usage_msg
 
 OPTIONS
   -t,--to             Treat \`NM-DIR' as literal install dir
@@ -41,13 +39,14 @@ OPTIONS
   -V,--version        Print version to STDOUT
 
 ENVIRONMENT
-The following environment variables may be used unless explicitly overridden by
-options/flags mentioned above.
-These variables are not required, but may be used as an optimization to skip
-reading the contents of \`package.json'.
+  The following environment variables may be used unless explicitly overridden
+  by options/flags mentioned above.
+  These variables are not required, but may be used as an optimization to skip
+  reading the contents of \`package.json'.
 
-Variables marked as \"Bool\" are treated as false when unset or set to the empty
-string, or true for any non-empty value.
+  Variables marked as \"Bool\" are treated as false when unset or set to the
+  empty string, or true for any non-empty value.
+  Flags will always take priority over environment variables.
 
   IDENT         Treat \`IDENT' as the package identifier/name.
   NO_BINS       Skip processing of bins if non-empty. ( Bool )
@@ -82,8 +81,11 @@ string, or true for any non-empty value.
 # ---------------------------------------------------------------------------- #
 
 usage() {
-  echo "$_usage_msg";
-  [[ "${1:-}" = "-f" ]] && echo "$_help_msg";
+  if [[ "${1:-}" = "-f" ]]; then
+    echo "$_help_msg";
+  else
+    echo "$_usage_msg";
+  fi
 }
 
 

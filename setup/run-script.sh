@@ -14,15 +14,13 @@ _as_me='floco run';
 
 _version='0.1.0';
 
-_usage_msg="
-run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
+_usage_msg="run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
 
 Run one or more scripts from \`package.json' in a wrapped runtime environment.
 This script must be run from a directory containing a \`package.json' file.
 ";
 
-_help_msg="
-$_usage_msg
+_help_msg="$_usage_msg
 
 OPTIONS
   -p,--modify-path        Force modification of \`PATH' with bin directories
@@ -36,12 +34,12 @@ OPTIONS
   -V,--version            Print version to STDOUT
 
 ENVIRONMENT
-The following environment variables may be used to locate various executables
-or in place of options/flags.
+  The following environment variables may be used to locate various executables
+  or in place of options/flags.
 
-Variables marked as \"Bool\" are treated as false when unset or set to the empty
-string, or true for any non-empty value.
-Presence of flags will always take priority over environment variables.
+  Variables marked as \"Bool\" are treated as false when unset or set to the
+  empty string, or true for any non-empty value.
+  Flags will always take priority over environment variables.
 
   NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.     ( Bool )
   NO_PARENT_BINS    Do not search up for bin directories.           ( Bool )
@@ -55,8 +53,11 @@ Presence of flags will always take priority over environment variables.
 # ---------------------------------------------------------------------------- #
 
 usage() {
-  echo "$_usage_msg";
-  [[ "${1:-}" = "-f" ]] && echo "$_help_msg";
+  if [[ "${1:-}" = "-f" ]]; then
+    echo "$_help_msg";
+  else
+    echo "$_usage_msg";
+  fi
 }
 
 
