@@ -22,7 +22,6 @@ Module rooted at \`FROM' ( as \`FROM/package.json' ), will be installed to
 ";
 
 _help_msg="$_usage_msg
-
 OPTIONS
   -t,--to             Treat \`NM-DIR' as literal install dir
   -i,--ident ID       Treat \`ID' as the package identifier/name

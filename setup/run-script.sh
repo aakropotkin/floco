@@ -21,7 +21,6 @@ This script must be run from a directory containing a \`package.json' file.
 ";
 
 _help_msg="$_usage_msg
-
 OPTIONS
   -p,--modify-path        Force modification of \`PATH' with bin directories
   -P,--no-modify-path     Do not modify \`PATH' with bin directories
@@ -41,12 +40,12 @@ ENVIRONMENT
   empty string, or true for any non-empty value.
   Flags will always take priority over environment variables.
 
-  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.     ( Bool )
+  NO_MODIFY_PATH    Do not modify \`PATH' with bin directories.      ( Bool )
   NO_PARENT_BINS    Do not search up for bin directories.           ( Bool )
   IGNORE_MISSING    Do not throw an error if a script is undefined. ( Bool )
-  NODEJS            Absolute path to \`node' executable.            ( Optional )
-  JQ                Absolute path to \`jq' executable.              ( Optional )
-  BASH              Absolute path to \`bash' executable.            ( Optional )
+  NODEJS            Absolute path to \`node' executable.             ( Optional )
+  JQ                Absolute path to \`jq' executable.               ( Optional )
+  BASH              Absolute path to \`bash' executable.             ( Optional )
 ";
 
 
