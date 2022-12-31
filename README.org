@@ -18,36 +18,57 @@ Underlying installers are implemented in =bash= and limit themselves to using
 compared to tooling implemented using a sprawling maze of JavaScript.
 
 
-* Setup Scripts
+* Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
 and drive builds.
+
 These scripts do not depend on Nix, and are suitable for standalone use
 as replacements for ~pacote extract~ ( =install-module.sh= ) and
 ~(npm|yarn) run~ ( =run-script.sh= ).
 
-These routines can be found in the ~<floco>/setup/~ subdir.
+These routines can be found in the ~<floco>/setup/~ subdir, named after the
+=setup-hooks= pattern found in [[https://github.com/NixOS/nixpkgs][nixpkgs]].
 
 * Modules
 Package metadata collection, also called /translation/, and project
-composition is managed using Nixpkgs Modules similar to those used by NixOS
-or =home-manager=.
+composition is managed using
+[[https://github.com/NixOS/nixpkgs/blob/master/lib/modules.nix][Nixpkgs Modules]]
+similar to those used by
+[[https://nixos.org/manual/nixos/stable/#sec-writing-modules][NixOS]],
+[[https://github.com/nix-community/dream2nix][dream2nix]], or
+[[https://github.com/nix-community/home-manager][home-manager]].
 
 These modules are organized as sets of =interface.nix= and
 =implementation.nix= files and are designed to be extensible.
 
+** Organization
 The core of the module system revolves around a record called =pdef=, short
 for "package definition", which organizes translated metadata, and
 =package= records which organize the build pipelines.
 
-The separation of the translation and build process' modules allows users to
-write translated metadata to a file as a form of caching, but most importantly -
-this split separates any impure operations from the build procedures.
-This allows Nix's =flake= features to drastically improve cache performance.
+This separation simplifies the organization of the /translation/ and
+/builder/ APIs, but the rationale runs further.
+The split allows us to flatly state: build routines must never perform
+impure operations, and translation routines must only produce fields that
+can be serialized to JSON.
+
+Serialization of translated metadata allows Nix's =flake= features to
+drastically improve performance by leveraging
+[[https://www.tweag.io/blog/2020-06-25-eval-cache/][eval caching]] to avoid
+re-evaluation of recipe generation on successive runs.
+
+** =pdef= Package Defintions
+The =pdef= record closely mirrors the pseudo-standard schema used by most
+=package.json= files; but is much stricter about how declarations
+are written.
+
+If desired, users could ditch =package.json= files altogether and simply
+write =pdef= records for their projects.
 
 ** Translators
 At time of writing only a few translators have been migrated from the beta
-iteration, [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but in
-the near future these will be finalized for production use.
+iteration, [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but
+in the near future these will be finalized for production use.
 
 *** =package.json=
 This is our bread and butter, and serves as the default implementation for
@@ -57,36 +78,89 @@ On its own this translator would require users to explicitly declare the
 structure of their =node_modules/= tree using the =treeInfo= submodule.
 For this reason we strongly recommend using the =package-lock.json=
 translator for projects with large dependency graphs.
+Note that in the beta project
+
+**** Progress on /Ideal Tree/
+The term /ideal tree/ refers to the mapping of a =node_modules/= tree
+from a dependency graph.
+This process is by far the most complex and challenging aspect of
+Node.js package management.
+
+While =floco= currently relies on =npm= to generate /ideal trees/, this
+is expected to end soon.
+
+The beta repository
+[[https://github.com/aameen-tulip/at-node-nix][at-node-nix]] contains a
+large body of routines exist to perform /best effort/ =treeInfo=
+mapping, specifically handling projects which only require a single
+version of any package ( this property is called /The Golden Rule/ in
+package management contexts ).
+
+Additionally the
+[[https://github.com/aameen-tulip/at-node-nix/blob/main/lib/sat.nix#L372][semver resolution]]
+routines used to fetch closures of /packument/ records effectively solve
+half of the /ideal tree/ process, leaving only scope and /follows/
+management to be completed.
 
 *** =package-lock.json= v2/v3
-This is by far the most developed translator, and is the recommended option
-for large projects.
+This is by far the most developed translator, and is the recommended
+option for large projects.
 
-This translator will automatically fill =treeInfo= submodules, and triggers
-minimal network fetching.
+This translator will automatically fill =treeInfo= submodules, and
+triggers minimal network fetching.
 
 * Future Extensions
 Many of the following extensions have function drafts or well tested
-prototypes in the beta release of floco; but are not developed enough
-for use in production code-bases as pieces of reliable infrastructure.
+prototypes in the beta release of floco; but are not developed enough for use
+in production code-bases as pieces of reliable infrastructure.
 
 - Improved support for package.json workspaces.
   + Currently reliance on npm and special configuration based on in depth
-  knowledge of floco is necessary to accomplish workspace support.
+    knowledge of floco is necessary to accomplish workspace support.
   + Practically a template or example using workspaces is likely sufficient
-  for the immediate future; but the NixOS Module system is expected to resolve
-  issues that previously made workspaces complex to manage.
+    for the immediate future; but the NixOS Module system is expected to
+    resolve issues that previously made workspaces complex to manage.
 - Expanded CLI tooling.
-Currently users are asked to interact with nix to drive builds, tests, update metadata, etc. Ideally a simple bash script would provide familiar commands such as floco add <PKG>, floco publish, floco update, floco build, etc that npm and yarn users are already familiar with.
-Improved project composition structures.
-Currently a rudimentary API for composing projects exists for defining, consuming, and modifying package definitions across multiple repositories; and while it does an incredible job of hiding complexity it is not well documented, and the migration to NixOS Modules will necessitate small changes to the existing implementations of these APIs.
-Nix plugin to read/write caches globally and into flake.lock.
-This is the real end goal for floco. It should be possible to read/write floco metadata to flake.lock and existing nix caches.
-There is currently a draft plugin which allows nix to adopt npm URIs to refer to packages as lodash@4.17.21 which could be expanded upon.
-Project templates and propagation of build recipes could allow nix to abstract away the generation of flake.nix for the vast majority of projects which would be a significant UX breakthrough.
-yarn.lock translators.
-Development of yarn translators was dropped after the creation of the first working prototype in favor of package-lock.json translation. There is a large collection of existing routines that can translate yarn.lock to nix, but not using the floco metadata schema, and not in a coherent or documented flow.
-Semantic version parsing, and ideal tree formation.
-Currently floco really relies on npm and its package-lock.json to construct non-trivial node_module/ metadata declarations. This reliance is a major pain point for handling projects which currently use yarn since interoperability between yarn and npm across their associated lockfiles is implemented incredibly poorly, to such a degree that you cannot trust them to behave predictably in the same source tree.
-Semver parsing and solving SAT is implemented in the beta repository, and has been testing on large non-trivial inputs quite successfully. Still this effort requires a few weeks of polishing to really approve for use in production.
-Construction of ideal tree from semver SAT is a project in and of itself in order to support things like optionDependencies, peerDependencies, bundledDependencies, and other oddballs which are a prerequisite for use in the general case. 
+  + Currently users are asked to interact with nix to drive builds, tests,
+    update metadata, etc.
+    Ideally a simple bash script would provide familiar commands such as
+    ~floco add <PKG>~, ~floco publish~, ~floco update~, ~floco build~,
+    etc that =npm= and =yarn= users are already familiar with.
+- Improved project composition structures.
+  + Currently a rudimentary API for composing projects exists for defining,
+    consuming, and modifying package definitions across multiple repositories;
+    and while it does an incredible job of hiding complexity it is not well
+    documented, and the migration to =Nixpkgs= Modules will necessitate small
+    changes to the existing implementations of these APIs.
+- Nix plugin to read/write caches globally and into =flake.lock=.
+  + This is the real end goal for =floco=.
+    It should be possible to read/write =floco= metadata to =flake.lock= and
+    existing =nix= caches.
+  + There is currently a draft plugin which allows nix to adopt npm URIs to
+    refer to packages as =lodash@4.17.21= which could be expanded upon.
+  + Project templates and propagation of build recipes could allow =nix= to
+    abstract away the generation of =flake.nix= for the vast majority of
+    projects which would be a significant UX breakthrough.
+- =yarn.lock= translators.
+  + Development of =yarn= translators was dropped after the creation of the
+    first working prototype in favor of =package-lock.json= translation.
+    There is a large collection of existing routines that can translate
+    =yarn.lock= to =nix= in
+    [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but not
+    using the =floco= metadata schema, and not in a coherent or
+    documented flow.
+- Semantic version parsing, and /ideal tree/ formation.
+  + Currently =floco= really relies on =npm= and its =package-lock.json= to
+    construct non-trivial node_module/ metadata declarations.
+    This reliance is a major pain point for handling projects which currently
+    use yarn since interoperability between =yarn= and =npm= across their
+    associated lockfiles is implemented incredibly poorly, to such a degree
+    that you cannot trust them to behave predictably in the same source tree.
+  + Semver parsing and solving SAT is implemented in the beta repository, and
+    has been testing on large non-trivial inputs quite successfully.
+    Still this effort requires a few weeks of polishing to really approve for
+    use in production.
+  + Construction of ideal tree from semver SAT is a project in and of itself
+    in order to support things like =optionDependencies=, =peerDependencies=,
+    =bundledDependencies=, and other oddballs which are a prerequisite for use
+    in the general case.
