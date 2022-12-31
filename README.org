@@ -64,3 +64,29 @@ for large projects.
 
 This translator will automatically fill =treeInfo= submodules, and triggers
 minimal network fetching.
+
+* Future Extensions
+Many of the following extensions have function drafts or well tested
+prototypes in the beta release of floco; but are not developed enough
+for use in production code-bases as pieces of reliable infrastructure.
+
+- Improved support for package.json workspaces.
+  + Currently reliance on npm and special configuration based on in depth
+  knowledge of floco is necessary to accomplish workspace support.
+  + Practically a template or example using workspaces is likely sufficient
+  for the immediate future; but the NixOS Module system is expected to resolve
+  issues that previously made workspaces complex to manage.
+- Expanded CLI tooling.
+Currently users are asked to interact with nix to drive builds, tests, update metadata, etc. Ideally a simple bash script would provide familiar commands such as floco add <PKG>, floco publish, floco update, floco build, etc that npm and yarn users are already familiar with.
+Improved project composition structures.
+Currently a rudimentary API for composing projects exists for defining, consuming, and modifying package definitions across multiple repositories; and while it does an incredible job of hiding complexity it is not well documented, and the migration to NixOS Modules will necessitate small changes to the existing implementations of these APIs.
+Nix plugin to read/write caches globally and into flake.lock.
+This is the real end goal for floco. It should be possible to read/write floco metadata to flake.lock and existing nix caches.
+There is currently a draft plugin which allows nix to adopt npm URIs to refer to packages as lodash@4.17.21 which could be expanded upon.
+Project templates and propagation of build recipes could allow nix to abstract away the generation of flake.nix for the vast majority of projects which would be a significant UX breakthrough.
+yarn.lock translators.
+Development of yarn translators was dropped after the creation of the first working prototype in favor of package-lock.json translation. There is a large collection of existing routines that can translate yarn.lock to nix, but not using the floco metadata schema, and not in a coherent or documented flow.
+Semantic version parsing, and ideal tree formation.
+Currently floco really relies on npm and its package-lock.json to construct non-trivial node_module/ metadata declarations. This reliance is a major pain point for handling projects which currently use yarn since interoperability between yarn and npm across their associated lockfiles is implemented incredibly poorly, to such a degree that you cannot trust them to behave predictably in the same source tree.
+Semver parsing and solving SAT is implemented in the beta repository, and has been testing on large non-trivial inputs quite successfully. Still this effort requires a few weeks of polishing to really approve for use in production.
+Construction of ideal tree from semver SAT is a project in and of itself in order to support things like optionDependencies, peerDependencies, bundledDependencies, and other oddballs which are a prerequisite for use in the general case. 
