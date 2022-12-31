@@ -122,7 +122,7 @@ while [[ "$#" -gt 0 ]]; do
       continue;
     ;;
     -t|--to)           NM_IS_TO=:; ;;
-    -i|--ident)        IDENT="$1"; shift; ;;
+    -i|--ident)        IDENT="$2"; shift; ;;
     -b|--bins)         NO_BINS=''; ;;
     -B|--no-bins)      NO_BINS=:; unset BIN_PAIRS BIN_DIR; ;;
     -p|--perms)        NO_PERMS=''; ;;
