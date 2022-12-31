@@ -1,0 +1,66 @@
+#+TITLE: floco
+=floco= is a Node.js package management and build tool powered by
+[[https://nixos.org][Nix]].
+
+=floco= is a bold departure from conventional Node.js package management tooling
+focusing on reproducibility, distributed caching, and sandboxing.
+
+Every package is built in a strictly declared sandbox isolated from the runtime
+system, much like an /OCI/ container.
+This approach allows packages to be built once and reused on any system that
+shares the same architecture and platform.
+Artifacts are cached locally and may be distributed among a cluster of systems
+allowing development environments to be created at more than twice the speed of
+=npm= or =yarn=.
+
+Underlying installers are implemented in =bash= and limit themselves to using
+=coreutils=, =findutils=, and =jq= improving reproducibility and readability
+compared to tooling implemented using a sprawling maze of JavaScript.
+
+
+* Setup Scripts
+=floco= uses a small collection of =bash= scripts to perform install tasks
+and drive builds.
+These scripts do not depend on Nix, and are suitable for standalone use
+as replacements for ~pacote extract~ ( =install-module.sh= ) and
+~(npm|yarn) run~ ( =run-script.sh= ).
+
+These routines can be found in the ~<floco>/setup/~ subdir.
+
+* Modules
+Package metadata collection, also called /translation/, and project
+composition is managed using Nixpkgs Modules similar to those used by NixOS
+or =home-manager=.
+
+These modules are organized as sets of =interface.nix= and
+=implementation.nix= files and are designed to be extensible.
+
+The core of the module system revolves around a record called =pdef=, short
+for "package definition", which organizes translated metadata, and
+=package= records which organize the build pipelines.
+
+The separation of the translation and build process' modules allows users to
+write translated metadata to a file as a form of caching, but most importantly -
+this split separates any impure operations from the build procedures.
+This allows Nix's =flake= features to drastically improve cache performance.
+
+** Translators
+At time of writing only a few translators have been migrated from the beta
+iteration, [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but in
+the near future these will be finalized for production use.
+
+*** =package.json=
+This is our bread and butter, and serves as the default implementation for
+creating a =pdef= record.
+
+On its own this translator would require users to explicitly declare the
+structure of their =node_modules/= tree using the =treeInfo= submodule.
+For this reason we strongly recommend using the =package-lock.json=
+translator for projects with large dependency graphs.
+
+*** =package-lock.json= v2/v3
+This is by far the most developed translator, and is the recommended option
+for large projects.
+
+This translator will automatically fill =treeInfo= submodules, and triggers
+minimal network fetching.
