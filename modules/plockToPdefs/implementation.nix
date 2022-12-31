@@ -115,17 +115,41 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # TODO: treeInfo
+  translatedPlents = let
+    proc = plentKey: plentRaw: ( lib.evalModules {
+      modules = [../pdef ( toPdef plentKey plentRaw )];
+    } ).config;
+  in builtins.mapAttrs proc plconf.config.plents;
+
+
+# ---------------------------------------------------------------------------- #
+
+  # `treeInfo' for root package
+  treeInfo = let
+    asKeys   = builtins.mapAttrs ( _: v: v.key );
+    devPaths = let
+      attrs = lib.filterAttrs ( _: v: v.dev or false ) plock.packages;
+    in builtins.attrNames attrs;
+    dev = asKeys ( removeAttrs translatedPlents [""] );
+  in {
+    inherit dev;
+    prod = removeAttrs dev devPaths;
+  };
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
+
   packages = let
-    proc = plentKey: plentRaw: ( lib.evalModules {
-      modules = [../pdef ( toPdef plentKey plentRaw )];
-    } ).config;
-  in builtins.attrValues ( builtins.mapAttrs proc plconf.config.plents );
+    withTreeInfo = translatedPlents // {
+      "" = translatedPlents."" // {
+        inherit treeInfo;
+        _export = translatedPlents.""._export // { inherit treeInfo; };
+      };
+    };
+  in builtins.attrValues withTreeInfo;
+
 }
 
 # ---------------------------------------------------------------------------- #

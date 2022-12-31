@@ -118,6 +118,11 @@
 
 
     sourceInfo = let
+      # We wrap `builtins.path' to make paths absolute.
+      # TODO: use a `specialArgs.basedir' or find some way to access the
+      # declarations' `file' information so that this is less fucky.
+      # Honestly I really don't like relying on `metaFiles.*' being defined to
+      # handle this.
       pathW = { path, ... } @ args: let
         args' = if lib.hasPrefix "/" ( toString path ) then args else args // {
           name = args.name or "source";
@@ -219,6 +224,10 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # TODO: in order to handle relative paths in a sane way this routine really
+  # needs to be outside of the module fixed point, and needs to accept an
+  # argument indicating `basedir' to make paths relative from.
+  # This works for now but I really don't like it.
   _export  = {
     inherit (config)
       ident version key ltype depInfo binInfo fsInfo lifecycle sysInfo
