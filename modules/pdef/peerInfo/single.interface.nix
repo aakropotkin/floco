@@ -14,7 +14,7 @@ in {
 
   options = {
     descriptor = lib.mkOption {
-      description = lib.literalMD ''
+      description = lib.mdDoc ''
         Descriptor indicating version range or exact source required to satisfy
         a peer dependency.
 
@@ -25,7 +25,7 @@ in {
       default = "*";
     };
     optional = lib.mkOption {
-      description = lib.literalMD ''
+      description = lib.mdDoc ''
         Whether consumers are required to provide the declared peer.
 
         Optional peer declarations are conventionally used to handle platform

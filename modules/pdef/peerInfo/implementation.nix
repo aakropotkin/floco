@@ -16,7 +16,7 @@
       peerDependenciesMeta = true;
     };
     get = f:
-      if ( config.metaFiles.${f} or {} ) == null then {} else
+      if ( config.metaFiles.${f} or null ) == null then {} else
       take config.metaFiles.${f};
   in ( get "pjs" ) // ( get "plent" ) // ( get "metaRaw" );
 

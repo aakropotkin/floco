@@ -14,7 +14,7 @@ in {
 
   options = {
     peerInfo = lib.mkOption {
-      description = lib.literalMD ''
+      description = lib.mdDoc ''
         Set of propogated dependencies that consumers of this package/module
         must provide at runtime.
 
