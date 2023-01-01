@@ -9,17 +9,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  imports =
-    ( if args.specialArgs.packument.enable or false then [
-        ./packument.implementation.nix
-      ] else [] ) ++
-    ( if args.specialArgs.vinfo.enable or false then [
-        ./vinfo.implementation.nix
-      ] else [] );
-
-
-# ---------------------------------------------------------------------------- #
-
   config = {
 
 # ---------------------------------------------------------------------------- #
