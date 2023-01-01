@@ -210,7 +210,9 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 
 # ---------------------------------------------------------------------------- #
 
-# TODO: flake ref or something.
+: "${FLOCO_CONFIG=}";
+export FLAKE_REF FLOCO_CONFIG OUTFILE;
+
 # TODO: unstringize `fetchInfo' relative paths.
 $NIX --no-substitute eval --impure --raw -f - <<'EOF' >"$OUTFILE"
 let
