@@ -76,22 +76,6 @@
 
     sysInfo = { inherit os cpu engines; };
 
-    depInfo = import ../pdef/depinfo.implementation.nix {
-      inherit lib;
-      config = {
-        inherit
-          dependencies
-          devDependencies
-          devDependenciesMeta
-          peerDependencies
-          peerDependenciesMeta
-          optionalDependencies
-          requires
-        ;
-        # We intentionally ignore `dev', `peer', and `optional' fields.
-      };
-    };
-
     metaFiles = {
       inherit lockDir plentKey;
       plent = plock.packages.${plentKey};

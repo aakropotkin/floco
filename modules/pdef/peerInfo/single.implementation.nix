@@ -6,14 +6,12 @@
 
 { lib
 , ident
-, peerDependencies
-, peerDependenciesMeta
+, peerDependencies     ? {}
+, peerDependenciesMeta ? {}
 , ...
-}: let
+}: {
 
 # ---------------------------------------------------------------------------- #
-
-in {
 
   config = {
     descriptor = lib.mkDefault ( peerDependencies.${ident} or "*" );
