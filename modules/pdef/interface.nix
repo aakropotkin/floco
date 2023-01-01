@@ -148,12 +148,36 @@ in {
       '';
       type = nt.submodule {
         options = {
-          os      = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
-          cpu     = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
+          os = lib.mkOption {
+            description = lib.mdDoc ''
+              List of supported operating systems.
+              The string `"*"` indicates that all operating systems
+              are supported.
+            '';
+            type    = nt.listOf nt.str;
+            default = ["*"];
+          };
+          cpu = lib.mkOption {
+            description = lib.mdDoc ''
+              List of supported CPU architectures.
+              The string `"*"` indicates that all CPUs are supported. 
+            '';
+            type    = nt.listOf nt.str;
+            default = ["*"];
+          };
           engines = lib.mkOption {
+            description = ''
+              Indicates supported tooling versions.
+            '';
             type = nt.submodule {
               freeformType = nt.attrsOf nt.str;
-              options.node = lib.mkOption { type = nt.str; default = "*"; };
+              options.node = lib.mkOption {
+                description = ''
+                  Supported Node.js versions.
+                '';
+                type    = nt.str;
+                default = "*";
+              };
             };
           };
         };
@@ -226,8 +250,21 @@ in {
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf nt.str;
-        options.dev  = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
-        options.prod = lib.mkOption { type = nt.attrsOf nt.str; default = {}; };
+        options.dev  = lib.mkOption {
+          description = ''
+            Tree used for pre-distribution phases such as builds, tests, etc.
+          '';
+          type    = nt.attrsOf nt.str;
+          default = {};
+        };
+        options.prod  = lib.mkOption {
+          description = lib.mdDoc ''
+            Tree used for post-distribution phases such as global installs and
+            execution of `[pre|post]install` scripts or `node-gyp` compilation.
+          '';
+          type    = nt.attrsOf nt.str;
+          default = {};
+        };
       };
       default = { dev = {}; prod = {}; };
     };
