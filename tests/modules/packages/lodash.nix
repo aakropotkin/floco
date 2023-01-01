@@ -19,7 +19,7 @@
 # ---------------------------------------------------------------------------- #
 
   module = lib.evalModules { modules = [../../../modules/packages]; };
-  lodash = builtins.head module.config.flocoPackages.packages;
+  lodash = module.config.flocoPackages.packages.lodash."4.17.21";
 
 # ---------------------------------------------------------------------------- #
 
