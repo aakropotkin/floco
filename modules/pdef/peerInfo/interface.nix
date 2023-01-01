@@ -15,7 +15,7 @@ in {
   options = {
     peerInfo = lib.mkOption {
       description = lib.mdDoc ''
-        Set of propogated dependencies that consumers of this package/module
+        Set of propagated dependencies that consumers of this package/module
         must provide at runtime.
 
         Often peer dependencies are used to enforce interface alignment across

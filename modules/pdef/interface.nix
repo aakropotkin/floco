@@ -112,17 +112,19 @@ in {
 
         However, unlike flake inputs, `sourceInfo.outPath` may set to a derived
         store path if and only if `fetchInfo` is explicitly set to `null`.
-        In this case `fsInfo.dir` is still used to identify a pacakage/module`s
+        In this case `fsInfo.dir` is still used to identify a pacakage/module's
         root directory where we will attempt to read `package.json`
         ( must exist ) and similar metadata files will be read from
         ( if they exist ).
-        In this case you may avoid IFD by explicitly setting top level fields,
+
+        In this case you may avoid `IFD` by explicitly setting top level fields,
         specifically `lifecycle`, `sysInfo`, `binInfo`, and `treeInfo` or
         `depInfo` which are required by builders.
+
         Alternatively you may explicitly set `metaFiles.{pjs,plock,plent,trees}`
         fields directly - but keep in mind that these fields are never
         guaranteed to be stable and their schema may change at any time
-        ( so set the top level ones unless you`re up for the maintanence ).
+        ( so set the top level ones unless you`re up for the maintenance ).
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf ( nt.oneOf [nt.bool nt.int nt.str] );
