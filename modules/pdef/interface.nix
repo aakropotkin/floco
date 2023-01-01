@@ -14,7 +14,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  imports = [./depInfo];
+  imports = [./depInfo ./peerInfo];
 
 
 # ---------------------------------------------------------------------------- #
@@ -126,7 +126,7 @@ in {
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf ( nt.oneOf [nt.bool nt.int nt.str] );
-        options.outPath      = lib.mkOption {
+        options.outPath = lib.mkOption {
           description = ''
             A Nix Store path containing the unpacked source tree in which this
             package/module resides.

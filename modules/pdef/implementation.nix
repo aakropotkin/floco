@@ -159,7 +159,7 @@
   # This works for now but I really don't like it.
   _export  = {
     inherit (config)
-      ident version key ltype depInfo binInfo fsInfo lifecycle sysInfo
+      ident version key ltype depInfo peerInfo binInfo fsInfo lifecycle sysInfo
     ;
     fetchInfo =
       if ( config.fetchInfo.type or "path" ) != "path"

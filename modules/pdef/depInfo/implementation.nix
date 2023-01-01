@@ -13,9 +13,7 @@
       requires             = true;
       dependencies         = true;
       devDependencies      = true;
-      peerDependencies     = true;
       devDependenciesMeta  = true;
-      peerDependenciesMeta = true;
       optionalDependencies = true;
       bundleDependencies   = true;
       bundledDependencies  = true;
@@ -34,9 +32,7 @@ in {
 # requires             = { id -> desc }
 # dependencies         = { id -> desc }
 # devDependencies      = { id -> desc }
-# peerDependencies     = { id -> desc }
 # devDependenciesMeta  = { id -> { optional ::= bool } }
-# peerDependenciesMeta = { id -> { optional ::= bool } }
 # optionalDependencies = { id -> desc }
 # bundleDependencies   = [id]
 # bundledDependencies  = bool
@@ -45,10 +41,8 @@ in {
 #
 # {
 #   descriptor
-#   peerDescriptor
 #   pin
 #   optional
-#   peer
 #   bundled
 #   runtime
 #   dev
@@ -77,12 +71,6 @@ in {
         test    = true;
         lint    = true;
       } ) ( raw.devDependencies or {} ) )
-
-    ( builtins.mapAttrs ( k: peerDescriptor:
-      ( raw.peerDependenciesMeta.${k} or {} ) // {
-          inherit peerDescriptor;
-          peer = true;
-      } ) ( raw.peerDependencies or {} ) )
 
     ( builtins.mapAttrs ( _: descriptor: {
         inherit descriptor;
