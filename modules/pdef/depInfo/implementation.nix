@@ -9,15 +9,17 @@
 # ---------------------------------------------------------------------------- #
 
   raw = let
-    take = builtins.intersectAttrs {
-      requires             = true;
-      dependencies         = true;
+    dev' = if ! config.lifecycle.build then {} else {
       devDependencies      = true;
       devDependenciesMeta  = true;
+    };
+    take = builtins.intersectAttrs ( dev' // {
+      requires             = true;
+      dependencies         = true;
       optionalDependencies = true;
       bundleDependencies   = true;
       bundledDependencies  = true;
-    };
+    } );
     get = f:
       if ( config.metaFiles.${f} or {} ) == null then {} else
       take config.metaFiles.${f};

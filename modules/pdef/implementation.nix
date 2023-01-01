@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... } @ args: {
+{ lib, config, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -158,7 +158,7 @@
           ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
         ] ["."] config.fetchInfo.path;
       };
-  } // ( if config ? treeInfo then { inherit (config) treeInfo; } else {} );
+  };
 
 
 # ---------------------------------------------------------------------------- #

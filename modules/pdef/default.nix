@@ -1,1 +1,8 @@
-{ imports = [./implementation.nix ./interface.nix]; }
+{
+  imports = [
+    ./depInfo
+    ./treeInfo
+    ./peerInfo
+    ./interface.nix ./implementation.nix
+  ];
+}

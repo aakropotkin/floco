@@ -14,11 +14,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  imports = [./depInfo ./peerInfo];
-
-
-# ---------------------------------------------------------------------------- #
-
   options = {
 
 # ---------------------------------------------------------------------------- #
@@ -225,58 +220,6 @@ in {
       };
       default.binPairs = {};
     };
-
-
-# ---------------------------------------------------------------------------- #
-
-    treeInfo = lib.mkOption {
-      description = lib.mdDoc ''
-        `node_modules/` trees used for various lifecycle events.
-        These declarations are analogous to the `package.*` field found in
-        `package-lock.json(v2/3)` files.
-        This means that these fields should describe both direct and indirect
-        dependencies for the full dependency graph.
-
-        Tree declarations are expected to be pairs of `node_modules/` paths to
-        "keys" ( matching the `key` field in its Nix declaration ):
-        ```
-        {
-          "node_modules/@foo/bar"                  = "@foo/bar/1.0.0";
-          "node_modules/@foo/bar/node_modules/baz" = "baz/4.2.0";
-          ...
-        }
-        ```
-
-        Arbitrary trees may be defined for use by later builders; but by default
-        we expect `prod` to be defined for any `file` ltype packages which
-        contain executables or an `install` event, and `dev` to be defined for
-        any packages which have a `build` lifecycle event.
-
-        In practice we expect users to explicitly define these fields only for
-        targets which they actually intend to create installables from, and we
-        recommend using a `package-lock.json(v2/3)` to fill these values.
-      '';
-      type = nt.submodule {
-        freeformType = nt.attrsOf nt.str;
-        options.dev  = lib.mkOption {
-          description = ''
-            Tree used for pre-distribution phases such as builds, tests, etc.
-          '';
-          type    = nt.attrsOf nt.str;
-          default = {};
-        };
-        options.prod  = lib.mkOption {
-          description = lib.mdDoc ''
-            Tree used for post-distribution phases such as global installs and
-            execution of `[pre|post]install` scripts or `node-gyp` compilation.
-          '';
-          type    = nt.attrsOf nt.str;
-          default = {};
-        };
-      };
-      default = { dev = {}; prod = {}; };
-    };
-
 
 
 # ---------------------------------------------------------------------------- #
@@ -491,24 +434,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-          trees = lib.mkOption {
-            description = lib.mdDoc ''
-              Raw `treeInfo` style metadata, conventionally being sets of
-              `{ test = { "node_modules/@foo/bar" = "@foo/bar/1.0.0"; ... }; }`
-              mappings used for deriving a full `treeInfo` record.
-
-              NOTE: It is strongly recommended that users write `treeInfo`
-              directly if they wish to declare those settings.
-              This attribute exists for interop with the beta implementation of
-              `floco` ( `github:aameen-tulip/at-node-nix` ).
-            '';
-            type    = nt.nullOr ( nt.attrsOf nt.anything );
-            default = null;
-          };
-
-
-# ---------------------------------------------------------------------------- #
-
         };  # End `metaFiles.type.options'
       };  # End `metaFiles.type'
 
@@ -527,7 +452,13 @@ in {
         the fields available to builders, and restrict the fields which are
         readable across modules for the formation of `treeInfo` options.
       '';
-      type = nt.lazyAttrsOf nt.anything;
+      type = nt.submodule {
+        freeformType = nt.lazyAttrsOf ( nt.oneOf [
+          nt.bool nt.int nt.bool nt.str
+          ( nt.attrsOf nt.anything )
+          ( nt.listOf nt.anything )
+        ] );
+      };
     };
 
 
