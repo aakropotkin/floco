@@ -136,8 +136,8 @@ in {
             A Nix Store path containing the unpacked source tree in which this
             package/module resides.
             The package need not be at the root this path; but when the project
-            root is a subdir the option `fsInfo.dir' must be set in order for
-            `package.json' and other metadata to be translated.
+            root is a subdir the option `fsInfo.dir` must be set in order for
+            `package.json` and other metadata to be translated.
           '';
           type = nt.path;
         };
@@ -365,7 +365,7 @@ in {
 
         For this reason let me be loud and clear:
         If you write a builder that directly refers to a `metaFiles` field, and
-        it breaks because of a change to the `metaFiles' schema, and you proceed
+        it breaks because of a change to the `metaFiles` schema, and you proceed
         to file a bug report - you will be asked to stand in the corner of the
         classroom on top of your desk for the remainder of the day.
         Consider yourself warned.
@@ -383,7 +383,7 @@ in {
               This field is optional and while many translators may reference it
               I want to once again highlight that ALL `metaFiles` fields are
               strictly internal and should never be relied upon by builders or
-              external extensions to `floco' since they may change without
+              external extensions to `floco` since they may change without
               warning or indication in semantic versioning of the framework.
             '';
             type    = nt.attrsOf nt.anything;
@@ -487,120 +487,6 @@ in {
             default = null;
             example = "node_modules/@babel/core/node_modules/semver";
           };
-
-
-# ---------------------------------------------------------------------------- #
-
-          #packument = lib.mkOption {
-          #  description = ''
-          #    Raw contents from a package registry concerning all published
-          #    versions of a package/module.
-
-          #    See Also: packumentUrl, vinfo
-          #  '';
-          #  type    = nt.nullOr ( nt.attrsOf nt.anything );
-          #  default = null;
-          #};
-
-          #packumentUrl = lib.mkOption {
-          #  description = ''
-          #    Registry URL where "packument" information can be fetched.
-          #    A packument contains information about all published versions of
-          #    a package, and is commonly used to resolve package `descriptors'
-          #    such as `^1.0.0' to a version such as `1.2.3'.
-
-          #    This field is optional and may be set to `null' to avoid looking
-          #    up projects which are not published to a registry, or to avoid
-          #    processing packument metadata.
-
-          #    NOTE: Processing packument metadata is not required when another
-          #    form metadata such as `treeInfo' or `depInfo' is available for
-          #    `floco' to construct a `node_modules/' tree with.
-          #    Packuments are most useful for extensions to `floco' to perform
-          #    tasks like auto-updating projects when new versions are published.
-          #  '';
-          #  type    = nt.nullOr nt.str;
-          #  default = null;
-          #  example = "https://registry.npmjs.org/lodash";
-          #};
-
-          #packumentHash = lib.mkOption {
-          #  description = ''
-          #    SHA256 hash used to lock and purify fetching of
-          #    packument metadata.
-          #    In practice you likely want to automate updates to this hash since
-          #    it will be invalidated every time a new version of a package is
-          #    published to the registry.
-
-          #    To lock onto a specific version of a package you may find that the
-          #    `vinfo' metadata is better suited for locking.
-
-          #    See Also: packumentUrl, packumentRev, vinfoUrl
-          #  '';
-          #  type    = nt.nullOr nt.str;
-          #  default = null;
-          #};
-
-          #packumentRev = lib.mkOption {
-          #  description = ''
-          #    Revision information associated with a packument.
-          #    In combination with `packumentHash' this value could potentially
-          #    be used to immitate a Nix input's lockfile entry.
-
-          #    This revision information is provided under the `_rev' field of
-          #    a packument, and is formatted as `<REV-COUNT>-<COMMITISH-HASH>'.
-
-          #    NOTE: At time of writing this field is unused, but future
-          #    extensions to `floco' intend to use this field to write packument
-          #    information to `flake.lock'.
-          #  '';
-          #  type    = nt.nullOr nt.str;
-          #  default = null;
-          #  example = "2722-2d3b98d05acf18018581dd0b19bc2bfc";
-          #};
-
-
-# ---------------------------------------------------------------------------- #
-
-          #vinfo = lib.mkOption {
-          #  description = ''
-          #    Short for "version information".
-
-          #    Raw contents from a package registry concerning a specific version
-          #    of a package/module.
-
-          #    See Also: vinfoUrl, packument
-          #  '';
-          #  type    = nt.nullOr ( nt.attrsOf nt.anything );
-          #  default = null;
-          #};
-
-          #vinfoUrl = lib.mkOption {
-          #  description = ''
-          #    Short for "version information".
-
-          #    Registry metadata concerning a specific version of a package.
-          #    This record is an expanded form of the
-          #    "abbreviated version information" found in a
-          #    `packument.versions.*' field.
-
-          #    Because `vinfo' records are almost never updated, if you intend to
-          #    lock and purify lookups of project metadata - it is strongly
-          #    recommended that you do so using `vinfo' rather an packument.
-          #  '';
-          #  type = nt.nullOr nt.str;
-          #  default = null;
-          #  example = "https://registry.npmjs.org/lodash/4.17.21";
-          #};
-
-          #vinfoHash = lib.mkOption {
-          #  description = ''
-          #    SHA256 hash used to lock and purify fetching of
-          #    version-info metadata.
-          #  '';
-          #  type = nt.nullOr nt.str;
-          #  default = null;
-          #};
 
 
 # ---------------------------------------------------------------------------- #
