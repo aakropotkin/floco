@@ -46,8 +46,6 @@ in {
 #   bundled
 #   runtime
 #   dev
-#   test
-#   lint
 # }
 #
 #
@@ -59,8 +57,6 @@ in {
         inherit descriptor;
         runtime = true;
         dev     = true;
-        test    = true;
-        lint    = true;
       } ) ( ( raw.dependencies or {} ) // ( raw.requires or {} ) ) )
 
     ( builtins.mapAttrs ( k: descriptor:
@@ -68,8 +64,6 @@ in {
         inherit descriptor;
         runtime = false;
         dev     = true;
-        test    = true;
-        lint    = true;
       } ) ( raw.devDependencies or {} ) )
 
     ( builtins.mapAttrs ( _: descriptor: {
@@ -77,8 +71,6 @@ in {
         optional = true;
         runtime  = true;
         dev      = true;
-        test     = true;
-        lint     = true;
       } ) ( raw.optionalDependencies or {} ) )
 
     ( builtins.mapAttrs ( _: descriptor: {
