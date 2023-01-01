@@ -23,6 +23,14 @@ in {
         on the declared peer at build time or runtime - rather it states
         "my consumers depend on the declared peer as a side effect of their
         dependence on me".
+
+        NOTE: For the purposes of `treeInfo` and the construction of a
+        `node_modules/` tree, if a module declares a peer then that peer must
+        be placed in a "sibling" or parent `node_modules/` directory, and never
+        as a subdirectory of the requestor!
+        The "sibling" case is why the term "peer" is used, indicating that these
+        modules must be "peers" living in the same `node_modules/` directory;
+        in practice a parent directory also works, but you get the idea.
       '';
       type = nt.attrsOf ( nt.submoduleWith {
         modules = [./single.interface.nix];
