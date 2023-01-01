@@ -24,8 +24,8 @@ in {
 # ---------------------------------------------------------------------------- #
 
     ident = lib.mkOption {
-      description = ''
-        Package identifier/name as found in `package.json:.name'.
+      description = lib.mdDoc ''
+        Package identifier/name as found in `package.json:.name`.
       '';
       type = ft.ident;
     };
@@ -34,8 +34,8 @@ in {
 # ---------------------------------------------------------------------------- #
 
     version = lib.mkOption {
-      description = ''
-        Package version as found in `package.json:.version'.
+      description = lib.mdDoc ''
+        Package version as found in `package.json:.version`.
       '';
       type = ft.version;
     };
@@ -44,9 +44,9 @@ in {
 # ---------------------------------------------------------------------------- #
 
     key = lib.mkOption {
-      description = ''
-        Unique key used to refer to this package in `tree' submodules and other
-        `floco' configs, metadata, and structures.
+      description = lib.mdDoc ''
+        Unique key used to refer to this package in `tree` submodules and other
+        `floco` configs, metadata, and structures.
       '';
       type = ft.key;
     };
@@ -55,19 +55,19 @@ in {
 # ---------------------------------------------------------------------------- #
 
     ltype = lib.mkOption {
-      description = ''
+      description = lib.mdDoc ''
         Package "lifecycle type"/"pacote source type".
         This option effects which lifecycle events may run when preparing a
         package/module for consumption or installation.
 
-        For example, the `file' ( distributed tarball ) lifecycle does not run
-        any `scripts.[pre|post]build' phases or result in any `devDependencies'
+        For example, the `file` ( distributed tarball ) lifecycle does not run
+        any `scripts.[pre|post]build` phases or result in any `devDependencies`
         being added to the build plan - since these packages will have been
         "built" before distribution.
-        However, `scripts.[pre|post]install' scripts ( generally `node-gyp'
-        compilation ) does run for the `file' lifecycle.
+        However, `scripts.[pre|post]install` scripts ( generally `node-gyp`
+        compilation ) does run for the `file` lifecycle.
 
-        This option is effectively a shorthand for setting `lifecycle' defaults,
+        This option is effectively a shorthand for setting `lifecycle` defaults,
         but may also used by some fetchers and scrapers.
 
         See Also: lifecycle, fetchInfo
@@ -102,27 +102,27 @@ in {
 # ---------------------------------------------------------------------------- #
 
     sourceInfo = lib.mkOption {
-      description = ''
+      description = lib.mdDoc ''
         Information about the source tree a package resides in.
-        This record is analogous to that returned by `builtins.fetchTree' for
+        This record is analogous to that returned by `builtins.fetchTree` for
         flake inputs.
 
-        Used in combination with `fetchInfo' and `fsInfo.dir', these three
+        Used in combination with `fetchInfo` and `fsInfo.dir`, these three
         nuggets of metadata are isomorphic with a flake input.
 
-        However, unlike flake inputs, `sourceInfo.outPath' may set to a derived
-        store path if and only if `fetchInfo' is explicitly set to `null'.
-        In this case `fsInfo.dir' is still used to identify a pacakage/module's
-        root directory where we will attempt to read `package.json'
+        However, unlike flake inputs, `sourceInfo.outPath` may set to a derived
+        store path if and only if `fetchInfo` is explicitly set to `null`.
+        In this case `fsInfo.dir` is still used to identify a pacakage/module`s
+        root directory where we will attempt to read `package.json`
         ( must exist ) and similar metadata files will be read from
         ( if they exist ).
         In this case you may avoid IFD by explicitly setting top level fields,
-        specifically `lifecycle', `sysInfo', `binInfo', and `treeInfo' or
-        `depInfo' which are required by builders.
-        Alternatively you may explicitly set `metaFiles.{pjs,plock,plent,trees}'
+        specifically `lifecycle`, `sysInfo`, `binInfo`, and `treeInfo` or
+        `depInfo` which are required by builders.
+        Alternatively you may explicitly set `metaFiles.{pjs,plock,plent,trees}`
         fields directly - but keep in mind that these fields are never
         guaranteed to be stable and their schema may change at any time
-        ( so set the top level ones unless you're up for the maintanence ).
+        ( so set the top level ones unless you`re up for the maintanence ).
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf ( nt.oneOf [nt.bool nt.int nt.str] );
@@ -199,8 +199,8 @@ in {
       '';
       type = nt.submodule {
         options.binPairs = lib.mkOption {
-          description = ''
-            Pairs of `{ <EXE-NAME> = <REL-PATH>; ... }' declarations mapping
+          description = lib.mdDoc ''
+            Pairs of `{ <EXE-NAME> = <REL-PATH>; ... }` declarations mapping
             exposed executables scripts to their associated sources.
           '';
           type = nt.attrsOf nt.str;
@@ -224,29 +224,31 @@ in {
 # ---------------------------------------------------------------------------- #
 
     treeInfo = lib.mkOption {
-      description = ''
-        `node_modules/' trees used for various lifecycle events.
-        These declarations are analogous to the `package.*' field found in
-        `package-lock.json(v2/3)' files.
+      description = lib.mdDoc ''
+        `node_modules/` trees used for various lifecycle events.
+        These declarations are analogous to the `package.*` field found in
+        `package-lock.json(v2/3)` files.
         This means that these fields should describe both direct and indirect
         dependencies for the full dependency graph.
 
-        Tree declarations are expected to be pairs of `node_modules/' paths to
-        "keys" ( matching the `key' field in its Nix declaration ):
+        Tree declarations are expected to be pairs of `node_modules/` paths to
+        "keys" ( matching the `key` field in its Nix declaration ):
+        ```
         {
           "node_modules/@foo/bar"                  = "@foo/bar/1.0.0";
           "node_modules/@foo/bar/node_modules/baz" = "baz/4.2.0";
           ...
         }
+        ```
 
         Arbitrary trees may be defined for use by later builders; but by default
-        we expect `prod' to be defined for any `file' ltype packages which
-        contain executables or an `install' event, and `dev' to be defined for
-        any packages which have a `build' lifecycle event.
+        we expect `prod` to be defined for any `file` ltype packages which
+        contain executables or an `install` event, and `dev` to be defined for
+        any packages which have a `build` lifecycle event.
 
         In practice we expect users to explicitly define these fields only for
         targets which they actually intend to create installables from, and we
-        recommend using a `package-lock.json(v2/3)' to fill these values.
+        recommend using a `package-lock.json(v2/3)` to fill these values.
       '';
       type = nt.submodule {
         freeformType = nt.attrsOf nt.str;
@@ -285,9 +287,9 @@ in {
       '';
       type = nt.submodule {
         options.gypfile = lib.mkOption {
-          description = ''
-            Whether `binding.gyp' exists in the project root.
-            May be explicitly overridden by declarations in `package.json'.
+          description = lib.mdDoc ''
+            Whether `binding.gyp` exists in the project root.
+            May be explicitly overridden by declarations in `package.json`.
 
             WARNING: You must not set this field based on ANY metadata pulled
             from a registry.
@@ -301,10 +303,10 @@ in {
           default = false;
         };
         options.dir = lib.mkOption {
-          description = ''
-            Relative path from `sourceInfo.outPath' to the package's root.
-            This field is analogous to a flake input's `dir' field, and is
-            used in combination with `fetchInfo' in exactly the same way as
+          description = lib.mdDoc ''
+            Relative path from `sourceInfo.outPath` to the package's root.
+            This field is analogous to a flake input's `dir` field, and is
+            used in combination with `fetchInfo` in exactly the same way as
             a flake input.
 
             You should almost never need to set this field for distributed
@@ -313,7 +315,7 @@ in {
             While this field is useful for working with monorepos I strongly
             recommend that you avoid abusing it.
             Its use inherently causes rebuilds of all projects in associated
-            with a single `sourceInfo' record for any change in the subtree.
+            with a single `sourceInfo` record for any change in the subtree.
             It is much more efficient to split a subtree into multiple sources,
             but I've left you enough rope to learn things the hard way if you
             insist on doing so.
@@ -341,7 +343,7 @@ in {
     # translators associated with each filetype.
     metaFiles = lib.mkOption {
       internal    = true;
-      description = ''
+      description = lib.mdDoc ''
         Misc. raw config info pulled from various config files.
         In general these are used to fill other fields as fallbacks when
         explicit definitions are not given.
@@ -352,11 +354,11 @@ in {
         defaults/fallbacks for other options.
 
         While other parts of a package's schema are strictly defined and can be
-        treated as "stable" - `metaFiles' fields should be thought of as
+        treated as "stable" - `metaFiles` fields should be thought of as
         "internal" and may change or be extended to support new translators.
 
         For this reason let me be loud and clear:
-        If you write a builder that directly refers to a `metaFiles' field, and
+        If you write a builder that directly refers to a `metaFiles` field, and
         it breaks because of a change to the `metaFiles' schema, and you proceed
         to file a bug report - you will be asked to stand in the corner of the
         classroom on top of your desk for the remainder of the day.
@@ -369,11 +371,11 @@ in {
 # ---------------------------------------------------------------------------- #
 
           metaRaw = lib.mkOption {
-            description = ''
+            description = lib.mdDoc ''
               Explicit metadata provided by users as a form of override or
               method of caching.
               This field is optional and while many translators may reference it
-              I want to once again highlight that ALL `metaFiles' fields are
+              I want to once again highlight that ALL `metaFiles` fields are
               strictly internal and should never be relied upon by builders or
               external extensions to `floco' since they may change without
               warning or indication in semantic versioning of the framework.
@@ -386,37 +388,37 @@ in {
 # ---------------------------------------------------------------------------- #
 
           pjs = lib.mkOption {
-            description = "Raw contents of `package.json'.";
+            description = lib.mdDoc "Raw contents of `package.json`.";
             type = nt.attrsOf nt.anything;
           };
 
           pjsDir = lib.mkOption {
-            description = ''
-              Path to the directory containing `package.json'.
+            description = lib.mdDoc ''
+              Path to the directory containing `package.json`.
               We require this path so that we can fetch source trees declared as
-              relative paths in the `package.json' under `dependencies' ( and
-              similar ) and `workspaces' fields.
+              relative paths in the `package.json` under `dependencies` ( and
+              similar ) and `workspaces` fields.
 
-              NOTE: If your `package.json' contains `../*' relative paths it is
+              NOTE: If your `package.json` contains `../*` relative paths it is
               strongly recommended that this option be set to a non-store path.
-              If a store path such as `/nix/store/xxxxx-source/../some-dir' is
-              given, Nix will crash and burn attempting to fetch `some-dir'.
+              If a store path such as `/nix/store/xxxxx-source/../some-dir` is
+              given, Nix will crash and burn attempting to fetch `some-dir`.
               A common trick to ensure that you are passing a regular filesystem
-              path is to stringize as: `pjsDir = toString ./.;'.
+              path is to stringize as: `pjsDir = toString ./.;`.
             '';
             type    = nt.path;
             example = toString ./my-project;
           };
 
           pjsKey = lib.mkOption {
-            description = ''
-              For `package.json' files with workspaces, the `pjsKey' is used to
+            description = lib.mdDoc ''
+              For `package.json` files with workspaces, the `pjsKey` is used to
               identify a workspace member.
 
-              These keys are simply a relative path from the "root" `pjsDir' to
-              a sub-project's `pjsDir'.
+              These keys are simply a relative path from the "root" `pjsDir` to
+              a sub-project's `pjsDir`.
 
-              NOTE: This field is currently unused by `floco', but is future
+              NOTE: This field is currently unused by `floco`, but is future
               extensions will use it to support workspaces.
             '';
             type    = nt.str;
@@ -427,13 +429,13 @@ in {
 # ---------------------------------------------------------------------------- #
 
           plock = lib.mkOption {
-            description = ''
-              Raw contents of `package-lock.json'.
+            description = lib.mdDoc ''
+              Raw contents of `package-lock.json`.
 
               NOTE: This field must only be set when the "root" package in the
               lockfile is associated this the package being declared.
               Information concerning dependencies is instead stashed
-              in `metaFiles.plent.*'.
+              in `metaFiles.plent.*`.
 
               See Also: plent
             '';
@@ -442,8 +444,8 @@ in {
           };
 
           plent = lib.mkOption {
-            description = ''
-              Raw contents of a `package-lock.json:.packages.*' record.
+            description = lib.mdDoc ''
+              Raw contents of a `package-lock.json:.packages.*` record.
 
               See Also: plock plentKey
             '';
@@ -452,17 +454,17 @@ in {
           };
 
           lockDir = lib.mkOption {
-            description = ''
-              Path to the directory containing `package-lock.json'.
+            description = lib.mdDoc ''
+              Path to the directory containing `package-lock.json`.
               We require this path so that we can fetch source trees declared as
               relative paths in the lockfile.
 
-              NOTE: If your lockfile contains `../*' relative paths it is
+              NOTE: If your lockfile contains `../*` relative paths it is
               strongly recommended that this option be set to a non-store path.
-              If a store path such as `/nix/store/xxxxx-source/../some-dir' is
-              given, Nix will crash and burn attempting to fetch `some-dir'.
+              If a store path such as `/nix/store/xxxxx-source/../some-dir` is
+              given, Nix will crash and burn attempting to fetch `some-dir`.
               A common trick to ensure that you are passing a regular filesystem
-              path is to stringize as: `lockDir = toString ./.;'.
+              path is to stringize as: `lockDir = toString ./.;`.
             '';
             type    = nt.nullOr nt.path;
             default = null;
@@ -470,10 +472,10 @@ in {
           };
 
           plentKey = lib.mkOption {
-            description = ''
-              The key used to lookup a plent in `package-lock.json:.packages.*'.
-              This key is a relative path from `lockDir' to the prospective
-              `pjsDir' of a package/module.
+            description = lib.mdDoc ''
+              The key used to lookup a plent in `package-lock.json:.packages.*`.
+              This key is a relative path from `lockDir` to the prospective
+              `pjsDir` of a package/module.
             '';
             type    = nt.nullOr nt.str;
             default = null;
@@ -598,15 +600,15 @@ in {
 # ---------------------------------------------------------------------------- #
 
           trees = lib.mkOption {
-            description = ''
-              Raw `treeInfo' style metadata, conventionally being sets of
-              `{ test = { "node_modules/@foo/bar" = "@foo/bar/1.0.0"; ... }; }'
-              mappings used for deriving a full `treeInfo' record.
+            description = lib.mdDoc ''
+              Raw `treeInfo` style metadata, conventionally being sets of
+              `{ test = { "node_modules/@foo/bar" = "@foo/bar/1.0.0"; ... }; }`
+              mappings used for deriving a full `treeInfo` record.
 
-              NOTE: It is strongly recommended that users write `treeInfo'
+              NOTE: It is strongly recommended that users write `treeInfo`
               directly if they wish to declare those settings.
               This attribute exists for interop with the beta implementation of
-              `floco' ( `github:aameen-tulip/at-node-nix' ).
+              `floco` ( `github:aameen-tulip/at-node-nix` ).
             '';
             type    = nt.nullOr ( nt.attrsOf nt.anything );
             default = null;
@@ -631,7 +633,7 @@ in {
         This field exists to allow a locked representation of a package
         definition to be made available at eval time in order to debug/trace
         the fields available to builders, and restrict the fields which are
-        readable across modules for the formation of `treeInfo' options.
+        readable across modules for the formation of `treeInfo` options.
       '';
       type = nt.lazyAttrsOf nt.anything;
     };
