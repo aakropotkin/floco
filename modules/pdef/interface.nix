@@ -14,6 +14,11 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  imports = [./depInfo];
+
+
+# ---------------------------------------------------------------------------- #
+
   options = {
 
 # ---------------------------------------------------------------------------- #
@@ -87,49 +92,6 @@ in {
       '';
       default = { build = false; install = false; };
       type    = ft.lifecycle;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    depInfo = lib.mkOption {
-      description = ''
-        Information regarding dependency modules/packages.
-        This record is analogous to the various
-        `package.json:.[dev|peer|optional|bundled]Dependencies[Meta]' fields.
-
-        These config settings do note necessarily dictate the contents of the
-        `trees' configs, which are used by builders, but may be used to provide
-        information needed to generate trees if they are not defined.
-      '';
-      type = nt.attrsOf ( nt.submodule {
-        options = {
-          descriptor = lib.mkOption {
-            type    = nt.nullOr nt.str;
-            default = null;
-          };
-          peerDescriptor = lib.mkOption {
-            type    = nt.nullOr nt.str;
-            default = null;
-          };
-          pin = lib.mkOption {
-            type    = nt.nullOr nt.str;
-            default = null;
-          };
-
-          optional = lib.mkOption { type = nt.bool; default = false; };
-          peer     = lib.mkOption { type = nt.bool; default = false; };
-          bundled  = lib.mkOption { type = nt.bool; default = false; };
-
-          # Indicates whether the dependency is required for various preparation
-          # phases or jobs.
-          runtime = lib.mkOption { type = nt.bool; default = true; };
-          dev     = lib.mkOption { type = nt.bool; default = false; };
-          test    = lib.mkOption { type = nt.bool; default = false; };
-          lint    = lib.mkOption { type = nt.bool; default = false; };
-        };
-      } );
-      default = {};
     };
 
 
