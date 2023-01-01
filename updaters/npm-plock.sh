@@ -101,7 +101,7 @@ while [[ "$#" -gt 0 ]]; do
     --*=*)
       _arg="$1";
       shift;
-      set -- "${_arg%=*}" "${_arg#*=}" "$@";
+      set -- "${_arg%%=*}" "${_arg#*=}" "$@";
       unset _arg;
       continue;
     ;;
