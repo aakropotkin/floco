@@ -90,7 +90,7 @@ is expected to end soon.
 
 The beta repository
 [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]] contains a
-large body of routines exist to perform /best effort/ =treeInfo=
+large body of routines to perform /best effort/ =treeInfo=
 mapping, specifically handling projects which only require a single
 version of any package ( this property is called /The Golden Rule/ in
 package management contexts ).
