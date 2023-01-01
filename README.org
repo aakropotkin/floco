@@ -78,7 +78,6 @@ On its own this translator would require users to explicitly declare the
 structure of their =node_modules/= tree using the =treeInfo= submodule.
 For this reason we strongly recommend using the =package-lock.json=
 translator for projects with large dependency graphs.
-Note that in the beta project
 
 **** Progress on /Ideal Tree/
 The term /ideal tree/ refers to the mapping of a =node_modules/= tree
