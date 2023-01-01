@@ -27,7 +27,8 @@ in {
       description = lib.mdDoc ''
         Package identifier/name as found in `package.json:.name`.
       '';
-      type = ft.ident;
+      type    = ft.ident;
+      example = "@floco/foo";
     };
 
 
@@ -37,7 +38,8 @@ in {
       description = lib.mdDoc ''
         Package version as found in `package.json:.version`.
       '';
-      type = ft.version;
+      type    = ft.version;
+      example = "4.2.0";
     };
 
 
@@ -48,7 +50,8 @@ in {
         Unique key used to refer to this package in `tree` submodules and other
         `floco` configs, metadata, and structures.
       '';
-      type = ft.key;
+      type    = ft.key;
+      example = "@floco/foo/4.2.0";
     };
 
 
@@ -179,6 +182,7 @@ in {
                 '';
                 type    = nt.str;
                 default = "*";
+                example = ">=14";
               };
             };
           };
