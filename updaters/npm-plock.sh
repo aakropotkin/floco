@@ -74,6 +74,7 @@ usage() {
 : "${NPM:=npm}";
 : "${JQ:=jq}";
 : "${REALPATH:=realpath}";
+: "${SED:=sed}";
 
 
 # ---------------------------------------------------------------------------- #
@@ -205,6 +206,7 @@ $NPM install            \
 cleanup() {
   rm -f "$OUTFILE";
 }
+_es=0;
 trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 
 
@@ -214,7 +216,7 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 export FLAKE_REF FLOCO_CONFIG OUTFILE;
 
 # TODO: unstringize `fetchInfo' relative paths.
-$NIX --no-substitute eval --impure --raw -f - <<'EOF' >"$OUTFILE"
+$NIX --no-substitute eval --raw -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco.inputs.nixpkgs) lib;
@@ -236,6 +238,14 @@ let
   pdefs = map ( v: v._export ) pl2pdefs.packages;
 in lib.generators.toPretty {} pdefs
 EOF
+
+
+# ---------------------------------------------------------------------------- #
+
+# Nix doesn't quote some reserved keywords when dumping expressions, so we
+# post-process a bit to add quotes.
+
+$SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/' "$OUTFILE";
 
 
 # ---------------------------------------------------------------------------- #

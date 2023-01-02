@@ -48,6 +48,18 @@
 
 # ---------------------------------------------------------------------------- #
 
+    # Only export `lifecycle' if it indicates non-default values.
+    _export = let
+      subs       = options.lifecycle.type.getSubOptions [];
+      nonDefault = f: v: v != ( subs.${f}.default or false );
+      rsl        = builtins.mapAttrs ( f: v: lib.mkIf ( nonDefault f v ) v )
+                                     config.lifecycle;
+      any = ( lib.filterAttrs nonDefault config.lifecycle ) != {};
+    in lib.mkIf any { lifecycle = rsl; };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `config'
 
 
