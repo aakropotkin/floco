@@ -93,7 +93,7 @@
       config.url  = resolved;
     };
 
-    # TODO: lifecycle
+    lifecycle.install = hasInstallScript;
   };
 
 

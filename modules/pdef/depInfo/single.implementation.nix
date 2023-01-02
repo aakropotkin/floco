@@ -29,7 +29,8 @@ in builtins.mapAttrs ( _: lib.mkDefault ) {
 
   descriptor = runtimeDeps.${ident} or devDependencies.${ident} or "*";
   runtime    = runtimeDeps ? ${ident};
-  dev        = ( devDependencies ? ${ident} ) ||
+  dev        = ( runtimeDeps ? ${ident} ) ||
+               ( devDependencies ? ${ident} ) ||
                ( devDependenciesMeta ? ${ident} );
   optional = ( optionalDependencies ? ${ident} ) ||
              ( devDependenciesMeta.${ident}.optional or false );

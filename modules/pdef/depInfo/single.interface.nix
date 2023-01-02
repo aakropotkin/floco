@@ -80,7 +80,7 @@ in {
         "production mode" dependencies.
       '';
       type    = nt.bool;
-      default = true;
+      default = false;
     };
     dev = lib.mkOption {
       description = ''
