@@ -24,7 +24,7 @@ in {
       griping about these options in bug reports.
     '';
 
-    default = { gypfile = false; dir = "."; };
+    default = { gypfile = false; shrinkwrap = false; dir = "."; };
 
 # ---------------------------------------------------------------------------- #
 
@@ -42,6 +42,23 @@ in {
           there is conflicting reporting rules for this field in POST requests
           by various package managers such that you should effectively
           disregard the value entirely.
+        '';
+        type    = nt.bool;
+        default = false;
+      };
+
+      options.shrinkwrap = lib.mkOption {
+        description = lib.mdDoc ''
+          Whether `npm-shrinkwrap.json` exists in the project root.
+          This is distributed form of `package-lock.json` which may be used to
+          install exact dependencies during global installation of packages.
+          For module/workspace installation this file takes precedence over
+          `package-lock.json` if it exists.
+
+          The use of `npm-shrinkwrap.json` is only recommended for executables.
+
+          NOTE: `floco` does not use `npm-shrinkwrap.json` at this time, so this
+          field exists as a stub.
         '';
         type    = nt.bool;
         default = false;
