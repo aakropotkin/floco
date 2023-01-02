@@ -16,8 +16,12 @@ in {
     description = ''
       Indicates platform, arch, and Node.js version support.
     '';
+
     type = nt.submodule {
       options = {
+
+# ---------------------------------------------------------------------------- #
+
         os = lib.mkOption {
           description = lib.mdDoc ''
             List of supported operating systems.
@@ -31,6 +35,9 @@ in {
           default = ["*"];
         };
 
+
+# ---------------------------------------------------------------------------- #
+
         cpu = lib.mkOption {
           description = lib.mdDoc ''
             List of supported CPU architectures.
@@ -42,6 +49,9 @@ in {
           ] );
           default = ["*"];
         };
+
+
+# ---------------------------------------------------------------------------- #
 
         engines = lib.mkOption {
           description = ''
@@ -60,8 +70,12 @@ in {
           };
           default.node = "*";
         };
-      };
-    };
+
+
+# ---------------------------------------------------------------------------- #
+
+      };  # End `options.sysInfo.type.options'
+    };  # End `options.sysInfo.type'
 
     default = {
       os           = ["*"];
