@@ -74,8 +74,6 @@
     inherit ident version key ltype;
     binInfo.binPairs = bin;
 
-    sysInfo = { inherit os cpu engines; };
-
     metaFiles = {
       inherit lockDir plentKey;
       plent = plock.packages.${plentKey};
