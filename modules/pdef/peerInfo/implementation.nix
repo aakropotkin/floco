@@ -28,6 +28,7 @@ in {
     peerInfo = builtins.mapAttrs ( ident: _:
       import ./single.implementation.nix ( { inherit lib ident; } // raw )
     ) ( ( raw.peerDependencies or {} ) // ( raw.peerDependenciesMeta or {} ) );
+    _export = lib.mkIf ( config.peerInfo != {} ) { inherit (config) peerInfo; };
   };
 
 }

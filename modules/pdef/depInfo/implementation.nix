@@ -44,12 +44,14 @@ in {
     };
   in builtins.foldl' proc {} idents;
 
-  config._export.depInfo = let
-    iface = import ./single.interface.nix { inherit lib; };
-    proc  = ident: dent: let
-      nonDefault = f: v: v != ( iface.options.${f}.default or false );
-    in builtins.mapAttrs ( f: v: lib.mkIf ( nonDefault f v ) v ) dent;
-  in builtins.mapAttrs proc config.depInfo;
+  config._export = let
+    depInfo = let
+      iface = import ./single.interface.nix { inherit lib; };
+      proc  = ident: dent: let
+        nonDefault = f: v: v != ( iface.options.${f}.default or false );
+      in builtins.mapAttrs ( f: v: lib.mkIf ( nonDefault f v ) v ) dent;
+    in builtins.mapAttrs proc config.depInfo;
+  in lib.mkIf ( config.depInfo != {} ) { inherit depInfo; };
 
 }
 

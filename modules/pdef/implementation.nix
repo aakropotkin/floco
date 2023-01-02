@@ -92,17 +92,22 @@
   # needs to be outside of the module fixed point, and needs to accept an
   # argument indicating `basedir' to make paths relative from.
   # This works for now but I really don't like it.
-  _export  = {
-    inherit (config) ident version key ltype peerInfo;
-    fetchInfo =
-      if ( config.fetchInfo.type or "path" ) != "path"
-      then config.fetchInfo
-      else config.fetchInfo // {
-        path = builtins.replaceStrings [
-          ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-        ] ["."] config.fetchInfo.path;
-      };
-  };
+  _export = lib.mkMerge [
+    {
+      inherit (config) ident version ltype;
+      fetchInfo =
+        if ( config.fetchInfo.type or "path" ) != "path"
+        then config.fetchInfo
+        else config.fetchInfo // {
+          path = builtins.replaceStrings [
+            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
+          ] ["."] config.fetchInfo.path;
+        };
+    }
+    ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {
+      inherit (config) key;
+    } )
+  ];
 
 
 # ---------------------------------------------------------------------------- #
