@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: let
+{ lib, ... }: let
 
   nt = lib.types;
   ft = import ./types.nix { inherit lib; };

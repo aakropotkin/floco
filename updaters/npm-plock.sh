@@ -216,7 +216,7 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 export FLAKE_REF FLOCO_CONFIG OUTFILE;
 
 # TODO: unstringize `fetchInfo' relative paths.
-$NIX --no-substitute eval --raw -f - <<'EOF' >"$OUTFILE"
+$NIX --no-substitute eval --show-trace --raw -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco.inputs.nixpkgs) lib;

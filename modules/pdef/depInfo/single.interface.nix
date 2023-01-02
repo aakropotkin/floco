@@ -82,6 +82,7 @@ in {
       type    = nt.bool;
       default = false;
     };
+
     dev = lib.mkOption {
       description = ''
         Whether the dependency is required during pre-distribution phases.
@@ -90,7 +91,8 @@ in {
       type    = nt.bool;
       default = true;
     };
-  };
+
+  };  # End `options'
 
 }
 
