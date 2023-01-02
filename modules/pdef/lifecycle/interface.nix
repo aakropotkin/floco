@@ -29,12 +29,9 @@ in {
 
       See Also: ltype
     '';
-    default = { build = false; install = false; };
 
     type = nt.submodule {
-
       freeformType = nt.attrsOf nt.bool;
-
       options = {
         build = lib.mkOption {
           description = ''
@@ -58,9 +55,10 @@ in {
           type    = nt.bool;
           default = false;
         };
-      };
+      };  # End `lifecycle.type.options'
+    };  # End `lifecycle.type'
 
-    };
+    default = { build = false; install = false; };
 
   };  # End `options'
 

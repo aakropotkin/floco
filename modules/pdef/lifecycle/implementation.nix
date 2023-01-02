@@ -15,6 +15,8 @@
 
   config = {
 
+# ---------------------------------------------------------------------------- #
+
     lifecycle.build = let
       fromLtype   = config.ltype != "file";
       fromScripts = let
@@ -26,6 +28,9 @@
     in lib.mkDefault (
       config.metaFiles.metaRaw.lifecycle.build or ( fromLtype && fromScripts )
     );
+
+
+# ---------------------------------------------------------------------------- #
 
     lifecycle.install = let
       fromScripts = let
@@ -40,7 +45,10 @@
       config.metaFiles.plent.hasInstallScript or ( fromScripts || gypfile )
     );
 
-  };
+
+# ---------------------------------------------------------------------------- #
+
+  };  # End `config'
 
 
 # ---------------------------------------------------------------------------- #
