@@ -24,7 +24,10 @@ in {
             The string `"*"` indicates that all operating systems
             are supported.
           '';
-          type    = nt.listOf nt.str;
+          type = nt.listOf ( nt.enum [
+            "*" "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess"
+            "win32" "unknown"
+          ] );
           default = ["*"];
         };
 
@@ -33,7 +36,10 @@ in {
             List of supported CPU architectures.
             The string `"*"` indicates that all CPUs are supported.
           '';
-          type    = nt.listOf nt.str;
+          type = nt.listOf ( nt.enum [
+            "*" "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel"
+            "riscv64" "unknown"
+          ] );
           default = ["*"];
         };
 
