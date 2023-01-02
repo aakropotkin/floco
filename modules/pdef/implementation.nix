@@ -31,26 +31,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-    binInfo = let
-      bin = config.metaFiles.metaRaw.bin or (
-        if config.metaFiles ? plent then config.metaFiles.plent.bin or {} else
-        if config.metaFiles ? pjs then config.metaFiles.pjs.bin or {} else
-        null
-      );
-      binDir = if bin != null then null else
-        config.metaFiles.metaRaw.binDir or
-        config.metaFiles.metaRaw.directories.bin or
-        config.metaFiles.pjs.directories.bin or null;
-    in lib.mkDefault ( config.metaFiles.metaRaw.binInfo or {
-      inherit binDir;
-      binPairs = if bin == null then null else
-                 if builtins.isAttrs bin then bin else
-                 { ${baseNameOf config.ident} = bin; };
-    } );
-
-
-# ---------------------------------------------------------------------------- #
-
     fetchInfo = let
       # Locks `fetchInfo'
       fii = import ../fetchInfo/implementations.nix { inherit lib; };
@@ -113,7 +93,7 @@
   # argument indicating `basedir' to make paths relative from.
   # This works for now but I really don't like it.
   _export  = {
-    inherit (config) ident version key ltype peerInfo binInfo;
+    inherit (config) ident version key ltype peerInfo;
     fetchInfo =
       if ( config.fetchInfo.type or "path" ) != "path"
       then config.fetchInfo
