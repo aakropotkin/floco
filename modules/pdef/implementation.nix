@@ -92,12 +92,6 @@
     );
 
 
-    fsInfo = lib.mkDefault ( config.metaFiles.metaRaw.fsInfo or {
-      gypfile =
-        builtins.pathExists ( config.metaFiles.pjsDir + "/binding.gyp" );
-    } );
-
-
 # ---------------------------------------------------------------------------- #
 
     metaFiles.pjsDir = let
@@ -119,7 +113,7 @@
   # argument indicating `basedir' to make paths relative from.
   # This works for now but I really don't like it.
   _export  = {
-    inherit (config) ident version key ltype peerInfo binInfo fsInfo;
+    inherit (config) ident version key ltype peerInfo binInfo;
     fetchInfo =
       if ( config.fetchInfo.type or "path" ) != "path"
       then config.fetchInfo
