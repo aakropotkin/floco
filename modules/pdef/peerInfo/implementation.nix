@@ -28,7 +28,14 @@ in {
     peerInfo = builtins.mapAttrs ( ident: _:
       import ./single.implementation.nix ( { inherit lib ident; } // raw )
     ) ( ( raw.peerDependencies or {} ) // ( raw.peerDependenciesMeta or {} ) );
-    _export = lib.mkIf ( config.peerInfo != {} ) { inherit (config) peerInfo; };
+    _export = lib.mkIf ( config.peerInfo != {} ) {
+      peerInfo = let
+        iface = import ./single.interface.nix { inherit lib; };
+      in builtins.mapAttrs ( _: builtins.mapAttrs ( f: v:
+        if f == "descriptor" then v else
+        lib.mkIf ( v != iface.options.${f}.default ) v
+      ) ) config.peerInfo;
+    };
   };
 
 }
