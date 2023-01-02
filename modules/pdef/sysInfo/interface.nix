@@ -52,7 +52,7 @@ in {
               example = ">=14";
             };
           };
-          default.node = ["*"];
+          default.node = "*";
         };
       };
     };
