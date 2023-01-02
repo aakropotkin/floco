@@ -40,6 +40,27 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    checkSystemSupport = lib.mkOption {
+
+      description = lib.mdDoc ''
+        A function that checks if `stdenv.hostPlatform` or a `system` pair can
+        support a package.
+        This uses translated `sysInfo` records.
+      '';
+
+      default = {
+        stdenv   ? throw "checkSystemSupport: You must pass an arg"
+      , platform ? stdenv.hostPlatform
+      , system   ? platform.system
+      }: true;
+
+      type = nt.functionTo nt.bool;
+
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
     source = lib.mkOption {
       description = ''
         Unpacked source tree used as the basis for package/module preparation.
