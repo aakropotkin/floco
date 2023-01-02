@@ -77,24 +77,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    lifecycle = lib.mkOption {
-      description = ''
-        Enables/disables phases executed when preparing a package/module for
-        consumption or installation.
-
-        Executing a phase when no associated script is defined is not
-        necessarily harmful, but has a drastic impact on performance and may
-        cause infinite recursion if dependency cycles exist among packages.
-
-        See Also: ltype
-      '';
-      default = { build = false; install = false; };
-      type    = ft.lifecycle;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
     inherit (import ../fetchInfo/interfaces.nix { inherit lib; }) fetchInfo;
 
 # ---------------------------------------------------------------------------- #

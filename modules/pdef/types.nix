@@ -41,36 +41,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  lifecycle = nt.submodule {
-    freeformType = nt.attrsOf nt.bool;
-    options = {
-      build   = lib.mkOption {
-        description = ''
-          Whether a package or module requires build scripts to be run before
-          it is prepared for consumption.
-          
-          This field should never be set to true when consuming registry
-          tarballs even if they define build scripts, since they are distributed
-          after being built by authors and maintainers.
-        '';
-        type    = nt.bool;
-        default = false;
-      };
-      install = lib.mkOption {
-        description = lib.mdDoc ''
-          Whether a package or module requires `[pre|post]install` scripts or
-          `node-gyp` compilation to be performed before a distributed tarball
-          is prepared for consumption.
-        '';
-        type    = nt.bool;
-        default = false;
-      };
-    };
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
 }
 
 # ---------------------------------------------------------------------------- #
