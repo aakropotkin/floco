@@ -1,6 +1,11 @@
 # ============================================================================ #
 #
+# Controls the execution of lifecycle events.
+# When set to `true' preparation of a module will run a given event first.
 #
+# Some events like `test', `lint', and `dist' only block preparation when
+# certain `flocoPackages.packages.<IDENT>.<VESION>.*' settings explicitly
+# request them to.
 #
 # ---------------------------------------------------------------------------- #
 
