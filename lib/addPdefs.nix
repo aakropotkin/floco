@@ -40,22 +40,15 @@
             else import pdefs;
     in addPdefs raw;
     fromList.flocoPackages.pdefs = ( lib.evalModules {
-      modules = [
-        {
-          config._module.args.pkgs = {
-            dummy = throw
-              "Maintainers' TODO: separate top level `pdefs' to avoid this.";
-          };
-        }
-        ../modules/packages
-      ] ++ ( map ( v: {
-        flocoPackages.pdefs.${v.ident}.${v.version} = v;
+      modules = [../modules/pdefs] ++ ( map ( v: {
+        pdefs.${v.ident}.${v.version} = v;
       } ) pdefs );
-    } ).config.flocoPackages.pdefs;
+    } ).config.pdefs;
     fromAttrs =
+      if pdefs ? config then pdefs.config else
       if pdefs ? flocoPackages then pdefs else
       if pdefs ? pdefs then { flocoPackages = { inherit pdefs; }; } else
-      throw "addPdefs: what the fuck did you try to pass bruce?";
+      throw "floco#lib.addPdefs: what the fuck did you try to pass bruce?";
     isFile = ( builtins.isPath pdefs ) || ( builtins.isString pdefs );
   in if isFile then fromFile else {
     config = if builtins.isAttrs pdefs then fromAttrs else fromList;

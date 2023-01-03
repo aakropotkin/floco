@@ -26,8 +26,6 @@ in {
       modules                    = [../pdef];
     } ) );
 
-    default = {};
-
     example = {
       lodash."4.17.21" = {
         key   = "lodash/4.17.21";
@@ -38,6 +36,9 @@ in {
         "..." = "...";
       };
     };
+
+    default.lodash."4.17.21" = { ident = "lodash"; version = "4.17.21"; };
+
   };  # End `options.pdefs'
 
 

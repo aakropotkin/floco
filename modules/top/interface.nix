@@ -4,13 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib    ? import ../../lib { inherit (pkgs) lib; }
-, config
-, system ? config._module.args.system or builtins.currentSystem
-, pkgs   ? config._module.args.pkgs or
-           ( import ../../inputs ).nixpkgs.flake.legacyPackages.${system}
-, ...
-}: let
+{ lib, config, options, pkgs, ... }: let
   nt = lib.types;
 in {
 
@@ -23,11 +17,16 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
       modules = [
-        { config._module.args = { inherit pkgs; }; }
+        {
+          config._module.args = { inherit pkgs; };
+        }
         ../pdefs
         ../packages
       ];
     };
+    default = let
+      subs = options.flocoPackages.type.getSubOptions [];
+    in builtins.mapAttrs ( _: s: s.default ) ( removeAttrs subs ["_module"] );
   };
 
 

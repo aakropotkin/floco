@@ -12,24 +12,14 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../../inputs ).nixpkgs.flake
-, lib     ? import ../../../lib { inherit (nixpkgs) lib; }
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
-}: let
+{ lib ? import ../../../lib {} }: let
 
 # ---------------------------------------------------------------------------- #
 
   module = lib.evalModules {
-    modules = [
-      {
-        config._module.args.pkgs = pkgsFor;
-        config._module.args.flocoPackages.pdefs = {};
-      }
-      ../../../modules/packages
-    ];
+    modules = [../../../modules/top];
   };
-  lodash = module.config.packages.lodash."4.17.21".pdef;
+  lodash = module.config.flocoPackages.packages.lodash."4.17.21".pdef;
 
 # ---------------------------------------------------------------------------- #
 

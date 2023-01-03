@@ -9,7 +9,7 @@
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 , config  ? {
-    imports = [../../modules/packages];
+    imports = [../../modules/top];
     config._module.args.pkgs = pkgsFor;
   }
 }: let

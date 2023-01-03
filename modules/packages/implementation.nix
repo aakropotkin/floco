@@ -5,22 +5,16 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib
-, config
-, flocoPackages ? config._module.args.flocoPackages
-, ...
-}: {
+{ lib, config, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
   config = {
     # An example module, but also there's basically a none percent chance that
     # a real build plan won't include this so yeah you depend on `lodash' now.
-    packages = {
-      lodash."4.17.21".pdef = { ident = "lodash"; version = "4.17.21"; };
-    } // ( builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
+    packages = builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
       inherit pdef;
-    } ) ) flocoPackages.pdefs );
+    } ) ) config.pdefs;
   };  # End `config'
 
 # ---------------------------------------------------------------------------- #

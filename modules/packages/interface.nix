@@ -5,11 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib
-, config
-, pkgs   ? config._module.args.pkgs
-, ...
-}: let
+{ lib, config, options, pkgs, ... }: let
 
   nt = lib.types;
 
@@ -18,9 +14,11 @@ in {
 # ---------------------------------------------------------------------------- #
 
     options.packages = lib.mkOption {
+
       description = lib.mdDoc ''
         Collection of built/prepared packages and modules.
       '';
+
       type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
         shorthandOnlyDefinesConfig = true;
         modules = [
@@ -28,6 +26,11 @@ in {
           ../package
         ];
       } ) );
+
+      default = builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
+        inherit pdef;
+      } ) ) options.pdefs.default;
+
     };
 
 
