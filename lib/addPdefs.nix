@@ -6,8 +6,8 @@
 # If the argument is a list its members will be treated as a module list to
 # be merged.
 # If the argument is a file it will be imported and processed as described
-# above, except that certain fields will be normalized to account for
-# serialization compression.
+# above - JSON files will be converted to Nix expressions if the given path
+# has a ".json" extension.
 #
 # This routine exists to simplify aggregation of `pdefs.nix' files.
 #
@@ -15,20 +15,30 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib ? ( builtins.getFlake "nixpkgs" ).lib }: let
+{ lib }: let
 
 # ---------------------------------------------------------------------------- #
 
+  /* Coerce a collection of `pdef` records to a set of config fields.
+
+     Type: addPdefs :: (attrs|list|file) -> { config.flocoPackages.pdefs.*.*.* }
+
+     Example:
+       addPdefs [{ ident = "@floco/example"; version = "4.2.0"; ... }]
+       => {
+         config.flocoPackages.pdefs."@floco/example"."4.2.0" = {
+           ident   = "@floco/example";
+           version = "4.2.0";
+           ...
+         };
+       }
+  */
   addPdefs = pdefs: let
     fromFile = let
-      raw = import pdefs;
-      normalize = v:
-        if ! ( v ? treeInfo ) then v else
-        lib.recursiveUpdate { metaFiles.metaRaw = { inherit (v) treeInfo; }; }
-                            ( removeAttrs v ["treeInfo"] );
-      norm = if builtins.isList raw then map normalize raw else
-             builtins.mapAttrs ( _: builtins.mapAttrs ( _: normalize ) ) raw;
-    in addPdefs norm;
+      raw = if lib.hasSuffix ".json" ( toString pdefs )
+            then lib.importJSON pdefs
+            else import pdefs;
+    in addPdefs raw;
     fromList.flocoPackages.pdefs = ( lib.evalModules {
       modules = [
         {
@@ -54,7 +64,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-in addPdefs
+in {
+  inherit addPdefs;
+}
 
 
 # ---------------------------------------------------------------------------- #

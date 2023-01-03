@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------- #
 
 { lib, config, pkgs ? config._module.args.pkgs, ... }:
-  ( import ../../lib/addPdefs.nix { inherit lib; } ) ./pdefs.nix
+  ( import ../../lib/addPdefs.nix { inherit lib; } ).addPdefs ./pdefs.nix
 
 # ---------------------------------------------------------------------------- #
 #
