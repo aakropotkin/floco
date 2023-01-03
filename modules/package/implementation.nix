@@ -4,12 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib
-, config
-, pkgs          ? config._module.arg.pkgs
-, flocoPackages ? config._module.args.flocoPackages
-, ...
-}: {
+{ lib, config, pkgs, flocoPackages, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -17,28 +12,20 @@
 
 # ---------------------------------------------------------------------------- #
 
-    checkSystemSupport = {
-      stdenv   ? throw "checkSystemSupport: You must pass an arg"
-    , platform ? stdenv.hostPlatform
-    , system   ? platform.system
-    }: let
-      m = builtins.match "(.*)-([^-]+)" system;
-      archPart = builtins.head m;
-      archOk = ( builtins.elem "*" config.sysInfo.cpu ) ||
-               ( builtins.elem archPart config.sysInfo.cpu );
-      osPart = builtins.elemAt m 1;
-      osOk = ( builtins.elem "*" config.sysInfo.os ) ||
-               ( builtins.elem osPart config.sysInfo.os );
-    in archOk && osOk;
+    checkSystemSupport = lib.checkSystemSupportFor config;
+    systemSupported    = config.checkSystemSupport { inherit (pkgs) stdenv; };
+
 
 # ---------------------------------------------------------------------------- #
 
-    supportedTree = lib.mkIf ( config.pdef.treeInfo != null ) (
-      lib.filterAttrs ( k: v:
-        ( ! v.optional ) ||
-        ( config.checkSystemSupport
-      ) config.pdef.treeInfo
-    ) );
+    trees = lib.mkIf ( config.pdef.treeInfo != null ) {
+      supported = lib.filterAttrs ( k: v: let
+        ident   = dirOf v.key;
+        version = baseNameOf v.key;
+      in ( ! v.optional ) ||
+        flocoPackages.packages.${ident}.${version}.systemSupported
+      ) config.pdef.treeInfo;
+    };
 
 
 # ---------------------------------------------------------------------------- #

@@ -1,3 +1,6 @@
 {
-  imports = [./interface.nix ./implementation.nix];
+  imports = [
+    ./trees
+    ./interface.nix ./implementation.nix
+  ];
 }

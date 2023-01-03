@@ -39,53 +39,31 @@ in {
 # ---------------------------------------------------------------------------- #
 
     checkSystemSupport = lib.mkOption {
-
       description = lib.mdDoc ''
         A function that checks if `stdenv.hostPlatform` or a `system` pair can
         support a package.
         This uses translated `sysInfo` records.
       '';
-
       default = {
         stdenv   ? throw "checkSystemSupport: You must pass an arg"
       , platform ? stdenv.hostPlatform
       , system   ? platform.system
       }: true;
-
       type = nt.functionTo nt.bool;
-
     };
 
 
 # ---------------------------------------------------------------------------- #
 
-    supportedTree = lib.mkOption {
+    systemSupported = lib.mkOption {
       description = lib.mdDoc ''
-        A filtered form of `treeInfo` which drops unsupported
-        optional dependencies.
+        Indicates whether this package/module is supported
+        by `config.pkgs.stdenv.hostPlatform`.
+        This value is the result of evaluating `config.checkSystemSupported`
+        against `config._module.args.pkgs`.
       '';
-      default = null;
-      type    = nt.nullOr ( nt.attrsOf ( nt.submoduleWith {
-        modules = [{
-          freeformType = nt.attrsOf nt.bool;
-          options.key = lib.mkOption {
-            description = lib.mdDoc ''
-              Unique key used to refer to this package in `tree` submodules and
-              other `floco` configs, metadata, and structures.
-            '';
-            type = ft.key;
-          };
-          options.dev = lib.mkOption {
-            description = ''
-              Whether the dependency is required ONLY during
-              pre-distribution phases.
-              This includes common tasks such as building, testing, and linting.
-            '';
-            type    = nt.bool;
-            default = false;
-          };
-        }];
-      } ) );
+      type     = nt.bool;
+      internal = true;
     };
 
 
@@ -105,18 +83,6 @@ in {
       '';
       type = nt.package;
     };
-
-
-# ---------------------------------------------------------------------------- #
-
-    #trees = lib.mkOption {
-    #  type = nt.submodule {
-    #    freeformType = nt.attrsOf nt.package;
-    #    prod = lib.mkOption { type = nt.nullOr nt.package; default = null; };
-    #    dev  = lib.mkOption { type = nt.nullOr nt.package; default = null; };
-    #  };
-    #  default = { prod = null; dev = null; };
-    #};
 
 
 # ---------------------------------------------------------------------------- #

@@ -18,6 +18,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    inherit (import ../fetchInfo/interfaces.nix { inherit lib; }) fetchInfo;
+
+# ---------------------------------------------------------------------------- #
+
     ident = lib.mkOption {
       description = lib.mdDoc ''
         Package identifier/name as found in `package.json:.name`.
@@ -74,10 +78,6 @@ in {
       default = "file";
     };
 
-
-# ---------------------------------------------------------------------------- #
-
-    inherit (import ../fetchInfo/interfaces.nix { inherit lib; }) fetchInfo;
 
 # ---------------------------------------------------------------------------- #
 
@@ -173,8 +173,9 @@ in {
               external extensions to `floco` since they may change without
               warning or indication in semantic versioning of the framework.
             '';
-            type    = nt.attrsOf nt.anything;
-            default = {};
+            type     = nt.attrsOf nt.anything;
+            default  = {};
+            internal = true;
           };
 
 
@@ -182,7 +183,8 @@ in {
 
           pjs = lib.mkOption {
             description = lib.mdDoc "Raw contents of `package.json`.";
-            type = nt.attrsOf nt.anything;
+            type        = nt.attrsOf nt.anything;
+            internal    = true;
           };
 
           pjsDir = lib.mkOption {
@@ -199,8 +201,9 @@ in {
               A common trick to ensure that you are passing a regular filesystem
               path is to stringize as: `pjsDir = toString ./.;`.
             '';
-            type    = nt.path;
-            example = toString ./my-project;
+            type     = nt.path;
+            example  = toString ./my-project;
+            internal = true;
           };
 
           pjsKey = lib.mkOption {
@@ -214,8 +217,9 @@ in {
               NOTE: This field is currently unused by `floco`, but is future
               extensions will use it to support workspaces.
             '';
-            type    = nt.str;
-            default = "";
+            type     = nt.str;
+            default  = "";
+            internal = true;
           };
 
 
@@ -232,8 +236,9 @@ in {
 
               See Also: plent
             '';
-            type    = nt.nullOr ( nt.attrsOf nt.anything );
-            default = null;
+            type     = nt.nullOr ( nt.attrsOf nt.anything );
+            default  = null;
+            internal = true;
           };
 
           plent = lib.mkOption {
@@ -242,8 +247,9 @@ in {
 
               See Also: plock plentKey
             '';
-            type    = nt.nullOr ( nt.attrsOf nt.anything );
-            default = null;
+            type     = nt.nullOr ( nt.attrsOf nt.anything );
+            default  = null;
+            internal = true;
           };
 
           lockDir = lib.mkOption {
@@ -259,9 +265,10 @@ in {
               A common trick to ensure that you are passing a regular filesystem
               path is to stringize as: `lockDir = toString ./.;`.
             '';
-            type    = nt.nullOr nt.path;
-            default = null;
-            example = toString ./my-project;
+            type     = nt.nullOr nt.path;
+            default  = null;
+            example  = toString ./my-project;
+            internal = true;
           };
 
           plentKey = lib.mkOption {
@@ -270,9 +277,10 @@ in {
               This key is a relative path from `lockDir` to the prospective
               `pjsDir` of a package/module.
             '';
-            type    = nt.nullOr nt.str;
-            default = null;
-            example = "node_modules/@babel/core/node_modules/semver";
+            type     = nt.nullOr nt.str;
+            default  = null;
+            example  = "node_modules/@babel/core/node_modules/semver";
+            internal = true;
           };
 
 

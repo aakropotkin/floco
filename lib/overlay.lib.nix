@@ -47,10 +47,12 @@ in {
 
   libfloco = callLibs [
     ./addPdefs.nix
+    ./checkSystemSupport.nix
   ];
 
   inherit (final.libfloco)
     addPdefs
+    checkSystemSupportFor
   ;
 
 }

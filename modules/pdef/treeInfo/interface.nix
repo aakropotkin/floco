@@ -44,6 +44,7 @@ in {
     '';
 
     type = nt.nullOr ( nt.attrsOf ( nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
       modules = [./single.interface.nix];
     } ) );
 

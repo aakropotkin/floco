@@ -101,9 +101,7 @@
   # `treeInfo' for root package
   exportTreeInfo = {
     config.treeInfo = let
-      mkTreeEnt = plentKey: plent: {
-        config = { inherit (plent) key optional dev; };
-      };
+      mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
       keeps = removeAttrs plconf.config.plents [""];
     in lib.mkForce ( builtins.mapAttrs mkTreeEnt keeps );
   };
