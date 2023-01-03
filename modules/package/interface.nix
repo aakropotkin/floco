@@ -327,7 +327,7 @@ in {
     buildDependsOnLint = lib.mkOption {
       description = lib.mdDoc ''
         Causes the `built` lifecycle stage to be blocked by successful `lint`
-        checking ( required `lint` to be non-null ).
+        checking ( requires `lint` to be non-null ).
 
         This is recommended for projects which are under active development.
 
