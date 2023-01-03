@@ -109,14 +109,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    trees = lib.mkOption {
-      type = nt.submodule {
-        freeformType = nt.attrsOf nt.package;
-        prod = lib.mkOption { type = nt.nullOr nt.package; default = null; };
-        dev  = lib.mkOption { type = nt.nullOr nt.package; default = null; };
-      };
-      default = { prod = null; dev = null; };
-    };
+    #trees = lib.mkOption {
+    #  type = nt.submodule {
+    #    freeformType = nt.attrsOf nt.package;
+    #    prod = lib.mkOption { type = nt.nullOr nt.package; default = null; };
+    #    dev  = lib.mkOption { type = nt.nullOr nt.package; default = null; };
+    #  };
+    #  default = { prod = null; dev = null; };
+    #};
 
 
 # ---------------------------------------------------------------------------- #

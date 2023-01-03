@@ -1,0 +1,1889 @@
+* Configuration Options
+:PROPERTIES:
+:CUSTOM_ID: appendix-configuration-options
+:END:
+- =flocoPackages= :: Scope used for configuring =flocoPackages=
+  framework.
+
+  /Type:/ submodule
+
+  /Declared by:/
+
+  /floco/modules/packages/interface.nix
+
+- =flocoPackages.packages= :: Collection of built/prepared packages and
+  modules.
+
+  /Type:/ attribute set of attribute set of (submodule)
+
+  /Declared by:/
+
+  /floco/modules/packages/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.buildDependsOnLint= :: Causes
+  the =built= lifecycle stage to be blocked by successful =lint=
+  checking ( required =lint= to be non-null ).
+
+  This is recommended for projects which are under active development.
+
+  If =preferMultipleOutputDerivations= is enabled this is implemented by
+  making the =lint= derivation an input of the =built= derivation.
+  Otherwise this will cause a =preBuild= phase to run =lint= checks,
+  killing the builder if the check fails.
+
+  NOTE: if =built= is an alias of =source=, this causes either
+  =installed= or =prepared= to depend on =lint= instead.
+
+  See Also: lint, installDependsOnTest
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.built= :: "Built" form of a
+  package/module which is ready for distribution as a tarball ( =build=
+  and =prepublish= scripts must be run if defined ).
+
+  By default the =dev= tree is used for this stage.
+
+  If no build is required then this option is an alias of =source=.
+
+  XXX: If a =build= script produces executable scripts you should NOT
+  patch shebangs yet - patching should be deferred to the =prepared=
+  stage.
+
+  /Type:/ package
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.checkSystemSupport= :: A
+  function that checks if =stdenv.hostPlatform= or a =system= pair can
+  support a package. This uses translated =sysInfo= records.
+
+  /Type:/ function that evaluates to a(n) boolean
+
+  /Default:/ =<function, args: {platform?, stdenv?, system?}>=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.dist= :: Produce a distributable
+  tarball suitable for publishing using the =built= form of a package.
+
+  This target should never be enabled for packages whose =source= is
+  already a registry tarball ( those with =ltype= of =file= ).
+
+  The contents of this tarball will attempt to unpatch scripts using the
+  original =source= package's contents - but if you produce any
+  executables during your build it is your responsibility to ensure that
+  they remain unpatched ( patching should be performed later during the
+  =prepare= event instead ).
+
+  /Type:/ null or package
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.global= :: Globally installed
+  form of a package which uses conventional =POSIX= installation
+  prefixes such as =lib/node_modules/= and =bin/=.
+
+  Globally installed packages will carry their full runtime dependency
+  tree as a subdir, allowing executables to resolve any necessary
+  modules, and symlinks into other =node_modules/= directories to behave
+  as they would with other Node.js package management tools.
+
+  NOTE: If a project has dependency cycles it may be necessary to enable
+  the option =preferMultipleOutputDerivations= to allow any =build= or
+  =install= stages to run.
+
+  /Type:/ package
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.installDependsOnTest= :: Causes
+  the =installed= lifecycle stage to be blocked by successful =test=
+  checking ( required =test= to be non-null ).
+
+  This is recommended for projects which are under active development.
+
+  If =preferMultipleOutputDerivations= is enabled this is implemented by
+  making the =test= derivation an input of the =installed= derivation.
+  Otherwise this will cause a phase to run =test= checks before
+  =install= events, killing the builder if the check fails.
+
+  NOTE: if =installed= is an alias of =built=, this causes either
+  =prepared= to depend on =test= instead.
+
+  See Also: test, buildDependsOnLint
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.installed= :: "Installed" form
+  of a package/module which is ready consumption as a module in a
+  =node_modules/= directory, or global installation for use as a
+  package.
+
+  This stage requires that any =install= scripts have been run, which
+  conventionally means "run =node-gyp= to perform system dependant
+  compilation or setup".
+
+  By default the =prod= tree is used for this stage.
+
+  If no install is required then this option is an alias of =built=.
+
+  XXX: If an =install= script produces executable scripts you should NOT
+  patch shebangs yet - patching should be deferred to the =prepared=
+  stage.
+
+  /Type:/ package
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.key= :: Unique key used to refer
+  to this package in =tree= submodules and other =floco= configs,
+  metadata, and structures.
+
+  /Type:/ string
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.lint= :: Run lints against the
+  =source= of a package. By default this executes any =lint= scripts
+  defined in =package.json= using the =dev= tree.
+
+  As an optimization you may explicitly define =treeInfo.lint= allowing
+  =treeInfo.dev= to be reduced to the subset of dependencies required to
+  build, and =treeInfo.lint= to be reduced to the subset of dependencies
+  required to run lints. This approach is STRONGLY encouraged especially
+  if you use =jest=, =webpack=, or =babel= since these packages' all
+  fail to properly adhere to Node.js resolution specifications for
+  symlinks, and often require you to copy a massive pile of files into
+  the sandbox.
+
+  This target should never be enabled for packages/modules whose source
+  was a distributed tarball ( those with =ltype= or =file= ) since these
+  have already been linted as a part of their pre-release process.
+
+  See Also: test
+
+  /Type:/ null or package
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef= :: Package's declared
+  metadata normalized as =pdef= submodule.
+
+  /Type:/ submodule
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.binInfo= :: Indicates files
+  or directories which should be prepared for use as executable scripts.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    binDir = null;
+    binPairs = { };
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.binInfo.binDir= :: Relative
+  path to a subdir from which all files should be prepared as
+  executables. Executable names will be defined as the basename of each
+  file with any extensions stripped.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.binInfo.binPairs= :: Pairs
+  of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping exposed
+  executables scripts to their associated sources.
+
+  /Type:/ attribute set of string
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo= :: Information
+  regarding dependency modules/packages. This record is analogous to the
+  various =package.json:.[dev|peer|optional|bundled]Dependencies[Meta]=
+  fields.
+
+  These config settings do note necessarily dictate the contents of the
+  =treeInfo= configs, which are used by builders, but may be used to
+  provide information needed to generate trees if they are not defined.
+
+  /Type:/ attribute set of (attribute set of boolean)
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.bundled= :: Whether
+  the dependency is distributed in registry tarballs alongside the
+  consumer.
+
+  This is sometimes used to include patched modules, but whenver
+  possible bundling should be avoided in favor of tooling like =esbuild=
+  or =webpack= because the effect bundled dependencies have on
+  resolution is fraught.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.descriptor= :: Descriptor
+  indicating version range or exact source required to satisfy a
+  dependency.
+
+  The value ="*"= allows any version or source to be used, as long as it
+  has the same identifier ( name ).
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.dev= :: Whether
+  the dependency is required during pre-distribution phases. This
+  includes common tasks such as building, testing, and linting.
+
+  /Type:/ boolean
+
+  /Default:/ =true=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.optional= :: Whether
+  the dependency may be omitted from the =node_modules/= tree.
+
+  Conventionally this is used to mark dependencies which are only
+  required under certain conditions such as platform, architecture, or
+  engines. Generally optional dependencies carry =sysInfo= conditionals,
+  or =postinstall= scripts which must be allowed to fail without
+  blocking the build of the consumer.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.pin= :: An
+  exact version number or URI indicating the "resolved" form of a
+  dependency descriptor.
+
+  This will be used for =treeInfo= formation, and is available for usage
+  by extensions to =floco=.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.depInfo.<name>.runtime= :: Whether
+  the dependency is required at runtime. Other package management tools
+  often refer to these as "production mode" dependencies.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.fetchInfo= :: Arguments
+  passed to fetcher. By default any `builtins.fetchTree' or
+  `builtins.path' argset is supported, and the correct fetcher can be
+  inferred from these values.
+
+  If set to `null', `sourceInfo' must be set explicitly.
+
+  /Type:/ attribute set of (null or string or signed integer or boolean)
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.fsInfo= :: Indicates
+  information about a package that must be scraped from its source tree,
+  rather than a conventional config file.
+
+  It is not recommended for users to manually fill these fields; rather
+  we expect these to be informed by a cache or lockfile. You're welcome
+  to explicitly define them, but I don't want to see anyone griping
+  about these options in bug reports.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    dir = ".";
+    gypfile = false;
+    shrinkwrap = false;
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.fsInfo.dir= :: Relative
+  path from =sourceInfo.outPath= to the package's root. This field is
+  analogous to a flake input's =dir= field, and is used in combination
+  with =fetchInfo= in exactly the same way as a flake input.
+
+  You should almost never need to set this field for distributed
+  tarballs ( only if it contains bundled dependencies ).
+
+  While this field is useful for working with monorepos I strongly
+  recommend that you avoid abusing it. Its use inherently causes
+  rebuilds of all projects in associated with a single =sourceInfo=
+  record for any change in the subtree. It is much more efficient to
+  split a subtree into multiple sources, but I've left you enough rope
+  to learn things the hard way if you insist on doing so. Consider
+  yourself warned.
+
+  /Type:/ string
+
+  /Default:/ ="."=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.fsInfo.gypfile= :: Whether
+  =binding.gyp= exists in the project root. May be explicitly overridden
+  by declarations in =package.json=.
+
+  WARNING: You must not set this field based on ANY metadata pulled from
+  a registry. There is a bug in NPM v8 that caused thousands of registry
+  packuments and vinfo records to be poisoned, and in addition to that
+  there is conflicting reporting rules for this field in POST requests
+  by various package managers such that you should effectively disregard
+  the value entirely.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.fsInfo.shrinkwrap= :: Whether
+  =npm-shrinkwrap.json= exists in the project root. This is distributed
+  form of =package-lock.json= which may be used to install exact
+  dependencies during global installation of packages. For
+  module/workspace installation this file takes precedence over
+  =package-lock.json= if it exists.
+
+  The use of =npm-shrinkwrap.json= is only recommended for executables.
+
+  NOTE: =floco= does not use =npm-shrinkwrap.json= at this time, so this
+  field exists as a stub.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.ident= :: Package
+  identifier/name as found in =package.json:.name=.
+
+  /Type:/ string matching the pattern (@[^@/]+/)?[^@/]+
+
+  /Example:/ ="@floco/foo"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.key= :: Unique key used to
+  refer to this package in =tree= submodules and other =floco= configs,
+  metadata, and structures.
+
+  /Type:/ string
+
+  /Example:/ ="@floco/foo/4.2.0"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.lifecycle= :: Enables/disables
+  phases executed when preparing a package/module for consumption or
+  installation.
+
+  Executing a phase when no associated script is defined is not
+  necessarily harmful, but has a drastic impact on performance and may
+  cause infinite recursion if dependency cycles exist among packages.
+
+  See Also: ltype
+
+  /Type:/ attribute set of boolean
+
+  /Default:/
+
+  #+begin_example
+  {
+    build = false;
+    install = false;
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.lifecycle.build= :: Whether
+  a package or module requires build scripts to be run before it is
+  prepared for consumption.
+
+  This field should never be set to true when consuming registry
+  tarballs even if they define build scripts, since they are distributed
+  after being built by authors and maintainers.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.lifecycle.install= :: Whether
+  a package or module requires =[pre|post]install= scripts or =node-gyp=
+  compilation to be performed before a distributed tarball is prepared
+  for consumption.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.ltype= :: Package
+  "lifecycle type"/"pacote source type". This option effects which
+  lifecycle events may run when preparing a package/module for
+  consumption or installation.
+
+  For example, the =file= ( distributed tarball ) lifecycle does not run
+  any =scripts.[pre|post]build= phases or result in any
+  =devDependencies= being added to the build plan - since these packages
+  will have been "built" before distribution. However,
+  =scripts.[pre|post]install= scripts ( generally =node-gyp=
+  compilation ) does run for the =file= lifecycle.
+
+  This option is effectively a shorthand for setting =lifecycle=
+  defaults, but may also used by some fetchers and scrapers.
+
+  See Also: lifecycle, fetchInfo
+
+  /Type:/ one of "file", "link", "dir", "git"
+
+  /Default:/ ="file"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.lockDir= :: Path
+  to the directory containing =package-lock.json=. We require this path
+  so that we can fetch source trees declared as relative paths in the
+  lockfile.
+
+  NOTE: If your lockfile contains =../*= relative paths it is strongly
+  recommended that this option be set to a non-store path. If a store
+  path such as =/nix/store/xxxxx-source/../some-dir= is given, Nix will
+  crash and burn attempting to fetch =some-dir=. A common trick to
+  ensure that you are passing a regular filesystem path is to stringize
+  as: =lockDir = toString ./.;=.
+
+  /Type:/ null or path
+
+  /Default:/ =null=
+
+  /Example:/ ="/home/camus/src/floco/modules/pdef/my-project"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.metaRaw= :: Explicit
+  metadata provided by users as a form of override or method of caching.
+  This field is optional and while many translators may reference it I
+  want to once again highlight that ALL =metaFiles= fields are strictly
+  internal and should never be relied upon by builders or external
+  extensions to =floco= since they may change without warning or
+  indication in semantic versioning of the framework.
+
+  /Type:/ attribute set of anything
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.pjs= :: Raw
+  contents of =package.json=.
+
+  /Type:/ attribute set of anything
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.pjsDir= :: Path
+  to the directory containing =package.json=. We require this path so
+  that we can fetch source trees declared as relative paths in the
+  =package.json= under =dependencies= ( and similar ) and =workspaces=
+  fields.
+
+  NOTE: If your =package.json= contains =../*= relative paths it is
+  strongly recommended that this option be set to a non-store path. If a
+  store path such as =/nix/store/xxxxx-source/../some-dir= is given, Nix
+  will crash and burn attempting to fetch =some-dir=. A common trick to
+  ensure that you are passing a regular filesystem path is to stringize
+  as: =pjsDir = toString ./.;=.
+
+  /Type:/ path
+
+  /Example:/ ="/home/camus/src/floco/modules/pdef/my-project"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.pjsKey= :: For
+  =package.json= files with workspaces, the =pjsKey= is used to identify
+  a workspace member.
+
+  These keys are simply a relative path from the "root" =pjsDir= to a
+  sub-project's =pjsDir=.
+
+  NOTE: This field is currently unused by =floco=, but is future
+  extensions will use it to support workspaces.
+
+  /Type:/ string
+
+  /Default:/ =""=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.plent= :: Raw
+  contents of a =package-lock.json:.packages.*= record.
+
+  See Also: plock plentKey
+
+  /Type:/ null or (attribute set of anything)
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.plentKey= :: The
+  key used to lookup a plent in =package-lock.json:.packages.*=. This
+  key is a relative path from =lockDir= to the prospective =pjsDir= of a
+  package/module.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Example:/ ="node_modules/@babel/core/node_modules/semver"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.metaFiles.plock= :: Raw
+  contents of =package-lock.json=.
+
+  NOTE: This field must only be set when the "root" package in the
+  lockfile is associated this the package being declared. Information
+  concerning dependencies is instead stashed in =metaFiles.plent.*=.
+
+  See Also: plent
+
+  /Type:/ null or (attribute set of anything)
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.peerInfo= :: Set of
+  propagated dependencies that consumers of this package/module must
+  provide at runtime.
+
+  Often peer dependencies are used to enforce interface alignment across
+  a set of modules but do not necessarily imply that the requestor
+  depends on the declared peer at build time or runtime - rather it
+  states "my consumers depend on the declared peer as a side effect of
+  their dependence on me".
+
+  NOTE: For the purposes of =treeInfo= and the construction of a
+  =node_modules/= tree, if a module declares a peer then that peer must
+  be placed in a "sibling" or parent =node_modules/= directory, and
+  never as a subdirectory of the requestor! The "sibling" case is why
+  the term "peer" is used, indicating that these modules must be "peers"
+  living in the same =node_modules/= directory; in practice a parent
+  directory also works, but you get the idea.
+
+  /Type:/ attribute set of (submodule)
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.peerInfo.<name>.descriptor= :: Descriptor
+  indicating version range or exact source required to satisfy a peer
+  dependency.
+
+  The value ="*"= allows any version or source to be used, as long as it
+  has the same identifier ( name ).
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.peerInfo.<name>.optional= :: Whether
+  consumers are required to provide the declared peer.
+
+  Optional peer declarations are conventionally used to handle platform
+  or architecture dependant modules which are only required for certain
+  systems - in general this field should be interpreted as "this peer
+  dependency is required under certain conditions". Often these
+  conditions are audited using =postinstall= scripts, and as an
+  optimization it may be worthwhile to ignore those audits if their
+  conditions can be asserted in Nix ( for example if you know =system=,
+  there's no reason to use a derivation to run some JavaScript that
+  probes and audits =cpu= and =os= ).
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sourceInfo= :: Information
+  about the source tree a package resides in. This record is analogous
+  to that returned by =builtins.fetchTree= for flake inputs.
+
+  Used in combination with =fetchInfo= and =fsInfo.dir=, these three
+  nuggets of metadata are isomorphic with a flake input.
+
+  However, unlike flake inputs, =sourceInfo.outPath= may set to a
+  derived store path if and only if =fetchInfo= is explicitly set to
+  =null=. In this case =fsInfo.dir= is still used to identify a
+  pacakage/module's root directory where we will attempt to read
+  =package.json= ( must exist ) and similar metadata files will be read
+  from ( if they exist ).
+
+  In this case you may avoid =IFD= by explicitly setting top level
+  fields, specifically =lifecycle=, =sysInfo=, =binInfo=, and =treeInfo=
+  or =depInfo= which are required by builders.
+
+  Alternatively you may explicitly set
+  =metaFiles.{pjs,plock,plent,trees}= fields directly - but keep in mind
+  that these fields are never guaranteed to be stable and their schema
+  may change at any time ( so set the top level ones unless you`re up
+  for the maintenance ).
+
+  /Type:/ attribute set of (boolean or signed integer or string)
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sourceInfo.outPath= :: A
+  Nix Store path containing the unpacked source tree in which this
+  package/module resides. The package need not be at the root this path;
+  but when the project root is a subdir the option `fsInfo.dir` must be
+  set in order for `package.json` and other metadata to be translated.
+
+  /Type:/ path
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sysInfo= :: Indicates
+  platform, arch, and Node.js version support.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    cpu = [
+      "*"
+    ];
+    engines = {
+      node = "*";
+    };
+    os = [
+      "*"
+    ];
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sysInfo.cpu= :: List of
+  supported CPU architectures. The string ="*"= indicates that all CPUs
+  are supported.
+
+  /Type:/ list of (one of "*", "x86_64", "i686", "aarch", "aarch64",
+  "powerpc64le", "mipsel", "riscv64", "unknown")
+
+  /Default:/
+
+  #+begin_example
+  [
+    "*"
+  ]
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sysInfo.engines= :: Indicates
+  supported tooling versions.
+
+  /Type:/ attribute set of string
+
+  /Default:/
+
+  #+begin_example
+  {
+    node = "*";
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sysInfo.engines.node= :: Supported
+  Node.js versions.
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Example:/ =">=14"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.sysInfo.os= :: List of
+  supported operating systems. The string ="*"= indicates that all
+  operating systems are supported.
+
+  /Type:/ list of (one of "*", "darwin", "freebsd", "netbsd", "linux",
+  "openbsd", "sunprocess", "win32", "unknown")
+
+  /Default:/
+
+  #+begin_example
+  [
+    "*"
+  ]
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.treeInfo= :: =node_modules/=
+  trees used for various lifecycle events. These declarations are
+  analogous to the =package.*= field found in =package-lock.json(v2/3)=
+  files. This means that these fields should describe both direct and
+  indirect dependencies for the full dependency graph.
+
+  Tree declarations are expected to be pairs of =node_modules/= paths to
+  "keys" ( matching the =key= field in its Nix declaration ):
+
+  #+begin_example
+  {
+    "node_modules/@foo/bar" = {
+      key = "@foo/bar/1.0.0";
+      dev = true;
+      ...
+    };
+    "node_modules/@foo/bar/node_modules/baz" = {
+      key = "baz/4.2.0";
+      dev = false;
+      ...
+    };
+    ...
+  }
+  #+end_example
+
+  In practice we expect users to explicitly define this field only for
+  targets which they actually intend to create installables from, and we
+  recommend using a =package-lock.json(v2/3)= to fill these values.
+
+  /Type:/ null or (attribute set of (attribute set of boolean))
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.treeInfo.<name>.dev= :: Whether
+  the dependency is required ONLY during pre-distribution phases. This
+  includes common tasks such as building, testing, and linting.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.treeInfo.<name>.key= :: Unique
+  key used to refer to this package in =tree= submodules and other
+  =floco= configs, metadata, and structures.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.treeInfo.<name>.optional= :: Whether
+  the dependency may be omitted from the =node_modules/= tree.
+
+  Conventionally this is used to mark dependencies which are only
+  required under certain conditions such as platform, architecture, or
+  engines. Generally optional dependencies carry =sysInfo= conditionals,
+  or =postinstall= scripts which must be allowed to fail without
+  blocking the build of the consumer.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.packages.<name>.<name>.pdef.version= :: Package version
+  as found in =package.json:.version=.
+
+  /Type:/ string matching the pattern
+  (0|[1-9][[:digit:]]*)(\.(0|[1-9][[:digit:]]*)(\.(0|[1-9][[:digit:]]*))?)?(-((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*)(\.((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*))*)?(\+[[:alnum:]-]+(\.[[:alnum:]]+)*)?
+
+  /Example:/ ="4.2.0"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.preferMultipleOutputDerivations= :: Whether
+  builders should prefer preparing sources with a single multiple output
+  derivation vs. multiple single output derivations.
+
+  Setting this to =false= is sometimes useful for breaking dependency
+  cycles for =global= packages or to intentionally introduce additional
+  cache breakpoints in projects with excessively long =build= or
+  =install= phases ( this may avoid rebuilds for certain types of
+  changes to the dependency graph ).
+
+  In general it is faster to use multiple output derivations, since most
+  Node.js lifecycle stages execute relatively quickly, and splitting
+  them requires a full sandbox to be created for each stage.
+
+  /Type:/ unspecified value
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.prepared= :: Fully prepared form
+  of package/module tree making it ready for consumption as either a
+  globally installed package, or module under a =node_modules/= tree.
+
+  Generally this option is an alias of a previous stage; but this also
+  provides a useful opportunity to explicitly define additional
+  post-processing routines that don't use default =built= or =installed=
+  stage builders ( for example, setting executable bits or applying
+  shebang patches to scripts ).
+
+  /Type:/ package
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.source= :: Unpacked source tree
+  used as the basis for package/module preparation.
+
+  It is strongly recommended that you use =config.pdef.sourceInfo= here
+  unless you are intentionally applying patches, filters, or your
+  package resides in a subdir of =sourceInfo=.
+
+  XXX: This tree should NOT patch shebangs yet, since this would deprive
+  builders which produce distributable tarballs or otherwise "un-nixify"
+  a module of an "unpatched" point of reference to work with.
+
+  /Type:/ package
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.supportedTree= :: A filtered
+  form of =treeInfo= which drops unsupported optional dependencies.
+
+  /Type:/ null or (attribute set of (attribute set of boolean))
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.supportedTree.<name>.dev= :: Whether
+  the dependency is required ONLY during pre-distribution phases. This
+  includes common tasks such as building, testing, and linting.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.supportedTree.<name>.key= :: Unique
+  key used to refer to this package in =tree= submodules and other
+  =floco= configs, metadata, and structures.
+
+  /Type:/ string
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.packages.<name>.<name>.test= :: Run tests against the
+  =built= form of a package. By default this executes any =test= scripts
+  defined in =package.json= using the =dev= tree.
+
+  As an optimization you may explicitly define =treeInfo.test= allowing
+  =treeInfo.dev= to be reduced to the subset of dependencies required to
+  build, and =treeInfo.test= to be reduced to the subset of dependencies
+  required to run tests. This approach is STRONGLY encouraged especially
+  if you use =jest=, =webpack=, or =babel= since these packages' all
+  fail to properly adhere to Node.js resolution specifications for
+  symlinks, and often require you to copy a massive pile of files into
+  the sandbox.
+
+  This target should never be enabled for packages/modules whose source
+  was a distributed tarball ( those with =ltype= or =file= ) since these
+  have already been tested as a part of their pre-release process.
+
+  See Also: lint
+
+  /Type:/ null or package
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/package/interface.nix
+
+- =flocoPackages.pdefs= :: List of =pdef= metadata records for all known
+  pacakges and modules. These records are used to generate build recipes
+  and build plans.
+
+  /Type:/ attribute set of attribute set of (submodule)
+
+  /Default:/ ={ }=
+
+  /Example:/
+
+  #+begin_example
+  {
+    "@babel/cli" = {
+      "7.20.7" = {
+        "..." = "...";
+        key = "@babel/cli/7.20.7";
+      };
+    };
+    lodash = {
+      "4.17.21" = {
+        "..." = "...";
+        key = "lodash/4.17.21";
+      };
+    };
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/packages/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.binInfo= :: Indicates files or
+  directories which should be prepared for use as executable scripts.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    binDir = null;
+    binPairs = { };
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.binInfo.binDir= :: Relative path to
+  a subdir from which all files should be prepared as executables.
+  Executable names will be defined as the basename of each file with any
+  extensions stripped.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.binInfo.binPairs= :: Pairs of
+  ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping exposed
+  executables scripts to their associated sources.
+
+  /Type:/ attribute set of string
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/binInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo= :: Information regarding
+  dependency modules/packages. This record is analogous to the various
+  =package.json:.[dev|peer|optional|bundled]Dependencies[Meta]= fields.
+
+  These config settings do note necessarily dictate the contents of the
+  =treeInfo= configs, which are used by builders, but may be used to
+  provide information needed to generate trees if they are not defined.
+
+  /Type:/ attribute set of (attribute set of boolean)
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.bundled= :: Whether
+  the dependency is distributed in registry tarballs alongside the
+  consumer.
+
+  This is sometimes used to include patched modules, but whenver
+  possible bundling should be avoided in favor of tooling like =esbuild=
+  or =webpack= because the effect bundled dependencies have on
+  resolution is fraught.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.descriptor= :: Descriptor
+  indicating version range or exact source required to satisfy a
+  dependency.
+
+  The value ="*"= allows any version or source to be used, as long as it
+  has the same identifier ( name ).
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.dev= :: Whether the
+  dependency is required during pre-distribution phases. This includes
+  common tasks such as building, testing, and linting.
+
+  /Type:/ boolean
+
+  /Default:/ =true=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.optional= :: Whether
+  the dependency may be omitted from the =node_modules/= tree.
+
+  Conventionally this is used to mark dependencies which are only
+  required under certain conditions such as platform, architecture, or
+  engines. Generally optional dependencies carry =sysInfo= conditionals,
+  or =postinstall= scripts which must be allowed to fail without
+  blocking the build of the consumer.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.pin= :: An exact
+  version number or URI indicating the "resolved" form of a dependency
+  descriptor.
+
+  This will be used for =treeInfo= formation, and is available for usage
+  by extensions to =floco=.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.depInfo.<name>.runtime= :: Whether
+  the dependency is required at runtime. Other package management tools
+  often refer to these as "production mode" dependencies.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/depInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.fetchInfo= :: Arguments passed to
+  fetcher. By default any `builtins.fetchTree' or `builtins.path' argset
+  is supported, and the correct fetcher can be inferred from these
+  values.
+
+  If set to `null', `sourceInfo' must be set explicitly.
+
+  /Type:/ attribute set of (null or string or signed integer or boolean)
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.fsInfo= :: Indicates information
+  about a package that must be scraped from its source tree, rather than
+  a conventional config file.
+
+  It is not recommended for users to manually fill these fields; rather
+  we expect these to be informed by a cache or lockfile. You're welcome
+  to explicitly define them, but I don't want to see anyone griping
+  about these options in bug reports.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    dir = ".";
+    gypfile = false;
+    shrinkwrap = false;
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.fsInfo.dir= :: Relative path from
+  =sourceInfo.outPath= to the package's root. This field is analogous to
+  a flake input's =dir= field, and is used in combination with
+  =fetchInfo= in exactly the same way as a flake input.
+
+  You should almost never need to set this field for distributed
+  tarballs ( only if it contains bundled dependencies ).
+
+  While this field is useful for working with monorepos I strongly
+  recommend that you avoid abusing it. Its use inherently causes
+  rebuilds of all projects in associated with a single =sourceInfo=
+  record for any change in the subtree. It is much more efficient to
+  split a subtree into multiple sources, but I've left you enough rope
+  to learn things the hard way if you insist on doing so. Consider
+  yourself warned.
+
+  /Type:/ string
+
+  /Default:/ ="."=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.fsInfo.gypfile= :: Whether
+  =binding.gyp= exists in the project root. May be explicitly overridden
+  by declarations in =package.json=.
+
+  WARNING: You must not set this field based on ANY metadata pulled from
+  a registry. There is a bug in NPM v8 that caused thousands of registry
+  packuments and vinfo records to be poisoned, and in addition to that
+  there is conflicting reporting rules for this field in POST requests
+  by various package managers such that you should effectively disregard
+  the value entirely.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.fsInfo.shrinkwrap= :: Whether
+  =npm-shrinkwrap.json= exists in the project root. This is distributed
+  form of =package-lock.json= which may be used to install exact
+  dependencies during global installation of packages. For
+  module/workspace installation this file takes precedence over
+  =package-lock.json= if it exists.
+
+  The use of =npm-shrinkwrap.json= is only recommended for executables.
+
+  NOTE: =floco= does not use =npm-shrinkwrap.json= at this time, so this
+  field exists as a stub.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/fsInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.ident= :: Package identifier/name
+  as found in =package.json:.name=.
+
+  /Type:/ string matching the pattern (@[^@/]+/)?[^@/]+
+
+  /Example:/ ="@floco/foo"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.key= :: Unique key used to refer to
+  this package in =tree= submodules and other =floco= configs, metadata,
+  and structures.
+
+  /Type:/ string
+
+  /Example:/ ="@floco/foo/4.2.0"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.lifecycle= :: Enables/disables
+  phases executed when preparing a package/module for consumption or
+  installation.
+
+  Executing a phase when no associated script is defined is not
+  necessarily harmful, but has a drastic impact on performance and may
+  cause infinite recursion if dependency cycles exist among packages.
+
+  See Also: ltype
+
+  /Type:/ attribute set of boolean
+
+  /Default:/
+
+  #+begin_example
+  {
+    build = false;
+    install = false;
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.lifecycle.build= :: Whether a
+  package or module requires build scripts to be run before it is
+  prepared for consumption.
+
+  This field should never be set to true when consuming registry
+  tarballs even if they define build scripts, since they are distributed
+  after being built by authors and maintainers.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.lifecycle.install= :: Whether a
+  package or module requires =[pre|post]install= scripts or =node-gyp=
+  compilation to be performed before a distributed tarball is prepared
+  for consumption.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/lifecycle/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.ltype= :: Package "lifecycle
+  type"/"pacote source type". This option effects which lifecycle events
+  may run when preparing a package/module for consumption or
+  installation.
+
+  For example, the =file= ( distributed tarball ) lifecycle does not run
+  any =scripts.[pre|post]build= phases or result in any
+  =devDependencies= being added to the build plan - since these packages
+  will have been "built" before distribution. However,
+  =scripts.[pre|post]install= scripts ( generally =node-gyp=
+  compilation ) does run for the =file= lifecycle.
+
+  This option is effectively a shorthand for setting =lifecycle=
+  defaults, but may also used by some fetchers and scrapers.
+
+  See Also: lifecycle, fetchInfo
+
+  /Type:/ one of "file", "link", "dir", "git"
+
+  /Default:/ ="file"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.lockDir= :: Path to the
+  directory containing =package-lock.json=. We require this path so that
+  we can fetch source trees declared as relative paths in the lockfile.
+
+  NOTE: If your lockfile contains =../*= relative paths it is strongly
+  recommended that this option be set to a non-store path. If a store
+  path such as =/nix/store/xxxxx-source/../some-dir= is given, Nix will
+  crash and burn attempting to fetch =some-dir=. A common trick to
+  ensure that you are passing a regular filesystem path is to stringize
+  as: =lockDir = toString ./.;=.
+
+  /Type:/ null or path
+
+  /Default:/ =null=
+
+  /Example:/ ="/home/camus/src/floco/modules/pdef/my-project"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.metaRaw= :: Explicit
+  metadata provided by users as a form of override or method of caching.
+  This field is optional and while many translators may reference it I
+  want to once again highlight that ALL =metaFiles= fields are strictly
+  internal and should never be relied upon by builders or external
+  extensions to =floco= since they may change without warning or
+  indication in semantic versioning of the framework.
+
+  /Type:/ attribute set of anything
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.pjs= :: Raw contents of
+  =package.json=.
+
+  /Type:/ attribute set of anything
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.pjsDir= :: Path to the
+  directory containing =package.json=. We require this path so that we
+  can fetch source trees declared as relative paths in the
+  =package.json= under =dependencies= ( and similar ) and =workspaces=
+  fields.
+
+  NOTE: If your =package.json= contains =../*= relative paths it is
+  strongly recommended that this option be set to a non-store path. If a
+  store path such as =/nix/store/xxxxx-source/../some-dir= is given, Nix
+  will crash and burn attempting to fetch =some-dir=. A common trick to
+  ensure that you are passing a regular filesystem path is to stringize
+  as: =pjsDir = toString ./.;=.
+
+  /Type:/ path
+
+  /Example:/ ="/home/camus/src/floco/modules/pdef/my-project"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.pjsKey= :: For
+  =package.json= files with workspaces, the =pjsKey= is used to identify
+  a workspace member.
+
+  These keys are simply a relative path from the "root" =pjsDir= to a
+  sub-project's =pjsDir=.
+
+  NOTE: This field is currently unused by =floco=, but is future
+  extensions will use it to support workspaces.
+
+  /Type:/ string
+
+  /Default:/ =""=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.plent= :: Raw contents of
+  a =package-lock.json:.packages.*= record.
+
+  See Also: plock plentKey
+
+  /Type:/ null or (attribute set of anything)
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.plentKey= :: The key used
+  to lookup a plent in =package-lock.json:.packages.*=. This key is a
+  relative path from =lockDir= to the prospective =pjsDir= of a
+  package/module.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Example:/ ="node_modules/@babel/core/node_modules/semver"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.metaFiles.plock= :: Raw contents of
+  =package-lock.json=.
+
+  NOTE: This field must only be set when the "root" package in the
+  lockfile is associated this the package being declared. Information
+  concerning dependencies is instead stashed in =metaFiles.plent.*=.
+
+  See Also: plent
+
+  /Type:/ null or (attribute set of anything)
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.peerInfo= :: Set of propagated
+  dependencies that consumers of this package/module must provide at
+  runtime.
+
+  Often peer dependencies are used to enforce interface alignment across
+  a set of modules but do not necessarily imply that the requestor
+  depends on the declared peer at build time or runtime - rather it
+  states "my consumers depend on the declared peer as a side effect of
+  their dependence on me".
+
+  NOTE: For the purposes of =treeInfo= and the construction of a
+  =node_modules/= tree, if a module declares a peer then that peer must
+  be placed in a "sibling" or parent =node_modules/= directory, and
+  never as a subdirectory of the requestor! The "sibling" case is why
+  the term "peer" is used, indicating that these modules must be "peers"
+  living in the same =node_modules/= directory; in practice a parent
+  directory also works, but you get the idea.
+
+  /Type:/ attribute set of (submodule)
+
+  /Default:/ ={ }=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.peerInfo.<name>.descriptor= :: Descriptor
+  indicating version range or exact source required to satisfy a peer
+  dependency.
+
+  The value ="*"= allows any version or source to be used, as long as it
+  has the same identifier ( name ).
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.peerInfo.<name>.optional= :: Whether
+  consumers are required to provide the declared peer.
+
+  Optional peer declarations are conventionally used to handle platform
+  or architecture dependant modules which are only required for certain
+  systems - in general this field should be interpreted as "this peer
+  dependency is required under certain conditions". Often these
+  conditions are audited using =postinstall= scripts, and as an
+  optimization it may be worthwhile to ignore those audits if their
+  conditions can be asserted in Nix ( for example if you know =system=,
+  there's no reason to use a derivation to run some JavaScript that
+  probes and audits =cpu= and =os= ).
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/peerInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sourceInfo= :: Information about
+  the source tree a package resides in. This record is analogous to that
+  returned by =builtins.fetchTree= for flake inputs.
+
+  Used in combination with =fetchInfo= and =fsInfo.dir=, these three
+  nuggets of metadata are isomorphic with a flake input.
+
+  However, unlike flake inputs, =sourceInfo.outPath= may set to a
+  derived store path if and only if =fetchInfo= is explicitly set to
+  =null=. In this case =fsInfo.dir= is still used to identify a
+  pacakage/module's root directory where we will attempt to read
+  =package.json= ( must exist ) and similar metadata files will be read
+  from ( if they exist ).
+
+  In this case you may avoid =IFD= by explicitly setting top level
+  fields, specifically =lifecycle=, =sysInfo=, =binInfo=, and =treeInfo=
+  or =depInfo= which are required by builders.
+
+  Alternatively you may explicitly set
+  =metaFiles.{pjs,plock,plent,trees}= fields directly - but keep in mind
+  that these fields are never guaranteed to be stable and their schema
+  may change at any time ( so set the top level ones unless you`re up
+  for the maintenance ).
+
+  /Type:/ attribute set of (boolean or signed integer or string)
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sourceInfo.outPath= :: A Nix Store
+  path containing the unpacked source tree in which this package/module
+  resides. The package need not be at the root this path; but when the
+  project root is a subdir the option `fsInfo.dir` must be set in order
+  for `package.json` and other metadata to be translated.
+
+  /Type:/ path
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sysInfo= :: Indicates platform,
+  arch, and Node.js version support.
+
+  /Type:/ submodule
+
+  /Default:/
+
+  #+begin_example
+  {
+    cpu = [
+      "*"
+    ];
+    engines = {
+      node = "*";
+    };
+    os = [
+      "*"
+    ];
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sysInfo.cpu= :: List of supported
+  CPU architectures. The string ="*"= indicates that all CPUs are
+  supported.
+
+  /Type:/ list of (one of "*", "x86_64", "i686", "aarch", "aarch64",
+  "powerpc64le", "mipsel", "riscv64", "unknown")
+
+  /Default:/
+
+  #+begin_example
+  [
+    "*"
+  ]
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sysInfo.engines= :: Indicates
+  supported tooling versions.
+
+  /Type:/ attribute set of string
+
+  /Default:/
+
+  #+begin_example
+  {
+    node = "*";
+  }
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sysInfo.engines.node= :: Supported
+  Node.js versions.
+
+  /Type:/ string
+
+  /Default:/ ="*"=
+
+  /Example:/ =">=14"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.sysInfo.os= :: List of supported
+  operating systems. The string ="*"= indicates that all operating
+  systems are supported.
+
+  /Type:/ list of (one of "*", "darwin", "freebsd", "netbsd", "linux",
+  "openbsd", "sunprocess", "win32", "unknown")
+
+  /Default:/
+
+  #+begin_example
+  [
+    "*"
+  ]
+  #+end_example
+
+  /Declared by:/
+
+  /floco/modules/pdef/sysInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.treeInfo= :: =node_modules/= trees
+  used for various lifecycle events. These declarations are analogous to
+  the =package.*= field found in =package-lock.json(v2/3)= files. This
+  means that these fields should describe both direct and indirect
+  dependencies for the full dependency graph.
+
+  Tree declarations are expected to be pairs of =node_modules/= paths to
+  "keys" ( matching the =key= field in its Nix declaration ):
+
+  #+begin_example
+  {
+    "node_modules/@foo/bar" = {
+      key = "@foo/bar/1.0.0";
+      dev = true;
+      ...
+    };
+    "node_modules/@foo/bar/node_modules/baz" = {
+      key = "baz/4.2.0";
+      dev = false;
+      ...
+    };
+    ...
+  }
+  #+end_example
+
+  In practice we expect users to explicitly define this field only for
+  targets which they actually intend to create installables from, and we
+  recommend using a =package-lock.json(v2/3)= to fill these values.
+
+  /Type:/ null or (attribute set of (attribute set of boolean))
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.treeInfo.<name>.dev= :: Whether the
+  dependency is required ONLY during pre-distribution phases. This
+  includes common tasks such as building, testing, and linting.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.treeInfo.<name>.key= :: Unique key
+  used to refer to this package in =tree= submodules and other =floco=
+  configs, metadata, and structures.
+
+  /Type:/ null or string
+
+  /Default:/ =null=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.treeInfo.<name>.optional= :: Whether
+  the dependency may be omitted from the =node_modules/= tree.
+
+  Conventionally this is used to mark dependencies which are only
+  required under certain conditions such as platform, architecture, or
+  engines. Generally optional dependencies carry =sysInfo= conditionals,
+  or =postinstall= scripts which must be allowed to fail without
+  blocking the build of the consumer.
+
+  /Type:/ boolean
+
+  /Default:/ =false=
+
+  /Declared by:/
+
+  /floco/modules/pdef/treeInfo/single.interface.nix
+
+- =flocoPackages.pdefs.<name>.<name>.version= :: Package version as
+  found in =package.json:.version=.
+
+  /Type:/ string matching the pattern
+  (0|[1-9][[:digit:]]*)(\.(0|[1-9][[:digit:]]*)(\.(0|[1-9][[:digit:]]*))?)?(-((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*)(\.((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*))*)?(\+[[:alnum:]-]+(\.[[:alnum:]]+)*)?
+
+  /Example:/ ="4.2.0"=
+
+  /Declared by:/
+
+  /floco/modules/pdef/interface.nix
