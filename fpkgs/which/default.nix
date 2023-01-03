@@ -1,11 +1,11 @@
 # ============================================================================ #
 #
-#
+# Package shim exposing installable targets from `floco` modules.
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? builtins.getFlake "nixpkgs"
-, lib     ? nixpkgs.lib
+{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
+, lib     ? import ../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 , config  ? {

@@ -6,7 +6,7 @@
 
 let
 
-  inherit (builtins.getFlake "nixpkgs") lib;
+  lib = import ../../../lib {};
 
   pl2pdefs = import ../../../modules/plockToPdefs/implementation.nix {
     inherit lib;

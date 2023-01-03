@@ -1,10 +1,12 @@
 # ============================================================================ #
 #
-# Module shim converting `pdefs.nix' to a `floco' configuration.
+# Nixpkgs libs extended with `libfloco' and other routines exposed
+# by `./overlay.lib.nix'.
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, ... }: lib.addPdefs ./pdefs.nix
+{ lib ? ( import ../inputs ).nixpkgs.flake.lib }:
+   lib.extend ( import ./overlay.lib.nix )
 
 
 # ---------------------------------------------------------------------------- #

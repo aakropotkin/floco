@@ -19,14 +19,14 @@
 
 let
 
+  nixpkgs = ( import ../inputs ).nixpkgs.flake;
+
   keyToPath = lib: fpkgs: key: let
     pkg = lib.findFirst ( v: v.key == key ) fpkgs;
   in pkg.prepared.outPath;
 
-  nixpkgs = builtins.getFlake "nixpkgs";
-
 in {
-  lib       ? nixpkgs.lib
+  lib       ? import ../lib { inherit (nixpkgs) lib; }
 , system    ? builtins.currentSystem
 , coreutils ? nixpkgs.legacyPackages.${system}.coreutils
 , findutils ? nixpkgs.legacyPackages.${system}.findutils

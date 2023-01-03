@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs   ? builtins.getFlake "nixpkgs"
+{ nixpkgs   ? ( import ../inputs ).nixpkgs.flake
 , system    ? builtins.currentSystem
 , pkgsFor   ? nixpkgs.legacyPackages.${system}
 , bash      ? pkgsFor.bash

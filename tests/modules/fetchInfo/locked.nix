@@ -6,7 +6,7 @@
 
 let
 
-  inherit (builtins.getFlake "nixpkgs") lib;
+  lib = import ../../../lib {};
 
   ft = import ../../../modules/fetchInfo/types.nix { inherit lib; };
 
