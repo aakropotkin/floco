@@ -14,12 +14,19 @@
 
 { nixpkgs ? builtins.getFlake "nixpkgs"
 , lib     ? nixpkgs.lib
+, system  ? builtins.currentSystem
+, pkgsFor ? nixpkgs.legacyPackages.${system}
 }: let
 
 # ---------------------------------------------------------------------------- #
 
-  module = lib.evalModules { modules = [../../../modules/packages]; };
-  lodash = module.config.flocoPackages.packages.lodash."4.17.21";
+  module = lib.evalModules {
+    modules = [
+      ../../../modules/packages
+      { config._module.args.pkgs = pkgsFor; }
+    ];
+  };
+  lodash = module.config.flocoPackages.packages.lodash."4.17.21".pdef;
 
 # ---------------------------------------------------------------------------- #
 

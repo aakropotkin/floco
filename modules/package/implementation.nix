@@ -1,10 +1,15 @@
 # ============================================================================ #
 #
-# Expects `config.pkgdef' to be provided.
+# Expects `config.pdef' to be provided.
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib
+, config
+, pkgs          ? config._module.arg.pkgs
+, flocoPackages ? config._module.args.flocoPackages
+, ...
+}: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -21,25 +26,35 @@
       archPart = builtins.head m;
       archOk = ( builtins.elem "*" config.sysInfo.cpu ) ||
                ( builtins.elem archPart config.sysInfo.cpu );
-      osPart   = builtins.elemAt m 1;
+      osPart = builtins.elemAt m 1;
       osOk = ( builtins.elem "*" config.sysInfo.os ) ||
                ( builtins.elem osPart config.sysInfo.os );
     in archOk && osOk;
 
 # ---------------------------------------------------------------------------- #
 
-    inherit (config.pkgdef) key;
-    source = config.pkgdef.sourceInfo.outPath;
+    supportedTree = lib.mkIf ( config.pdef.treeInfo != null ) (
+      lib.filterAttrs ( k: v:
+        ( ! v.optional ) ||
+        ( config.checkSystemSupport
+      ) config.pdef.treeInfo
+    ) );
+
 
 # ---------------------------------------------------------------------------- #
 
-    built = if ! config.pkgdef.lifecycle.build then config.source else
+    inherit (config.pdef) key;
+    source = config.pdef.sourceInfo.outPath;
+
+# ---------------------------------------------------------------------------- #
+
+    built = if ! config.pdef.lifecycle.build then config.source else
       config.pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pkgdef.ident}-built";
-        inherit (config.pkgdef) version;
+        pname = "${baseNameOf config.pdef.ident}-built";
+        inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pkgdef.ident;
+        IDENT             = config.pdef.ident;
         src               = config.source;
         nativeBuildInputs = [config.pkgs.jq];
         buildInputs       = [config.pkgs.nodejs-14_x];
@@ -74,13 +89,13 @@
 
 # ---------------------------------------------------------------------------- #
 
-    installed = if ! config.pkgdef.lifecycle.install then config.built else
+    installed = if ! config.pdef.lifecycle.install then config.built else
       config.pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pkgdef.ident}-installed";
-        inherit (config.pkgdef) version;
+        pname = "${baseNameOf config.pdef.ident}-installed";
+        inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pkgdef.ident;
+        IDENT             = config.pdef.ident;
         src               = config.source;
         nativeBuildInputs = [config.pkgs.jq];
         buildInputs       = [config.pkgs.nodejs-14_x];
@@ -119,10 +134,10 @@
 
     prepared = if config.installed != config.source then config.installed else
       config.pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pkgdef.ident}-prepared";
-        inherit (config.pkgdef) version;
+        pname = "${baseNameOf config.pdef.ident}-prepared";
+        inherit (config.pdef) version;
         install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pkgdef.ident;
+        IDENT             = config.pdef.ident;
         src               = config.source;
         nativeBuildInputs = [config.pkgs.jq config.pkgs.git];
         buildInputs       = [config.pkgs.nodejs-14_x];
