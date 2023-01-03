@@ -50,7 +50,7 @@ ENVIRONMENT
   IDENT         Treat \`IDENT' as the package identifier/name.
   NO_BINS       Skip processing of bins if non-empty. ( Bool )
   BIN_PAIRS     Space separated tuples of executables to be installed as:
-                \`BIN-NAME,REL-PATH BIN-NAME2,REL-PATH...\'
+                \`BIN-NAME,REL-PATH BIN-NAME2,REL-PATH...'
   BIN_DIR       Relative path to directory containing scripts to be installed as
                 executables ( drops any extension for exposed bin ).
                 This variable is ignored if \`BIN_PAIRS' is non-empty.
