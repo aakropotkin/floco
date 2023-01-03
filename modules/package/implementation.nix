@@ -49,15 +49,15 @@
 # ---------------------------------------------------------------------------- #
 
     built = if ! config.pdef.lifecycle.build then config.source else
-      config.pkgs.stdenv.mkDerivation {
+      pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-built";
         inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         src               = config.source;
-        nativeBuildInputs = [config.pkgs.jq];
-        buildInputs       = [config.pkgs.nodejs-14_x];
+        nativeBuildInputs = [pkgs.jq];
+        buildInputs       = [pkgs.nodejs-14_x];
         configurePhase    = ''
           runHook preConfigure;
 
@@ -90,15 +90,15 @@
 # ---------------------------------------------------------------------------- #
 
     installed = if ! config.pdef.lifecycle.install then config.built else
-      config.pkgs.stdenv.mkDerivation {
+      pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-installed";
         inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         src               = config.source;
-        nativeBuildInputs = [config.pkgs.jq];
-        buildInputs       = [config.pkgs.nodejs-14_x];
+        nativeBuildInputs = [pkgs.jq];
+        buildInputs       = [pkgs.nodejs-14_x];
         configurePhase    = ''
           runHook preConfigure;
 
@@ -133,14 +133,14 @@
 # ---------------------------------------------------------------------------- #
 
     prepared = if config.installed != config.source then config.installed else
-      config.pkgs.stdenv.mkDerivation {
+      pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-prepared";
         inherit (config.pdef) version;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         src               = config.source;
-        nativeBuildInputs = [config.pkgs.jq config.pkgs.git];
-        buildInputs       = [config.pkgs.nodejs-14_x];
+        nativeBuildInputs = [pkgs.jq pkgs.git];
+        buildInputs       = [pkgs.nodejs-14_x];
         configurePhase    = ''
           runHook preConfigure;
 
@@ -168,14 +168,14 @@
         '';
         preferLocalBuild = true;
         allowSubstitutes =
-          ( builtins.currentSystem or "unknown" ) != config.pkgs.system;
+          ( builtins.currentSystem or "unknown" ) != pkgs.system;
       };
 
 
 # ---------------------------------------------------------------------------- #
 
     # FIXME
-    global = config.pkgs.emptyDirectory;
+    global = pkgs.emptyDirectory;
 
 
 # ---------------------------------------------------------------------------- #

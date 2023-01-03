@@ -14,7 +14,9 @@
     # a real build plan won't include this so yeah you depend on `lodash' now.
     flocoPackages.packages = {
       lodash."4.17.21".pdef = { ident = "lodash"; version = "4.17.21"; };
-    };
+    } // ( builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
+      inherit pdef;
+    } ) ) config.flocoPackages.pdefs );
   };  # End `config'
 
 # ---------------------------------------------------------------------------- #

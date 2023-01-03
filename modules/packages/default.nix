@@ -1,1 +1,1 @@
-{ imports = [./implementation.nix ./interface.nix]; }
+{ imports = [./interface.nix ./implementation.nix]; }
