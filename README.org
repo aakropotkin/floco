@@ -17,6 +17,13 @@ Underlying installers are implemented in =bash= and limit themselves to using
 =coreutils=, =findutils=, and =jq= improving reproducibility and readability
 compared to tooling implemented using a sprawling maze of JavaScript.
 
+Despite this repository's seemingly small form, it is the result of nearly
+a year of exploration, trial, and refinement.
+A great deal of effort was expended to make this piece of software
+/suck less/ than the competition, but rest assured that these routines were
+not implemented naively.
+Writing a JavaScript package management framework in =bash= and =nix= was
+done /not because it is easy/ - on the contrary it was fucking hard.
 
 * Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
