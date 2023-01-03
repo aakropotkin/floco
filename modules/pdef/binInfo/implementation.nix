@@ -11,9 +11,11 @@
 
     config.binInfo = let
 
-      bin = config.metaFiles.metaRaw.bin or (
-        if config.metaFiles ? plent then config.metaFiles.plent.bin or {} else
-        if config.metaFiles ? pjs then config.metaFiles.pjs.bin or {} else
+      mf = config.metaFiles;
+
+      bin = mf.metaRaw.bin or (
+        if ( mf.plent or null ) != null then mf.plent.bin or {} else
+        if ( mf.pjs or null ) != null then mf.pjs.bin or {} else
         null
       );
 

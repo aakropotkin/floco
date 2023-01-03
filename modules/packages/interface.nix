@@ -31,6 +31,12 @@ in {
         inherit pdef;
       } ) ) options.pdefs.default;
 
+      example = {
+        lodash."4.17.21" = {
+          key = "lodash/4.17.21";
+        };
+      };
+
     };
 
 

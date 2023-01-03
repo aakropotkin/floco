@@ -23,17 +23,32 @@ in {
 
     type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
-      modules                    = [../pdef];
+      modules = [../pdef];
     } ) );
 
     example = {
       lodash."4.17.21" = {
-        key   = "lodash/4.17.21";
-        "..." = "...";
+        ident     = "lodash";
+        version   = "4.17.21";
+        ltype     = "file";
+        fetchInfo = {
+          type    = "tarball";
+          url     = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz";
+          narHash = "sha256-amyN064Yh6psvOfLgcpktd5dRNQStUYHHoIqiI6DMek=";
+        };
+        treeInfo = {};
       };
-      "@babel/cli"."7.20.7" = {
-        key = "@babel/cli/7.20.7";
-        "..." = "...";
+      acorn."8.8.1" = {
+        ident   = "acorn";
+        version = "8.8.1";
+        ltype   = "file";
+        binInfo.binPairs.acorn = "./bin/acorn";
+        fetchInfo = {
+          type    = "tarball";
+          narHash = "sha256-W14mU7fhfZajYWDfzRxzSMexNSYKIg63yXSnM/vG0P8=";
+          url     = "https://registry.npmjs.org/acorn/-/acorn-8.8.1.tgz";
+        };
+        treeInfo = {};
       };
     };
 
