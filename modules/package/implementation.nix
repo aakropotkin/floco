@@ -42,35 +42,45 @@
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
+        NMTREE            = config.trees.build or config.trees.dev;
         src               = config.source;
         nativeBuildInputs = [pkgs.jq];
         buildInputs       = [pkgs.nodejs-14_x];
+        dontUpdateAutotoolsGnuConfigScripts = true;
         configurePhase    = ''
           runHook preConfigure;
 
           export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
+          if [[ -n "$NMTREE" ]]; then
+            ln -s "$NMTREE/node_modules" ./node_modules;
+          fi
 
           runHook postConfigure;
         '';
-        # TODO: installNodeModules
         buildPhase = ''
           runHook preBuild;
 
-          echo "TODO: install node_modules/" >&2;
           bash -eu "$run_script" -Pi prebuild build postbuild prepublish;
 
           runHook postBuild;
         '';
+        # TODO: make `dist' tarball
         installPhase = ''
           runHook preInstall;
 
-          rm -rf ./node_modules;
+          rm -f ./package-lock.json;
+          if [[ -L ./node_modules ]]; then
+            rm ./node_modules;
+          elif [[ -d ./node_modules ]]; then
+            rm -rf ./node_modules;
+          fi
           bash -eu "$install_module" -PSLt . "$out";
 
           runHook postInstall;
         '';
+        dontStrip = true;
       };
 
 
@@ -83,6 +93,7 @@
         run_script        = ../../setup/run-script.sh;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
+        NMTREE            = config.trees.install or config.trees.prod;
         src               = config.source;
         nativeBuildInputs = [pkgs.jq];
         buildInputs       = [pkgs.nodejs-14_x];
@@ -92,25 +103,48 @@
           export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
+          if [[ -n "$NMTREE" ]]; then
+            ln -s "$NMTREE/node_modules" ./node_modules;
+          fi
 
           runHook postConfigure;
         '';
-        # TODO: installNodeModules
-        # TODO: fallback to `node-gyp rebuild'
         buildPhase = ''
           runHook preBuild;
 
-          echo "TODO: install node_modules/" >&2;
-          bash -eu "$run_script" -Pi preinstall install postinstall;
-          echo "TODO: fallback node-gyp rebuild" >&2;
+          if [[ -r ./binding.gyp ]]; then
+            bash -eu "$run_script" -Pi preinstall;
+            case "$( jq -r '.scripts.install // null' ./package.json; )" in
+              null)
+                _pjs_backup="$( <package.json; )";
+                echo "$_pjs_backup"|jq '.scripts+={
+                  install: "node-gyp rebuild"
+                }' >package.json;
+                bash -eu "$run_script" -Pi preinstall install postinstall;
+                echo "$_pjs_backup" >package.json;
+              ;;
+              *)
+                bash -eu "$run_script" -Pi preinstall install postinstall;
+              ;;
+            esac
+          else
+            bash -eu "$run_script" -Pi preinstall install postinstall;
+          fi
 
           runHook postBuild;
         '';
         installPhase = ''
           runHook preInstall;
 
-          rm -rf ./node_modules;
-          bash -eu "$install_module" -PSLt . "$out";
+          if [[ -L ./node_modules ]]; then
+            rm ./node_modules;
+          elif [[ -d ./node_modules ]]; then
+            rm -rf ./node_modules;
+          fi
+
+          # TODO: run `dist' routines before patching shebangs.
+          export HOST_PATH;
+          bash -eu "$install_module" -PLst . "$out";
 
           runHook postInstall;
         '';
@@ -126,43 +160,74 @@
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         src               = config.source;
-        nativeBuildInputs = [pkgs.jq pkgs.git];
+        nativeBuildInputs = [pkgs.jq];
         buildInputs       = [pkgs.nodejs-14_x];
-        configurePhase    = ''
-          runHook preConfigure;
-
-          export PATH="$PATH:$PWD/node_modules/.bin";
-          export JQ="$( command -v jq; )";
-          export NODEJS="$( command -v node; )";
-
-          runHook postConfigure;
-        '';
-        dontBuild = true;
+        phases            = ["unpackPhase" "installPhase"];
+        # TODO: adhere to `files' or `.{npm,git}ignore'
         installPhase = ''
           runHook preInstall;
 
-          rm -rf ./node_modules ./package-lock.json;
-          find . -type f -name '.npmignore'                  \
-                 -execdir mv ./.npmignore ./.gitignore \; ;
-          if [[ ! -d .git ]]; then
-            git init;
+          rm -f ./package-lock.json;
+          if [[ -L ./node_modules ]]; then
+            rm ./node_modules;
+          elif [[ -d ./node_modules ]]; then
+            rm -rf ./node_modules;
           fi
-          git clean -Xfd;
-          rm -rf .git;
-          bash -eu "$install_module" -PSLt . "$out";
+
+          export HOST_PATH;
+          bash -eu "$install_module" -PLst . "$out";
 
           runHook postInstall;
         '';
         preferLocalBuild = true;
         allowSubstitutes =
           ( builtins.currentSystem or "unknown" ) != pkgs.system;
+        dontStrip = true;
       };
 
 
 # ---------------------------------------------------------------------------- #
 
-    # FIXME
-    global = pkgs.emptyDirectory;
+    global = pkgs.stdenv.mkDerivation {
+      pname = baseNameOf config.pdef.ident;
+      inherit (config.pdef) version;
+      install_module    = ../../setup/install-module.sh;
+      IDENT             = config.pdef.ident;
+      NMTREE            = config.trees.prod;
+      src               = config.prepared;
+      nativeBuildInputs = [pkgs.jq];
+      buildInputs       = [pkgs.nodejs-14_x];
+      unpackPhase       = ":";
+      dontPatch         = true;
+      dontConfigure     = true;
+      dontBuild         = true;
+      dontStrip         = true;
+      dontPatchShebangs = true;  # XXX: this was already done for `prepare'
+      installPhase      = ''
+        runHook preInstall;
+
+        set -eu;
+        set -o pipefail;
+
+        mkdir -p "$out/node_modules/$IDENT";
+
+        if [[ -n "$NMTREE" ]]; then
+          cp -pr --reflink=auto -- "$NMTREE/node_modules"                    \
+                                   "$out/node_modules/$IDENT/node_modules";
+        fi
+
+        bash -eu "$install_module" -P "$src" "$out/node_modules";
+
+        if [[ -d "$out/node_modules/.bin" ]]; then
+          mkdir -p "$out/bin";
+          for s in "$out/node_modules/.bin/"*; do
+            ln -Lsr "$s" "$out/bin/''${s##*/}";
+          done
+        fi
+
+        runHook postInstall;
+      '';
+    };
 
 
 # ---------------------------------------------------------------------------- #

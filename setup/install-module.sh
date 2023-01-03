@@ -72,6 +72,7 @@ ENVIRONMENT
                 program used to copy files.
   LN            Absolute path to \`ln' executable.
   REALPATH      Absolute path to \`realpath' executable.
+  TAIL          Absolute path to \`tail' executable.
   FIND          Absolute path to \`find' executable.
   BASH          Absolute path to \`bash' executable.
 ";
@@ -95,6 +96,7 @@ usage() {
 : "${CHMOD:=chmod}";
 : "${CHOWN:=chown}";
 : "${MKDIR:=mkdir}";
+: "${TAIL:=tail}";
 : "${CP:=cp}";
 : "${REALPATH:=realpath}";
 : "${FIND:=find}";
@@ -251,37 +253,70 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -z "${NODEJS:-}$NO_PATCH" ]]; then
-  NODEJS="$( $REALPATH "$( command -v node; )"; )";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-if [[ -z "$NO_BINS$NO_PERMS" ]]; then
-  pushd "$TO" >/dev/null;
-  if [[ -n "${BIN_DIR:-}" ]]; then
-    $CHMOD -r +wx "$BIN_DIR";
+# Identical to `<nixpkgs>/pkgs/stdenv/generic/setup.sh'
+pjsIsScript() {
+  local fn="$1";
+  local fd;
+  local magic;
+  exec {fd}< "$fn";
+  read -r -n 2 -u "$fd" magic;
+  exec {fd}<&-
+  if [[ "$magic" =~ \#! ]]; then
+    return 0;
   else
-    # shellcheck disable=SC2046
-    $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
+    return 1;
   fi
+}
+
+
+pjsPatchNodeShebang() {
+  local timestamp oldInterpreterLine oldPath arg0 args;
+  pjsIsScript "$1"||return 0;
+  read -r oldInterpreterLine < "$1";
+  read -r oldPath arg0 args <<< "${oldInterpreterLine:2}";
+  # Only modify `node' shebangs.
+  case "$oldPath $arg0" in
+    */bin/env\ *node) :; ;;
+    */node\ |node\ )
+      case "$oldPath" in
+        $NIX_STORE/*) return 0; ;;
+        *) :; ;;
+      esac
+      :;
+    ;;
+    *) return 0; ;;
+  esac
+  timestamp="$( stat --printf '%y' "$1"; )";
+  if [[ -z "${NODEJS:-}" ]]; then
+    NODEJS="$(
+      $REALPATH "$( PATH="${HOST_PATH:-$PATH}"; command -v node; )";
+    )";
+  fi
+  printf '%s'                                                         \
+    "$1: interpreter directive changed from \"$oldInterpreterLine\""  \
+    " to \"#!${NODEJS:?}\"" >&2;
+  echo '' >&2;
+  {
+    echo "#!$NODEJS";
+    $TAIL -n +2 "$1";
+  } > "$1~";
+  $CHMOD 0755 "$1~";
+  mv -- "$1~" "$1";
+  touch --date "$timestamp" "$1";
+}
+
+if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
+  pushd "$TO";
+  for bp in $BIN_PAIRS; do
+    pjsPatchNodeShebang "${bp#*,}";
+  done
+  popd;
+elif [[ -z "$NO_BINS$NO_PERMS" ]]; then
+  pushd "$TO" >/dev/null;
+  # shellcheck disable=SC2046
+  $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
   popd >/dev/null;
 fi
-
-
-# ---------------------------------------------------------------------------- #
-
-# TODO
-#if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
-#  pushd "$TO";
-#  if [[ -n "${BIN_DIR:-}" ]]; then
-#    $CHMOD -r +wx "$BIN_DIR";
-#  else
-#    $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
-#  fi
-#  popd;
-#fi
 
 
 # ---------------------------------------------------------------------------- #
