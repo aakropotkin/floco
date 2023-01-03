@@ -21,11 +21,7 @@ in {
       These records are used to generate build recipes and build plans.
     '';
 
-    type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
-      modules = [../pdef];
-    } ) );
-
+    type    = nt.attrsOf ( nt.attrsOf ( nt.submodule ../pdef ) );
     example = {
       lodash."4.17.21" = {
         ident     = "lodash";

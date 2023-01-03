@@ -43,10 +43,7 @@ in {
       recommend using a `package-lock.json(v2/3)` to fill these values.
     '';
 
-    type = nt.nullOr ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
-      modules = [./single.interface.nix];
-    } ) );
+    type = nt.nullOr ( nt.attrsOf ( nt.submodule ./single.interface.nix ) );
 
     default = null;
 

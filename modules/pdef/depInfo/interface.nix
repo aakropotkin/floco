@@ -22,9 +22,7 @@ in {
       `treeInfo` configs, which are used by builders, but may be used to provide
       information needed to generate trees if they are not defined.
     '';
-    type = nt.attrsOf ( nt.submoduleWith {
-      modules = [./single.interface.nix];
-    } );
+    type = nt.attrsOf ( nt.submodule ./single.interface.nix );
     default = {};
   };
 
