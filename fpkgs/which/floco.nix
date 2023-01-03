@@ -4,20 +4,8 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs ? config._module.args.pkgs, ... }: {
-
-# ---------------------------------------------------------------------------- #
-
-  config.flocoPackages.pdefs = builtins.foldl' ( acc: pdef: acc // {
-    ${pdef.ident}.${pdef.version} = ( removeAttrs pdef ["treeInfo"] ) // {
-      metaFiles.metaRaw.treeInfo = pdef.treeInfo;
-    };
-  } ) {} ( import ./pdefs.nix );
-
-
-# ---------------------------------------------------------------------------- #
-
-}
+{ lib, config, pkgs ? config._module.args.pkgs, ... }:
+  ( import ../../lib/addPdefs.nix { inherit lib; } ) ./pdefs.nix
 
 # ---------------------------------------------------------------------------- #
 #
