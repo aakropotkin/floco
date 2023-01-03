@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------- #
 
 { nixpkgs ? ( import ../../../inputs ).nixpkgs.flake
-, lib     ? ( import ../../../lib { inherit (nixpkgs) lib; } )
+, lib     ? import ../../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 }: let
@@ -22,11 +22,14 @@
 
   module = lib.evalModules {
     modules = [
+      {
+        config._module.args.pkgs = pkgsFor;
+        config._module.args.flocoPackages.pdefs = {};
+      }
       ../../../modules/packages
-      { config._module.args.pkgs = pkgsFor; }
     ];
   };
-  lodash = module.config.flocoPackages.packages.lodash."4.17.21".pdef;
+  lodash = module.config.packages.lodash."4.17.21".pdef;
 
 # ---------------------------------------------------------------------------- #
 
