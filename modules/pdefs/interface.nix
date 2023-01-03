@@ -39,9 +39,8 @@ in {
         treeInfo = {};
       };
       acorn."8.8.1" = {
-        ident   = "acorn";
-        version = "8.8.1";
-        ltype   = "file";
+        key   = "acorn/8.8.1";
+        ltype = "file";
         binInfo.binPairs.acorn = "./bin/acorn";
         fetchInfo = {
           type    = "tarball";

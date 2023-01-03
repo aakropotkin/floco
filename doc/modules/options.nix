@@ -4,11 +4,8 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? builtins.getFlake "nixpkgs"
-, lib     ? nixpkgs.lib
-}: ( lib.evalModules {
-  modules = [../../modules/packages];
-} ).options
+{ lib ? import ../../lib {} }:
+( lib.evalModules { modules = [../../modules/top]; } ).options
 
 
 # ---------------------------------------------------------------------------- #

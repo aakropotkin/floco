@@ -4,8 +4,8 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? builtins.getFlake "nixpkgs"
-, lib     ? nixpkgs.lib
+{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
+, lib     ? import ../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 , pandoc  ? pkgsFor.pandoc
