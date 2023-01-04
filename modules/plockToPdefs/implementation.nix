@@ -99,20 +99,46 @@
 # ---------------------------------------------------------------------------- #
 
   # `treeInfo' for root package
-  exportTreeInfo = {
-    config.treeInfo = let
-      mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
-      keeps = removeAttrs plconf.config.plents [""];
-    in lib.mkForce ( builtins.mapAttrs mkTreeEnt keeps );
-  };
+  rootTreeInfo = let
+    mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
+  in builtins.mapAttrs mkTreeEnt plconf.config.plents;
 
-  translatedPlents = let
+  rough = let
     proc = plentKey: plentRaw: ( lib.evalModules {
-      modules = [{ config = toPdef plentKey plentRaw; }] ++ (
-        if plentKey == "" then [exportTreeInfo] else []
-      ) ++ [../pdef];
-    } ).config;
+        modules = [{ config = toPdef plentKey plentRaw; }] ++ (
+          if plentKey == "" then [{
+            config.treeInfo = lib.mkForce ( removeAttrs rootTreeInfo [""] );
+          }] else []
+        ) ++ [../pdef];
+      } ).config;
   in builtins.mapAttrs proc plconf.config.plents;
+
+  translatedPlents = rough;
+
+  #translatedPlents = let
+  #  addTreeInfo = plentKey: config: let
+  #    treeInfo = removeAttrs ( lib.focusTree {
+  #      treeInfo = rootTreeInfo;
+  #      newRoot  = plentKey;
+  #      inherit (
+  #        ( lib.addPdefs ( builtins.attrValues rough ) ).config.flocoPackages
+  #      ) pdefs;
+  #    } ).treeInfo [""];
+  #  in ( lib.evalModules {
+  #    # Regenerates `_export'.
+  #    modules = [
+  #      { config = toPdef plentKey plconf.config.plents.${plentKey}; }
+  #      { config.treeInfo = lib.mkForce treeInfo; }
+  #      ../pdef
+  #    ];
+  #  } ).config;
+  #  proc = plentKey: config:
+  #    if ( plentKey == "" ) ||
+  #       ( config.treeInfo != null ) ||
+  #       config.lifecycle.build
+  #    then builtins.deepSeq config config
+  #    else ( let x = addTreeInfo plentKey config; in builtins.deepSeq x x );
+  #in builtins.mapAttrs proc ( builtins.deepSeq rough rough );
 
 
 # ---------------------------------------------------------------------------- #

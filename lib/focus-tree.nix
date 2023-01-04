@@ -80,12 +80,14 @@
 
     focused = let
       proc  = { tree, drop } @ acc: p: let
-        lkey = lib.yank "${newRoot}/(.*)" p;
+        lkey = let
+          m = builtins.match "${newRoot}/(.*)" p;
+        in if m == null then null else builtins.head m;
       in if ! ( lib.hasPrefix "${newRoot}/" p ) then acc else acc // {
-        tree = tree // { ${lkey} = resolved.${p}; };
-        drop =
-          if ( resolved ? ${lkey} ) then drop // { ${lkey} = resolved.${p}; }
-                                    else drop;
+        tree = tree // { ${lkey} = closed.${p}; };
+        drop = assert lkey != null;
+          if ( closed ? ${lkey} ) then drop // { ${lkey} = closed.${p}; }
+                                  else drop;
       };
       closed    = removeAttrs resolved [newRoot];
       clobbered = builtins.foldl' proc { tree = closed; drop = {}; }
@@ -117,6 +119,15 @@
 
 # ---------------------------------------------------------------------------- #
 
+    # This is used to produce a "focused" `treeInfo' record which marks
+    # `optional' deps appropriately.
+    # NOTE: this will NOT handle `dev' fields, since our original tree is not
+    # guaranteed to contain the closure of `devDependencies' required for
+    # a subtree.
+    # If you were hoping that this routine might help you focus a workspace
+    # where `dev' fields are marked for each member you need to look elsewhere.
+    # The process will be similar to this routine; but I've had enough for one
+    # day and I'm not opening another can of worms.
     markOptionals = let
       noOpt = let
         proc = acc: key: let
@@ -133,13 +144,13 @@
       in ft.resolved;
       markedSubs = let
         subs = noOpt.${dirOf rootKey}.${baseNameOf rootKey}.depInfo;
-        proc = acc: p: acc // ( markReqs "node_modules/${p}" );
+        proc = acc: p: ( markReqs "node_modules/${p}" ) // acc;
       in builtins.foldl' proc {} ( builtins.attrNames subs );
     in builtins.mapAttrs ( p: key: {
       inherit key;
       dev      = false;
-      optional = ! ( ( p == "" ) || ( markedSubs ? ${p} ) );
-    } ) focused;
+      optional = ! ( markedSubs ? ${p} );
+    } ) ( removeAttrs focused [""] );
 
 
 # ---------------------------------------------------------------------------- #

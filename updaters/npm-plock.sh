@@ -219,7 +219,7 @@ export FLAKE_REF FLOCO_CONFIG OUTFILE;
 $NIX --no-substitute eval --show-trace --raw -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
-  inherit (floco.inputs.nixpkgs) lib;
+  inherit (floco) lib;
   # TODO: use `old' and `cfg' as modules.
   #cfgPath = builtins.getEnv "FLOCO_CONFIG";
   #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
