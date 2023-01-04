@@ -197,13 +197,7 @@
       src               = config.prepared;
       nativeBuildInputs = [pkgs.jq];
       buildInputs       = [pkgs.nodejs-14_x];
-      unpackPhase       = ":";
-      dontPatch         = true;
-      dontConfigure     = true;
-      dontBuild         = true;
-      dontStrip         = true;
-      dontPatchShebangs = true;  # XXX: this was already done for `prepare'
-      installPhase      = ''
+      buildCommand      = ''
         runHook preInstall;
 
         set -eu;
