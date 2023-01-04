@@ -18,6 +18,9 @@ in {
 # ---------------------------------------------------------------------------- #
 
     trees = lib.mkOption {
+      description = lib.mdDoc ''
+        Stashes `node_modules/` trees used for lifecycle events.
+      '';
       type = nt.submodule {
 
         freeformType = nt.attrsOf nt.package;
