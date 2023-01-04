@@ -12,7 +12,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-    checkSystemSupport = lib.checkSystemSupportFor config;
+    checkSystemSupport = lib.checkSystemSupportFor config.pdef;
     systemSupported    = config.checkSystemSupport { inherit (pkgs) stdenv; };
 
 
@@ -76,7 +76,7 @@
           elif [[ -d ./node_modules ]]; then
             rm -rf ./node_modules;
           fi
-          bash -eu "$install_module" -PSLt . "$out";
+          bash -eu "$install_module" -SLt . "$out";
 
           runHook postInstall;
         '';
@@ -144,7 +144,7 @@
 
           # TODO: run `dist' routines before patching shebangs.
           export HOST_PATH;
-          bash -eu "$install_module" -PLst . "$out";
+          bash -eu "$install_module" -Lst . "$out";
 
           runHook postInstall;
         '';
@@ -175,7 +175,7 @@
           fi
 
           export HOST_PATH;
-          bash -eu "$install_module" -PLst . "$out";
+          bash -eu "$install_module" -Lst . "$out";
 
           runHook postInstall;
         '';
@@ -216,7 +216,7 @@
                                    "$out/node_modules/$IDENT/node_modules";
         fi
 
-        bash -eu "$install_module" -P "$src" "$out/node_modules";
+        bash -eu "$install_module" "$src" "$out/node_modules";
 
         if [[ -d "$out/node_modules/.bin" ]]; then
           mkdir -p "$out/bin";

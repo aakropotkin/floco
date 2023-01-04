@@ -32,7 +32,9 @@ in {
         modules must be "peers" living in the same `node_modules/` directory;
         in practice a parent directory also works, but you get the idea.
       '';
-      type    = nt.attrsOf ( nt.submodule ./single.interface.nix );
+      type = nt.attrsOf ( nt.submoduleWith {
+        modules = [./single.interface.nix];
+      } );
       default = {};
     };
   };
