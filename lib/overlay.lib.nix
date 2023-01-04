@@ -55,7 +55,7 @@ in {
     addPdefs
     getPdef
     checkSystemSupportFor
-    mkTreeFocuser
+    focusTree
   ;
 
 }

@@ -8,7 +8,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  mkTreeFocuser = {
+  focusTree = {
     treeInfo ? null
   , tree     ? builtins.mapAttrs ( _: v: v.key ) treeInfo
   , pdefs
@@ -117,7 +117,34 @@
 
 # ---------------------------------------------------------------------------- #
 
-  in { inherit resolved focused; };
+    markOptionals = let
+      noOpt = let
+        proc = acc: key: let
+          pd = lookup { inherit key; };
+        in lib.recursiveUpdate acc {
+          #inherit (pd) ident version key;
+          ${dirOf key}.${baseNameOf key}.depInfo = lib.filterAttrs ( _: d:
+            d.runtime && ( ! d.optional )
+          ) pd.depInfo;
+        };
+      in builtins.foldl' proc {} ( builtins.attrValues focused );
+      markReqs = p: let
+        ft = focusTree { tree = focused; pdefs = noOpt; newRoot = p; };
+      in ft.resolved;
+      markedSubs = let
+        subs = noOpt.${dirOf rootKey}.${baseNameOf rootKey}.depInfo;
+        proc = acc: p: acc // ( markReqs "node_modules/${p}" );
+      in builtins.foldl' proc {} ( builtins.attrNames subs );
+    in builtins.mapAttrs ( p: key: {
+      inherit key;
+      dev      = false;
+      optional = ! ( ( p == "" ) || ( markedSubs ? ${p} ) );
+    } ) focused;
+
+
+# ---------------------------------------------------------------------------- #
+
+  in { inherit resolved focused; treeInfo = markOptionals; };
 
   # End `focusTree' function.
 
@@ -125,7 +152,7 @@
 # ---------------------------------------------------------------------------- #
 
 in {
-  inherit mkTreeFocuser;
+  inherit focusTree;
 }
 
 # ---------------------------------------------------------------------------- #
