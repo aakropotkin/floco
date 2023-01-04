@@ -200,9 +200,6 @@
       buildCommand      = ''
         runHook preInstall;
 
-        set -eu;
-        set -o pipefail;
-
         mkdir -p "$out/node_modules/$IDENT";
 
         if [[ -n "$NMTREE" ]]; then

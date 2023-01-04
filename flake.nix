@@ -31,6 +31,7 @@
 
     overlays.default = overlays.floco;
     overlays.floco = final: prev: {
+      lib = import ./lib { inherit (prev) lib; };
       inherit (import ./setup {
         inherit (final) system bash coreutils findutils jq gnused;
         nodejs = final.nodejs-slim-14_x;
@@ -41,6 +42,8 @@
 # ---------------------------------------------------------------------------- #
 
   in {  # Begin `outputs'
+
+    lib = import ./lib { inherit (nixpkgs) lib; };
 
     inherit overlays;
 

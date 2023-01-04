@@ -46,13 +46,16 @@ final: prev: let
 in {
 
   libfloco = callLibs [
-    ./addPdefs.nix
+    ./access-pdefs.nix
     ./checkSystemSupport.nix
+    ./focus-tree.nix
   ];
 
   inherit (final.libfloco)
     addPdefs
+    getPdef
     checkSystemSupportFor
+    mkTreeFocuser
   ;
 
 }

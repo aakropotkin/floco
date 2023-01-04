@@ -1,17 +1,7 @@
 # ============================================================================ #
 #
-# Coerce a collection of `pdef' records to a set of config fields.
+# Add or lookup `pdef' records from the `config.flocoPackages.pdefs' set.
 #
-# If the argument is already an attrset this is a no-op.
-# If the argument is a list its members will be treated as a module list to
-# be merged.
-# If the argument is a file it will be imported and processed as described
-# above - JSON files will be converted to Nix expressions if the given path
-# has a ".json" extension.
-#
-# This routine exists to simplify aggregation of `pdefs.nix' files.
-#
-# Returns a `config.flocoPackages.pdefs.<IDENTS.<VERSION>' attrset.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -20,6 +10,16 @@
 # ---------------------------------------------------------------------------- #
 
   /* Coerce a collection of `pdef` records to a set of config fields.
+     If the argument is already an attrset this is a no-op.
+     If the argument is a list its members will be treated as a module list to
+     be merged.
+     If the argument is a file it will be imported and processed as described
+     above - JSON files will be converted to Nix expressions if the given path
+     has a ".json" extension.
+
+     This routine exists to simplify aggregation of `pdefs.nix' files.
+
+     Returns a `config.flocoPackages.pdefs.<IDENTS.<VERSION>' attrset.
 
      Type: addPdefs :: (attrs|list|file) -> { config.flocoPackages.pdefs.*.*.* }
 
@@ -57,8 +57,24 @@
 
 # ---------------------------------------------------------------------------- #
 
+  getPdef = {
+    config        ? null
+  , flocoPackages ? config.flocoPackages
+  , pdefs         ? flocoPackages.pdefs
+  }: {
+    key
+  , ident   ? dirOf key
+  , version ? baseNameOf key
+  }: pdefs.${ident}.${version};
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
-  inherit addPdefs;
+  inherit
+    getPdef
+    addPdefs
+  ;
 }
 
 
