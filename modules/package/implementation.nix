@@ -200,18 +200,19 @@
       buildCommand      = ''
         runHook preInstall;
 
-        mkdir -p "$out/node_modules/$IDENT";
+        mkdir -p "$out/lib/node_modules/$IDENT";
 
         if [[ -n "$NMTREE" ]]; then
-          cp -pr --reflink=auto -- "$NMTREE/node_modules"                    \
-                                   "$out/node_modules/$IDENT/node_modules";
+          cp -pr --reflink=auto --                         \
+             "$NMTREE/node_modules"                        \
+             "$out/lib/node_modules/$IDENT/node_modules";
         fi
 
-        bash -eu "$install_module" "$src" "$out/node_modules";
+        bash -eu "$install_module" "$src" "$out/lib/node_modules";
 
-        if [[ -d "$out/node_modules/.bin" ]]; then
+        if [[ -d "$out/lib/node_modules/.bin" ]]; then
           mkdir -p "$out/bin";
-          for s in "$out/node_modules/.bin/"*; do
+          for s in "$out/lib/node_modules/.bin/"*; do
             ln -Lsr "$s" "$out/bin/''${s##*/}";
           done
         fi
