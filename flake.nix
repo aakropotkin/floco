@@ -41,11 +41,24 @@
 
 # ---------------------------------------------------------------------------- #
 
+    nixosModules = {
+      floco = { config, pkgs, ... }: {
+        imports = [./modules/top];
+        config._module.specialArgs.lib = import ./lib {
+          inherit (nixpkgs) lib;
+        };
+        config._module.args.pkgs = pkgs.extend overlays.default;
+      };
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   in {  # Begin `outputs'
 
     lib = import ./lib { inherit (nixpkgs) lib; };
 
-    inherit overlays;
+    inherit overlays nixosModules;
 
     packages = eachSupportedSystemMap ( system: let
       pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
