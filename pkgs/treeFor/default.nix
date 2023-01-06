@@ -21,7 +21,9 @@
             name   = "source";
             path   = ./.;
             filter = name: type:
-              ( ( baseNameOf name ) != "node_modules" ) &&
+              ( ! ( builtins.elem ( baseNameOf name ) [
+                      "node_modules" "result"
+                    ] ) ) &&
               ( ( builtins.match ".*\\.nix" name ) == null );
           } );
       }
