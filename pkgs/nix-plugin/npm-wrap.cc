@@ -2,7 +2,6 @@
  *
  * Wraps NPM exposing certain routines to Nix as builtins.
  *
- *
  * -------------------------------------------------------------------------- */
 
 #include "nix/util.hh"
@@ -44,7 +43,8 @@ runNpm( const Strings & args, const std::optional<std::string> & input = {} )
 
 /* -------------------------------------------------------------------------- */
 
-static void prim_npmResolve(
+  static void
+prim_npmResolve(
     EvalState & state, const PosIdx pos, Value ** args, Value & v
   )
 {
@@ -69,7 +69,8 @@ static RegisterPrimOp primop_npm_resolve( {
 
 /* -------------------------------------------------------------------------- */
 
-static void prim_npmShow(
+  static void
+prim_npmShow(
     EvalState & state, const PosIdx pos, Value ** args, Value & v
   )
 {

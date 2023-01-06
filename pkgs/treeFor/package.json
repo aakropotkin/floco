@@ -1,0 +1,10 @@
+{
+  "name": "@floco/treefor",
+  "version": "0.1.0",
+  "bin": {
+    "treeFor": "./bin.js"
+  },
+  "dependencies": {
+    "@npmcli/arborist": "^6.1.5"
+  }
+}
