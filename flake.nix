@@ -36,6 +36,11 @@
         inherit (final) system bash coreutils findutils jq gnused;
         nodejs = final.nodejs-slim-14_x;
       }) floco-utils;
+      treeFor = import ./pkgs/treeFor {
+        nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+        inherit (final) system lib;
+        pkgsFor = final;
+      };
     };
 
 
@@ -65,6 +70,7 @@
     in {
       inherit (pkgsFor)
         floco-utils
+        treeFor
       ;
     } );
 

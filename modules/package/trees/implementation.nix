@@ -10,7 +10,7 @@
 
   config.trees = let
     mkTree = lib.callPackageWith {
-      inherit (pkgs) coreutils findutils jq bash;
+      inherit (pkgs) system coreutils findutils jq bash;
       inherit flocoPackages;
     } ( import ../../../builders/tree.nix );
   in lib.mkIf ( config.pdef.treeInfo != null ) {
