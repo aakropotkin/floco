@@ -9,7 +9,7 @@ let opts = {
   logLevel: 'silent',
   colors: false,
   // 'shallow'|'hoisted'
-  installStrategy: 'shallow'
+  installStrategy: 'shallow',
 };
 ( new Arborist( opts ) ).buildIdealTree( opts ).then( (result) => {
   console.log( result.meta.toString() );
