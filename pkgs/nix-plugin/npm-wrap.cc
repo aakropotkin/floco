@@ -78,8 +78,8 @@ runTreeFor(
 
   static void
 prim_npmResolve(
-    EvalState & state, const PosIdx pos, Value ** args, Value & v
-  )
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
 {
   std::string spec( state.forceStringNoCtx( * args[0], pos ) );
   std::string uri = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
@@ -92,8 +92,8 @@ prim_npmResolve(
 
 static RegisterPrimOp primop_npm_resolve( {
   .name = "npmResolve",
-  .args = {"spec"},
-  .doc = R"(
+  .args = { "spec" },
+  .doc  = R"(
     Resolve a package specifier <IDENT>[@<DESCRIPTOR>] to a URI.
   )",
   .fun = prim_npmResolve,
@@ -104,8 +104,8 @@ static RegisterPrimOp primop_npm_resolve( {
 
   static void
 prim_npmShow(
-    EvalState & state, const PosIdx pos, Value ** args, Value & v
-  )
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
 {
   std::string spec( state.forceStringNoCtx( * args[0], pos ) );
   try {
@@ -118,8 +118,8 @@ prim_npmShow(
 
 static RegisterPrimOp primop_npm_show( {
   .name = "npmShow",
-  .args = {"spec"},
-  .doc = R"(
+  .args = { "spec" },
+  .doc  = R"(
     Resolve a package specifier <IDENT>[@<DESCRIPTOR>] to a package metadata.
   )",
   .fun = prim_npmShow,
@@ -128,35 +128,33 @@ static RegisterPrimOp primop_npm_show( {
 
 /* -------------------------------------------------------------------------- */
 
-// FIXME: handle `path' argument
   static void
-prim_npmPlock(
-    EvalState & state, const PosIdx pos, Value ** args, Value & v
-  )
+prim_npmLock(
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
 {
-  state.forceValue( * args[0], pos );
-  if ( ! ( ( args[0]->type() == nString ) || ( args[0]->type() == nPath ) ) ) {
-    state.debugThrowLastTrace( EvalError( {
-        .msg = hintfmt( "at least one argument to 'exec' required" ),
-        .errPos = state.positions[pos]
-    } ) );
-  }
-  std::string path( state.forceStringNoCtx( * args[0], pos ) );
-  try {
-    parseJSON( state, runTreeFor( { path } ), v );
-  } catch( JSONParseError & e ) {
-    e.addTrace(state.positions[pos], "while decoding a JSON string");
-    throw;
-  }
+  PathSet context;
+  std::string path(
+    * state.coerceToString( pos, * args[0], context, false, false )
+  );
+  try
+    {
+      parseJSON( state, runTreeFor( { path } ), v );
+    }
+  catch( JSONParseError & e )
+    {
+      e.addTrace( state.positions[pos], "while decoding a JSON string" );
+      throw;
+    }
 }
 
-static RegisterPrimOp primop_npm_plock( {
-  .name = "npmPlock",
-  .args = {"path"},
-  .doc = R"(
-    Produce a virtual package-lock.json for package at PATH.
+static RegisterPrimOp primop_npm_lock( {
+  .name = "npmLock",
+  .args = { "path" },
+  .doc  = R"(
+    Produce a virtual package-lock.json for package at *path*.
   )",
-  .fun = prim_npmPlock,
+  .fun = prim_npmLock,
 } );
 
 
