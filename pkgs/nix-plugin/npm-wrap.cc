@@ -43,6 +43,39 @@ runNpm( const Strings & args, const std::optional<std::string> & input = {} )
 
 /* -------------------------------------------------------------------------- */
 
+  static RunOptions
+treeForOptions( const Strings & args )
+{
+  auto env = getEnv();
+  return {
+    .program     = "treeFor",
+    .searchPath  = true,
+    .args        = args,
+    .environment = env
+  };
+}
+
+  static std::string
+runTreeFor(
+  const Strings & args, const std::optional<std::string> & input = {}
+)
+{
+  RunOptions opts = treeForOptions( args );
+  opts.input = input;
+
+  auto res = runProgram( std::move( opts ) );
+
+  if ( ! statusOk( res.first ) )
+    {
+      throw ExecError( res.first, "treeFor %1%", statusToString( res.first ) );
+    }
+
+  return res.second;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   static void
 prim_npmResolve(
     EvalState & state, const PosIdx pos, Value ** args, Value & v
@@ -90,6 +123,40 @@ static RegisterPrimOp primop_npm_show( {
     Resolve a package specifier <IDENT>[@<DESCRIPTOR>] to a package metadata.
   )",
   .fun = prim_npmShow,
+} );
+
+
+/* -------------------------------------------------------------------------- */
+
+// FIXME: handle `path' argument
+  static void
+prim_npmPlock(
+    EvalState & state, const PosIdx pos, Value ** args, Value & v
+  )
+{
+  state.forceValue( * args[0], pos );
+  if ( ! ( ( args[0]->type() == nString ) || ( args[0]->type() == nPath ) ) ) {
+    state.debugThrowLastTrace( EvalError( {
+        .msg = hintfmt( "at least one argument to 'exec' required" ),
+        .errPos = state.positions[pos]
+    } ) );
+  }
+  std::string path( state.forceStringNoCtx( * args[0], pos ) );
+  try {
+    parseJSON( state, runTreeFor( { path } ), v );
+  } catch( JSONParseError & e ) {
+    e.addTrace(state.positions[pos], "while decoding a JSON string");
+    throw;
+  }
+}
+
+static RegisterPrimOp primop_npm_plock( {
+  .name = "npmPlock",
+  .args = {"path"},
+  .doc = R"(
+    Produce a virtual package-lock.json for package at PATH.
+  )",
+  .fun = prim_npmPlock,
 } );
 
 
