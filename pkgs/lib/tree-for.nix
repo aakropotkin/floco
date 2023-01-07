@@ -13,8 +13,13 @@
 
 # ---------------------------------------------------------------------------- #
 
+  timestamp = toString builtins.currentTime;
+
   drv = derivation {
-    name = "tree-for.json";
+    name = let
+      suff = if builtins.pathExists "${src}/package-lock.json" then "" else
+             "-" + timestamp;
+    in "tree-for${suff}.json";
     inherit system src;
     builder = "${bash}/bin/bash";
     PATH    = "${treeFor}/bin";
