@@ -7,72 +7,9 @@
 #include "nix/util.hh"
 #include "nix/primops.hh"
 #include "nix/json-to-value.hh"
+#include "progs.hh"
 
 using namespace nix;
-
-/* -------------------------------------------------------------------------- */
-
-  static RunOptions
-npmOptions( const Strings & args )
-{
-  auto env = getEnv();
-  return {
-    .program     = "npm",
-    .searchPath  = true,
-    .args        = args,
-    .environment = env
-  };
-}
-
-  static std::string
-runNpm( const Strings & args, const std::optional<std::string> & input = {} )
-{
-  RunOptions opts = npmOptions( args );
-  opts.input = input;
-
-  auto res = runProgram( std::move( opts ) );
-
-  if ( ! statusOk( res.first ) )
-    {
-      throw ExecError( res.first, "npm %1%", statusToString( res.first ) );
-    }
-
-  return res.second;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-  static RunOptions
-treeForOptions( const Strings & args )
-{
-  auto env = getEnv();
-  return {
-    .program     = "treeFor",
-    .searchPath  = true,
-    .args        = args,
-    .environment = env
-  };
-}
-
-  static std::string
-runTreeFor(
-  const Strings & args, const std::optional<std::string> & input = {}
-)
-{
-  RunOptions opts = treeForOptions( args );
-  opts.input = input;
-
-  auto res = runProgram( std::move( opts ) );
-
-  if ( ! statusOk( res.first ) )
-    {
-      throw ExecError( res.first, "treeFor %1%", statusToString( res.first ) );
-    }
-
-  return res.second;
-}
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -137,9 +74,10 @@ prim_npmLock(
   std::string path(
     * state.coerceToString( pos, * args[0], context, false, false )
   );
+  auto result = runTreeFor( { path } );
   try
     {
-      parseJSON( state, runTreeFor( { path } ), v );
+      parseJSON( state, result, v );
     }
   catch( JSONParseError & e )
     {
