@@ -136,7 +136,7 @@
   };
 
 
-  renderOrgOption = {
+  renderOrgOptionHeading = {
     declarations  # list of stringized absolute paths
   , description
   , loc
@@ -144,7 +144,27 @@
   , type          # the string description
   , default       ? null
   , example       ? null
-  } @ fields: {};
+  } @ fields: let
+    headline = let
+      depth = builtins.length loc;
+      stars = let
+        chars = builtins.genList ( _: "*" ) depth;
+      in builtins.concatStringsSep "" chars;
+      bname    = builtins.elemAt loc ( depth - 1 );
+    in stars + " =${bname}=";
+    ex = let
+      e = lib.generators.toPretty {} example;
+    in if ! ( fields ? example ) then "" else
+       if ( builtins.match ".*\n.*" e ) == null
+       then "- example: =${e}=\n"
+       else "- example:\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
+    declPaths = map ( p: "~${p}~" ) declarations;
+  in ''
+    ${headline}
+    ${description}
+    - type: ${type}
+    - from: ${builtins.concatStringsSep " " declPaths}
+  '' + ex;
 
 
 # ---------------------------------------------------------------------------- #
@@ -159,7 +179,7 @@ in {
     transformDeclPaths' transformDeclPaths
     transformMdToOrg
     mkOptionsOrg
-    renderOrgOption
+    renderOrgOptionHeading
   ;
 }
 
