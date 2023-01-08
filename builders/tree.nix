@@ -70,6 +70,7 @@ in {
       body   = builtins.concatStringsSep "" linesL;
     in writeText "node_modules-tree-argfile" body;
     args = ["-ec" ''
+      mkdir -p "$out/node_modules";
       while read -r args; do
         eval "bash $install_module -t $args";
       done <"$argFile"

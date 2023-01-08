@@ -4,14 +4,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, lib     ? import ../../lib { inherit (nixpkgs) lib; }
+{ nixpkgs ? ( import ../../../../inputs ).nixpkgs.flake
+, lib     ? import ../../../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
-, fcfg    ? {
-    imports = [../../modules/top];
-    config._module.args.pkgs = pkgsFor;
-  }
+, fcfg    ? { config._module.args.pkgs = pkgsFor; }
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -20,7 +17,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-in fmod.config.flocoPackages.packages.pacote."13.3.0".global
+in fmod.config.flocoPackages.packages."@floco/test"."4.2.0".dist
 
 
 # ---------------------------------------------------------------------------- #

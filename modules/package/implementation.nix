@@ -62,11 +62,10 @@
         buildPhase = ''
           runHook preBuild;
 
-          bash -eu "$run_script" -Pi prebuild build postbuild prepublish;
+          bash -eu "$run_script" -PBi prebuild build postbuild prepublish;
 
           runHook postBuild;
         '';
-        # TODO: make `dist' tarball
         installPhase = ''
           runHook preInstall;
 
@@ -81,6 +80,23 @@
           runHook postInstall;
         '';
         dontStrip = true;
+      };
+
+
+# ---------------------------------------------------------------------------- #
+
+    dist = if config.pdef.ltype == "file" then null else
+      import ../../builders/dist.nix {
+        inherit lib;
+        inherit (pkgs) system;
+        pkgsFor = pkgs;
+        src     =
+          builtins.trace ( "WARNING: tarball may contain references to Nix " +
+                           "store in shebang lines." ) config.built;
+        pjs = {
+          inherit (config.pdef) version;
+          name = config.pdef.ident;
+        };
       };
 
 
@@ -113,22 +129,22 @@
           runHook preBuild;
 
           if [[ -r ./binding.gyp ]]; then
-            bash -eu "$run_script" -Pi preinstall;
+            bash -eu "$run_script" -PBi preinstall;
             case "$( jq -r '.scripts.install // null' ./package.json; )" in
               null)
                 _pjs_backup="$( <package.json; )";
                 echo "$_pjs_backup"|jq '.scripts+={
                   install: "node-gyp rebuild"
                 }' >package.json;
-                bash -eu "$run_script" -Pi preinstall install postinstall;
+                bash -eu "$run_script" -PBi preinstall install postinstall;
                 echo "$_pjs_backup" >package.json;
               ;;
               *)
-                bash -eu "$run_script" -Pi preinstall install postinstall;
+                bash -eu "$run_script" -PBi preinstall install postinstall;
               ;;
             esac
           else
-            bash -eu "$run_script" -Pi preinstall install postinstall;
+            bash -eu "$run_script" -PBi preinstall install postinstall;
           fi
 
           runHook postBuild;

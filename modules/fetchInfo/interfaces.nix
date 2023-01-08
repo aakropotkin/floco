@@ -56,7 +56,7 @@ in {
     '';
     type = ( nt.submodule {
       freeformType =
-        nt.attrsOf ( nt.nullOr ( nt.oneOf [nt.str nt.int nt.bool] ) );
+        nt.attrsOf ( nt.nullOr ( nt.oneOf [nt.str nt.path nt.int nt.bool] ) );
     } ) // { inherit (ft.fetchInfo) check; };
   };
 

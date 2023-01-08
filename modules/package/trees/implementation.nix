@@ -9,10 +9,12 @@
 # ---------------------------------------------------------------------------- #
 
   config.trees = let
-    mkTree = lib.callPackageWith {
-      inherit (pkgs) system coreutils findutils jq bash;
-      inherit flocoPackages;
-    } ( import ../../../builders/tree.nix );
+    mkTree = args: let
+      real = lib.callPackageWith {
+        inherit (pkgs) system coreutils findutils jq bash;
+        inherit flocoPackages;
+      } ( import ../../../builders/tree.nix ) args;
+    in if ( args.keyTree or args.pathTree or {} ) == {} then null else real;
   in lib.mkIf ( config.pdef.treeInfo != null ) {
 
 # ---------------------------------------------------------------------------- #
