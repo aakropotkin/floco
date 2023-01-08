@@ -50,6 +50,7 @@ in {
     ./checkSystemSupport.nix
     ./focus-tree.nix
   ];
+  libdoc = callLib ./mdoc.nix;
 
   inherit (final.libfloco)
     addPdefs

@@ -19,13 +19,19 @@ in {
         Collection of built/prepared packages and modules.
       '';
 
-      type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-        shorthandOnlyDefinesConfig = true;
-        modules = [
-          { config._module.args = { inherit pkgs; flocoPackages = config; }; }
-          ../package
-        ];
-      } ) );
+      # NOTE: modifying the `getSubOptions' routine isn't working here.
+      # I have no idea why but the issue is relatively benign since it only
+      # effects documentation generation.
+      # Nonetheless I'm leaving it until it can be properly debugged.
+      type = let
+        pkgType = nt.submoduleWith {
+          shorthandOnlyDefinesConfig = true;
+          modules = [
+            { config._module.args = { inherit pkgs; flocoPackages = config; }; }
+            ../package
+          ];
+        };
+      in nt.attrsOf ( nt.attrsOf pkgType );
 
       default = builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
         inherit pdef;
