@@ -157,6 +157,7 @@
     in stars + " =${bname}=";
     ex = let
       e =
+        if builtins.isString example then example else
         if ( example._type or null ) == "literalExpression"
         then example.text
         else lib.generators.toPretty {} example;
@@ -164,7 +165,13 @@
        if ( builtins.match ".*\n.*" e ) == null
        then "- example :: =${e}=\n"
        else "- example ::\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
-    declPaths = map ( p: "~${p}~" ) declarations;
+    declPaths = let
+      gen = p: let
+        m   = builtins.match "<floco>(/.*)" p;
+        sub = builtins.head m;
+        url = "https://github.com/aakropotkin/floco/blob/main/${sub}";
+      in "[[${url}][${p}]]";
+    in map gen declarations;
     t = if ( builtins.match "string matching .*" ( toString type ) ) == null
         then toString type
         else "string matching a regex pattern";
