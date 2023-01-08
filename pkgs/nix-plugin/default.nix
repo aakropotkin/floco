@@ -17,8 +17,14 @@
 , stdenv  ? pkgsFor.stdenv
 , nix     ?
   builtins.getFlake "github:NixOS/nix/${builtins.nixVersion or "2.12.0"}"
-, boost   ? pkgsFor.boost
+, boost    ? pkgsFor.boost
+, treeFor  ? import ../treeFor { inherit nixpkgs system pkgsFor; }
+, semver   ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
+, npm      ? pkgsFor.nodejs-14_x.pkgs.npm
+, bash     ? pkgsFor.bash
 }: stdenv.mkDerivation {
+  inherit bash;
+  nix     = nix.packages.${system}.nix;
   pname   = "nix-floco-plugin";
   version = "0.1.0";
   src = builtins.path {
@@ -28,10 +34,8 @@
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
   libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs = [
-    nix.packages.${system}.nix.dev
-    boost.dev
-  ];
+  buildInputs = [nix.packages.${system}.nix.dev boost.dev];
+  propagatedBuildInputs = [npm treeFor semver];
   buildPhase = ''
     runHook preBuild;
     $CXX -shared -o libfloco$libExt -std=c++17 ./*.cc  \
@@ -40,8 +44,20 @@
   '';
   installPhase = ''
     runHook preInstall;
-    mkdir -p $out/libexec;
-    mv -- ./libfloco$libExt $out/libexec/libfloco$libExt;
+    mkdir -p "$out/libexec" "$out/bin";
+    mv -- "./libfloco$libExt" "$out/libexec/libfloco$libExt";
+    cat <<EOF >"$out/bin/floco"
+    #! $bash/bin/bash
+    # A wrapper around Nix that includes the \`libfloco' plugin.
+    # First we add runtime executables to \`PATH', then pass off to Nix.
+    for p in \$( <"$out/nix-support/propagated-build-inputs"; ); do
+      PATH="\$PATH:\$p/bin";
+    done
+    export PATH;
+    exec $nix/bin/nix  \
+      --option extra-plugin-files $out/libexec/libfloco$libExt "\$@";
+    EOF
+    chmod +x "$out/bin/floco";
     runHook postInstall;
   '';
 }

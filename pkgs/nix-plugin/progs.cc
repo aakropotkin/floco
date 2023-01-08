@@ -76,6 +76,40 @@ runTreeFor(
 
 /* -------------------------------------------------------------------------- */
 
+  static RunOptions
+semverOptions( const Strings & args )
+{
+  auto env = getEnv();
+  return {
+    .program     = "semver",
+    .searchPath  = true,
+    .args        = args,
+    .environment = env
+  };
+}
+
+  std::string
+runSemver(
+  const Strings & args, const std::optional<std::string> & input
+)
+{
+  RunOptions opts = semverOptions( args );
+  opts.input = input;
+
+  auto res = runProgram( std::move( opts ) );
+
+  if ( ! statusOk( res.first ) )
+    {
+      //throw ExecError( res.first, "semver %1%", statusToString( res.first ) );
+      return "";
+    }
+
+  return res.second;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 }  /* End Namespace `nix' */
 
 

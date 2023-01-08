@@ -23,6 +23,12 @@ std::string runTreeFor(
   const Strings & args, const std::optional<std::string> & input = {}
 );
 
+
+std::string runSemver(
+  const Strings & args, const std::optional<std::string> & input = {}
+);
+
+
 /* -------------------------------------------------------------------------- */
 
 }  /* End Namespace `nix' */

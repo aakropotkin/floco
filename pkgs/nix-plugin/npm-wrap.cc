@@ -96,6 +96,29 @@ static RegisterPrimOp primop_npm_lock( {
 } );
 
 
+/* -------------------------------------------------------------------------- */
+
+  static void
+prim_semverSat(
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
+{
+  std::string range ( state.forceStringNoCtx( * args[0], pos ) );
+  std::string version ( state.forceStringNoCtx( * args[1], pos ) );
+  std::string rsl = runSemver( { "-r", range, version } );
+  v.mkBool( ! rsl.empty() );
+}
+
+static RegisterPrimOp primop_semver_sat( {
+  .name = "semverSat",
+  .args = { "range", "version" },
+  .doc  = R"(
+    Does *version* fall within the semver *range*?
+  )",
+  .fun = prim_semverSat,
+} );
+
+
 /* -------------------------------------------------------------------------- *
  *
  *
