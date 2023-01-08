@@ -11,20 +11,20 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
-, stdenv  ? pkgsFor.stdenv
-, nix     ?
+{ nixpkgs   ? ( import ../../inputs ).nixpkgs.flake
+, system    ? builtins.currentSystem
+, pkgsFor   ? nixpkgs.legacyPackages.${system}
+, stdenv    ? pkgsFor.stdenv
+, nix-flake ?
   builtins.getFlake "github:NixOS/nix/${builtins.nixVersion or "2.12.0"}"
 , boost    ? pkgsFor.boost
 , treeFor  ? import ../treeFor { inherit nixpkgs system pkgsFor; }
 , semver   ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
 , npm      ? pkgsFor.nodejs-14_x.pkgs.npm
 , bash     ? pkgsFor.bash
+, nix      ? nix-flake.packages.${system}.nix
 }: stdenv.mkDerivation {
-  inherit bash;
-  nix     = nix.packages.${system}.nix;
+  inherit bash nix;
   pname   = "nix-floco-plugin";
   version = "0.1.0";
   src = builtins.path {
@@ -34,7 +34,7 @@
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
   libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs = [nix.packages.${system}.nix.dev boost.dev];
+  buildInputs = [nix.dev boost.dev];
   propagatedBuildInputs = [npm treeFor semver];
   buildPhase = ''
     runHook preBuild;

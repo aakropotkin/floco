@@ -10,10 +10,11 @@
 
   description = "Yet another Nix+Node.js framework";
 
+  inputs.nix.url = "github:NixOS/nix/2.12.0";
 
 # ---------------------------------------------------------------------------- #
 
-  outputs = { nixpkgs, ... } @ inputs: let
+  outputs = { nixpkgs, nix, ... } @ inputs: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -40,6 +41,24 @@
         nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
         inherit (final) system lib;
         pkgsFor = final;
+      };
+      semver = import ./fpkgs/semver {
+        nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+        inherit (final) system lib;
+        pkgsFor = final;
+      };
+      pacote = import ./fpkgs/pacote {
+        nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+        inherit (final) system lib;
+        pkgsFor = final;
+      };
+      floco = import ./pkgs/nix-plugin {
+        nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
+        nix-flake = throw "floco: Nix should not be referenced from flake";
+        inherit (final) system boost treeFor semver bash;
+        pkgsFor   = final;
+        npm       = final.nodejs-14_x.pkgs.npm;
+        inherit (nix.packages.${final.system}) nix;
       };
     };
 
@@ -69,8 +88,11 @@
       pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
     in {
       inherit (pkgsFor)
+        floco
         floco-utils
         treeFor
+        semver
+        pacote
       ;
     } );
 
