@@ -21,22 +21,7 @@ in {
       dependencies for the full dependency graph.
 
       Tree declarations are expected to be pairs of `node_modules/` paths to
-      "keys" ( matching the `key` field in its Nix declaration ):
-      ```
-      {
-        "node_modules/@foo/bar" = {
-          key = "@foo/bar/1.0.0";
-          dev = true;
-          ...
-        };
-        "node_modules/@foo/bar/node_modules/baz" = {
-          key = "baz/4.2.0";
-          dev = false;
-          ...
-        };
-        ...
-      }
-      ```
+      "keys" ( matching the `key` field in its Nix declaration ).
 
       In practice we expect users to explicitly define this field only for
       targets which they actually intend to create installables from, and we
@@ -46,6 +31,22 @@ in {
     type = nt.nullOr ( nt.attrsOf ( nt.submodule ./single.interface.nix ) );
 
     default = null;
+
+    example = lib.literalExpression ''
+      {
+        "node_modules/@foo/bar" = {
+          key = "@foo/bar/1.0.0";
+          dev = true;
+          # ...
+        };
+        "node_modules/@foo/bar/node_modules/baz" = {
+          key = "baz/4.2.0";
+          dev = false;
+          # ...
+        };
+        # ...
+      }
+    '';
 
   };
 

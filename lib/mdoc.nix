@@ -141,30 +141,58 @@
   , description
   , loc
   , readOnly
-  , type          # the string description
+  , type          # uses `__toString'
   , default       ? null
   , example       ? null
   } @ fields: let
     headline = let
-      depth = builtins.length loc;
+      depth  = builtins.length loc;
+      sdepth = builtins.length ( builtins.filter ( n:
+        ! ( builtins.elem n ["<name>" "*"] )
+      ) loc );
       stars = let
-        chars = builtins.genList ( _: "*" ) depth;
+        chars = builtins.genList ( _: "*" ) sdepth;
       in builtins.concatStringsSep "" chars;
       bname    = builtins.elemAt loc ( depth - 1 );
     in stars + " =${bname}=";
     ex = let
-      e = lib.generators.toPretty {} example;
+      e =
+        if ( example._type or null ) == "literalExpression"
+        then example.text
+        else lib.generators.toPretty {} example;
     in if ! ( fields ? example ) then "" else
        if ( builtins.match ".*\n.*" e ) == null
-       then "- example: =${e}=\n"
-       else "- example:\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
+       then "- example :: =${e}=\n"
+       else "- example ::\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
     declPaths = map ( p: "~${p}~" ) declarations;
+    t = if ( builtins.match "string matching .*" ( toString type ) ) == null
+        then toString type
+        else "string matching a regex pattern";
+    opath = let
+      base = lib.showOption loc;
+    in builtins.replaceStrings ["<name>.<name>"] ["<ident>.<version>"] base;
+    desc = let
+      m = builtins.match "(.*[^\n])\n?" description;
+    in builtins.head m;
   in ''
     ${headline}
-    ${description}
-    - type: ${type}
-    - from: ${builtins.concatStringsSep " " declPaths}
+    - option :: ~${opath}~
+    - description :: ${desc}
+    - type :: ${t}
+    - from :: ${builtins.concatStringsSep " " declPaths}
   '' + ex;
+
+
+  renderOrgFile = {
+    title   ? "Floco Options Manual"
+  , options
+  , transformOptions ? transformDeclPaths
+  }: let
+    odoc  = mkOptionsOrg { inherit options transformOptions; };
+    clean = map ( o:
+      renderOrgOptionHeading ( removeAttrs o ["name" "visible" "internal"] )
+    ) odoc;
+  in builtins.concatStringsSep "\n" ( ["#+TITLE: ${title}\n"] ++ clean );
 
 
 # ---------------------------------------------------------------------------- #
@@ -180,6 +208,7 @@ in {
     transformMdToOrg
     mkOptionsOrg
     renderOrgOptionHeading
+    renderOrgFile
   ;
 }
 
