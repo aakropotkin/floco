@@ -231,7 +231,7 @@ Pop open the =pdefs.nix= file and we'll drop =typescript=.
 # `pdefs.nix'
 [
   {
-    ident = "@floco/test';
+    ident = "@floco/test";
     version = "4.2.0";
     treeInfo = {
       "@types/lodash" = {
