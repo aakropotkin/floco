@@ -5,8 +5,8 @@ registry dependencies and no =install= scripts in
 the dependency graph.
 
 Our project will be a simple Typescript CLI tool.
-This means we will have a build stage, a `global`
-installation target, and a `dist` target ( a tarball
+This means we will have a build stage, a =global=
+installation target, and a =dist= target ( a tarball
 suitable for publishing ).
 
 I want to highlight the fact that our dependency graph
