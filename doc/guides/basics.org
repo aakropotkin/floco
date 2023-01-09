@@ -1,0 +1,10 @@
+#+TITLE: Getting Started
+
+Let's start out with a simple project with only
+registry dependencies and no `install` scripts in
+the dependency graph.
+
+Our project will be a simple Typescript CLI tool.
+This means we will have a build stage, a `global`
+installation target, and a `dist` target ( a tarball
+suitable for publishing ).
