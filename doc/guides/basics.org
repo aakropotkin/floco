@@ -20,3 +20,166 @@ In the spirit of completeness, this guide uses real sources
 so that we can automatically detect if it's out of date
 and so that you can copy these files to try them on
 your box.
+
+This executable will be trivial, we'll just print a
+version string for =lodash=, but we'll gate the output
+behind a few typed expressions to prove that they work.
+
+#+BEGIN_SRC typescript
+// index.ts
+import {
+  VERSION, flatten, isEqual, last, omit, pick, pickBy, uniq
+} from 'lodash';
+
+const f : Array<number> = flatten( [[1, 2], [3, 4]] );
+console.log( f );
+const l : number = last( [1, 2, 3, 4] )
+console.log( l );
+const u : Array<number> = uniq( [1, 2, 3, 1, 2, 3, 2] );
+console.log( u );
+console.log( VERSION );
+#+END_SRC
+
+A JavaScript CLI wrapper that requires the built form of our TypeScript shit.
+Notably we won't set executable permissions on this just to prove that the
+installer handles that for us.
+#+BEGIN_SRC javascript
+#! /usr/bin/env node
+// bin.js
+require( './index.js' );
+#+END_SRC
+
+The =package.json=, nothing special here.
+The only note I'll make is that the script names =build= and =prepublish= are
+treated as synonyms, and that =prebuild= and =postbuild= are also recognized
+but =preprepublish= and =postprepublish= are not because their names are
+completely idiotic and they aren't commonly used so I ain't supporting them.
+#+BEGIN_SRC json
+{
+  "name": "@floco/test",
+  "version": "4.2.0",
+  "bin": {
+    "test": "./bin.js"
+  },
+  "scripts": {
+    "clean": "rm -rf ./node_modules ./index.js",
+    "build": "tsc ./index.ts"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.191",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
+#+END_SRC
+
+Just for kicks we can ensure this project works using =npm= by running:
+#+BEGIN_SRC shell
+$ nix shell nixpkgs#nodejs-14_x;
+$ npm install --lockfile-version=3;
+$ npm run build;
+$ node ./bin.js
+[ 1, 2, 3, 4 ]
+4
+[ 1, 2, 3 ]
+4.17.21
+$ npm run clean;
+#+END_SRC
+
+* Setting up =floco= and =nix=
+To Nixify our project we'll generate a file called =pdefs.nix= from our
+existing =package-lock.json=.
+Once generated the =package-lock.json= file can be deleted allowing =floco=
+and =nix= to fly solo.
+
+After that we'll add a =default.nix= file to expose a few derivations to the
+=nix= CLI.
+
+#+BEGIN_SRC nix
+# default.nix
+# ============================================================================ #
+#
+# Package shim exposing installable targets from `floco` modules.
+#
+# ---------------------------------------------------------------------------- #
+
+#{ floco  ? builtins.getFlake "github:aakropotkin/floco"
+{ floco  ? builtins.getFlake ( toString ../../.. )
+, lib    ? floco.lib
+, system ? builtins.currentSystem
+}: let
+
+# ---------------------------------------------------------------------------- #
+
+  fmod = lib.evalModules {
+    modules = [
+      {
+        imports = ["${floco}/modules/top"];
+        config._module.args.pkgs =
+          floco.inputs.nixpkgs.legacyPackages.${system}.extend
+            floco.overlays.default;
+      }
+      # Loads our generated `pdefs.nix' as a "module config".
+      ( lib.addPdefs ./pdefs.nix )
+    ];
+  };
+
+# ---------------------------------------------------------------------------- #
+
+  # This attrset holds a few derivations related to our package.
+  # We'll expose these below to the CLI.
+  pkg = fmod.config.flocoPackages.packages."@floco/test"."4.2.0";
+
+# ---------------------------------------------------------------------------- #
+
+in {
+  inherit (pkg)
+    built     # Our project in it's "built" state
+    dist      # A tarball form of our built package suitable for publishing
+    prepared  # The "prepared" form of our project for use by other Nix builds
+    global    # A globally installed form to run our executable
+  ;
+}
+
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #
+#+END_SRC
+
+Lets generate =pdefs.nix= and take this bad boy for a spin:
+#+END_SRC shell
+$ nix run github:aakropotkin/floco#fromPlock;
+$ rm *~;  # Delete backed up files
+$ # Run our executable from the `global' target.
+$ # We add the flag `-L' to show build logs.
+$ # if this is your first time building with `floco' this may take a minute to
+$ # initialize your box's cache, but successive builds will fly.
+$ nix run -f ./. -L global;
+...
+test-built> unpacking sources
+test-built> unpacking source archive /nix/store/4xna8iwywa57wrv8j64p4cimhy819sq3-basic
+test-built> source root is basic
+test-built> patching sources
+test-built> configuring
+test-built> building
+test-built> installing
+test-built> post-installation fixup
+test-built> shrinking RPATHs of ELF executables and libraries in /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0
+test-built> patching script interpreter paths in /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0
+test-built> /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0/bin.js: interpreter directive changed from "#! /usr/bin/env node" to "/nix/store/mwd1dxh5rcy0wi9vgv2brlxpr5gmngr7-nodejs-14.20.1/bin/node"
+test-built> checking for references to /build/ in /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0...
+[ 1, 2, 3, 4 ]
+4
+[ 1, 2, 3 ]
+4.17.21
+#+END_SRC
+
+Pretty slick.
+Right off the bat you might be asking: how is this any different from =npm=,
+aside from the fact that I had to write extra files and read a guide?
+It's a fair question, and in the next few sections we'll try to win you over.

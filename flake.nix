@@ -33,25 +33,35 @@
     overlays.default = overlays.floco;
     overlays.floco = final: prev: {
       lib = import ./lib { inherit (prev) lib; };
+
       inherit (import ./setup {
         inherit (final) system bash coreutils findutils jq gnused;
         nodejs = final.nodejs-slim-14_x;
       }) floco-utils;
+
+      inherit (import ./updaters {
+        inherit (final) system bash coreutils jq gnused;
+        nodejs = final.nodejs-14_x;
+      }) floco-updaters;
+
       treeFor = import ./pkgs/treeFor {
         nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
         inherit (final) system lib;
         pkgsFor = final;
       };
+
       semver = import ./fpkgs/semver {
         nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
         inherit (final) system lib;
         pkgsFor = final;
       };
+
       pacote = import ./fpkgs/pacote {
         nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
         inherit (final) system lib;
         pkgsFor = final;
       };
+
       floco = import ./pkgs/nix-plugin {
         nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
         nix-flake = throw "floco: Nix should not be referenced from flake";
@@ -90,11 +100,22 @@
       inherit (pkgsFor)
         floco
         floco-utils
+        floco-updaters
         treeFor
         semver
         pacote
       ;
     } );
+
+    apps = eachSupportedSystemMap ( system: let
+      pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
+    in {
+      fromPlock = {
+        type    = "app";
+        program = "${pkgsFor.floco-updaters}/bin/npm-plock.sh";
+      };
+    } );
+
 
 # ---------------------------------------------------------------------------- #
 
