@@ -142,13 +142,6 @@ in {
     global    # A globally installed form to run our executable
   ;
 }
-
-
-# ---------------------------------------------------------------------------- #
-#
-#
-#
-# ============================================================================ #
 #+END_SRC
 
 Lets generate =pdefs.nix= and take this bad boy for a spin:
@@ -216,17 +209,61 @@ show techniques that can be used out in the field where it really matters.
 ** Globalization
 The largest opportunity to speed up most builds is by treating CLI tools as
 "global" dependencies.
+The reason this speeds up builds is that rather than copying the contents
+of these dependencies into the build areas we can instead add them
+to =PATH=.
+Doing so allows us to avoid copying the entire dependency closure - not
+just the target package.
+As an added bonus this tends to simplify /ideal tree/ formation.
 
-In a tool like =npm= this is like doing =npm i -g foo= except that in the
+In a tool like =npm= this is like doing ~npm i -g foo~ except that in the
 case of =floco= we actually have the ability to declare these in a
 standardized way.
+With our example project =typescript= can be handled this way.
 
-TODO: This article is WIP. More coming soon.
+To mark =typescript= as a globally installed dependency we will delete it
+from a fragment of our config metadata named
+[[https://github.com/aakropotkin/floco/blob/main/doc/modules/top.org#treeinfo][treeInfo]],
+and then move it to the =buildInputs= field of our =built= target.
+Pop open the =pdefs.nix= file and we'll drop =typescript=.
 
-*** Dogshit Software
-This process won't work for every CLI tool, but it will work for every CLI
-tool that properly adheres to the Node.js specification for symlink handling
-and =NODE_PATH=.
-I want to highlight that =@babel/cli=, =jest=, and =webpack=, despite their
-popularity, fail to implement =resolve= routines properly and their behavior
-is a bug - full stop.
+#+BEGIN_SRC nix
+# `pdefs.nix'
+[
+  {
+    ident = "@floco/test';
+    version = "4.2.0";
+    treeInfo = {
+      "@types/lodash" = {
+        key = "@types/lodash/4.14.191";
+        dev = true;
+      };
+      "lodash" = {
+        key = "lodash/4.17.21";
+      };
+      # We're removing `typescript':
+      ## typescript = {
+      ##   key = "typescript/4.9.4";
+      ##   dev = true;
+      ## };
+    };
+  }
+  # ...
+]
+#+END_SRC
+
+Next we'll make a new file called =foverrides.nix= to get the global form
+of the package added to the sandbox.
+The seperation between these files is somewhat arbitrary but we'll revist
+that later in a discussion about project organization.
+
+#+BEGIN_SRC nix
+# `foverrides.nix'
+{ config, ... }: {
+  config.flocoPackages.packages."@floco/test"."4.2.0" = {
+    built = # TODO: this article is a work in progress
+  };
+}
+#+END_SRC
+
+TODO: this article is a work in progress
