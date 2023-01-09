@@ -151,7 +151,7 @@ in {
 #+END_SRC
 
 Lets generate =pdefs.nix= and take this bad boy for a spin:
-#+END_SRC shell
+#+BEGIN_SRC shell
 $ nix run github:aakropotkin/floco#fromPlock;
 $ rm *~;  # Delete backed up files
 # Run our executable from the `global' target.
