@@ -105,8 +105,7 @@ After that we'll add a =default.nix= file to expose a few derivations to the
 #
 # ---------------------------------------------------------------------------- #
 
-#{ floco  ? builtins.getFlake "github:aakropotkin/floco"
-{ floco  ? builtins.getFlake ( toString ../../.. )
+{ floco  ? builtins.getFlake "github:aakropotkin/floco"
 , lib    ? floco.lib
 , system ? builtins.currentSystem
 }: let
