@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# A `options.flocoPackages.packages' submodule representing the definition of
+# A `options.floco.packages' submodule representing the definition of
 # a single Node.js pacakage.
 #
 # ---------------------------------------------------------------------------- #
@@ -11,6 +11,19 @@
   ft = import ./types.nix { inherit lib; };
 
 in {
+
+# ---------------------------------------------------------------------------- #
+
+  imports = [
+    ./binInfo/interface.nix
+    ./depInfo/interface.nix
+    ./treeInfo/interface.nix
+    ./peerInfo/interface.nix
+    ./sysInfo/interface.nix
+    ./fsInfo/interface.nix
+    ./lifecycle/interface.nix
+  ];
+
 
 # ---------------------------------------------------------------------------- #
 

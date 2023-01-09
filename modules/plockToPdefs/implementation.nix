@@ -121,7 +121,7 @@
   #      treeInfo = rootTreeInfo;
   #      newRoot  = plentKey;
   #      inherit (
-  #        ( lib.addPdefs ( builtins.attrValues rough ) ).config.flocoPackages
+  #        ( lib.addPdefs ( builtins.attrValues rough ) ).config.floco
   #      ) pdefs;
   #    } ).treeInfo [""];
   #  in ( lib.evalModules {

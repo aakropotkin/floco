@@ -4,7 +4,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, flocoPackages, ... }: {
+{ lib, config, pkgs, floco, ... }: {
+
+# ---------------------------------------------------------------------------- #
+
+  imports = [./trees/implementation.nix ./targets/implementation.nix];
 
 # ---------------------------------------------------------------------------- #
 
@@ -23,7 +27,7 @@
         ident   = dirOf v.key;
         version = baseNameOf v.key;
       in ( ! v.optional ) ||
-        flocoPackages.packages.${ident}.${version}.systemSupported
+        floco.packages.${ident}.${version}.systemSupported
       ) config.pdef.treeInfo;
     };
 
@@ -31,63 +35,6 @@
 # ---------------------------------------------------------------------------- #
 
     inherit (config.pdef) key;
-    source = config.pdef.sourceInfo.outPath;
-
-# ---------------------------------------------------------------------------- #
-
-    built = let
-      drv = pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pdef.ident}-built";
-        inherit (config.pdef) version;
-        run_script        = ../../setup/run-script.sh;
-        install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pdef.ident;
-        NMTREE            = config.trees.build or config.trees.dev;
-        src               = config.source;
-        nativeBuildInputs = [pkgs.jq];
-        buildInputs       = [pkgs.nodejs-14_x];
-        dontUpdateAutotoolsGnuConfigScripts = true;
-        configurePhase    = ''
-          runHook preConfigure;
-
-          export PATH="$PATH:$PWD/node_modules/.bin";
-          export JQ="$( command -v jq; )";
-          export NODEJS="$( command -v node; )";
-          if [[ -n "$NMTREE" ]]; then
-            ln -s "$NMTREE/node_modules" ./node_modules;
-          fi
-
-          runHook postConfigure;
-        '';
-        buildPhase = ''
-          runHook preBuild;
-
-          bash -eu "$run_script" -PBi prebuild build postbuild prepublish;
-
-          runHook postBuild;
-        '';
-        installPhase = ''
-          runHook preInstall;
-
-          rm -f ./package-lock.json;
-          if [[ -L ./node_modules ]]; then
-            rm ./node_modules;
-          elif [[ -d ./node_modules ]]; then
-            rm -rf ./node_modules;
-          fi
-          bash -eu "$install_module" -SLt . "$out";
-
-          runHook postInstall;
-        '';
-        dontStrip = true;
-      };
-      warn = x: let
-        warns = map ( m: "WARNING: ${m}" ) config.warnings;
-        msg   = builtins.concatStringsSep "\n" warns;
-      in if config.warnings == [] then x else builtins.trace msg x;
-    in if ! config.pdef.lifecycle.build then config.source else
-       warn drv;
-
 
 # ---------------------------------------------------------------------------- #
 
@@ -99,7 +46,7 @@
         src     =
           # FIXME: use `config.warnings'
           builtins.trace ( "WARNING: tarball may contain references to Nix " +
-                           "store in shebang lines." ) config.built;
+                           "store in shebang lines." ) config.built.package;
         pjs = {
           inherit (config.pdef) version;
           name = config.pdef.ident;
@@ -176,7 +123,7 @@
         warns = map ( m: "WARNING: ${m}" ) config.warnings;
         msg   = builtins.concatStringsSep "\n" warns;
       in if config.warnings == [] then x else builtins.trace msg x;
-    in if ! config.pdef.lifecycle.install then config.built else
+    in if ! config.pdef.lifecycle.install then config.built.package else
        warn drv;
 
 

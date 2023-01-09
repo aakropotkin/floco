@@ -13,6 +13,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  imports = [./trees/interface.nix ./targets/interface.nix];
+
+# ---------------------------------------------------------------------------- #
+
   options = {
 
 # ---------------------------------------------------------------------------- #
@@ -64,43 +68,6 @@ in {
       '';
       type     = nt.bool;
       internal = true;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    source = lib.mkOption {
-      description = lib.mdDoc ''
-        Unpacked source tree used as the basis for package/module preparation.
-
-        It is strongly recommended that you use `config.pdef.sourceInfo` here
-        unless you are intentionally applying patches, filters, or your package
-        resides in a subdir of `sourceInfo`.
-
-        XXX: This tree should NOT patch shebangs yet, since this would deprive
-        builders which produce distributable tarballs or otherwise "un-nixify" a
-        module of an "unpatched" point of reference to work with.
-      '';
-      type = nt.package;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    built = lib.mkOption {
-      description = lib.mdDoc ''
-        "Built" form of a package/module which is ready for distribution as a
-        tarball ( `build` and `prepublish` scripts must be run if defined ).
-
-        By default the `dev` tree is used for this stage.
-
-        If no build is required then this option is an alias of `source`.
-
-        XXX: If a `build` script produces executable scripts you should NOT
-        patch shebangs yet - patching should be deferred to the
-        `prepared` stage.
-      '';
-      type = nt.package;
     };
 
 
@@ -162,7 +129,7 @@ in {
         the option `preferMultipleOutputDerivations` to allow any `build` or
         `install` stages to run.
       '';
-      type = nt.package;
+      type = nt.nullOr nt.package;
     };
 
 
@@ -292,38 +259,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    buildDependsOnLint = lib.mkOption {
-      description = lib.mdDoc ''
-        Causes the `built` lifecycle stage to be blocked by successful `lint`
-        checking ( requires `lint` to be non-null ).
-
-        This is recommended for projects which are under active development.
-
-        If `preferMultipleOutputDerivations` is enabled this is implemented by
-        making the `lint` derivation an input of the `built` derivation.
-        Otherwise this will cause a `preBuild` phase to run `lint` checks,
-        killing the builder if the check fails.
-
-        NOTE: if `built` is an alias of `source`, this causes either `installed`
-        or `prepared` to depend on `lint` instead.
-
-        See Also: lint, installDependsOnTest
-      '';
-      type    = nt.bool;
-      default = false;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
     warnings = lib.mkOption {
-      internal = true;
-      visible = false;
       description = ''
         List of warnings to be emitted when derivations are evaluated.
       '';
-      type    = nt.listOf nt.str;
-      default = [];
+      type     = nt.listOf nt.str;
+      default  = [];
+      internal = true;
+      visible  = false;
     };
 
 

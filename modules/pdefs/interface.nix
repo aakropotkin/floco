@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# A `options.flocoPackages.packages' collection, represented as a list of
+# A `options.floco.packages' collection, represented as a list of
 # Node.js package/module submodules.
 #
 # ---------------------------------------------------------------------------- #
@@ -21,7 +21,10 @@ in {
       These records are used to generate build recipes and build plans.
     '';
 
-    type    = nt.attrsOf ( nt.attrsOf ( nt.submodule ../pdef ) );
+    type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
+      modules = [../pdef/interface.nix];
+    } ) );
     example = {
       lodash."4.17.21" = {
         ident     = "lodash";

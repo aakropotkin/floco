@@ -1,27 +1,20 @@
 # ============================================================================ #
 #
-# Package shim exposing installable targets from `floco` modules.
+#
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, lib     ? import ../../lib { inherit (nixpkgs) lib; }
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
-, config  ? {
-    imports = [../../modules/top];
-    config._module.args.pkgs = pkgsFor;
-  }
-}: let
+{ lib, config, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
-  floco = lib.evalModules { modules = [config ./floco.nix]; };
+  config.source = lib.mkDefault config.pdef.sourceInfo.outPath;
+
 
 # ---------------------------------------------------------------------------- #
 
-in floco.config.floco.packages.which."2.0.2".global
 
+}
 
 # ---------------------------------------------------------------------------- #
 #

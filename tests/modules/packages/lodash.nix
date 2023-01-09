@@ -17,9 +17,17 @@
 # ---------------------------------------------------------------------------- #
 
   module = lib.evalModules {
-    modules = [../../../modules/top];
+    modules = [
+      ../../../modules/top
+      {
+        config.floco.pdefs.lodash."4.17.21" = {
+          ident   = "lodash";
+          version = "4.17.21";
+        };
+      }
+    ];
   };
-  lodash = module.config.flocoPackages.packages.lodash."4.17.21".pdef;
+  lodash = module.config.floco.packages.lodash."4.17.21".pdef;
 
 # ---------------------------------------------------------------------------- #
 

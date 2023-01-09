@@ -1,7 +1,7 @@
 # ============================================================================ #
 #
 # Produces a `node_moules/' tree from either a `pathTree' or `keyTree' and
-# `flocoPackages' structure(s).
+# `floco' structure(s).
 #
 # This is a draft implementation based on the `mkNmDirCmd' builder in
 # `github:aameen-tulip/at-node-nix', deferring to `install-module.sh' to do
@@ -39,14 +39,14 @@ in {
 # calling this builder.
 , keyTree ? null
 # Used to lookup keys from `keyTree', mapping them to store paths.
-, flocoPackages ? null
+, floco ? null
 
-# Optional if `keyTree' and `flocoPackages' is given.
+# Optional if `keyTree' and `floco' is given.
 , pathTree ?
   builtins.mapAttrs ( _: key: let
       ident   = dirOf key;
       version = baseNameOf key;
-    in flocoPackages.packages.${ident}.${version}.prepared.outPath
+    in floco.packages.${ident}.${version}.prepared.outPath
   ) keyTree
 
 , name ? "node_modules"

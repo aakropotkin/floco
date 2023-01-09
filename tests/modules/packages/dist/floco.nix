@@ -1,6 +1,6 @@
 {
   imports = [../../../../modules/top];
-  config.flocoPackages.pdefs."@floco/test"."4.2.0" = {
+  config.floco.pdefs."@floco/test"."4.2.0" = {
     ident      = "@floco/test";
     version    = "4.2.0";
     ltype      = "dir";

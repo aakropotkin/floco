@@ -8,9 +8,8 @@ set -o pipefail;
 SPATH="$( $REALPATH "${BASH_SOURCE[0]}"; )";
 SDIR="${SPATH%/*}";
 
-manifest="$(
-  $TAR tzf "$( nix build -f "$SDIR" --no-link --print-out-paths; )";
-)";
+outpath="$( nix build -f "$SDIR" --no-link --print-out-paths "$@"; )";
+manifest="$( $TAR tzf "$outpath"; )";
 
 while read -r line; do
   case "$line" in

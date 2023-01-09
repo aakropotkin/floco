@@ -130,7 +130,7 @@ After that we'll add a =default.nix= file to expose a few derivations to the
 
   # This attrset holds a few derivations related to our package.
   # We'll expose these below to the CLI.
-  pkg = fmod.config.flocoPackages.packages."@floco/test"."4.2.0";
+  pkg = fmod.config.floco.packages."@floco/test"."4.2.0";
 
 # ---------------------------------------------------------------------------- #
 
@@ -260,7 +260,7 @@ that later in a discussion about project organization.
 #+BEGIN_SRC nix
 # `foverrides.nix'
 { config, ... }: {
-  config.flocoPackages.packages."@floco/test"."4.2.0" = {
+  config.floco.packages."@floco/test"."4.2.0" = {
     built = # TODO: this article is a work in progress
   };
 }

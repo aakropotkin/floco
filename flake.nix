@@ -75,14 +75,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-    nixosModules = {
-      floco = { config, pkgs, ... }: {
-        imports = [./modules/top];
-        config._module.specialArgs.lib = import ./lib {
-          inherit (nixpkgs) lib;
-        };
-        config._module.args.pkgs = pkgs.extend overlays.default;
-      };
+    nixosModules.floco = {
+      imports = [./modules/top];
     };
 
 

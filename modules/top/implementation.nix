@@ -1,10 +1,10 @@
 # ============================================================================ #
 #
-# Top level `floco' module.
+#
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, ... }: let
+{ lib, pkgs, ... }: let
 
   nt = lib.types;
 
@@ -13,18 +13,18 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.floco = lib.mkOption {
-    description = lib.mdDoc ''
-      Scope used for configuring `floco` framework.
-    '';
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
-      modules = [../pdefs/interface.nix ../packages/interface.nix];
-      specialArgs.lib =
-        if lib ? libfloco then lib else import ../../lib { inherit lib; };
+      modules = [
+        {
+          imports = [
+            ../pdefs/implementation.nix
+            ../packages/implementation.nix
+          ];
+          config._module.args.pkgs = lib.mkDefault pkgs;
+        }
+      ];
     };
-    default = let
-      subs = options.floco.type.getSubOptions [];
-    in builtins.mapAttrs ( _: s: s.default ) ( removeAttrs subs ["_module"] );
   };
 
 

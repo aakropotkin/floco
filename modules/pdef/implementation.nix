@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# A `options.flocoPackages.packages' submodule representing the definition of
+# A `options.floco.packages' submodule representing the definition of
 # a single Node.js pacakage.
 #
 # ---------------------------------------------------------------------------- #
@@ -8,6 +8,16 @@
 { lib, config, ... }: {
 
 # ---------------------------------------------------------------------------- #
+
+  imports = [
+    ./binInfo/implementation.nix
+    ./depInfo/implementation.nix
+    ./treeInfo/implementation.nix
+    ./peerInfo/implementation.nix
+    ./sysInfo/implementation.nix
+    ./fsInfo/implementation.nix
+    ./lifecycle/implementation.nix
+  ];
 
   config = {
 
@@ -101,7 +111,7 @@
         else config.fetchInfo // {
           path = builtins.replaceStrings [
             ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-          ] ["."] config.fetchInfo.path;
+          ] ["."] ( toString config.fetchInfo.path );
         };
     }
     ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {

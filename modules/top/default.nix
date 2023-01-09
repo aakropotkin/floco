@@ -1,1 +1,3 @@
-{ imports = [./interface.nix]; }
+{ lib, config, pkgs, ... }: {
+  imports = [./interface.nix ./implementation.nix];
+}

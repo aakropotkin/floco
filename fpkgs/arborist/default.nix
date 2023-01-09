@@ -8,7 +8,7 @@
 , lib     ? import ../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
-, config  ? {
+, fcfg    ? {
     imports = [../../modules/top];
     config._module.args.pkgs = pkgsFor;
   }
@@ -16,11 +16,11 @@
 
 # ---------------------------------------------------------------------------- #
 
-  floco = lib.evalModules { modules = [config ./floco.nix]; };
+  fmod = lib.evalModules { modules = [fcfg ./floco.nix]; };
 
 # ---------------------------------------------------------------------------- #
 
-in floco.config.flocoPackages.packages."@npmcli/arborist"."6.1.5".global
+in fmod.config.floco.packages."@npmcli/arborist"."6.1.5".global
 
 
 # ---------------------------------------------------------------------------- #

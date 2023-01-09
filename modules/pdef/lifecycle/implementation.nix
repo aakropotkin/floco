@@ -4,7 +4,7 @@
 # When set to `true' preparation of a module will run a given event first.
 #
 # Some events like `test', `lint', and `dist' only block preparation when
-# certain `flocoPackages.packages.<IDENT>.<VESION>.*' settings explicitly
+# certain `floco.packages.<IDENT>.<VESION>.*' settings explicitly
 # request them to.
 #
 # ---------------------------------------------------------------------------- #

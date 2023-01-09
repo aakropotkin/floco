@@ -1,11 +1,11 @@
 # ============================================================================ #
 #
-# A `options.flocoPackages.packages' collection, represented as a list of
+# A `options.floco.packages' collection, represented as a list of
 # Node.js package/module submodules.
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, options, pkgs, ... }: let
+{ lib, options, ... }: let
 
   nt = lib.types;
 
@@ -26,16 +26,11 @@ in {
       type = let
         pkgType = nt.submoduleWith {
           shorthandOnlyDefinesConfig = true;
-          modules = [
-            { config._module.args = { inherit pkgs; flocoPackages = config; }; }
-            ../package
-          ];
+          modules = [../package/interface.nix];
         };
       in nt.attrsOf ( nt.attrsOf pkgType );
 
-      default = builtins.mapAttrs ( _: builtins.mapAttrs ( _: pdef: {
-        inherit pdef;
-      } ) ) options.pdefs.default;
+      default = {};
 
       example = {
         lodash."4.17.21" = {

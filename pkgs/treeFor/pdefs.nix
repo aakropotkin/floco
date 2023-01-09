@@ -12,7 +12,7 @@
       };
     };
     fetchInfo = {
-      path = toString ./.;
+      path = ./.;
     };
     ident = "@floco/treefor";
     ltype = "dir";

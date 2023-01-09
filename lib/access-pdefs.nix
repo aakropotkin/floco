@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# Add or lookup `pdef' records from the `config.flocoPackages.pdefs' set.
+# Add or lookup `pdef' records from the `config.floco.pdefs' set.
 #
 #
 # ---------------------------------------------------------------------------- #
@@ -19,14 +19,14 @@
 
      This routine exists to simplify aggregation of `pdefs.nix' files.
 
-     Returns a `config.flocoPackages.pdefs.<IDENTS.<VERSION>' attrset.
+     Returns a `config.floco.pdefs.<IDENTS.<VERSION>' attrset.
 
-     Type: addPdefs :: (attrs|list|file) -> { config.flocoPackages.pdefs.*.*.* }
+     Type: addPdefs :: (attrs|list|file) -> { config.floco.pdefs.*.*.* }
 
      Example:
        addPdefs [{ ident = "@floco/example"; version = "4.2.0"; ... }]
        => {
-         config.flocoPackages.pdefs."@floco/example"."4.2.0" = {
+         config.floco.pdefs."@floco/example"."4.2.0" = {
            ident   = "@floco/example";
            version = "4.2.0";
            ...
@@ -39,15 +39,15 @@
             then lib.importJSON pdefs
             else import pdefs;
     in addPdefs raw;
-    fromList.flocoPackages.pdefs = ( lib.evalModules {
+    fromList.floco.pdefs = ( lib.evalModules {
       modules = [../modules/pdefs] ++ ( map ( v: {
-        pdefs.${v.ident}.${v.version} = v;
+        config.pdefs.${v.ident}.${v.version} = v;
       } ) pdefs );
     } ).config.pdefs;
     fromAttrs =
       if pdefs ? config then pdefs.config else
-      if pdefs ? flocoPackages then pdefs else
-      if pdefs ? pdefs then { flocoPackages = { inherit pdefs; }; } else
+      if pdefs ? floco then pdefs else
+      if pdefs ? pdefs then { floco = { inherit pdefs; }; } else
       throw "floco#lib.addPdefs: what the fuck did you try to pass bruce?";
     isFile = ( builtins.isPath pdefs ) || ( builtins.isString pdefs );
   in if isFile then fromFile else {
@@ -59,8 +59,8 @@
 
   getPdef = {
     config        ? null
-  , flocoPackages ? config.flocoPackages
-  , pdefs         ? flocoPackages.pdefs
+  , floco ? config.floco
+  , pdefs         ? floco.pdefs
   }: {
     key
   , ident   ? dirOf key

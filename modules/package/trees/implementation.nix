@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, flocoPackages, ... }: {
+{ lib, config, pkgs, floco, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -24,7 +24,7 @@
     mkTree = args: let
       real = lib.callPackageWith {
         inherit (pkgs) system coreutils findutils jq bash;
-        inherit flocoPackages;
+        inherit floco;
       } ( import ../../../builders/tree.nix ) args;
     in if ( args.keyTree or args.pathTree or {} ) == {} then null else real;
   in lib.mkIf ( config.pdef.treeInfo != null ) {
@@ -35,7 +35,7 @@
       ident   = dirOf v.key;
       version = baseNameOf v.key;
     in ( ! v.optional ) ||
-      flocoPackages.packages.${ident}.${version}.systemSupported
+      floco.packages.${ident}.${version}.systemSupported
     ) config.pdef.treeInfo;
 
 
