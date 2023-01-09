@@ -86,6 +86,7 @@ $ node ./bin.js
 [ 1, 2, 3 ]
 4.17.21
 $ npm run clean;
+$ rm ./package-lock.json;  # Optional
 #+END_SRC
 
 * Setting up =floco= and =nix=
@@ -153,7 +154,7 @@ in {
 Lets generate =pdefs.nix= and take this bad boy for a spin:
 #+BEGIN_SRC shell
 $ nix run github:aakropotkin/floco#fromPlock;
-$ rm *~;  # Delete backed up files
+$ rm *~||:;  # Delete any backup files that might've been created
 
 # Run our executable from the `global' target.
 # We add the flag `-L' to show build logs.
