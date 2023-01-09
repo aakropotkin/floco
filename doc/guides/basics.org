@@ -207,3 +207,26 @@ It's a fair question, and in the next few sections we'll try to win you over.
 The warning message you see there is a temporary state of affairs.
 The issue it's alerting you about is an easy fix, I just have to set aside an
 hour or so to improve the =dist= routine ( hopefully in the next few days ).
+
+* Opportunities to Optimize
+Upfront let's just say that there isn't a practical reason to optimize this
+trivial package; but as an exercise let's just treat it as a playground to
+show techniques that can be used out in the field where it really matters.
+
+** Globalization
+The largest opportunity to speed up most builds is by treating CLI tools as
+"global" dependencies.
+
+In a tool like =npm= this is like doing =npm i -g foo= except that in the
+case of =floco= we actually have the ability to declare these in a
+standardized way.
+
+TODO: This article is WIP. More coming soon.
+
+*** Dogshit Software
+This process won't work for every CLI tool, but it will work for every CLI
+tool that properly adheres to the Node.js specification for symlink handling
+and =NODE_PATH=.
+I want to highlight that =@babel/cli=, =jest=, and =webpack=, despite their
+popularity, fail to implement =resolve= routines properly and their behavior
+is a bug - full stop.
