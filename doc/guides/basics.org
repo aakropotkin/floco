@@ -155,10 +155,10 @@ Lets generate =pdefs.nix= and take this bad boy for a spin:
 #+END_SRC shell
 $ nix run github:aakropotkin/floco#fromPlock;
 $ rm *~;  # Delete backed up files
-$ # Run our executable from the `global' target.
-$ # We add the flag `-L' to show build logs.
-$ # if this is your first time building with `floco' this may take a minute to
-$ # initialize your box's cache, but successive builds will fly.
+# Run our executable from the `global' target.
+# We add the flag `-L' to show build logs.
+# if this is your first time building with `floco' this may take a minute to
+# initialize your box's cache, but successive builds will fly.
 $ nix run -f ./. -L global;
 ...
 test-built> unpacking sources
@@ -177,9 +177,29 @@ test-built> checking for references to /build/ in /nix/store/51dibgxp3na6q21p50s
 4
 [ 1, 2, 3 ]
 4.17.21
+# If we run again you'll see we skip the build:
+$ nix run -f ./. -L global;
+[ 1, 2, 3, 4 ]
+4
+[ 1, 2, 3 ]
+4.17.21
+# Lets build our tarball:
+$ nix build -f ./. dist;
+trace: WARNING: tarball may contain references to Nix store in shebang lines.
+$ tar tzf ./result;
+package/bin.js
+package/index.js
+package/package.json
+package/default.nix
+package/pdefs.nix
+package/index.ts
 #+END_SRC
 
 Pretty slick.
 Right off the bat you might be asking: how is this any different from =npm=,
 aside from the fact that I had to write extra files and read a guide?
 It's a fair question, and in the next few sections we'll try to win you over.
+
+The warning message you see there is a temporary state of affairs.
+The issue it's alerting you about is an easy fix, I just have to set aside an
+hour or so to improve the =dist= routine ( hopefully in the next few days ).
