@@ -41,7 +41,8 @@
 
       inherit (import ./updaters {
         inherit (final) system bash coreutils jq gnused;
-        nodejs = final.nodejs-14_x;
+        nodejs = final.nodejs-slim-14_x;
+        npm    = final.nodejs-14_x.pkgs.npm;
       }) floco-updaters;
 
       treeFor = import ./pkgs/treeFor {

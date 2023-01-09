@@ -77,7 +77,7 @@ completely idiotic and they aren't commonly used so I ain't supporting them.
 
 Just for kicks we can ensure this project works using =npm= by running:
 #+BEGIN_SRC shell
-$ nix shell nixpkgs#nodejs-14_x;
+$ nix shell nixpkgs#nodejs-14_x nixpkgs#nodejs-14_x.pkgs.npm;
 $ npm install --lockfile-version=3;
 $ npm run build;
 $ node ./bin.js

@@ -42,17 +42,18 @@ in {
         in [pkgs.jq] ++ maybeLint;
         buildInputs = [pkgs.nodejs-14_x];
         dontUpdateAutotoolsGnuConfigScripts = true;
-        configurePhase    = ''
+        configurePhase = ''
           runHook preConfigure;
 
           export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
           if [[ -n "$NMTREE" ]]; then
-            if [[ "''${copyTree:-0}" = 1 ]]; then
+            if [[ "''${copyTree:-0}" != 1 ]]; then
               ln -s "$NMTREE/node_modules" ./node_modules;
             else
-              cp -pr --reflink=auto -- "$NMTREE/node_modules" ./node_modules;
+              cp -r --reflink=auto -- "$NMTREE/node_modules" ./node_modules;
+              chmod -R +w ./node_modules;
             fi
           fi
 
