@@ -17,7 +17,7 @@
 
   drv = derivation {
     name = let
-      suff = if builtins.pathExists ( src + "/package-lock.json") then "" else
+      suff = if builtins.pathExists ( src + "/package-lock.json" ) then "" else
              "-" + timestamp;
     in "tree-for${suff}.json";
     inherit system src;
