@@ -8,6 +8,18 @@
 
 # ---------------------------------------------------------------------------- #
 
+  config.warnings = lib.mkIf (
+    ( config.pdef.treeInfo == null )
+  ) ( if config.pdef.lifecycle.install || config.pdef.lifecycle.build then [''
+    The package `${config.pdef.key}' requires a build or install, but no
+    `treeInfo' has been defined.
+    Installations and builds will be executed without a `node_modules/' tree
+    unless you explicitly define `treeInfo'.
+  ''] else [] );
+
+
+# ---------------------------------------------------------------------------- #
+
   config.trees = let
     mkTree = args: let
       real = lib.callPackageWith {

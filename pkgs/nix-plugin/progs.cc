@@ -100,7 +100,6 @@ runSemver(
 
   if ( ! statusOk( res.first ) )
     {
-      //throw ExecError( res.first, "semver %1%", statusToString( res.first ) );
       return "";
     }
 

@@ -35,8 +35,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-    built = if ! config.pdef.lifecycle.build then config.source else
-      pkgs.stdenv.mkDerivation {
+    built = let
+      drv = pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-built";
         inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
@@ -81,6 +81,12 @@
         '';
         dontStrip = true;
       };
+      warn = x: let
+        warns = map ( m: "WARNING: ${m}" ) config.warnings;
+        msg   = builtins.concatStringsSep "\n" warns;
+      in if config.warnings == [] then x else builtins.trace msg x;
+    in if ! config.pdef.lifecycle.build then config.source else
+       warn drv;
 
 
 # ---------------------------------------------------------------------------- #
@@ -91,6 +97,7 @@
         inherit (pkgs) system;
         pkgsFor = pkgs;
         src     =
+          # FIXME: use `config.warnings'
           builtins.trace ( "WARNING: tarball may contain references to Nix " +
                            "store in shebang lines." ) config.built;
         pjs = {
@@ -102,8 +109,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-    installed = if ! config.pdef.lifecycle.install then config.built else
-      pkgs.stdenv.mkDerivation {
+    installed = let
+      drv = pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-installed";
         inherit (config.pdef) version;
         run_script        = ../../setup/run-script.sh;
@@ -165,6 +172,12 @@
           runHook postInstall;
         '';
       };
+      warn = x: let
+        warns = map ( m: "WARNING: ${m}" ) config.warnings;
+        msg   = builtins.concatStringsSep "\n" warns;
+      in if config.warnings == [] then x else builtins.trace msg x;
+    in if ! config.pdef.lifecycle.install then config.built else
+       warn drv;
 
 
 # ---------------------------------------------------------------------------- #

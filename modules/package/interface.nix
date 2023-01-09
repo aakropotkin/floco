@@ -316,6 +316,19 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    warnings = lib.mkOption {
+      internal = true;
+      visible = false;
+      description = ''
+        List of warnings to be emitted when derivations are evaluated.
+      '';
+      type    = nt.listOf nt.str;
+      default = [];
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `options'
 
 
