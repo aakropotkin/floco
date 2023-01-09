@@ -158,7 +158,7 @@ $ rm *~||:;  # Delete any backup files that might've been created
 
 # Run our executable from the `global' target.
 # We add the flag `-L' to show build logs.
-# if this is your first time building with `floco' this may take a minute to
+# If this is your first time building with `floco' this may take a minute to
 # initialize your box's cache, but successive builds will fly.
 $ nix run -f ./. -L global;
 ...
