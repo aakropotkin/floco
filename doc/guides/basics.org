@@ -1,7 +1,7 @@
 #+TITLE: Getting Started
 
 Let's start out with a simple project with only
-registry dependencies and no `install` scripts in
+registry dependencies and no =install= scripts in
 the dependency graph.
 
 Our project will be a simple Typescript CLI tool.
