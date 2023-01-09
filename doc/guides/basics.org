@@ -154,6 +154,7 @@ Lets generate =pdefs.nix= and take this bad boy for a spin:
 #+BEGIN_SRC shell
 $ nix run github:aakropotkin/floco#fromPlock;
 $ rm *~;  # Delete backed up files
+
 # Run our executable from the `global' target.
 # We add the flag `-L' to show build logs.
 # if this is your first time building with `floco' this may take a minute to
@@ -176,15 +177,18 @@ test-built> checking for references to /build/ in /nix/store/51dibgxp3na6q21p50s
 4
 [ 1, 2, 3 ]
 4.17.21
+
 # If we run again you'll see we skip the build:
 $ nix run -f ./. -L global;
 [ 1, 2, 3, 4 ]
 4
 [ 1, 2, 3 ]
 4.17.21
+
 # Lets build our tarball:
 $ nix build -f ./. dist;
 trace: WARNING: tarball may contain references to Nix store in shebang lines.
+
 $ tar tzf ./result;
 package/bin.js
 package/index.js
