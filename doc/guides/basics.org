@@ -8,3 +8,15 @@ Our project will be a simple Typescript CLI tool.
 This means we will have a build stage, a `global`
 installation target, and a `dist` target ( a tarball
 suitable for publishing ).
+
+I want to highlight the fact that our dependency graph
+only contains trivial packages that do not require
+installations - we will cover handling these dependencies
+in another guide.
+For now we're keeping things simple.
+
+* Creating the Project
+In the spirit of completeness, this guide uses real sources
+so that we can automatically detect if it's out of date
+and so that you can copy these files to try them on
+your box.
