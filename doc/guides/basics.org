@@ -101,7 +101,7 @@ After that we'll add a =default.nix= file to expose a few derivations to the
 # default.nix
 # ============================================================================ #
 #
-# Package shim exposing installable targets from `floco` modules.
+# Package shim exposing installable targets from `floco' modules.
 #
 # ---------------------------------------------------------------------------- #
 
