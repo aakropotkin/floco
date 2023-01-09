@@ -25,6 +25,17 @@ not implemented naively.
 Writing a JavaScript package management framework in =bash= and =nix= was
 done /not because it is easy/ - on the contrary it was fucking hard.
 
+* Getting Started
+There's a dedicated
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]]
+that is the best place to dive in.
+
+The summary is:
+Generate a config, copy a boilerplate template, and you're set.
+
+I haven't created =nix flake init -t <TEMPLATE>;= outputs yet, so you gotta
+go read the guide for now, but those are coming soon.
+
 * Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
 and drive builds.
