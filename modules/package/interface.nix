@@ -26,7 +26,8 @@ in {
         Unique key used to refer to this package in `tree` submodules and other
         `floco` configs, metadata, and structures.
       '';
-      type = ft.key;
+      type     = ft.key;
+      readOnly = true;
     };
 
 
@@ -36,7 +37,10 @@ in {
       description = lib.mdDoc ''
         Package's declared metadata normalized as `pdef` submodule.
       '';
-      type = nt.submodule ../pdef;
+      type = nt.submoduleWith {
+        shorthandOnlyDefinesConfig = true;
+        modules = [../pdef/interface.nix];
+      };
     };
 
 

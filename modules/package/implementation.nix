@@ -4,7 +4,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, floco, ... }: {
+{ lib, config, pkgs, floco, options, ... }: let
+
+  nt = lib.types;
+
+in {
 
 # ---------------------------------------------------------------------------- #
 
@@ -12,25 +16,17 @@
 
 # ---------------------------------------------------------------------------- #
 
-  config = builtins.mapAttrs ( _: lib.mkDefault ) {
-
-# ---------------------------------------------------------------------------- #
-
-    checkSystemSupport = lib.checkSystemSupportFor config.pdef;
-    systemSupported    = config.checkSystemSupport { inherit (pkgs) stdenv; };
-
-
-# ---------------------------------------------------------------------------- #
-
-    trees = lib.mkIf ( config.pdef.treeInfo != null ) {
-      supported = lib.filterAttrs ( k: v: let
-        ident   = dirOf v.key;
-        version = baseNameOf v.key;
-      in ( ! v.optional ) ||
-        floco.packages.${ident}.${version}.systemSupported
-      ) config.pdef.treeInfo;
+  options.pdef = lib.mkOption {
+    type = nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
+      modules = [../pdef/implementation.nix];
     };
+  };
 
+
+# ---------------------------------------------------------------------------- #
+
+  config = {
 
 # ---------------------------------------------------------------------------- #
 
@@ -38,7 +34,29 @@
 
 # ---------------------------------------------------------------------------- #
 
-    dist = if config.pdef.ltype == "file" then null else
+    checkSystemSupport =
+      lib.mkDefault ( lib.checkSystemSupportFor config.pdef );
+
+    systemSupported =
+      lib.mkDefault ( config.checkSystemSupport { inherit (pkgs) stdenv; } );
+
+
+# ---------------------------------------------------------------------------- #
+
+    trees = lib.mkIf ( config.pdef.treeInfo != null ) {
+      supported = lib.mkDefault ( lib.filterAttrs ( k: v: let
+          ident   = dirOf v.key;
+          version = baseNameOf v.key;
+        in ( ! v.optional ) ||
+          floco.packages.${ident}.${version}.systemSupported
+        ) config.pdef.treeInfo
+      );
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
+    dist = lib.mkDefault ( if config.pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
         inherit lib;
         inherit (pkgs) system;
@@ -51,7 +69,7 @@
           inherit (config.pdef) version;
           name = config.pdef.ident;
         };
-      };
+      } );
 
 
 # ---------------------------------------------------------------------------- #
@@ -123,14 +141,16 @@
         warns = map ( m: "WARNING: ${m}" ) config.warnings;
         msg   = builtins.concatStringsSep "\n" warns;
       in if config.warnings == [] then x else builtins.trace msg x;
-    in if ! config.pdef.lifecycle.install then config.built.package else
-       warn drv;
+    in lib.mkDefault (
+      if ! config.pdef.lifecycle.install then config.built.package else
+      warn drv
+    );
 
 
 # ---------------------------------------------------------------------------- #
 
-    prepared = if config.installed != config.source then config.installed else
-      pkgs.stdenv.mkDerivation {
+    prepared = let
+      drv = pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-prepared";
         inherit (config.pdef) version;
         install_module    = ../../setup/install-module.sh;
@@ -160,42 +180,47 @@
           ( builtins.currentSystem or "unknown" ) != pkgs.system;
         dontStrip = true;
       };
+    in lib.mkDefault (
+      if config.installed != config.source then config.installed else drv
+    );
 
 
 # ---------------------------------------------------------------------------- #
 
-    global = pkgs.stdenv.mkDerivation {
-      pname = baseNameOf config.pdef.ident;
-      inherit (config.pdef) version;
-      install_module    = ../../setup/install-module.sh;
-      IDENT             = config.pdef.ident;
-      NMTREE            = config.trees.prod;
-      src               = config.prepared;
-      nativeBuildInputs = [pkgs.jq];
-      buildInputs       = [pkgs.nodejs-14_x];
-      buildCommand      = ''
-        runHook preInstall;
+    global = let
+      drv = pkgs.stdenv.mkDerivation {
+        pname = baseNameOf config.pdef.ident;
+        inherit (config.pdef) version;
+        install_module    = ../../setup/install-module.sh;
+        IDENT             = config.pdef.ident;
+        NMTREE            = config.trees.prod;
+        src               = config.prepared;
+        nativeBuildInputs = [pkgs.jq];
+        buildInputs       = [pkgs.nodejs-14_x];
+        buildCommand      = ''
+          runHook preInstall;
 
-        mkdir -p "$out/lib/node_modules/$IDENT";
+          mkdir -p "$out/lib/node_modules/$IDENT";
 
-        if [[ -n "$NMTREE" ]]; then
-          cp -pr --reflink=auto --                         \
-             "$NMTREE/node_modules"                        \
-             "$out/lib/node_modules/$IDENT/node_modules";
-        fi
+          if [[ -n "$NMTREE" ]]; then
+            cp -pr --reflink=auto --                        \
+              "$NMTREE/node_modules"                        \
+              "$out/lib/node_modules/$IDENT/node_modules";
+          fi
 
-        bash -eu "$install_module" "$src" "$out/lib/node_modules";
+          bash -eu "$install_module" "$src" "$out/lib/node_modules";
 
-        if [[ -d "$out/lib/node_modules/.bin" ]]; then
-          mkdir -p "$out/bin";
-          for s in "$out/lib/node_modules/.bin/"*; do
-            ln -Lsr "$s" "$out/bin/''${s##*/}";
-          done
-        fi
+          if [[ -d "$out/lib/node_modules/.bin" ]]; then
+            mkdir -p "$out/bin";
+            for s in "$out/lib/node_modules/.bin/"*; do
+              ln -Lsr "$s" "$out/bin/''${s##*/}";
+            done
+          fi
 
-        runHook postInstall;
-      '';
-    };
+          runHook postInstall;
+        '';
+      };
+    in lib.mkDefault drv;
 
 
 # ---------------------------------------------------------------------------- #

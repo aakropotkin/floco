@@ -23,7 +23,7 @@ in {
     );
 
     built.package = let
-      drv = pkgs.stdenv.mkDerivation {
+      drv = lib.makeOverridable pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf config.pdef.ident}-built";
         inherit (config.pdef) version;
         inherit (cfg) copyTree scripts;
@@ -90,8 +90,7 @@ in {
         if cfg.overrideAttrs != null
         then drv.overrideAttrs cfg.overrideAttrs
         else drv;
-    #in lib.mkDefault ( warn withOv );
-    in lib.mkDefault ( if cfg.enable then warn drv else config.source );
+    in lib.mkDefault ( if cfg.enable then warn withOv else config.source );
 
 
 # ---------------------------------------------------------------------------- #
