@@ -247,7 +247,10 @@ EOF
 
 $SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/' "$OUTFILE";
 
-$SED -i 's,path = ".";,path = ./.;,' "$OUTFILE";
+$SED -i                                    \
+  -e 's,path = ".";,path = ./.;,'          \
+  -e 's,path = "\(.[^"]*\)";,path = \1;,'  \
+  "$OUTFILE";
 
 
 # ---------------------------------------------------------------------------- #

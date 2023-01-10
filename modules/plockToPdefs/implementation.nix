@@ -66,10 +66,11 @@
     pp    = lib.generators.toPretty {} plent;
     ltype = if plentKey == "" then "dir" else
             if link then "link" else
+            if lib.hasPrefix "file" resolved then "link" else
             if lib.hasPrefix "." plentKey then "dir" else
             if lib.hasPrefix "git+" resolved then "git" else
             if lib.hasPrefix "https" resolved then "file" else
-            throw "Unable to derived lifecycle type from entry: '${pp}'.";
+            throw "Unable to derive lifecycle type from entry: '${pp}'.";
   in {
     inherit ident version key ltype;
     binInfo.binPairs = bin;
@@ -85,7 +86,12 @@
       # Locks `fetchInfo'
       fii = import ../fetchInfo/implementations.nix { inherit lib; };
     in if builtins.elem ltype ["dir" "link"] then {
-      path = if resolved == "." then lockDir else lockDir + ( "/" + resolved );
+      path = let
+        len = builtins.stringLength resolved;
+      in if resolved == "." then lockDir else
+         if lib.hasPrefix "file:" resolved
+         then lockDir + ( "/" + ( builtins.substring 5 len resolved ) )
+         else lockDir + ( "/" + resolved );
     } else fii.fetchTree.any {  # TODO: `github'
       config.type = if ltype == "file" then "tarball" else "git";
       config.url  = resolved;

@@ -104,7 +104,7 @@ in {
       };
     in lib.mkDefault (
       if config.built.enable || config.installed.enable
-      then config.installed
+      then config.installed.package
       else drv
     );
 
