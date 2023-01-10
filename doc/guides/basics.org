@@ -307,7 +307,7 @@ list members ).
 # ...
 #+END_SRC
 
-Now if you rebuild you won't have to copy `typescript`, instead you will
+Now if you rebuild you won't have to copy =typescript=, instead you will
 just add its executables to =PATH=.
 
 This same approach can be used for any type of config
