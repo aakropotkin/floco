@@ -84,30 +84,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    installed = lib.mkOption {
-      description = lib.mdDoc ''
-        "Installed" form of a package/module which is ready consumption as a
-        module in a `node_modules/` directory, or global installation for use
-        as a package.
-
-        This stage requires that any `install` scripts have been run, which
-        conventionally means "run `node-gyp` to perform system dependant
-        compilation or setup".
-
-        By default the `prod` tree is used for this stage.
-
-        If no install is required then this option is an alias of `built`.
-
-        XXX: If an `install` script produces executable scripts you should NOT
-        patch shebangs yet - patching should be deferred to the
-        `prepared` stage.
-      '';
-      type = nt.package;
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
     prepared = lib.mkOption {
       description = lib.mdDoc ''
         Fully prepared form of package/module tree making it ready for
