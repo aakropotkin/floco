@@ -31,8 +31,8 @@ in {
         install_module    = ../../../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         NMTREE            = cfg.tree;
-        src               = config.built;
-        nativeinstallInputs = let
+        src               = config.built.package;
+        nativeBuildInputs = let
           maybeTest =
             if ( config.test == null )                ||
                ( ! cfg.dependsOnTest )                ||
@@ -40,14 +40,16 @@ in {
             then []
             else [config.test];
         in [pkgs.jq] ++ maybeTest;
-        installInputs = [pkgs.nodejs-14_x];
+        buildInputs = [pkgs.nodejs-14_x];
         configurePhase = ''
           runHook preConfigure;
 
+          set -eu;
+          set -o pipefail;
           export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
-          if [[ -n "$NMTREE" ]]; then
+          if [[ -n "''${NMTREE:-}" ]]; then
             if [[ "''${copyTree:-0}" != 1 ]]; then
               ln -s "$NMTREE/node_modules" ./node_modules;
             else
@@ -61,6 +63,8 @@ in {
         buildPhase = ''
           runHook preBuild;
 
+          set -eu;
+          set -o pipefail;
           if [[ -r ./binding.gyp ]]; then
             bash -eu "$run_script" -PBi preinstall;
             case "$( jq -r '.scripts.install // null' ./package.json; )" in

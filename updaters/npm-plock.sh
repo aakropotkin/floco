@@ -19,7 +19,8 @@ _as_me="floco update npm-plock";
 
 _version="0.1.0";
 
-_usage_msg="$_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-c FLOCO-CONFIG-FILE]
+# [-c FLOCO-CONFIG-FILE]
+_usage_msg="$_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
 ";
@@ -44,6 +45,7 @@ OPTIONS
                       extend or modify the module definitions used to translate
                       and export \`pdef' records.
                       If no config is given default settings will be used.
+  -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 ENVIRONMENT
   NIX           path to \`nix' executable.
@@ -112,6 +114,7 @@ while [[ "$#" -gt 0 ]]; do
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
     -v|--version)  echo "$_version"; exit 0; ;;
+    --) shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
@@ -198,6 +201,7 @@ $NPM install            \
   --no-audit            \
   --no-funding          \
   --no-color            \
+  "$@"                  \
 ;
 
 

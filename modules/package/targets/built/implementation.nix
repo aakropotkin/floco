@@ -45,10 +45,12 @@ in {
         configurePhase = ''
           runHook preConfigure;
 
+          set -eu;
+          set -o pipefail;
           export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
-          if [[ -n "$NMTREE" ]]; then
+          if [[ -n "''${NMTREE:-}" ]]; then
             if [[ "''${copyTree:-0}" != 1 ]]; then
               ln -s "$NMTREE/node_modules" ./node_modules;
             else
@@ -62,6 +64,8 @@ in {
         buildPhase = ''
           runHook preBuild;
 
+          set -eu;
+          set -o pipefail;
           bash -eu "$run_script" -PBi $scripts;
 
           runHook postBuild;
@@ -99,8 +103,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

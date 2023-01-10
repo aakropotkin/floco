@@ -28,7 +28,10 @@ in {
         test   = p: s: ( builtins.match p s ) != null;
         ignore = ["node_modules" "package-lock.json"];
       in ( ! ( builtins.elem bname ignore ) ) &&
-          ( ! ( test ".*\\.nix" bname ) );
+         ( ! ( test ".*\\.nix" bname ) ) &&
+         ( ( type == "symlink" ) -> (
+             ( bname != "result" ) && ( ! ( test "result-.*" bname ) )
+           ) );
     };
     # FIXME: This adds a copy of `typescript' to the "build" environment
     # as a globally installed executable.
