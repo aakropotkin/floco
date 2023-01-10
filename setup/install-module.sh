@@ -324,7 +324,12 @@ fi
 if [[ -z "$NO_BINS$NO_BIN_LINKS" ]]; then
   $MKDIR -p "$NMDIR/.bin";
   for bp in $BIN_PAIRS; do
-    $LN -sr -- "$TO/${bp#*,}" "$NMDIR/.bin/${bp%,*}";
+    if [[ -L "$NMDIR/.bin/${bp%,*}" ]]; then
+      echo "$_as_me: WARNING: creation of '$NMDIR/.bin/${bp%,*}' skipped - \
+file already exists." >&2;
+    else
+      $LN -sr -- "$TO/${bp#*,}" "$NMDIR/.bin/${bp%,*}";
+    fi
   done
 fi
 
