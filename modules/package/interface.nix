@@ -26,8 +26,7 @@ in {
         Unique key used to refer to this package in `tree` submodules and other
         `floco` configs, metadata, and structures.
       '';
-      type     = ft.key;
-      readOnly = true;
+      type = ft.key;
     };
 
 
