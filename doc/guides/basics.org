@@ -183,7 +183,6 @@ $ nix run -f ./. -L global;
 
 # Lets build our tarball:
 $ nix build -f ./. dist;
-trace: WARNING: tarball may contain references to Nix store in shebang lines.
 
 $ tar tzf ./result;
 package/bin.js
@@ -198,10 +197,6 @@ Pretty slick.
 Right off the bat you might be asking: how is this any different from =npm=,
 aside from the fact that I had to write extra files and read a guide?
 It's a fair question, and in the next few sections we'll try to win you over.
-
-The warning message you see there is a temporary state of affairs.
-The issue it's alerting you about is an easy fix, I just have to set aside an
-hour or so to improve the =dist= routine ( hopefully in the next few days ).
 
 * Opportunities to Optimize
 Upfront let's just say that there isn't a practical reason to optimize this

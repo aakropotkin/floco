@@ -17,7 +17,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  scripts = [./run-script.sh ./install-module.sh];
+  scripts = [./run-script.sh ./install-module.sh ./unpatch-shebangs.sh];
 
 
 # ---------------------------------------------------------------------------- #
@@ -40,6 +40,9 @@ in {
         bname="''${script##*/}";
         bname="''${bname:33}";
         case "$bname" in
+          unpatch-shebangs.sh)
+            spath="$coreutils/bin";
+          ;;
           install-module.sh)
             spath="$common_path:$coreutils/bin:$findutils/bin";
           ;;

@@ -156,8 +156,6 @@ in {
         executables during your build it is your responsibility to ensure that
         they remain unpatched ( patching should be performed later during the
         `prepare` event instead ).
-
-        TODO: This needs to unpatch shebangs.
       '';
       type    = nt.nullOr nt.package;
       default = null;

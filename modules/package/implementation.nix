@@ -59,12 +59,9 @@ in {
     dist = lib.mkDefault ( if config.pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
         inherit lib;
-        inherit (pkgs) system;
+        inherit (pkgs) system bash coreutils findutils;
         pkgsFor = pkgs;
-        src     =
-          # FIXME: use `config.warnings'
-          builtins.trace ( "WARNING: tarball may contain references to Nix " +
-                           "store in shebang lines." ) config.built.package;
+        src     = config.built.package;
         pjs = {
           inherit (config.pdef) version;
           name = config.pdef.ident;
