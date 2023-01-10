@@ -114,6 +114,19 @@
 
 # ---------------------------------------------------------------------------- #
 
+    templates = let
+      basic = {
+        description = "a legacy style `default.nix' project.";
+        path        = ./templates/basic;
+      };
+    in {
+      inherit basic;
+      default = basic;
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `outputs'
 
 
