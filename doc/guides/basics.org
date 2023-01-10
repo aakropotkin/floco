@@ -136,12 +136,14 @@ After that we'll add a =default.nix= file to expose a few derivations to the
 
 in {
   inherit (pkg)
-    built     # Our project in it's "built" state
     dist      # A tarball form of our built package suitable for publishing
     prepared  # The "prepared" form of our project for use by other Nix builds
     global    # A globally installed form to run our executable
   ;
+  built = pkg.built.packages;  # Our project in it's "built" state
 }
+
+# ---------------------------------------------------------------------------- #
 #+END_SRC
 
 Lets generate =pdefs.nix= and take this bad boy for a spin:
