@@ -39,20 +39,18 @@
             then lib.importJSON pdefs
             else import pdefs;
     in addPdefs raw;
-    fromList.floco.pdefs = ( lib.evalModules {
-      modules = [../modules/pdefs] ++ ( map ( v: {
-        config.pdefs.${v.ident}.${v.version} = v;
-      } ) pdefs );
-    } ).config.pdefs;
+    fromList.imports = map ( v: { ... }: {
+      config.floco.pdefs.${v.ident}.${v.version} = v;
+    } ) pdefs;
     fromAttrs =
-      if pdefs ? config then pdefs.config else
-      if pdefs ? floco then pdefs else
-      if pdefs ? pdefs then { floco = { inherit pdefs; }; } else
-      throw "floco#lib.addPdefs: what the fuck did you try to pass bruce?";
+      if pdefs ? config then ( { ... }: { config = pdefs; } ) else
+      if pdefs ? floco  then ( { ... }: { config = { inherit pdefs; }; } ) else
+      if pdefs ? pdefs
+      then ( { ... }: { config.floco = { inherit pdefs; }; } )
+      else throw "floco#lib.addPdefs: what the fuck did you try to pass bruce?";
     isFile = ( builtins.isPath pdefs ) || ( builtins.isString pdefs );
-  in if isFile then fromFile else {
-    config = if builtins.isAttrs pdefs then fromAttrs else fromList;
-  };
+  in if isFile then fromFile else
+     if builtins.isAttrs pdefs then fromAttrs else fromList;
 
 
 # ---------------------------------------------------------------------------- #

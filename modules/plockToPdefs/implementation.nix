@@ -110,13 +110,13 @@
   in builtins.mapAttrs mkTreeEnt plconf.config.plents;
 
   rough = let
-    proc = plentKey: plentRaw: ( lib.evalModules {
-        modules = [{ config = toPdef plentKey plentRaw; }] ++ (
-          if plentKey == "" then [{
-            config.treeInfo = lib.mkForce ( removeAttrs rootTreeInfo [""] );
-          }] else []
-        ) ++ [../pdef];
-      } ).config;
+    proc = plentKey: plentRaw: [
+      { config = toPdef plentKey plentRaw; }
+    ] ++ (
+      if plentKey == "" then [{
+        config.treeInfo = lib.mkForce ( removeAttrs rootTreeInfo [""] );
+      }] else []
+    ) ++ [../pdef];
   in builtins.mapAttrs proc plconf.config.plents;
 
   translatedPlents = rough;
@@ -149,9 +149,17 @@
 
 # ---------------------------------------------------------------------------- #
 
+  configs = builtins.concatLists ( builtins.attrValues translatedPlents );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
-  packages = builtins.attrValues translatedPlents;
+  inherit configs;
+  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
+    ( lib.evalModules { inherit modules; } ).config
+  ) translatedPlents );
 
 }
 
