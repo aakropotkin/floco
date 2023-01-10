@@ -9,6 +9,7 @@
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 , pandoc  ? pkgsFor.pandoc
+, bash    ? pkgsFor.bash
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -50,16 +51,28 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  #org = { bname, options }: derivation {
+  #  inherit system;
+  #  name    = bname + ".org";
+  #  builder = "${pandoc}/bin/pandoc";
+  #  args = [
+  #    "-o" ( builtins.placeholder "out" )
+  #    "-f" "docbook"
+  #    "-t" "org"
+  #    ( docbook { inherit bname options; } )
+  #  ];
+  #};
   org = { bname, options }: derivation {
     inherit system;
-    name    = bname + ".org";
-    builder = "${pandoc}/bin/pandoc";
-    args = [
-      "-o" ( builtins.placeholder "out" )
-      "-f" "docbook"
-      "-t" "org"
-      ( docbook { inherit bname options; } )
-    ];
+    name       = bname + ".org";
+    builder    = "${bash}/bin/bash";
+    passAsFile = ["text"];
+    text       = lib.libdoc.renderOrgFile { inherit options; };
+    args       = ["-eu" "-o" "pipefail" "-c" ''
+      while read line; do
+        echo "$line" >> "$out";
+      done <"$textPath";
+    ''];
   };
 
 

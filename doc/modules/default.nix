@@ -9,16 +9,17 @@
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
 , pandoc  ? pkgsFor.pandoc
+, bash    ? pkgsFor.bash
 }: let
 
 # ---------------------------------------------------------------------------- #
 
   # docbook, html, markdown, org
   formats = import ./formats.nix {
-    inherit nixpkgs lib system pkgsFor pandoc;
+    inherit nixpkgs lib system pkgsFor pandoc bash;
   };
 
-  options = import ./options.nix { inherit lib; };
+  options = import ./options.nix { inherit nixpkgs lib system pkgsFor; };
 
 
 # ---------------------------------------------------------------------------- #

@@ -168,8 +168,8 @@
     declPaths = let
       gen = p: let
         m   = builtins.match "<floco>(/.*)" p;
-        sub = builtins.head m;
-        url = "https://github.com/aakropotkin/floco/blob/main/${sub}";
+        sub = if m == null then p else builtins.head m;
+        url = "https://github.com/aakropotkin/floco/blob/main${sub}";
       in "[[${url}][${p}]]";
     in map gen declarations;
     t = if ( builtins.match "string matching .*" ( toString type ) ) == null

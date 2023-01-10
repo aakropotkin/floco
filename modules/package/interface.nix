@@ -26,7 +26,8 @@ in {
         Unique key used to refer to this package in `tree` submodules and other
         `floco` configs, metadata, and structures.
       '';
-      type = ft.key;
+      type    = ft.key;
+      example = "@floco/test/4.2.0";
     };
 
 
@@ -56,7 +57,14 @@ in {
       , platform ? stdenv.hostPlatform
       , system   ? platform.system
       }: true;
-      type = nt.functionTo nt.bool;
+      type    = nt.functionTo nt.bool;
+      example = lib.literalExpression ''
+        checkSystemSupport = {
+          stdenv   ? throw "checkSystemSupport: You must pass an arg"
+        , platform ? stdenv.hostPlatform
+        , system   ? platform.system
+        }: ( builtins.match "x86_64-*" system ) != null;
+      '';
     };
 
 
