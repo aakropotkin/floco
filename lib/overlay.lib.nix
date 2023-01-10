@@ -49,6 +49,7 @@ in {
     ./access-pdefs.nix
     ./checkSystemSupport.nix
     ./focus-tree.nix
+    ./options.nix
   ];
   libdoc = callLib ./mdoc.nix;
 
