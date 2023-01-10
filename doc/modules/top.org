@@ -110,7 +110,7 @@ See Also: *.override
       pkgs.typescript
     ];
   };
-};
+}
 
 #+END_SRC
 
@@ -237,7 +237,7 @@ patch shebangs yet - patching should be deferred to the
 =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/modules/package/interface.nix]]
-- example :: =@floco/test/4.2.0=
+- example :: ="@floco/test/4.2.0"=
 
 *** =lint=
 - option :: ~floco.packages.<ident>.<version>.lint~
@@ -369,7 +369,7 @@ By default any `builtins.fetchTree' or `builtins.path' argset is
 supported, and the correct fetcher can be inferred from these values.
 
 If set to `null', `sourceInfo' must be set explicitly.
-- type :: attribute set of (null or string or (path) or signed integer or boolean)
+- type :: attribute set of (null or string or path or signed integer or boolean)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
 
 **** =fsInfo=
@@ -440,7 +440,7 @@ field exists as a stub.
 - description :: Package identifier/name as found in =package.json:.name=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =@floco/foo=
+- example :: ="@floco/foo"=
 
 **** =key=
 - option :: ~floco.packages.<ident>.<version>.pdef.key~
@@ -448,7 +448,7 @@ field exists as a stub.
 =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =@floco/foo/4.2.0=
+- example :: ="@floco/foo/4.2.0"=
 
 **** =lifecycle=
 - option :: ~floco.packages.<ident>.<version>.pdef.lifecycle~
@@ -610,7 +610,7 @@ The string ="*"= indicates that all CPUs are supported.
 - description :: Supported Node.js versions.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
-- example :: =>=14=
+- example :: =">=14"=
 
 ***** =os=
 - option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.os~
@@ -685,7 +685,7 @@ the build of the consumer.
 - description :: Package version as found in =package.json:.version=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =4.2.0=
+- example :: ="4.2.0"=
 
 *** =preferMultipleOutputDerivations=
 - option :: ~floco.packages.<ident>.<version>.preferMultipleOutputDerivations~
@@ -950,7 +950,7 @@ By default any `builtins.fetchTree' or `builtins.path' argset is
 supported, and the correct fetcher can be inferred from these values.
 
 If set to `null', `sourceInfo' must be set explicitly.
-- type :: attribute set of (null or string or (path) or signed integer or boolean)
+- type :: attribute set of (null or string or path or signed integer or boolean)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
 
 *** =fsInfo=
@@ -1021,7 +1021,7 @@ field exists as a stub.
 - description :: Package identifier/name as found in =package.json:.name=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =@floco/foo=
+- example :: ="@floco/foo"=
 
 *** =key=
 - option :: ~floco.pdefs.<ident>.<version>.key~
@@ -1029,7 +1029,7 @@ field exists as a stub.
 =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =@floco/foo/4.2.0=
+- example :: ="@floco/foo/4.2.0"=
 
 *** =lifecycle=
 - option :: ~floco.pdefs.<ident>.<version>.lifecycle~
@@ -1191,7 +1191,7 @@ The string ="*"= indicates that all CPUs are supported.
 - description :: Supported Node.js versions.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
-- example :: =>=14=
+- example :: =">=14"=
 
 **** =os=
 - option :: ~floco.pdefs.<ident>.<version>.sysInfo.os~
@@ -1266,4 +1266,4 @@ the build of the consumer.
 - description :: Package version as found in =package.json:.version=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: =4.2.0=
+- example :: ="4.2.0"=

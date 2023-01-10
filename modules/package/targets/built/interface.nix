@@ -152,7 +152,7 @@ in {
                   pkgs.typescript
                 ];
               };
-            };
+            }
           '';
         };
 
