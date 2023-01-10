@@ -21,16 +21,9 @@ in {
         ( { options, ... }: let
           inherit (options.key) loc;
         in {
-          config.ident = {
-            _type    = "override";
-            content  = builtins.elemAt loc oloc;
-            priority = 10;
-          };
-          config.version = {
-            _type    = "override";
-            content  = builtins.elemAt loc ( oloc + 1 );
-            priority = 10;
-          };
+          config.ident   = lib.mkOverride 10 ( builtins.elemAt loc oloc );
+          config.version =
+            lib.mkOverride 10 ( builtins.elemAt loc ( oloc + 1 ) );
         } )
         ../pdef/implementation.nix
       ];
