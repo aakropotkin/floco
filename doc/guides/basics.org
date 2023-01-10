@@ -235,6 +235,7 @@ Pop open the =pdefs.nix= file and we'll drop =typescript=.
   {
     ident = "@floco/test";
     version = "4.2.0";
+    # ...
     treeInfo = {
       "@types/lodash" = {
         key = "@types/lodash/4.14.191";
@@ -263,9 +264,52 @@ that later in a discussion about project organization.
 # `foverrides.nix'
 { config, ... }: {
   config.floco.packages."@floco/test"."4.2.0" = {
-    built = # TODO: this article is a work in progress
+    built.overrideAttrs = prev: {
+      buildInputs = prev.buildInputs ++ [
+        config.floco.packages."typescript"."4.9.4".global
+      ];
+    };
   };
 }
 #+END_SRC
 
-TODO: this article is a work in progress
+This file allows you to explicitly fill config values by hand.
+Separation from the =default.nix= file allows it to be used
+"anywhere" especially external projects.
+
+To use an override file in our project we just need to add it to
+our list of modules in =default.nix= ( order doesn't matter among
+list members ).
+
+
+#+BEGIN_SRC nix
+# default.nix
+# ...
+# ---------------------------------------------------------------------------- #
+
+  fmod = lib.evalModules {
+    modules = [
+      {
+        imports = ["${floco}/modules/top"];
+        config._module.args.pkgs =
+          floco.inputs.nixpkgs.legacyPackages.${system}.extend
+            floco.overlays.default;
+      }
+      # Loads our generated `pdefs.nix' as a "module config".
+      ( lib.addPdefs ./pdefs.nix )
+
+      # Add an override file
+      ./foverrides.nix
+    ];
+  };
+
+# ---------------------------------------------------------------------------- #
+# ...
+#+END_SRC
+
+Now if you rebuild you won't have to copy `typescript`, instead you will
+just add its executables to =PATH=.
+
+This same approach can be used for any type of config
+setting, in fact =lib.addPdefs= is simply a routine which
+converts =pdefs.nix= to a module config.
