@@ -63,7 +63,7 @@ in {
           stdenv   ? throw "checkSystemSupport: You must pass an arg"
         , platform ? stdenv.hostPlatform
         , system   ? platform.system
-        }: ( builtins.match "x86_64-*" system ) != null;
+        }: ( builtins.match "x86_64-*" system ) != null
       '';
     };
 
