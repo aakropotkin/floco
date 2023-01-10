@@ -24,8 +24,7 @@
 
 *** =built=
 - option :: ~floco.packages.<ident>.<version>.built~
-- description :: "Built" form of a package/module which is ready for distribution as a
-tarball ( =build= and =prepublish= scripts must be run if defined ).
+- description :: "Built" form of a package/module which is ready for distribution as a tarball ( =build= and =prepublish= scripts must be run if defined ).
 
 By default the =dev= tree is used for this stage.
 
@@ -39,8 +38,7 @@ patch shebangs yet - patching should be deferred to the
 
 **** =copyTree=
 - option :: ~floco.packages.<ident>.<version>.built.copyTree~
-- description :: Whether =node_modules/= tree should be copied into build area
-instead of symlinked.
+- description :: Whether =node_modules/= tree should be copied into build area instead of symlinked.
 This may resolve issues with certain dependencies with non-compliant
 implementations of =resolve= such as =webpack= or =jest=.
 - type :: boolean
@@ -49,8 +47,7 @@ implementations of =resolve= such as =webpack= or =jest=.
 
 **** =dependsOnLint=
 - option :: ~floco.packages.<ident>.<version>.built.dependsOnLint~
-- description :: Causes the =built= lifecycle stage to be blocked by successful
-=lint= checking ( requires =lint= to be non-null ).
+- description :: Causes the =built= lifecycle stage to be blocked by successful =lint= checking ( requires =lint= to be non-null ).
 
 This is recommended for projects which are under active development.
 
@@ -143,8 +140,7 @@ undefined in =package.json= it is skipped.
 
 *** =checkSystemSupport=
 - option :: ~floco.packages.<ident>.<version>.checkSystemSupport~
-- description :: A function that checks if =stdenv.hostPlatform= or a =system= pair can
-support a package.
+- description :: A function that checks if =stdenv.hostPlatform= or a =system= pair can support a package.
 This uses translated =sysInfo= records.
 - type :: function that evaluates to a(n) boolean
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/modules/package/interface.nix]]
@@ -160,8 +156,7 @@ checkSystemSupport = {
 
 *** =dist=
 - option :: ~floco.packages.<ident>.<version>.dist~
-- description :: Produce a distributable tarball suitable for publishing using the
-=built= form of a package.
+- description :: Produce a distributable tarball suitable for publishing using the =built= form of a package.
 
 This target should never be enabled for packages whose =source= is
 already a registry tarball ( those with =ltype= of =file= ).
@@ -178,15 +173,14 @@ TODO: This needs to unpatch shebangs.
 
 *** =global=
 - option :: ~floco.packages.<ident>.<version>.global~
-- description :: Globally installed form of a package which uses conventional =POSIX=
-installation prefixes such as =lib/node_modules/= and =bin/=.
+- description :: Globally installed form of a package which uses conventional =FHS= installation prefixes such as =lib/node_modules/= and =bin/=.
 
 Globally installed packages will carry their full runtime dependency
 tree as a subdir, allowing executables to resolve any necessary modules,
 and symlinks into other =node_modules/= directories to behave as they
 would with other Node.js package management tools.
 
-NOTE: If a project has dependency cycles it may be necessary to enable
+NOTE: If a project has dependency cycles it may be necessary to disable
 the option =preferMultipleOutputDerivations= to allow any =build= or
 =install= stages to run.
 - type :: null or package
@@ -194,8 +188,7 @@ the option =preferMultipleOutputDerivations= to allow any =build= or
 
 *** =installDependsOnTest=
 - option :: ~floco.packages.<ident>.<version>.installDependsOnTest~
-- description :: Causes the =installed= lifecycle stage to be blocked by successful
-=test= checking ( required =test= to be non-null ).
+- description :: Causes the =installed= lifecycle stage to be blocked by successful =test= checking ( required =test= to be non-null ).
 
 This is recommended for projects which are under active development.
 
@@ -213,9 +206,7 @@ See Also: test, buildDependsOnLint
 
 *** =installed=
 - option :: ~floco.packages.<ident>.<version>.installed~
-- description :: "Installed" form of a package/module which is ready consumption as a
-module in a =node_modules/= directory, or global installation for use
-as a package.
+- description :: "Installed" form of a package/module which is ready consumption as a module in a =node_modules/= directory, or global installation for use as a package.
 
 This stage requires that any =install= scripts have been run, which
 conventionally means "run =node-gyp= to perform system dependant
@@ -228,8 +219,111 @@ If no install is required then this option is an alias of =built=.
 XXX: If an =install= script produces executable scripts you should NOT
 patch shebangs yet - patching should be deferred to the
 =prepared= stage.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+
+**** =copyTree=
+- option :: ~floco.packages.<ident>.<version>.installed.copyTree~
+- description :: Whether =node_modules/= tree should be copied into install area instead of symlinked.
+This may resolve issues with certain dependencies with non-compliant
+implementations of =resolve= such as =webpack= or =jest=.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example :: =true=
+
+**** =dependsOnLint=
+- option :: ~floco.packages.<ident>.<version>.installed.dependsOnLint~
+- description :: Causes the =installed= lifecycle stage to be blocked by successful =test= checking ( requires =test= to be non-null ).
+
+This is recommended for projects which are under active development.
+
+If =preferMultipleOutputDerivations= is enabled this is implemented
+by making the =test= derivation an input of the
+=installed= derivation.
+Otherwise this will cause a =preinstall= phase to run =test= checks,
+killing the installer if the check fails.
+
+NOTE: if =installed= is an alias of =built=, this causes either
+=installed= or =prepared= to depend on =test= instead.
+
+See Also: lint, built.dependsOnLint
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example :: =true=
+
+**** =enable=
+- option :: ~floco.packages.<ident>.<version>.installed.enable~
+- description :: Whether to enable =installed= target.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example :: =true=
+
+**** =override=
+- option :: ~floco.packages.<ident>.<version>.installed.override~
+- description :: Overrides applied to =stdenv.mkDerivation= invocation.
+This option is a shorthand form of =overrideAttrs= and it is an
+error to set both options.
+
+See Also: *.overrideAttrs
+- type :: null or (attribute set of anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  preinstall = ''
+    echo "Howdy" >&2;
+  '';
+}
+#+END_SRC
+
+**** =overrideAttrs=
+- option :: ~floco.packages.<ident>.<version>.installed.overrideAttrs~
+- description :: Override function applied to =stdenv.mkDerivation= invocation.
+This option is an advanced form of =override= which allows =prev=
+arguments to be referenced.
+It is an error to set both options.
+
+See Also: *.override
+- type :: null or (function that evaluates to a(n) anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, config, ... }: {
+  config.installed.overrideAttrs = prev: {
+    nativeinstallInputs = prev.nativeinstallInputs ++ [
+      pkgs.typescript
+    ];
+  };
+}
+
+#+END_SRC
+
+**** =package=
+- option :: ~floco.packages.<ident>.<version>.installed.package~
+- description :: Derivation which produces the =installed= form of the package/module.
 - type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/modules/package/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+
+**** =scripts=
+- option :: ~floco.packages.<ident>.<version>.installed.scripts~
+- description :: Scripts that should be run during "install" process.
+These scripts are run in the order listed, and if a script is
+undefined in =package.json= it is skipped.
+- type :: list of string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+[
+  "install:part1"
+  "install:part2"
+]
+#+END_SRC
+
+**** =tree=
+- option :: ~floco.packages.<ident>.<version>.installed.tree~
+- description :: =node_modules/= tree used for installing.
+- type :: null or package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/modules/package/targets/installed/interface.nix]]
 
 *** =key=
 - option :: ~floco.packages.<ident>.<version>.key~
@@ -237,7 +331,7 @@ patch shebangs yet - patching should be deferred to the
 =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/modules/package/interface.nix]]
-- example :: ="@floco/test/4.2.0"=
+- example :: =@floco/test/4.2.0=
 
 *** =lint=
 - option :: ~floco.packages.<ident>.<version>.lint~
@@ -270,15 +364,13 @@ See Also: test
 
 **** =binInfo=
 - option :: ~floco.packages.<ident>.<version>.pdef.binInfo~
-- description :: Indicates files or directories which should be prepared for use as
-executable scripts.
+- description :: Indicates files or directories which should be prepared for use as executable scripts.
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/modules/pdef/binInfo/interface.nix]]
 
 ***** =binDir=
 - option :: ~floco.packages.<ident>.<version>.pdef.binInfo.binDir~
-- description :: Relative path to a subdir from which all files should be prepared
-as executables.
+- description :: Relative path to a subdir from which all files should be prepared as executables.
 Executable names will be defined as the basename of each file with
 any extensions stripped.
 - type :: null or string
@@ -286,8 +378,7 @@ any extensions stripped.
 
 ***** =binPairs=
 - option :: ~floco.packages.<ident>.<version>.pdef.binInfo.binPairs~
-- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping
-exposed executables scripts to their associated sources.
+- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping exposed executables scripts to their associated sources.
 - type :: attribute set of string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/modules/pdef/binInfo/interface.nix]]
 
@@ -305,8 +396,7 @@ information needed to generate trees if they are not defined.
 
 ***** =bundled=
 - option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.bundled~
-- description :: Whether the dependency is distributed in registry tarballs alongside
-the consumer.
+- description :: Whether the dependency is distributed in registry tarballs alongside the consumer.
 
 This is sometimes used to include patched modules, but whenver possible
 bundling should be avoided in favor of tooling like =esbuild=
@@ -317,10 +407,9 @@ is fraught.
 
 ***** =descriptor=
 - option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a dependency.
+- description :: Descriptor indicating version range or exact source required to satisfy a dependency.
 
-The value ="*"= allows any version or source to be used, as long as it
+The value =*= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/modules/pdef/depInfo/single.interface.nix]]
@@ -346,8 +435,7 @@ the build of the consumer.
 
 ***** =pin=
 - option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.pin~
-- description :: An exact version number or URI indicating the "resolved" form of a
-dependency descriptor.
+- description :: An exact version number or URI indicating the "resolved" form of a dependency descriptor.
 
 This will be used for =treeInfo= formation, and is available for usage
 by extensions to =floco=.
@@ -374,8 +462,7 @@ If set to `null', `sourceInfo' must be set explicitly.
 
 **** =fsInfo=
 - option :: ~floco.packages.<ident>.<version>.pdef.fsInfo~
-- description :: Indicates information about a package that must be scraped from its
-source tree, rather than a conventional config file.
+- description :: Indicates information about a package that must be scraped from its source tree, rather than a conventional config file.
 
 It is not recommended for users to manually fill these fields; rather
 we expect these to be informed by a cache or lockfile.
@@ -440,20 +527,18 @@ field exists as a stub.
 - description :: Package identifier/name as found in =package.json:.name=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="@floco/foo"=
+- example :: =@floco/foo=
 
 **** =key=
 - option :: ~floco.packages.<ident>.<version>.pdef.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
+- description :: Unique key used to refer to this package in =tree= submodules and other =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="@floco/foo/4.2.0"=
+- example :: =@floco/foo/4.2.0=
 
 **** =lifecycle=
 - option :: ~floco.packages.<ident>.<version>.pdef.lifecycle~
-- description :: Enables/disables phases executed when preparing a package/module for
-consumption or installation.
+- description :: Enables/disables phases executed when preparing a package/module for consumption or installation.
 
 Executing a phase when no associated script is defined is not
 necessarily harmful, but has a drastic impact on performance and may
@@ -504,8 +589,7 @@ See Also: lifecycle, fetchInfo
 
 **** =peerInfo=
 - option :: ~floco.packages.<ident>.<version>.pdef.peerInfo~
-- description :: Set of propagated dependencies that consumers of this package/module
-must provide at runtime.
+- description :: Set of propagated dependencies that consumers of this package/module must provide at runtime.
 
 Often peer dependencies are used to enforce interface alignment across
 a set of modules but do not necessarily imply that the requestor depends
@@ -525,10 +609,9 @@ in practice a parent directory also works, but you get the idea.
 
 ***** =descriptor=
 - option :: ~floco.packages.<ident>.<version>.pdef.peerInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a peer dependency.
+- description :: Descriptor indicating version range or exact source required to satisfy a peer dependency.
 
-The value ="*"= allows any version or source to be used, as long as it
+The value =*= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/modules/pdef/peerInfo/single.interface.nix]]
@@ -578,8 +661,7 @@ guaranteed to be stable and their schema may change at any time
 
 ***** =outPath=
 - option :: ~floco.packages.<ident>.<version>.pdef.sourceInfo.outPath~
-- description :: A Nix Store path containing the unpacked source tree in which this
-package/module resides.
+- description :: A Nix Store path containing the unpacked source tree in which this package/module resides.
 The package need not be at the root this path; but when the project
 root is a subdir the option `fsInfo.dir` must be set in order for
 `package.json` and other metadata to be translated.
@@ -595,7 +677,7 @@ root is a subdir the option `fsInfo.dir` must be set in order for
 ***** =cpu=
 - option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.cpu~
 - description :: List of supported CPU architectures.
-The string ="*"= indicates that all CPUs are supported.
+The string =*= indicates that all CPUs are supported.
 - type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
 
@@ -610,12 +692,12 @@ The string ="*"= indicates that all CPUs are supported.
 - description :: Supported Node.js versions.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
-- example :: =">=14"=
+- example :: =>=14=
 
 ***** =os=
 - option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.os~
 - description :: List of supported operating systems.
-The string ="*"= indicates that all operating systems
+The string =*= indicates that all operating systems
 are supported.
 - type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
@@ -663,8 +745,7 @@ This includes common tasks such as building, testing, and linting.
 
 ***** =key=
 - option :: ~floco.packages.<ident>.<version>.pdef.treeInfo.<name>.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
+- description :: Unique key used to refer to this package in =tree= submodules and other =floco= configs, metadata, and structures.
 - type :: null or string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/modules/pdef/treeInfo/single.interface.nix]]
 
@@ -685,12 +766,11 @@ the build of the consumer.
 - description :: Package version as found in =package.json:.version=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="4.2.0"=
+- example :: =4.2.0=
 
 *** =preferMultipleOutputDerivations=
 - option :: ~floco.packages.<ident>.<version>.preferMultipleOutputDerivations~
-- description :: Whether builders should prefer preparing sources with a single multiple
-output derivation vs. multiple single output derivations.
+- description :: Whether builders should prefer preparing sources with a single multiple output derivation vs. multiple single output derivations.
 
 Setting this to =false= is sometimes useful for breaking dependency
 cycles for =global= packages or to intentionally introduce additional
@@ -706,9 +786,7 @@ requires a full sandbox to be created for each stage.
 
 *** =prepared=
 - option :: ~floco.packages.<ident>.<version>.prepared~
-- description :: Fully prepared form of package/module tree making it ready for
-consumption as either a globally installed package, or module under a
-=node_modules/= tree.
+- description :: Fully prepared form of package/module tree making it ready for consumption as either a globally installed package, or module under a =node_modules/= tree.
 
 Generally this option is an alias of a previous stage; but this also
 provides a useful opportunity to explicitly define additional
@@ -757,16 +835,13 @@ See Also: lint
 
 *** =trees=
 - option :: ~floco.packages.<ident>.<version>.trees~
-- description :: Stashes =node_modules/= trees used for lifecycle events.
-These are used to populate defaults for =lint.tree=, =built.tree=,
-=install.tree=, =test.tree=, etc.
+- description :: Stashes =node_modules/= trees used for lifecycle events. These are used to populate defaults for =lint.tree=, =built.tree=, =install.tree=, =test.tree=, etc.
 - type :: attribute set of package
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/modules/package/trees/interface.nix]]
 
 **** =dev=
 - option :: ~floco.packages.<ident>.<version>.trees.dev~
-- description :: =node_modules/= default tree used for pre-distribution phases such
-as build, lint, test, etc.
+- description :: =node_modules/= default tree used for pre-distribution phases such as build, lint, test, etc.
 NOTE: The final tree used for a lifecycle event is set in the
 =<EVENT>.tree= option - this option is a commonly used as the
 default value for those trees, or as a base to be modified.
@@ -775,8 +850,7 @@ default value for those trees, or as a base to be modified.
 
 **** =prod=
 - option :: ~floco.packages.<ident>.<version>.trees.prod~
-- description :: =node_modules/= tree used for =[pre|post]install= and "runtime" for
-globally installed packages.
+- description :: =node_modules/= tree used for =[pre|post]install= and "runtime" for globally installed packages.
 NOTE: The final tree used for a lifecycle event is set in the
 =<EVENT>.tree= option - this option is a commonly used as the
 default value for those trees, or as a base to be modified.
@@ -785,15 +859,13 @@ default value for those trees, or as a base to be modified.
 
 **** =supported=
 - option :: ~floco.packages.<ident>.<version>.trees.supported~
-- description :: A filtered form of =treeInfo= which drops unsupported
-optional dependencies.
+- description :: A filtered form of =treeInfo= which drops unsupported optional dependencies.
 - type :: null or (attribute set of (attribute set of boolean))
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/modules/package/trees/interface.nix]]
 
 ***** =dev=
 - option :: ~floco.packages.<ident>.<version>.trees.supported.<name>.dev~
-- description :: Whether the dependency is required ONLY during
-pre-distribution phases.
+- description :: Whether the dependency is required ONLY during pre-distribution phases.
 This includes common tasks such as building, testing,
 and linting.
 - type :: boolean
@@ -801,15 +873,13 @@ and linting.
 
 ***** =key=
 - option :: ~floco.packages.<ident>.<version>.trees.supported.<name>.key~
-- description :: Unique key used to refer to this package in =tree= submodules
-and other =floco= configs, metadata, and structures.
+- description :: Unique key used to refer to this package in =tree= submodules and other =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/modules/package/trees/interface.nix]]
 
 ** =pdefs=
 - option :: ~floco.pdefs~
-- description :: List of =pdef= metadata records for all known pacakges
-and modules.
+- description :: List of =pdef= metadata records for all known pacakges and modules.
 These records are used to generate build recipes and build plans.
 - type :: attribute set of attribute set of (submodule)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdefs/implementation.nix][<floco>/modules/pdefs/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdefs/interface.nix][<floco>/modules/pdefs/interface.nix]]
@@ -851,15 +921,13 @@ These records are used to generate build recipes and build plans.
 
 *** =binInfo=
 - option :: ~floco.pdefs.<ident>.<version>.binInfo~
-- description :: Indicates files or directories which should be prepared for use as
-executable scripts.
+- description :: Indicates files or directories which should be prepared for use as executable scripts.
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/modules/pdef/binInfo/interface.nix]]
 
 **** =binDir=
 - option :: ~floco.pdefs.<ident>.<version>.binInfo.binDir~
-- description :: Relative path to a subdir from which all files should be prepared
-as executables.
+- description :: Relative path to a subdir from which all files should be prepared as executables.
 Executable names will be defined as the basename of each file with
 any extensions stripped.
 - type :: null or string
@@ -867,8 +935,7 @@ any extensions stripped.
 
 **** =binPairs=
 - option :: ~floco.pdefs.<ident>.<version>.binInfo.binPairs~
-- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping
-exposed executables scripts to their associated sources.
+- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping exposed executables scripts to their associated sources.
 - type :: attribute set of string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/modules/pdef/binInfo/interface.nix]]
 
@@ -886,8 +953,7 @@ information needed to generate trees if they are not defined.
 
 **** =bundled=
 - option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.bundled~
-- description :: Whether the dependency is distributed in registry tarballs alongside
-the consumer.
+- description :: Whether the dependency is distributed in registry tarballs alongside the consumer.
 
 This is sometimes used to include patched modules, but whenver possible
 bundling should be avoided in favor of tooling like =esbuild=
@@ -898,10 +964,9 @@ is fraught.
 
 **** =descriptor=
 - option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a dependency.
+- description :: Descriptor indicating version range or exact source required to satisfy a dependency.
 
-The value ="*"= allows any version or source to be used, as long as it
+The value =*= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/modules/pdef/depInfo/single.interface.nix]]
@@ -927,8 +992,7 @@ the build of the consumer.
 
 **** =pin=
 - option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.pin~
-- description :: An exact version number or URI indicating the "resolved" form of a
-dependency descriptor.
+- description :: An exact version number or URI indicating the "resolved" form of a dependency descriptor.
 
 This will be used for =treeInfo= formation, and is available for usage
 by extensions to =floco=.
@@ -955,8 +1019,7 @@ If set to `null', `sourceInfo' must be set explicitly.
 
 *** =fsInfo=
 - option :: ~floco.pdefs.<ident>.<version>.fsInfo~
-- description :: Indicates information about a package that must be scraped from its
-source tree, rather than a conventional config file.
+- description :: Indicates information about a package that must be scraped from its source tree, rather than a conventional config file.
 
 It is not recommended for users to manually fill these fields; rather
 we expect these to be informed by a cache or lockfile.
@@ -1021,7 +1084,7 @@ field exists as a stub.
 - description :: Package identifier/name as found in =package.json:.name=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="@floco/foo"=
+- example :: =@floco/foo=
 
 *** =key=
 - option :: ~floco.pdefs.<ident>.<version>.key~
@@ -1029,12 +1092,11 @@ field exists as a stub.
 =floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="@floco/foo/4.2.0"=
+- example :: =@floco/foo/4.2.0=
 
 *** =lifecycle=
 - option :: ~floco.pdefs.<ident>.<version>.lifecycle~
-- description :: Enables/disables phases executed when preparing a package/module for
-consumption or installation.
+- description :: Enables/disables phases executed when preparing a package/module for consumption or installation.
 
 Executing a phase when no associated script is defined is not
 necessarily harmful, but has a drastic impact on performance and may
@@ -1046,8 +1108,7 @@ See Also: ltype
 
 **** =build=
 - option :: ~floco.pdefs.<ident>.<version>.lifecycle.build~
-- description :: Whether a package or module requires build scripts to be run before
-it is prepared for consumption.
+- description :: Whether a package or module requires build scripts to be run before it is prepared for consumption.
 
 This field should never be set to true when consuming registry
 tarballs even if they define build scripts, since they are
@@ -1057,9 +1118,7 @@ distributed after being built by authors and maintainers.
 
 **** =install=
 - option :: ~floco.pdefs.<ident>.<version>.lifecycle.install~
-- description :: Whether a package or module requires =[pre|post]install= scripts or
-=node-gyp= compilation to be performed before a distributed tarball
-is prepared for consumption.
+- description :: Whether a package or module requires =[pre|post]install= scripts or =node-gyp= compilation to be performed before a distributed tarball is prepared for consumption.
 - type :: boolean
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/modules/pdef/lifecycle/interface.nix]]
 
@@ -1085,8 +1144,7 @@ See Also: lifecycle, fetchInfo
 
 *** =peerInfo=
 - option :: ~floco.pdefs.<ident>.<version>.peerInfo~
-- description :: Set of propagated dependencies that consumers of this package/module
-must provide at runtime.
+- description :: Set of propagated dependencies that consumers of this package/module must provide at runtime.
 
 Often peer dependencies are used to enforce interface alignment across
 a set of modules but do not necessarily imply that the requestor depends
@@ -1106,10 +1164,9 @@ in practice a parent directory also works, but you get the idea.
 
 **** =descriptor=
 - option :: ~floco.pdefs.<ident>.<version>.peerInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a peer dependency.
+- description :: Descriptor indicating version range or exact source required to satisfy a peer dependency.
 
-The value ="*"= allows any version or source to be used, as long as it
+The value =*= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/modules/pdef/peerInfo/single.interface.nix]]
@@ -1159,8 +1216,7 @@ guaranteed to be stable and their schema may change at any time
 
 **** =outPath=
 - option :: ~floco.pdefs.<ident>.<version>.sourceInfo.outPath~
-- description :: A Nix Store path containing the unpacked source tree in which this
-package/module resides.
+- description :: A Nix Store path containing the unpacked source tree in which this package/module resides.
 The package need not be at the root this path; but when the project
 root is a subdir the option `fsInfo.dir` must be set in order for
 `package.json` and other metadata to be translated.
@@ -1176,7 +1232,7 @@ root is a subdir the option `fsInfo.dir` must be set in order for
 **** =cpu=
 - option :: ~floco.pdefs.<ident>.<version>.sysInfo.cpu~
 - description :: List of supported CPU architectures.
-The string ="*"= indicates that all CPUs are supported.
+The string =*= indicates that all CPUs are supported.
 - type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
 
@@ -1191,12 +1247,12 @@ The string ="*"= indicates that all CPUs are supported.
 - description :: Supported Node.js versions.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
-- example :: =">=14"=
+- example :: =>=14=
 
 **** =os=
 - option :: ~floco.pdefs.<ident>.<version>.sysInfo.os~
 - description :: List of supported operating systems.
-The string ="*"= indicates that all operating systems
+The string =*= indicates that all operating systems
 are supported.
 - type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/modules/pdef/sysInfo/interface.nix]]
@@ -1266,4 +1322,4 @@ the build of the consumer.
 - description :: Package version as found in =package.json:.version=.
 - type :: string matching a regex pattern
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/modules/pdef/interface.nix]]
-- example :: ="4.2.0"=
+- example :: =4.2.0=
