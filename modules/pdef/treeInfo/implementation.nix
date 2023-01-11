@@ -21,8 +21,8 @@
     _export = lib.mkIf cond {
       treeInfo = let
         subs = import ./single.interface.nix { inherit lib; };
-      in builtins.mapAttrs ( _: e: builtins.mapAttrs ( f: v:
-        lib.mkIf ( v != ( subs.options.${f}.default or false ) ) v
+      in builtins.mapAttrs ( _: e: lib.filterAttrs ( f: v:
+        ( v != ( subs.options.${f}.default or false ) )
       ) e ) config.treeInfo;
     };
 

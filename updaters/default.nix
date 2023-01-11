@@ -13,6 +13,7 @@
 , nodejs    ? pkgsFor.nodejs-slim-14_x
 , npm       ? pkgsFor.nodejs-14_x.pkgs.npm
 , gnused    ? pkgsFor.gnused
+, flakeRef  ? ../.
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -28,7 +29,10 @@ in {
     version = "0.1.0";
     drv = derivation {
       name = pname + "-" + version;
-      inherit system pname version scripts bash coreutils jq nodejs gnused npm;
+      inherit
+        system pname version scripts flakeRef
+        bash coreutils jq nodejs gnused npm
+      ;
       preferLocalBuild = true;
       allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
       PATH    = "${coreutils}/bin:${gnused}/bin";
@@ -41,14 +45,16 @@ in {
           bname="''${bname:33}";
           case "$bname" in
             npm-plock.sh)
+              extra=": \\\"\\\''${FLAKE_REF:=$flakeRef}\\\";";
               spath="$npm/bin:$common_path:$gnused/bin";
             ;;
-            *) spath="$common_path"; ;;
+            *) extra=""; spath="$common_path"; ;;
           esac
+          PATH_INJECT="PATH=\\\"$spath:\\\$PATH\\\";";
           {
             echo "#! $bash/bin/bash";
             tail -n +2 "$script";
-          }|sed "s,^# @BEGIN_INJECT_UTILS@\$,PATH=\\\"$spath:\\\$PATH\\\";,"  \
+          }|sed "s,^# @BEGIN_INJECT_UTILS@\$,$extra\n$PATH_INJECT,"  \
                 >"$out/bin/$bname";
           chmod +x "$out/bin/$bname";
         done

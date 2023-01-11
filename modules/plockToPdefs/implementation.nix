@@ -107,14 +107,17 @@
   # `treeInfo' for root package
   rootTreeInfo = let
     mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
-  in builtins.mapAttrs mkTreeEnt plconf.config.plents;
+    noDotDot  = lib.filterAttrs ( path: _:
+      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
+    ) plconf.config.plents;
+  in builtins.mapAttrs mkTreeEnt noDotDot;
 
   rough = let
     proc = plentKey: plentRaw: [
       { config = toPdef plentKey plentRaw; }
     ] ++ (
       if plentKey == "" then [{
-        config.treeInfo = lib.mkForce ( removeAttrs rootTreeInfo [""] );
+        config.treeInfo = removeAttrs rootTreeInfo [""];
         config._export.treeInfo = let
           base = removeAttrs rootTreeInfo [""];
           nopt = builtins.mapAttrs ( _: v:
@@ -122,8 +125,8 @@
           ) base;
           ndev = builtins.mapAttrs ( _: v:
             if v.dev then v else removeAttrs v ["dev"]
-          ) base;
-        in lib.mkForce ndev;
+          ) nopt;
+        in ndev;
       }] else []
     ) ++ [../pdef];
   in builtins.mapAttrs proc plconf.config.plents;
