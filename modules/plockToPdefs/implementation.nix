@@ -110,13 +110,12 @@
   in builtins.mapAttrs mkTreeEnt plconf.config.plents;
 
   rough = let
-    proc = plentKey: plentRaw: [
-      { config = toPdef plentKey plentRaw; }
-    ] ++ (
-      if plentKey == "" then [{
-        config.treeInfo = lib.mkForce ( removeAttrs rootTreeInfo [""] );
-      }] else []
-    ) ++ [../pdef];
+    proc = plentKey: plentRaw: let
+      core = toPdef plentKey plentRaw;
+      mt   = if plentKey != "" then {} else {
+        treeInfo = removeAttrs rootTreeInfo [""];
+      };
+    in { config = core // mt; };
   in builtins.mapAttrs proc plconf.config.plents;
 
   translatedPlents = rough;
@@ -149,17 +148,27 @@
 
 # ---------------------------------------------------------------------------- #
 
-  configs = builtins.concatLists ( builtins.attrValues translatedPlents );
+  allPdefs = builtins.attrValues translatedPlents;
+
+  pdefs = map ( v: {
+    pdefs.${v.config.ident}.${v.config.version} =
+      ( lib.evalModules { modules = [../pdef v]; } ).config._export;
+  } ) ( builtins.filter ( v: v.config.ltype != "link" ) allPdefs );
+
+
+# ---------------------------------------------------------------------------- #
+
+  flat = ( lib.evalModules { modules = [../pdefs] ++ pdefs; } ).config;
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
 
-  inherit configs;
-  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
-    ( lib.evalModules { inherit modules; } ).config
-  ) translatedPlents );
+  inherit allPdefs flat;
+  definitions   = pdefs;
+  minimal.pdefs =
+    builtins.mapAttrs ( _: builtins.mapAttrs ( _: v: v._export ) ) flat.pdefs;
 
 }
 

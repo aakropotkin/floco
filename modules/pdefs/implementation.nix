@@ -16,7 +16,7 @@ in {
 
   options.pdefs = lib.mkOption {
     type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
+      shorthandOnlyDefinesConfig = false;
       modules = [
         ( { options, ... }: let
           inherit (options.key) loc;

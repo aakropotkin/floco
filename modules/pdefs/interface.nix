@@ -22,7 +22,7 @@ in {
     '';
 
     type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
+      shorthandOnlyDefinesConfig = false;
       modules = [../pdef/interface.nix];
     } ) );
     example = {

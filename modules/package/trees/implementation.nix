@@ -27,33 +27,34 @@
         inherit floco;
       } ( import ../../../builders/tree.nix ) args;
     in if ( args.keyTree or args.pathTree or {} ) == {} then null else real;
-  in lib.mkIf ( config.pdef.treeInfo != null ) {
+    cond = config.pdef.treeInfo != null;
+  in {
 
 # ---------------------------------------------------------------------------- #
 
-    supported = lib.filterAttrs ( k: v: let
+    supported = lib.mkIf cond ( lib.filterAttrs ( k: v: let
       ident   = dirOf v.key;
       version = baseNameOf v.key;
     in ( ! v.optional ) ||
       floco.packages.${ident}.${version}.systemSupported
-    ) config.pdef.treeInfo;
+    ) config.pdef.treeInfo );
 
 
 # ---------------------------------------------------------------------------- #
 
-    prod = lib.mkDefault ( mkTree {
+    prod = lib.mkIf cond ( lib.mkDefault ( mkTree {
       keyTree = let
         keeps = lib.filterAttrs ( _: { dev ? false, ... }: ! dev )
                                 config.trees.supported;
       in builtins.mapAttrs ( _: v: v.key ) keeps;
-    } );
+    } ) );
 
 
 # ---------------------------------------------------------------------------- #
 
-    dev = lib.mkDefault ( mkTree {
+    dev = lib.mkIf cond ( lib.mkDefault ( mkTree {
       keyTree = builtins.mapAttrs ( _: v: v.key ) config.trees.supported;
-    } );
+    } ) );
 
 
 # ---------------------------------------------------------------------------- #
