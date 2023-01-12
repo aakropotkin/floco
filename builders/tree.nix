@@ -50,14 +50,14 @@ in {
   ) keyTree
 
 , name ? "node_modules"
-}: let
+} @ args: let
 
 # ---------------------------------------------------------------------------- #
 
   checkDotDot = let
     check = p: ! ( lib.hasPrefix "../" p );
   in x:
-    if builtins.all check ( builtins.attrNames pathTree ) then x else
+    if builtins.all check ( builtins.attrNames x.passthru.pathTree ) then x else
     throw "tree: Encountered `../*' path in `pathTree'.";
 
   drv = derivation {
@@ -82,7 +82,13 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-in checkDotDot drv
+  final = drv // {
+    passthru = ( builtins.intersectAttrs { keyTree = true; } args ) // {
+      inherit pathTree;
+    };
+  };
+
+in checkDotDot final
 
 
 # ---------------------------------------------------------------------------- #
