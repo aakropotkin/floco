@@ -171,7 +171,9 @@ in {
   inherit configs;
   packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
     ( lib.evalModules { inherit modules; } ).config
-  ) translatedPlents );
+  ) ( lib.filterAttrs ( path: _:
+    ( path == "" ) || ( lib.hasPrefix "node_modules" path )
+  ) ( translatedPlents ) ) );
 
 }
 

@@ -39,7 +39,12 @@ in {
                config.preferMultipleOutputDerivations
             then []
             else [config.test];
-        in [pkgs.jq] ++ maybeTest;
+          maybeXcbuild = if pkgs.stdenv.isDarwin then [pkgs.xcbuild] else [];
+        in [
+          pkgs.jq
+          pkgs.nodejs-14_x.pkgs.node-gyp
+          pkgs.nodejs-14_x.python
+        ] ++ maybeXcbuild ++ maybeTest;
         buildInputs = [pkgs.nodejs-14_x];
         configurePhase = ''
           runHook preConfigure;
