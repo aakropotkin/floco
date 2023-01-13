@@ -20,7 +20,8 @@
 , boost    ? pkgsFor.boost
 , treeFor  ? import ../treeFor { inherit nixpkgs system pkgsFor; }
 , semver   ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
-, npm      ? pkgsFor.nodejs-14_x.pkgs.npm
+, nodejs   ? pkgsFor.nodejs-slim-14_x
+, npm      ? nodejs.pkgs.npm
 , bash     ? pkgsFor.bash
 , nix      ? nix-flake.packages.${system}.nix
 }: stdenv.mkDerivation {
@@ -33,9 +34,9 @@
     filter = name: type:
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
-  libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs = [nix.dev boost.dev];
-  propagatedBuildInputs = [npm treeFor semver];
+  libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
+  buildInputs           = [nix.dev boost.dev];
+  propagatedBuildInputs = [nodejs npm treeFor semver];
   buildPhase = ''
     runHook preBuild;
     $CXX -shared -o libfloco$libExt -std=c++17 ./*.cc  \
@@ -51,10 +52,15 @@
     # A wrapper around Nix that includes the \`libfloco' plugin.
     # First we add runtime executables to \`PATH', then pass off to Nix.
     for p in \$( <"$out/nix-support/propagated-build-inputs"; ); do
-      PATH="\$PATH:\$p/bin";
+      if [[ -d "\$p/bin" ]]; then
+        PATH="\$PATH:\$p/bin";
+      fi
+      if [[ -d "\$p/lib/node_modules" ]]; then
+        NODE_PATH="\''${NODE_PATH:+$NODE_PATH:}\$p/lib/node_modules";
+      fi
     done
-    export PATH;
-    exec "$nix/bin/nix" --option plugin-files "$out/libexec/libfloco$libExt" "\$@";
+    export PATH NODE_PATH;
+    exec "$nix/bin/nix" --plugin-files "$out/libexec/libfloco$libExt" "\$@";
     EOF
     chmod +x "$out/bin/floco";
     runHook postInstall;
