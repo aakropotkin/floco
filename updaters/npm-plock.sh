@@ -53,7 +53,7 @@ ENVIRONMENT
   JQ            path to \`jq' executable.
   REALPATH      path to \`realpath' executable.
   FLOCO_CONFIG  path to a \`floco' configuration file. Used as \`--config'.
-  FLOCO_REF     flake URI ref to use for \`floco'.
+  FLAKE_REF     flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
 ";
 

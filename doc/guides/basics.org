@@ -222,6 +222,10 @@ To mark =typescript= as a globally installed dependency we will delete it
 from a fragment of our config metadata named
 [[https://github.com/aakropotkin/floco/blob/main/doc/modules/top.org#treeinfo][treeInfo]],
 and then move it to the =buildInputs= field of our =built= target.
+We could accomplish this same goal with other types of config settings,
+which we might prefer for projects that we regenerate frequently; but this
+is the simplest approach.
+
 Pop open the =pdefs.nix= file and we'll drop =typescript=.
 
 #+BEGIN_SRC nix

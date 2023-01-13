@@ -54,12 +54,12 @@
       PATH="\$PATH:\$p/bin";
     done
     export PATH;
-    exec $nix/bin/nix  \
-      --option extra-plugin-files $out/libexec/libfloco$libExt "\$@";
+    exec "$nix/bin/nix" --option plugin-files "$out/libexec/libfloco$libExt" "\$@";
     EOF
     chmod +x "$out/bin/floco";
     runHook postInstall;
   '';
+  meta.mainProgram = "floco";
 }
 
 
