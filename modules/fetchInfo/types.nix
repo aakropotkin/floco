@@ -23,31 +23,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-    fetchTree.any = nt.oneOf [
-      types.fetchTree.tarball
-      types.fetchTree.file
-      types.fetchTree.github
-      types.fetchTree.git
-      # TODO:
-      #types.fetchTree.path
-      #types.fetchTree.mercurial
-      #types.fetchTree.gitlab
-    ];
-
-
-# ---------------------------------------------------------------------------- #
-
-    fetchInfo = nt.oneOf [
-      types.fetchTree.tarball
-      types.fetchTree.file
-      types.fetchTree.github
-      types.fetchTree.git
-      types.path
-    ];
-
-
-# ---------------------------------------------------------------------------- #
-
   };
 
 in types
