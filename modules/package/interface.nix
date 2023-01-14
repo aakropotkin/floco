@@ -39,7 +39,7 @@ in {
       '';
       type = nt.submoduleWith {
         shorthandOnlyDefinesConfig = true;
-        modules = [../pdef/interface.nix];
+        modules                    = [];
       };
     };
 

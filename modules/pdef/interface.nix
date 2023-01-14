@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# A `options.floco.packages' submodule representing the definition of
+# A `options.floco.pdefs.*.*' submodule representing the definition of
 # a single Node.js pacakage.
 #
 # ---------------------------------------------------------------------------- #

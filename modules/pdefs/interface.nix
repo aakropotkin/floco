@@ -21,10 +21,11 @@ in {
       These records are used to generate build recipes and build plans.
     '';
 
-    type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = false;
-      modules = [../pdef/interface.nix];
+    type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
+      modules                    = [];
     } ) );
+
     example = {
       lodash."4.17.21" = {
         ident     = "lodash";
@@ -50,7 +51,7 @@ in {
       };
     };
 
-    default.lodash."4.17.21" = { ident = "lodash"; version = "4.17.21"; };
+    default = {};
 
   };  # End `options.pdefs'
 

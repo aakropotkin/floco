@@ -69,8 +69,8 @@ in {
     passAsFile = ["text"];
     text       = lib.libdoc.renderOrgFile { inherit options; };
     args       = ["-eu" "-o" "pipefail" "-c" ''
-      while read line; do
-        echo "$line" >> "$out";
+      while IFS= read line; do
+        printf '%s\n' "$line" >> "$out";
       done <"$textPath";
     ''];
   };
