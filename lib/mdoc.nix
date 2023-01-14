@@ -163,7 +163,7 @@
         else lib.generators.toPretty {} example;
     in if ! ( fields ? example ) then "" else
        if ( builtins.match ".*\n.*" e ) == null
-       then "- example :: =${e}=\n"
+       then "- example :: ~${e}~\n"
        else "- example ::\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
     declPaths = let
       gen = p: let
