@@ -9,21 +9,21 @@
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
-  ft = import ../../../types.nix { inherit lib; };
+  ft = import ../../../fetchInfo/types.nix { inherit lib; };
 
 # ---------------------------------------------------------------------------- #
 
 in {
 
-  fetchTree.file = lib.mkOption {
-    description = lib.mdDoc "`builtins.fetchTree[file]` args";
+  options.tarball = lib.mkOption {
+    description = lib.mdDoc "`builtins.fetchTree[tarball]` args";
     type        = nt.deferredModuleWith {
       staticModules = [
         ( { ... }: {
           options = {
             type = lib.mkOption {
-              type    = nt.enum ["file"];
-              default = "file";
+              type    = nt.enum ["tarball"];
+              default = "tarball";
             };
             url     = lib.mkOption { type = nt.str; };
             narHash = lib.mkOption {

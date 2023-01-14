@@ -4,13 +4,13 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib, config, pure, ... }: {
 
   # TODO: get `narHash' as well
-  config.github = lib.mkIf ( ! config.pure ) ( { config, ... }: {
+  config.git = lib.mkIf ( ! pure ) ( { config, ... }: {
     config.rev = lib.mkDefault ( builtins.fetchTree {
-      type = "github";
-      inherit (config) owner repo ref;
+      type = "git";
+      inherit (config) url allRefs shallow submodules ref;
     } ).rev;
   } );
 

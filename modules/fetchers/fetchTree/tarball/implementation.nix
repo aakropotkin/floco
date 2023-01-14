@@ -4,11 +4,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib, config, pure, ... }: {
 
-  config.file = lib.mkIf ( ! config.pure ) ( { config, ... }: {
+  config.tarball = lib.mkIf ( ! pure ) ( { config, ... }: {
     config.narHash = lib.mkDefault ( builtins.fetchTree {
-      type = "file";
+      type = "tarball";
       inherit (config) url;
     } ).narHash;
   } );
