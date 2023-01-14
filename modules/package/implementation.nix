@@ -19,7 +19,7 @@ in {
   options.pdef = lib.mkOption {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
-      modules = [../pdef/implementation.nix];
+      modules                    = [( { ... }: { imports = [floco.pdef]; } )];
     };
   };
 

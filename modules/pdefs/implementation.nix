@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, ... }: let
+{ lib, options, config, ... }: let
 
   nt   = lib.types;
   oloc = builtins.length options.pdefs.loc;
@@ -15,12 +15,13 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.pdefs = lib.mkOption {
-    type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = false;
+    type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
       modules = [
         ( { options, ... }: let
           inherit (options.key) loc;
         in {
+          imports = [config.pdef];
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".
           # The lowest priority is 1500 which is used by
@@ -31,7 +32,6 @@ in {
           config.version =
             lib.mkOverride 1400 ( builtins.elemAt loc ( oloc + 1 ) );
         } )
-        ../pdef/implementation.nix
       ];
     } ) );
   };

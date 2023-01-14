@@ -18,7 +18,11 @@ in {
     '';
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
-      modules = [../pdefs/interface.nix ../packages/interface.nix];
+      modules = [
+        ../pdef/deferred.nix
+        ../pdefs/interface.nix
+        ../packages/interface.nix
+      ];
       specialArgs.lib =
         if lib ? libfloco then lib else import ../../lib { inherit lib; };
     };
