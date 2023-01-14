@@ -26,46 +26,8 @@
 
   optDefs = {
 
-    fetchTree.tarball = { config, ... }: {
-      type    = "tarball";
-      narHash = (builtins.fetchTree {
-        type = "tarball";
-        inherit (config) url;
-      }).narHash;
-    } // config;
-
-    fetchTree.file = { config, ... }: {
-      type    = "file";
-      narHash = (builtins.fetchTree {
-        type = "file";
-        inherit (config) url;
-      }).narHash;
-    } // config;
-
-    fetchTree.github = { config, ... }: {
-      type = "github";
-      rev  = (builtins.fetchTree {
-        type = "github";
-        inherit (config) owner repo ref;
-      }).rev;
-    } // config;
-
-    fetchTree.git = { config, ... }: {
-      type = "git";
-      rev  = (builtins.fetchTree {
-        type = "github";
-        inherit (config) owner repo ref;
-      }).rev;
-    } // config;
-
     fetchTree.any = { config, ... } @ args:
       optDefs.fetchTree.${config.type} args;
-
-    path = { config, ... }: {
-      sha256 = (builtins.fetchTree {
-        type = "path";
-        path = builtins.path config;
-      }).narHash;
     } // config;
 
     fetchInfo = { config, ... } @ args:

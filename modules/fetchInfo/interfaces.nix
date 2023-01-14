@@ -16,43 +16,13 @@
 
 in {
 
-  fetchTree.tarball = lib.mkOption {
-    description = "`builtins.fetchTree[tarball]' args";
-    type        = ft.fetchTree.tarball;
-  };
-
-  fetchTree.file = lib.mkOption {
-    description = "`builtins.fetchTree[file]' args";
-    type        = ft.fetchTree.file;
-  };
-
-  fetchTree.github = lib.mkOption {
-    description = "`builtins.fetchTree[github]' args";
-    type        = ft.fetchTree.github;
-  };
-
-  fetchTree.git = lib.mkOption {
-    description = "`builtins.fetchTree[git]' args";
-    type        = ft.fetchTree.git;
-  };
-
-  fetchTree.any = lib.mkOption {
-    description = "`builtins.fetchTree' args";
-    type        = ft.fetchTree.any;
-  };
-
-  path = lib.mkOption {
-    description = "`builtins.path' args";
-    type        = ft.path;
-  };
-
   fetchInfo = lib.mkOption {
-    description = ''
+    description = lib.mdDoc ''
       Arguments passed to fetcher.
-      By default any `builtins.fetchTree' or `builtins.path' argset is
+      By default any `builtins.fetchTree` or `builtins.path` argset is
       supported, and the correct fetcher can be inferred from these values.
 
-      If set to `null', `sourceInfo' must be set explicitly.
+      If set to `null`, `sourceInfo` must be set explicitly.
     '';
     type = ( nt.submodule {
       freeformType =
