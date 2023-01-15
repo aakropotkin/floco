@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# Arguments used to fetch a source tree or file.
+# Arguments used to fetch a source tree from github.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -15,8 +15,8 @@
 
 in {
 
-  options.fetchTree_git = lib.mkOption {
-    description = lib.mdDoc "`builtins.fetchTree[git]` args";
+  options.fetchTree_github = lib.mkOption {
+    description = lib.mdDoc "`builtins.fetchTree[github]` args";
   };
 
 }

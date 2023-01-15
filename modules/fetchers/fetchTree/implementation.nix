@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# Arguments used to fetch a source tree or file.
+# Arguments used to fetch a source tree from a tarball.
 #
 # ---------------------------------------------------------------------------- #
 

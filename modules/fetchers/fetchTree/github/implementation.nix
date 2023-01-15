@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# Arguments used to fetch a source tree or github.
+# Arguments used to fetch a source tree from github.
 #
 # ---------------------------------------------------------------------------- #
 
