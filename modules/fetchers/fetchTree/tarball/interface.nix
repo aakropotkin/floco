@@ -15,25 +15,8 @@
 
 in {
 
-  options.tarball = lib.mkOption {
+  options.fetchTree_tarball = lib.mkOption {
     description = lib.mdDoc "`builtins.fetchTree[tarball]` args";
-    type        = nt.deferredModuleWith {
-      staticModules = [
-        ( { ... }: {
-          options = {
-            type = lib.mkOption {
-              type    = nt.enum ["tarball"];
-              default = "tarball";
-            };
-            url     = lib.mkOption { type = nt.str; };
-            narHash = lib.mkOption {
-              type    = nt.nullOr ft.narHash;
-              default = null;
-            };
-          };
-        } )
-      ];
-    };
   };
 
 }

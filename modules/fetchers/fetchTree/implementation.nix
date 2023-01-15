@@ -16,47 +16,52 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  options.fetchTree = lib.mkOption {
-    type = nt.submoduleWith {
-      modules = [
-        ( { config, ... } @ _fetchTree: {
+  imports = [./tarball/implementation.nix];
 
-          imports = [
-            ./file/implementation.nix
-            ./tarball/implementation.nix
-            ./git/implementation.nix
-            ./github/implementation.nix
-          ];
 
-          options.any = lib.mkOption {
-            type = nt.deferredModuleWith {
-              staticModules = [
-                ( { ... }: {
-                  freeformType = let
-                    mkSub = def: nt.submodule {
-                      imports = [def];
-                      config._module.args.pure = _fetchInfo.config.pure;
-                    };
-                  in nt.oneOf ( map mkSub [
-                    _fetchTree.config.file
-                    _fetchTree.config.tarball
-                    _fetchTree.config.git
-                    _fetchTree.config.github
-                  ] );
-                } )
-              ];
-            };
-            default = {};
-          };
+# ---------------------------------------------------------------------------- #
 
-          config._module.args.pure = _fetchInfo.config.pure;
-        } )
-      ];
-    };  # End `options.fetchInfo.type'
+  #options.fetchTree = lib.mkOption {
+  #  type = nt.submoduleWith {
+  #    modules = [
+  #      ( { config, ... } @ _fetchTree: {
 
-    default = {};
+  #        imports = [
+  #          ./file/implementation.nix
+  #          ./tarball/implementation.nix
+  #          ./git/implementation.nix
+  #          ./github/implementation.nix
+  #        ];
 
-  };  # End `options.fetchTree'
+  #        options.any = lib.mkOption {
+  #          type = nt.deferredModuleWith {
+  #            staticModules = [
+  #              ( { ... }: {
+  #                freeformType = let
+  #                  mkSub = def: nt.submodule {
+  #                    imports = [def];
+  #                    config._module.args.pure = _fetchInfo.config.pure;
+  #                  };
+  #                in nt.oneOf ( map mkSub [
+  #                  _fetchTree.config.file
+  #                  _fetchTree.config.tarball
+  #                  _fetchTree.config.git
+  #                  _fetchTree.config.github
+  #                ] );
+  #              } )
+  #            ];
+  #          };
+  #          default = {};
+  #        };
+
+  #        config._module.args.pure = _fetchInfo.config.pure;
+  #      } )
+  #    ];
+  #  };  # End `options.fetchInfo.type'
+
+  #  default = {};
+
+  #};  # End `options.fetchTree'
 
 
 # ---------------------------------------------------------------------------- #

@@ -63,7 +63,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    deserializeFetchInfo = _file: fetchInfo: lib.mkDefault (
+    deserializeFetchInfo = lib.mkDefault ( _file: fetchInfo:
       fetchInfo // {
         path = if lib.isAbspath fetchInfo.path then fetchInfo.path else
               ( dirOf _file ) + ( "/" + fetchInfo.path );
@@ -97,7 +97,9 @@ in {
             locked = fetchers.config.path.lockFetchInfo {
               inherit (config) name path filter recursive;
             };
-          in lib.mkIf ( ! fetchers.config.path.pure ) locked.sha256;
+          in lib.mkIf ( ! fetchers.config.path.pure ) (
+            lib.mkDefault locked.sha256
+          );
         } )
       ];
     };  # End `fetchInfo'
