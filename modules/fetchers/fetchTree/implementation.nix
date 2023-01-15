@@ -19,6 +19,8 @@ in {
   imports = [
     ./tarball/implementation.nix
     ./file/implementation.nix
+    ./git/implementation.nix
+    ./github/implementation.nix
   ];
 
 

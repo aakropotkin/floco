@@ -20,6 +20,8 @@ in {
   imports = [
     ./tarball/interface.nix
     ./file/interface.nix
+    ./git/interface.nix
+    ./github/interface.nix
   ];
 
 
