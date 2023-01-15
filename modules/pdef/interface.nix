@@ -107,7 +107,7 @@ in {
         prematurely copying trees to the Nix store in the event that they aren't
         needed for the eventual build plan.
       '';
-      type    = nt.nullOr ( nt.lazyAttrsOf nt.raw );
+      type    = nt.nullOr ( nt.lazyAttrsOf nt.anything );
       default = null;
     };
 

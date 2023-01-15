@@ -42,8 +42,6 @@
 # ---------------------------------------------------------------------------- #
 
     fetchInfo = let
-      # Locks `fetchInfo'
-      fii = import ../fetchInfo/implementations.nix { inherit lib; };
       unlocked = {
         type = "tarball";
         url  = let
@@ -52,7 +50,7 @@
         in "https://registry.npmjs.org/${config.ident}/-/" +
            "${bname}-${version}.tgz";
       } // ( config.metaFiles.metaRaw.fetchInfo or {} );
-    in lib.mkDefault ( fii.fetchTree.tarball { config = unlocked; } );
+    in lib.mkDefault unlocked;
 
 
     sourceInfo = let
