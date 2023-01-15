@@ -16,7 +16,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  imports = [./tarball/implementation.nix];
+  imports = [
+    ./tarball/implementation.nix
+    ./file/implementation.nix
+  ];
 
 
 # ---------------------------------------------------------------------------- #
