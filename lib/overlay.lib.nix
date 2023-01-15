@@ -50,6 +50,7 @@ in {
     ./checkSystemSupport.nix
     ./focus-tree.nix
     ./options.nix
+    ./paths.nix
   ];
   libdoc = callLib ./mdoc.nix;
 

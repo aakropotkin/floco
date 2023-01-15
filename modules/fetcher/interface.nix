@@ -15,12 +15,14 @@
 in {
 
   options.fetcher = lib.mkOption {
+
     description = lib.mdDoc ''
       Abstract fetcher interface to be implemented by `floco.fetcher.*` members.
 
       The attribute name used for the fetcher may be written to lockfiles
       so choose wisely.
     '';
+
     type = nt.deferredModuleWith {
       staticModules = [
         ( { ... }: {
@@ -82,7 +84,7 @@ in {
                     type = "path";
                     path = outPath;
                   };
-                in { sha256 = narHash; } // fetchInfo;
+                in { sha256 = sourceInfo.narHash; } // fetchInfo;
               }
             '';
           };
@@ -101,11 +103,16 @@ in {
               This function's output should produce an exact replica of
               `fetchInfo` when passed to `deserializeFetchInfo`.
 
+              This routine accepts two arguemnts.
+              The first is `_file` indicating an absolute path the the file
+              being serialized to - this is useful for creating relative paths.
+              The second is the serialized form of `fetchInfo`.
+
               See Also: deserializeFetchInfo, lockFetchInfo
             '';
-            type = nt.functionTo ( nt.either nt.str (
+            type = nt.functionTo ( nt.functionTo ( nt.either nt.str (
               nt.attrsOf ( nullOr ( nt.oneOf [nt.str nt.int nt.bool] ) )
-            ) );
+            ) ) );
             default = let
               pred = _: v:
                 ( builtins.elem ( builtins.typeOf v ) [
@@ -116,7 +123,7 @@ in {
                 ) && (
                   ( builtins.isList v ) -> ( builtins.all pred v )
                 );
-            in lib.filterAttrsRecursive pred;
+            in _file: lib.filterAttrsRecursive pred;
           };
 
 
@@ -193,6 +200,7 @@ in {
         } )  # End module
       ];  # End `options.fetchers.type.modules'
     };  # End `options.fetchers.type'
+    default = {};
   };  # End `options.fetchers'
 
 
