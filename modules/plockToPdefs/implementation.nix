@@ -25,6 +25,11 @@
 
 # ---------------------------------------------------------------------------- #
 
+  inherit (( lib.evalModules { modules = [../fetchers]; } ).config) fetchers;
+
+
+# ---------------------------------------------------------------------------- #
+
   plconf = lib.evalModules {
     modules     = [../plock];
     specialArgs = { inherit lockDir plock; };
@@ -82,9 +87,9 @@
 
     fsInfo = { inherit gypfile; dir = "."; };
 
+    # TODO: `github'
     fetchInfo = let
-      # Locks `fetchInfo'
-      fii = import ../fetchInfo/implementations.nix { inherit lib; };
+      type = if ltype == "file" then "tarball" else "git";
     in if builtins.elem ltype ["dir" "link"] then {
       path = let
         len = builtins.stringLength resolved;
@@ -92,9 +97,18 @@
          if lib.hasPrefix "file:" resolved
          then lockDir + ( "/" + ( builtins.substring 5 len resolved ) )
          else lockDir + ( "/" + resolved );
-    } else fii.fetchTree.any {  # TODO: `github'
-      config.type = if ltype == "file" then "tarball" else "git";
-      config.url  = resolved;
+    } else if type == "git" then {
+      inherit type;
+      url        = resolved;
+      allRefs    = false;
+      submodules = false;
+      shallow    = true;
+      rev        = let
+        m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolved;
+      in builtins.head m;
+    } else {
+      inherit type;
+      url = resolved;
     };
 
     lifecycle.install = hasInstallScript;

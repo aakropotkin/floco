@@ -22,6 +22,8 @@ in {
         ../pdef/deferred.nix
         ../pdefs/interface.nix
         ../packages/interface.nix
+        ../fetcher/interface.nix
+        ../fetchers/interface.nix
       ];
       specialArgs.lib =
         if lib ? libfloco then lib else import ../../lib { inherit lib; };
