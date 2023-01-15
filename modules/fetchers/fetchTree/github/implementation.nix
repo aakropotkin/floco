@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
-  ft = import ../../../fetchInfo/types.nix { inherit lib; };
+  ft = import ../../types.nix { inherit lib; };
 
 # ---------------------------------------------------------------------------- #
 
@@ -56,21 +56,24 @@ in {
 
     serializeFetchInfo = lib.mkDefault ( _file: fetchInfo: let
       nd = lib.moduleDropDefaults config.fetchTree_github.fetchInfo fetchInfo;
-    in ( removeAttrs nd ["narHash"] ) // { type = "github"; } );
+    in ( removeAttrs nd ["narHash" "revOrRef"] ) // { type = "github"; } );
 
 
 # ---------------------------------------------------------------------------- #
 
-    deserializeFetchInfo = lib.mkDefault ( _file: s:
-      if builtins.isAttrs s then s else throw (
-        "floco:fetchTree[github]: Deserialization from string " +
-        "has not been implemented ( TODO )"
-      )
-    );
+    deserializeFetchInfo = lib.mkDefault ( _file: s: let
+      m  = builtins.match "github:([^/]+)/([^/]+)(/(.*))?" s;
+      rr = builtins.elemAt m 3;
+    in if builtins.isAttrs s then s else {
+      owner    = builtins.head m;
+      repo     = builtins.elemAt m 1;
+      revOrRef = if rr == null then "HEAD" else rr;
+    } );
 
 
 # ---------------------------------------------------------------------------- #
 
+    # TODO: enforce `pure' with a `check'.
     fetchInfo = nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
       modules = [
@@ -83,18 +86,26 @@ in {
             owner = lib.mkOption { type = nt.str; };
             repo  = lib.mkOption { type = nt.str; };
             rev   = lib.mkOption {
-              type    = nt.nullOr nt.str;
+              type    = nt.nullOr ft.rev;
               default = null;
             };
             ref     = lib.mkOption { type = nt.str; default = "HEAD"; };
-            narHash = lib.mkOption ( {
-              type = if fetchers.config.fetchTree_github.pure then ft.narHash
-                     else nt.nullOr ft.narHash;
-            } // ( if fetchers.config.fetchTree_github.pure then {} else {
+            narHash = lib.mkOption {
+              type    = nt.nullOr ft.narHash;
               default = null;
-            } ) );
+            };
+            revOrRef = lib.mkOption {
+              internal = true;
+              visible  = false;
+              type     = nt.either ft.rev nt.str;
+            };
           };  # End `fetchInfo.options'
 
+          config.revOrRef = lib.mkDefault (
+            if config.rev != null then config.rev else config.ref
+          );
+
+          # TODO: from `revOrRef'
           config.rev = let
             locked = fetchers.config.fetchTree_github.lockFetchInfo {
               type = "github";

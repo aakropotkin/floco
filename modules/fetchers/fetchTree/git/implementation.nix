@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
-  ft = import ../../../fetchInfo/types.nix { inherit lib; };
+  ft = import ../../types.nix { inherit lib; };
 
 # ---------------------------------------------------------------------------- #
 
@@ -97,7 +97,7 @@ in {
             shallow    = lib.mkOption { type = nt.bool; default = false; };
             submodules = lib.mkOption { type = nt.bool; default = false; };
             rev        = lib.mkOption {
-              type    = nt.nullOr nt.str;
+              type    = nt.nullOr ft.rev;
               default = null;
             };
             ref     = lib.mkOption { type = nt.str; default = "HEAD"; };

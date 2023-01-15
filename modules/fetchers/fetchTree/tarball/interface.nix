@@ -4,16 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, ... }: let
-
-# ---------------------------------------------------------------------------- #
-
-  nt = lib.types;
-  ft = import ../../../fetchInfo/types.nix { inherit lib; };
-
-# ---------------------------------------------------------------------------- #
-
-in {
+{ lib, ... }: {
 
   options.fetchTree_tarball = lib.mkOption {
     description = lib.mdDoc "`builtins.fetchTree[tarball]` args";
