@@ -59,6 +59,9 @@ in {
     getPdef
     checkSystemSupportFor
     focusTree
+    realpathRel
+    moduleDropDefaults
+    isAbspath
   ;
 
 }

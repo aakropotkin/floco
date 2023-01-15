@@ -9,36 +9,25 @@ let
   lib = import ../../../lib {};
 
   fetcherModules = [
+    ../../../modules/fetcher/interface.nix
     ../../../modules/fetchers/interface.nix
     ../../../modules/fetchers/implementation.nix
   ];
 
-  defInput = { options, config, ... }: {
-    options.input = lib.mkOption {
-      type = lib.types.submodule {
-        imports = [config.myFetchers.path];
-      };
-    };
+  defInput = { config, ... }: {
+    options.input = lib.mkOption { type = config.fetchers.path.fetchInfo; };
   };
 
   mod = lib.evalModules {
     modules = fetcherModules ++ [
-      ( { config, ... }: {
-        options.myFetchers = lib.mkOption {
-          type    = lib.types.submodule { imports = [config.fetchers]; };
-          default = {};
-        };
-      } )
       defInput
       {
-        config.input = {
-          path = ./.;
-        };
+        config.input.path = ./.;
       }
     ];
   };
 
-in mod.config
+in removeAttrs mod.config.input ["filter"]
 
 
 # ---------------------------------------------------------------------------- #

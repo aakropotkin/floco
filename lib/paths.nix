@@ -141,6 +141,7 @@
 in {
 
   inherit
+    isAbspath
     realpathRel
   ;
 

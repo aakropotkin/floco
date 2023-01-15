@@ -34,7 +34,6 @@ in {
               Whether fetcher is restricted to pure evaluations.
             '';
             type     = nt.bool;
-            default  = ! ( builtins ? currentSystem );
             readOnly = true;
           };
 
@@ -55,7 +54,6 @@ in {
           #  '';
           #  type     = nt.bool;
           #  readOnly = true;
-          #  default  = false;
           #};
 
 
@@ -68,9 +66,7 @@ in {
 
               This routine is used to create lockfiles during discovery phases.
             '';
-            type = nt.functionTo ( nt.attrsOf ( nullOr ( nt.oneOf [
-              nt.str nt.int nt.path nt.bool
-            ] ) ) );
+            type = nt.functionTo ( nt.lazyAttrsOf nt.raw );
             default = fetchInfo: let
               sourceInfo = builtins.fetchTree fetchInfo;
             in ( removeAttrs sourceInfo ["outPath"] ) // fetchInfo;
@@ -111,7 +107,7 @@ in {
               See Also: deserializeFetchInfo, lockFetchInfo
             '';
             type = nt.functionTo ( nt.functionTo ( nt.either nt.str (
-              nt.attrsOf ( nullOr ( nt.oneOf [nt.str nt.int nt.bool] ) )
+              nt.attrsOf ( nt.nullOr ( nt.oneOf [nt.str nt.int nt.bool] ) )
             ) ) );
             default = let
               pred = _: v:
@@ -145,9 +141,7 @@ in {
               See Also: serializeFetchInfo, lockFetchInfo
             '';
             type = nt.functionTo ( nt.functionTo ( nt.either nt.str (
-              nt.attrsOf ( nullOr ( nt.oneOf [
-                nt.str nt.path nt.int nt.bool
-              ] ) )
+              nt.lazyAttrsOf nt.raw
             ) ) );
             default = _file: original: original;
           };
@@ -162,11 +156,7 @@ in {
 
               This is used to typecheck when parsing lockfiles.
             '';
-            type = nt.submodule {
-              freeformType = nt.attrsOf ( nullOr ( nt.oneOf [
-                nt.str nt.int nt.path nt.bool
-              ] ) );
-            };
+            type = nt.optionType;
           };
 
 
@@ -181,12 +171,7 @@ in {
 
               This function must NOT return a raw string.
             '';
-            type = nt.functionTo ( nt.submodule {
-              freeformType = nt.attrsOf ( nt.nullOr ( nt.oneOf [
-                nt.str nt.path nt.int nt.bool
-              ] ) );
-              options.outPath = lib.mkOption { type = nt.path; };
-            } );
+            type    = nt.raw;
             example = lib.literalExpression ''
               {
                 function = fetchInfo: { outPath = builtins.path fetchInfo; }

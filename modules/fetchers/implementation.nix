@@ -4,12 +4,31 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, ... }: {
+{ lib, config, ... }: let
 
-  config.fetchers = { config, ... }: {
-    imports = [
-      ./path/implementation.nix
-    ];
+# ---------------------------------------------------------------------------- #
+
+  nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+in {
+
+  options.fetchers = lib.mkOption {
+    type = nt.submoduleWith {
+      modules = [
+        ( { ... }: {
+          freeformType = nt.attrsOf ( nt.submodule {
+            imports = [config.fetcher];
+          } );
+          imports = [
+            ./path/implementation.nix
+          ];
+          config._module.args = { inherit (config) fetcher; };
+        } )
+      ];
+    };
+    default = {};
   };
 
 }
