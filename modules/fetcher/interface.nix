@@ -127,8 +127,9 @@ in {
 
           options.deserializeFetchInfo = lib.mkOption {
             description = lib.mdDoc ''
-              Function which transforms serialized `fetchInfo` into its attrset
-              form as specified by the `fetchInfo` submodule.
+              Function which transforms serialized `fetchInfo` ( an attrset or
+              string ) into its attrset form as specified by the
+              `fetchInfo` submodule.
 
               This routine should produce an exact replica of the original
               record before it was serialized by `serializeFetchInfo`.
@@ -140,9 +141,7 @@ in {
 
               See Also: serializeFetchInfo, lockFetchInfo
             '';
-            type = nt.functionTo ( nt.functionTo ( nt.either nt.str (
-              nt.lazyAttrsOf nt.raw
-            ) ) );
+            type = nt.functionTo ( nt.functionTo ( nt.lazyAttrsOf nt.raw ) );
             default = _file: original: original;
           };
 

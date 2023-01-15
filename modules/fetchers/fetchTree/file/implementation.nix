@@ -32,6 +32,7 @@ in {
 
     function = lib.mkDefault builtins.fetchTree;
 
+
 # ---------------------------------------------------------------------------- #
 
     lockFetchInfo = lib.mkDefault ( fetchInfo: let
@@ -48,8 +49,28 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    serializeFetchInfo   = lib.mkDefault ( _file: fetchInfo: fetchInfo );
-    deserializeFetchInfo = lib.mkDefault ( _file: fetchInfo: fetchInfo );
+    serializeFetchInfo = lib.mkDefault ( _file: fetchInfo: fetchInfo );
+
+
+# ---------------------------------------------------------------------------- #
+
+    deserializeFetchInfo = lib.mkDefault ( _file: s: let
+        m    = builtins.match "([^?]+)\\?([^?]+)" s;
+        path = builtins.head m;
+        prms = builtins.elemAt m 1;
+        ps   = builtins.filter builtins.isString ( builtins.split "&" prms );
+        mnhp = builtins.filter ( lib.hasPrefix "narHash=" ) ps;
+        nhp  = builtins.head mnhp;
+        nh'  = if ( m == null ) || ( mnhp == [] ) then {} else {
+          narHash = builtins.head ( builtins.match "narHash=(.*)" nhp );
+        };
+      in if builtins.isAttrs s then s else {
+        type = "file";
+        url  = let
+          mf = builtins.match "file\\+(.*)" s;
+        in if mf == null then s else builtins.head mf;
+      } // nh'
+    );
 
 
 # ---------------------------------------------------------------------------- #
