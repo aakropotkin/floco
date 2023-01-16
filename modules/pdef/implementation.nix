@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib, config, fetchers, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -41,42 +41,26 @@
 
 # ---------------------------------------------------------------------------- #
 
-    fetchInfo = let
-      unlocked = {
-        type = "tarball";
-        url  = let
-          bname = baseNameOf config.ident;
-          inherit (config) version;
-        in "https://registry.npmjs.org/${config.ident}/-/" +
-           "${bname}-${version}.tgz";
-      } // ( config.metaFiles.metaRaw.fetchInfo or {} );
-    in lib.mkDefault unlocked;
+    fetchInfo = lib.mkDefault ( {
+      type = "tarball";
+      url  = let
+        bname = baseNameOf config.ident;
+        inherit (config) version;
+      in "https://registry.npmjs.org/${config.ident}/-/" +
+          "${bname}-${version}.tgz";
+    } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
 
 
     sourceInfo = let
-      # We wrap `builtins.path' to make paths absolute.
-      # TODO: use a `specialArgs.basedir' or find some way to access the
-      # declarations' `file' information so that this is less fucky.
-      # Honestly I really don't like relying on `metaFiles.*' being defined to
-      # handle this.
-      pathW = { path, ... } @ args: let
-        args' = if lib.hasPrefix "/" ( toString path ) then args else args // {
-          name = args.name or "source";
-          path =
-            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-            + "/" + path;
-        };
-      in builtins.path args';
-      isFT    = ( config.fetchInfo.type or null ) != null;
-      isFile  = ( config.fetchInfo.type or null ) == "file";
-      fetcher = if isFT then builtins.fetchTree else pathW;
-      src     = if isFile then builtins.fetchTarball {
-        url = "file:${
-          builtins.unsafeDiscardStringContext ( fetcher config.fetchInfo )
-        }";
-      } else fetcher config.fetchInfo;
+      type    = config.fetchInfo.type or "path";
+      isFT    = type != "path";
+      fetcher = if isFT then fetchers."fetchTree_${type}" else fetchers.path;
+      fetched = fetcher.function config.fetchInfo;
+      src     = if type != "file" then fetched else builtins.fetchTarball {
+        url = "file:${builtins.unsafeDiscardStringContext fetched}";
+      };
     in lib.mkDefault (
-      if isFT && ( ! isFile ) then src else { outPath = src; }
+      if isFT && ( type != "file" ) then src else { outPath = src; }
     );
 
 
