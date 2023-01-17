@@ -31,7 +31,7 @@ in {
 
   options.fetchInfo = lib.mkOption {
     type = let
-      coerce = fetcher.deserializeFetchInfo basedir;
+      coerce = fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
     in nt.coercedTo lib.types.str coerce fetcher.fetchInfo;
   };
 

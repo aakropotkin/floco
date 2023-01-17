@@ -27,8 +27,6 @@ in {
         in {
           imports = [config.pdef];
 
-          config._module.args.fetchers = lib.mkDefault config.fetchers;
-
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".
           # The lowest priority is 1500 which is used by

@@ -29,6 +29,10 @@ in {
       modules = [
         ( { ... }: {
 
+          _file = "<floco>/fetchers/interface.nix";
+
+          config._module.args.name = "fetchers";
+
           imports = [
             ./path/interface.nix
             ./fetchTree/interface.nix

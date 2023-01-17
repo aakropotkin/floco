@@ -1,4 +1,8 @@
 {
   _file   = "<floco>/pdefs";
-  imports = [./interface.nix ./implementation.nix];
+  imports = [
+    ../fetchers
+    ../pdef/deferred.nix
+    ./interface.nix ./implementation.nix
+  ];
 }

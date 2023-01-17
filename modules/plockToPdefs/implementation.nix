@@ -19,7 +19,7 @@
 
 { lib
 , lockDir
-, plock   ? lib.importJSON "${lockDir}/package-lock.json"
+, plock   ? lib.importJSON ( lockDir + "/package-lock.json" )
 , ...
 }: let
 
@@ -76,17 +76,6 @@
             if lib.hasPrefix "git+" resolved then "git" else
             if lib.hasPrefix "https" resolved then "file" else
             throw "Unable to derive lifecycle type from entry: '${pp}'.";
-  in {
-    inherit ident version key ltype;
-    binInfo.binPairs = bin;
-
-    metaFiles = {
-      inherit lockDir plentKey;
-      plent = plock.packages.${plentKey};
-    } // ( if plentKey != "" then {} else { inherit plock; } );
-
-    fsInfo = { inherit gypfile; dir = "."; };
-
     # TODO: `github'
     fetchInfo = let
       type = if ltype == "file" then "tarball" else "git";
@@ -110,8 +99,24 @@
       inherit type;
       url = resolved;
     };
+  in {
+    inherit ident version key ltype fetchInfo;
+
+    binInfo.binPairs = bin;
+
+    metaFiles = {
+      inherit lockDir plentKey;
+      plent = plock.packages.${plentKey};
+    } // ( if plentKey != "" then {} else { inherit plock; } );
+
+    fsInfo = { inherit gypfile; dir = "."; };
 
     lifecycle.install = hasInstallScript;
+
+    _module.args.basedir = lockDir;
+    _module.args.fetcher =
+      if fetchInfo ? path then fetchers.path else
+      fetchers."fetchTree_${fetchInfo.type}";
 
   };
 

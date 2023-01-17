@@ -68,8 +68,10 @@ in {
 # ---------------------------------------------------------------------------- #
 
     deserializeFetchInfo = lib.mkDefault ( _file: s: let
-      p      = s.path or s;
-      path   = if lib.isAbspath s then s else ( dirOf _file ) + ( "/" + s );
+      p = if builtins.isAttrs s then s.path else
+          if builtins.isPath s then s else
+          lib.removePrefix "path:" s;
+      path   = if lib.isAbspath p then p else ( dirOf _file ) + ( "/" + p );
       attrs' = if builtins.isAttrs s then s else {};
     in attrs' // { inherit path; } );
 

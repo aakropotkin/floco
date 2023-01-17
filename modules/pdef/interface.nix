@@ -16,6 +16,8 @@ in {
 
   _file = "<floco>/pdef/interface.nix";
 
+  config._module.args.name = "pdef";
+
   imports = [
     ./binInfo/interface.nix
     ./depInfo/interface.nix

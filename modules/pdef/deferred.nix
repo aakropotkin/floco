@@ -33,7 +33,7 @@ in {
 
   config.pdef = lib.mkDefault ( { ... }: {
     imports = [./implementation.nix];
-    config._module.args = { inherit (config) fetchers; };
+    config._module.args.fetchers = lib.mkDefault config.fetchers;
   } );
 
 
