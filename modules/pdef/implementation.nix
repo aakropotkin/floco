@@ -5,9 +5,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, fetchers, ... }: {
+{ lib, options, config, fetchers, fetcher, basedir, ... }: {
 
 # ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/implementation.nix";
 
   imports = [
     ./binInfo/implementation.nix
@@ -19,20 +21,24 @@
     ./lifecycle/implementation.nix
   ];
 
+  options.fetchInfo = lib.mkOption { type = fetcher.fetchInfo; };
+
+
+# ---------------------------------------------------------------------------- #
+
   config = {
 
 # ---------------------------------------------------------------------------- #
 
-    ident = let
-      fromKey = dirOf config.key;
-      fromMF  = config.metaFiles.metaRaw.ident or config.metaFiles.pjs.name;
-    in lib.mkDefault ( if config ? key then fromKey else fromMF );
+    ident = lib.mkDefault (
+      config.metaFiles.metaRaw.ident or config.metaFiles.pjs.name or
+      ( dirOf config.key )
+    );
 
-    version = let
-      fromKey = baseNameOf config.key;
-      fromMF  = config.metaFiles.metaRaw.version or
-                config.metaFiles.pjs.version;
-    in lib.mkDefault ( if config ? key then fromKey else fromMF );
+    version = lib.mkDefault (
+      config.metaFiles.metaRaw.version or config.metaFiles.pjs.version or
+      ( baseNameOf config.key )
+    );
 
     key = lib.mkDefault (
       config.metaFiles.metaRaw.key or ( config.ident + "/" + config.version )
@@ -41,27 +47,56 @@
 
 # ---------------------------------------------------------------------------- #
 
-    fetchInfo = lib.mkDefault ( {
-      type = "tarball";
-      url  = let
-        bname = baseNameOf config.ident;
-        inherit (config) version;
-      in "https://registry.npmjs.org/${config.ident}/-/" +
-          "${bname}-${version}.tgz";
-    } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
+    # These are the oddballs.
+    # `fetchInfo` is polymorphic - it is conventionally declared using
+    # `_module.args.fetcher.fetchInfo', and defined by the user, a discoverer,
+    # or a translator.
+    # This abstraction allows users to add their own fetchers, or customize
+    # the behavior of existing fetchers at the expense of making things harder
+    # to read and understand.
+    #
+    # When in doubt or if you get frustrated - remember that you can always set
+    # `floco.packages.*.*.source` directly and set any other `pdef' fields that
+    # are relevant to the build plan.
+    # While these abstractions may be bit of a headache, they're necessary to
+    # allow the `floco' framework to be extensible.
 
+    _module.args.fetcher = lib.mkDefault fetchers.fetchTree_tarball;
+    _module.args.basedir = let
+      isExt = f:
+        ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
+        ( f != "<unknown-file>" ) &&
+        ( f != "lib/modules.nix" );
+      dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
+      exts = builtins.filter isExt dls;
+      val  = if exts != [] then builtins.head exts else
+             config.fetchInfo.path or config.metaFiles.pjsDir;
+    in lib.mkDefault val;
+
+    fetchInfo = let
+      default = builtins.mapAttrs ( _: lib.mkDefault ) ( {
+        type = "tarball";
+        url  = let
+          bname = baseNameOf config.ident;
+          inherit (config) version;
+        in "https://registry.npmjs.org/${config.ident}/-/" +
+            "${bname}-${version}.tgz";
+      } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
+      fetcherAccepts = fetcher.fetchInfo.getSubOptions [];
+    in builtins.intersectAttrs fetcherAccepts default;
 
     sourceInfo = let
       type    = config.fetchInfo.type or "path";
-      isFT    = type != "path";
-      fetcher = if isFT then fetchers."fetchTree_${type}" else fetchers.path;
       fetched = fetcher.function config.fetchInfo;
       src     = if type != "file" then fetched else builtins.fetchTarball {
         url = "file:${builtins.unsafeDiscardStringContext fetched}";
       };
-    in lib.mkDefault (
-      if isFT && ( type != "file" ) then src else { outPath = src; }
-    );
+    in lib.mkDefault ( if type == "file" then { outPath = src; } else src );
+
+
+# ---------------------------------------------------------------------------- #
+
+    ltype = lib.mkIf ( config.fetchInfo ? path ) ( lib.mkDefault "dir" );
 
 
 # ---------------------------------------------------------------------------- #
@@ -71,7 +106,8 @@
         if ! ( builtins.elem ( config.fsInfo.dir or "." ) ["." "./." "" null] )
         then "/" + config.fsInfo.dir
         else "";
-    in lib.mkDefault ( config.sourceInfo.outPath + dp );
+      projDir = config.fetchInfo.path or config.sourceInfo.outPath;
+    in lib.mkDefault ( projDir + dp );
 
     metaFiles.pjs = lib.mkDefault (
       lib.importJSON ( config.metaFiles.pjsDir + "/package.json" )
@@ -87,14 +123,8 @@
   _export = lib.mkMerge [
     {
       inherit (config) ident version ltype;
-      fetchInfo =
-        if ( config.fetchInfo.type or "path" ) != "path"
-        then config.fetchInfo
-        else config.fetchInfo // {
-          path = builtins.replaceStrings [
-            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-          ] ["."] ( toString config.fetchInfo.path );
-        };
+      fetchInfo = fetcher.serializeFetchInfo ( basedir + "/<phony>" )
+                                             config.fetchInfo;
     }
     ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {
       inherit (config) key;

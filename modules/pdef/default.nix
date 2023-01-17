@@ -1,4 +1,7 @@
-{
+{ lib, ... }: {
+
+  _file = "<floco>/pdef";
+
   imports = [
     ./binInfo
     ./depInfo
@@ -9,10 +12,9 @@
     ./lifecycle
     ./interface.nix ./implementation.nix
   ];
-  # Inlines the result of `lib.mkDefault' to avoid making this file a function.
-  config._module.args.fetchers = {
-    _type    = "override";
-    priority = 1000;
-    content  = ( lib.evalModules { modules = [../fetchers]; } ).config.fetchers;
-  };
+
+  config._module.args.fetchers = lib.mkDefault (
+    ( lib.evalModules { modules = [../fetchers]; } ).config.fetchers
+  );
+
 }

@@ -30,14 +30,14 @@ in {
 
     inherit (config) pure;
 
-    function = lib.mkDefault builtins.path;
+    function = lib.mkDefault ( args: { outPath = builtins.path args; } );
 
 # ---------------------------------------------------------------------------- #
 
     lockFetchInfo = lib.mkDefault ( fetchInfo: let
-        outPath = config.path.function {
+        inherit (config.path.function {
           inherit (fetchInfo) name path filter recursive;
-        };
+        }) outPath;
         sourceInfo = builtins.fetchTree {
           type = "path";
           path = outPath;
@@ -53,21 +53,21 @@ in {
 
     serializeFetchInfo = lib.mkDefault ( _file: fetchInfo: let
       keeps = let
-        serializable = removeAttrs fetchInfo ["filter"];
+        serializable = removeAttrs fetchInfo ["filter" "sha256"];
       in lib.moduleDropDefaults config.path.fetchInfo serializable;
-    in keeps // {
-      sha256 = if fetchInfo.sha256 != null then fetchInfo.sha256 else
-               ( config.path.lockFetchInfo fetchInfo ).sha256;
-      path = lib.realpathRel ( dirOf _file ) fetchInfo.path;
-    } );
+      #sha256 = if fetchInfo.sha256 != null then fetchInfo.sha256 else
+      #         ( config.path.lockFetchInfo fetchInfo ).sha256;
+      path     = lib.realpathRel ( dirOf _file ) fetchInfo.path;
+      isSimple = ( builtins.attrNames keeps ) == ["path"];
+    in if isSimple then "path:" + path else keeps // { inherit path; } );
 
 # ---------------------------------------------------------------------------- #
 
-    deserializeFetchInfo = lib.mkDefault ( _file: fetchInfo:
-      fetchInfo // {
-        path = if lib.isAbspath fetchInfo.path then fetchInfo.path else
-              ( dirOf _file ) + ( "/" + fetchInfo.path );
-      } );
+    deserializeFetchInfo = lib.mkDefault ( _file: s: let
+      p      = s.path or s;
+      path   = if lib.isAbspath s then s else ( dirOf _file ) + ( "/" + s );
+      attrs' = if builtins.isAttrs s then s else {};
+    in attrs' // { inherit path; } );
 
 
 # ---------------------------------------------------------------------------- #
