@@ -14,7 +14,7 @@ let
     plock   = lib.importJSON ./babel.core.package-lock.json;
   };
 
-in map ( v: v._export ) pl2pdefs.packages
+in pl2pdefs.exports
 
 
 # ---------------------------------------------------------------------------- #

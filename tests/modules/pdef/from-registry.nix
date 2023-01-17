@@ -9,7 +9,11 @@ let
   lib = import ../../../lib {};
 in ( lib.evalModules {
   modules = [
-    ../../../modules/pdef { ident = "lodash"; version = "4.17.21"; }
+    ../../../modules/pdef
+    {
+      ident   = "lodash";
+      version = "4.17.21";
+    }
   ];
 } ).config._export
 

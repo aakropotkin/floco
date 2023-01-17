@@ -39,7 +39,6 @@ in {
     type = let
       fetcher = fetchers.${config.fetcher};
       coerce  = fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
-    #in nt.coercedTo lib.types.str coerce config.fetcher.fetchInfo;
     in nt.coercedTo lib.types.str coerce ( nt.lazyAttrsOf nt.anything );
   };
 
@@ -92,6 +91,11 @@ in {
              config.fetchInfo.path or config.metaFiles.pjsDir;
     in lib.mkDefault val;
 
+    fetcher = let
+      type    = config.fetchInfo.type or "path";
+      fetcher = if type == "path" then "path" else "fetchTree_${type}";
+    in lib.mkDefault fetcher;
+
     fetchInfo = let
       default = builtins.mapAttrs ( _: lib.mkDefault ) ( {
         type = "tarball";
@@ -101,8 +105,7 @@ in {
         in "https://registry.npmjs.org/${config.ident}/-/" +
             "${bname}-${version}.tgz";
       } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
-      fetcherAccepts = fetchers.${config.fetcher}.fetchInfo.getSubOptions [];
-    in builtins.intersectAttrs fetcherAccepts default;
+    in lib.mkDefault default;
 
     sourceInfo = let
       type    = config.fetchInfo.type or "path";

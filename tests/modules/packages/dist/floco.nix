@@ -4,7 +4,7 @@
     ident      = "@floco/test";
     version    = "4.2.0";
     ltype      = "dir";
-    sourceInfo.outPath = builtins.path {
+    fetchInfo  = {
       name   = "source";
       path   = ./.;
       filter = name: type: ( baseNameOf name ) == "package.json";

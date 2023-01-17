@@ -62,8 +62,9 @@ in {
       post = let
         mh = builtins.match "[^?]+\\?([^?]+&)?narHash=[^&]+(&[^?]+)?"
                             fetchInfo.url;
-      in if ( mh != null ) || ( fetchInfo.narHash == null ) then "" else
-         psep + "narHash=" + fetchInfo.narHash;
+      in if ( mh != null ) || ( ( fetchInfo.narHash or null ) == null )
+         then ""
+         else psep + "narHash=" + fetchInfo.narHash;
     in pre + fetchInfo.url + post );
 
 
