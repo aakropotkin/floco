@@ -16,6 +16,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/fetchers/fetchTree/implementation.nix";
+
   imports = [
     ./tarball/implementation.nix
     ./file/implementation.nix

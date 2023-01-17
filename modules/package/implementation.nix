@@ -12,6 +12,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/package/implementation.nix";
+
   imports = [./trees/implementation.nix ./targets/implementation.nix];
 
 # ---------------------------------------------------------------------------- #

@@ -12,6 +12,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/top/interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.floco = lib.mkOption {
     description = lib.mdDoc ''
       Scope used for configuring `floco` framework.

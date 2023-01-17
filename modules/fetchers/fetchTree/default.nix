@@ -1,1 +1,4 @@
-{ imports = [./interface.nix ./implementation.nix]; }
+{
+  _file   = "<floco>/fetchers/fetchTree";
+  imports = [./interface.nix ./implementation.nix];
+}

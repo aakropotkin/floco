@@ -14,6 +14,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/fetchers/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.fetchers = lib.mkOption {
     type = nt.submoduleWith {
       modules = [

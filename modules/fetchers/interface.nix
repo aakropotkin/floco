@@ -14,6 +14,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/fetchers/interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.fetchers = lib.mkOption {
     description = lib.mdDoc ''
       Fetcher abstractions associated with various forms of inputs and

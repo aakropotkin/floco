@@ -1,1 +1,4 @@
-{ imports = [./interface.nix ./implementation.nix]; }
+{
+  _file   = "<floco>/pdef/peerInfo";
+  imports = [./interface.nix ./implementation.nix];
+}

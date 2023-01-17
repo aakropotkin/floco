@@ -24,6 +24,13 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/peerInfo/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
+
   config = {
     peerInfo = builtins.mapAttrs ( ident: _:
       import ./single.implementation.nix ( { inherit lib ident; } // raw )

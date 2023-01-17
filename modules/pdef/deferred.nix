@@ -13,6 +13,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/deferred.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.pdef = lib.mkOption {
     description = lib.mdDoc ''
       Abstract record used to declare a package/module at a specific version.

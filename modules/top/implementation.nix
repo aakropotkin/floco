@@ -12,6 +12,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/top/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.floco = lib.mkOption {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;

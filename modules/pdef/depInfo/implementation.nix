@@ -36,6 +36,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/depInfo/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   config.depInfo = let
     proc = acc: ident: acc // {
       ${ident} = import ./single.implementation.nix ( raw // {
