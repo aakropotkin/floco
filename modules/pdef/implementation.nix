@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, fetcher, fetchers, basedir, ... }: let
+{ lib, options, config, fetchers, basedir, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -32,13 +32,15 @@ in {
   options.fetcher = lib.mkOption {
     internal = true;
     visible  = false;
-    type     = nt.submodule { imports = [fetcher]; };
+    type     = nt.enum ( builtins.attrNames ( removeAttrs fetchers ["pure"] ) );
   };
 
   options.fetchInfo = lib.mkOption {
     type = let
-      coerce = config.fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
-    in nt.coercedTo lib.types.str coerce config.fetcher.fetchInfo;
+      fetcher = fetchers.${config.fetcher};
+      coerce  = fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
+    #in nt.coercedTo lib.types.str coerce config.fetcher.fetchInfo;
+    in nt.coercedTo lib.types.str coerce ( nt.lazyAttrsOf nt.anything );
   };
 
 
@@ -86,7 +88,7 @@ in {
         ( f != "lib/modules.nix" );
       dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
       exts = builtins.filter isExt dls;
-      val  = if exts != [] then builtins.head exts else
+      val  = if exts != [] then dirOf ( builtins.head exts ) else
              config.fetchInfo.path or config.metaFiles.pjsDir;
     in lib.mkDefault val;
 
@@ -99,12 +101,12 @@ in {
         in "https://registry.npmjs.org/${config.ident}/-/" +
             "${bname}-${version}.tgz";
       } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
-      fetcherAccepts = config.fetcher.fetchInfo.getSubOptions [];
+      fetcherAccepts = fetchers.${config.fetcher}.fetchInfo.getSubOptions [];
     in builtins.intersectAttrs fetcherAccepts default;
 
     sourceInfo = let
       type    = config.fetchInfo.type or "path";
-      fetched = config.fetcher.function config.fetchInfo;
+      fetched = fetchers.${config.fetcher}.function config.fetchInfo;
       src     = if type != "file" then fetched else builtins.fetchTarball {
         url = "file:${builtins.unsafeDiscardStringContext fetched}";
       };
@@ -140,8 +142,9 @@ in {
   _export = lib.mkMerge [
     {
       inherit (config) ident version ltype;
-      fetchInfo = config.fetcher.serializeFetchInfo ( basedir + "/<phony>" )
-                                             config.fetchInfo;
+      fetchInfo =
+        fetchers.${config.fetcher}.serializeFetchInfo ( basedir + "/<phony>" )
+                                                      config.fetchInfo;
     }
     ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {
       inherit (config) key;

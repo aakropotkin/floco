@@ -26,7 +26,6 @@ in {
           inherit (options.key) loc;
         in {
           imports = [config.pdef];
-          config._module.args.fetcher  = lib.mkDefault config.fetcher;
           config._module.args.fetchers = lib.mkDefault config.fetchers;
 
           # Priority prefers low numbers - "low priority" means "big number",

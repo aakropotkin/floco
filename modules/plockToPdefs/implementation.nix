@@ -114,11 +114,9 @@
 
     lifecycle.install = hasInstallScript;
 
-    _module.args = {
-      inherit basedir;
-      fetcher = if fetchInfo ? path then fetchers.path else
-                fetchers."fetchTree_${fetchInfo.type}";
-    };
+    fetcher = if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
+
+    _module.args = { inherit basedir; };
 
   };
 
@@ -186,19 +184,20 @@
 
 # ---------------------------------------------------------------------------- #
 
-  configs = builtins.concatLists ( builtins.attrValues translatedPlents );
+  configs  = builtins.concatLists ( builtins.attrValues translatedPlents );
+  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
+      ( lib.evalModules { inherit modules; } ).config
+    ) ( lib.filterAttrs ( path: _:
+      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
+    ) ( translatedPlents ) ) );
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
 
-  inherit configs;
-  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
-    ( lib.evalModules { inherit modules; } ).config
-  ) ( lib.filterAttrs ( path: _:
-    ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-  ) ( translatedPlents ) ) );
+  inherit configs packages;
+  exports = lib.unique ( map ( v: v._export ) packages );
 
 }
 

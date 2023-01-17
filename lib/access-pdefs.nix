@@ -15,8 +15,7 @@
       type =
         if builtins.isAttrs fetchInfo then fetchInfo.type or "path" else
         builtins.head ( builtins.match "([^+:]+)[+:].*" fetchInfo );
-      fetcher = if type == "path" then fetchers.path else
-                fetchers."fetchTree_${type}";
+      fetcher = if type == "path" then "path" else "fetchTree_${type}";
     in lib.mkDefault fetcher;
   } // serialized;
 
@@ -53,17 +52,18 @@
             then lib.importJSON pdefs
             else import pdefs;
     in { _file = toString pdefs; } // ( addPdefs raw );
+    # Flattens multiple definitions naively and injects fetcher.
+    # This is going to misbehave if you have multiple conflicting definitions
+    # of a package so don't do that shit.
     fromList = let
       byIdent   = builtins.groupBy ( v: v.ident ) pdefs;
       byVersion = builtins.mapAttrs ( _: builtins.groupBy ( v: v.version ) )
                                     byIdent;
       merge = builtins.foldl' lib.recursiveUpdate {};
-    in {
-      imports = [( { config, ... }: {
-        config.floco.pdefs = builtins.mapAttrs ( _: builtins.mapAttrs ( _: vs:
-            addFetcher config.floco.fetchers ( merge vs )
-          ) ) byVersion;
-      } )];
+    in { config, ... }: {
+      config.floco.pdefs = builtins.mapAttrs ( _: builtins.mapAttrs ( _: vs:
+        addFetcher config.floco.fetchers ( merge vs )
+      ) ) byVersion;
     };
     fromAttrs =
       if pdefs ? config.floco.pdefs then ( { config, ... }: {
@@ -79,31 +79,31 @@
         config = pdefs // {
           floco = pdefs.floco // {
             pdefs = builtins.mapAttrs ( _: builtins.mapAttrs ( _:
-              addFetcher config.fetchers
+              addFetcher config.floco.fetchers
             ) ) pdefs.floco.pdefs;
           };
         };
       } ) else
-      if pdefs ? pdefs
-      then ( { config, ... }: {
+      if pdefs ? pdefs then ( { config, ... }: {
         config.floco = pdefs // {
           pdefs = builtins.mapAttrs ( _: builtins.mapAttrs ( _:
-            addFetcher config.fetchers
+            addFetcher config.floco.fetchers
           ) ) pdefs.pdefs;
         };
       } )
       else throw "floco#lib.addPdefs: what the fuck did you try to pass bruce?";
     isFile = ( builtins.isPath pdefs ) || ( builtins.isString pdefs );
-  in if isFile then fromFile else
-     if builtins.isAttrs pdefs then fromAttrs else fromList;
+    module = if isFile then fromFile else
+             if builtins.isAttrs pdefs then fromAttrs else fromList;
+  in { imports = [module]; };
 
 
 # ---------------------------------------------------------------------------- #
 
   getPdef = {
-    config        ? null
-  , floco ? config.floco
-  , pdefs         ? floco.pdefs
+    config ? null
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
   }: {
     key
   , ident   ? dirOf key
