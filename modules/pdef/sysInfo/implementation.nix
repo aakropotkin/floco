@@ -8,6 +8,8 @@
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/sysInfo/implementation.nix";
+
   config.sysInfo = let
     get = f:
       config.metaFiles.metaRaw.${f} or
