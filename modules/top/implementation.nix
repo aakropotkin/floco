@@ -20,14 +20,14 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
-        {
+        ( { ... }: {
           imports = [
             ../pdefs/implementation.nix
             ../packages/implementation.nix
             ../fetchers/implementation.nix
           ];
           config._module.args.pkgs = lib.mkDefault pkgs;
-        }
+        } )
       ];
     };
   };

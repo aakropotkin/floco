@@ -22,10 +22,12 @@ in {
     type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
       modules = [
-        ( { options, ... }: let
+        ( { options, fetcher, fetchers, basedir, ... }: let
           inherit (options.key) loc;
         in {
           imports = [config.pdef];
+          config._module.args.fetcher  = lib.mkDefault config.fetcher;
+          config._module.args.fetchers = lib.mkDefault config.fetchers;
 
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".
@@ -39,6 +41,7 @@ in {
         } )
       ];
     } ) );
+    default = {};
   };
 
 

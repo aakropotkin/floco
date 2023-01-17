@@ -24,17 +24,19 @@ in {
       Its base interface must be implemented, but the implementations themselves
       may be swapped or overridden.
     '';
-    type    = nt.deferredModuleWith { staticModules = [./interface.nix]; };
+    type = nt.deferredModuleWith {
+      staticModules = [./interface.nix];
+    };
     default = {};
   };
 
 
 # ---------------------------------------------------------------------------- #
 
-  config.pdef = lib.mkDefault ( { ... }: {
+  config.pdef = { ... }: {
     imports = [./implementation.nix];
-    config._module.args.fetchers = lib.mkDefault config.fetchers;
-  } );
+    config._module.args.fetchers = config.fetchers;
+  };
 
 
 # ---------------------------------------------------------------------------- #

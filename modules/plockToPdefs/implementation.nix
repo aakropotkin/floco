@@ -20,6 +20,7 @@
 { lib
 , lockDir
 , plock   ? lib.importJSON ( lockDir + "/package-lock.json" )
+, basedir ? lockDir
 , ...
 }: let
 
@@ -113,10 +114,11 @@
 
     lifecycle.install = hasInstallScript;
 
-    _module.args.basedir = lockDir;
-    _module.args.fetcher =
-      if fetchInfo ? path then fetchers.path else
-      fetchers."fetchTree_${fetchInfo.type}";
+    _module.args = {
+      inherit basedir;
+      fetcher = if fetchInfo ? path then fetchers.path else
+                fetchers."fetchTree_${fetchInfo.type}";
+    };
 
   };
 
@@ -133,10 +135,14 @@
 
   rough = let
     proc = plentKey: plentRaw: [
-      { config = toPdef plentKey plentRaw; }
+      {
+        _file  = lockDir + "/package-lock.json";
+        config = toPdef plentKey plentRaw;
+      }
     ] ++ (
       if plentKey == "" then [{
-        config.treeInfo = removeAttrs rootTreeInfo [""];
+        _file                   = lockDir + "/package-lock.json";
+        config.treeInfo         = removeAttrs rootTreeInfo [""];
         config._export.treeInfo = let
           base = removeAttrs rootTreeInfo [""];
           nopt = builtins.mapAttrs ( _: v:
