@@ -17,6 +17,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/fetchers/fetcher/fetchTree/github/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.fetchTree_github = lib.mkOption {
     type = nt.submodule { imports = [fetcher]; };
   };

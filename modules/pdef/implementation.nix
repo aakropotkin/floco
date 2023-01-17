@@ -5,7 +5,15 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, fetchers, fetcher, basedir, ... }: {
+{ lib, options, config, fetchers, fetcher, basedir, ... }: let
+
+# ---------------------------------------------------------------------------- #
+
+  nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+in {
 
 # ---------------------------------------------------------------------------- #
 
@@ -21,7 +29,11 @@
     ./lifecycle/implementation.nix
   ];
 
-  options.fetchInfo = lib.mkOption { type = fetcher.fetchInfo; };
+  options.fetchInfo = lib.mkOption {
+    type = let
+      coerce = fetcher.deserializeFetchInfo basedir;
+    in nt.coercedTo lib.types.str coerce fetcher.fetchInfo;
+  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -62,6 +74,7 @@
     # allow the `floco' framework to be extensible.
 
     _module.args.fetcher = lib.mkDefault fetchers.fetchTree_tarball;
+
     _module.args.basedir = let
       isExt = f:
         ( ! ( lib.hasPrefix "<floco>/" f ) ) &&

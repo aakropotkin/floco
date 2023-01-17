@@ -17,6 +17,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/fetchers/fetcher/fetchTree/tarball/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.fetchTree_tarball = lib.mkOption {
     type = nt.submodule { imports = [fetcher]; };
   };
