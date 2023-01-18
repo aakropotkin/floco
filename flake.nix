@@ -11,7 +11,6 @@
   description = "Yet another Nix+Node.js framework";
 
   inputs.nix.url                    = "github:NixOS/nix/2.12.0";
-  inputs.nix.inputs.nixpkgs.follows = "/nixpkgs";
 
 # ---------------------------------------------------------------------------- #
 
