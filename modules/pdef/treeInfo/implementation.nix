@@ -6,6 +6,8 @@
 
 { lib, config, ... }: {
 
+  _file = "<floco>/pdef/treeInfo/implementation.nix";
+
 # ---------------------------------------------------------------------------- #
 
   config = let

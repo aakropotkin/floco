@@ -12,6 +12,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/depInfo/interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.depInfo = lib.mkOption {
     description = lib.mdDoc ''
       Information regarding dependency modules/packages.
@@ -25,6 +31,9 @@ in {
     type = nt.attrsOf ( nt.submodule ./single.interface.nix );
     default = {};
   };
+
+
+# ---------------------------------------------------------------------------- #
 
 }
 

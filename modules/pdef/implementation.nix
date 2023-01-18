@@ -5,9 +5,19 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: {
+{ lib, options, config, fetchers, basedir, ... }: let
 
 # ---------------------------------------------------------------------------- #
+
+  nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+in {
+
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/implementation.nix";
 
   imports = [
     ./binInfo/implementation.nix
@@ -19,20 +29,35 @@
     ./lifecycle/implementation.nix
   ];
 
+  options.fetcher = lib.mkOption {
+    internal = true;
+    visible  = false;
+    type     = nt.enum ( builtins.attrNames ( removeAttrs fetchers ["pure"] ) );
+  };
+
+  options.fetchInfo = lib.mkOption {
+    type = let
+      fetcher = fetchers.${config.fetcher};
+      coerce  = fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
+    in nt.coercedTo lib.types.str coerce ( nt.lazyAttrsOf nt.anything );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   config = {
 
 # ---------------------------------------------------------------------------- #
 
-    ident = let
-      fromKey = dirOf config.key;
-      fromMF  = config.metaFiles.metaRaw.ident or config.metaFiles.pjs.name;
-    in lib.mkDefault ( if config ? key then fromKey else fromMF );
+    ident = lib.mkDefault (
+      config.metaFiles.metaRaw.ident or config.metaFiles.pjs.name or
+      ( dirOf config.key )
+    );
 
-    version = let
-      fromKey = baseNameOf config.key;
-      fromMF  = config.metaFiles.metaRaw.version or
-                config.metaFiles.pjs.version;
-    in lib.mkDefault ( if config ? key then fromKey else fromMF );
+    version = lib.mkDefault (
+      config.metaFiles.metaRaw.version or config.metaFiles.pjs.version or
+      ( baseNameOf config.key )
+    );
 
     key = lib.mkDefault (
       config.metaFiles.metaRaw.key or ( config.ident + "/" + config.version )
@@ -41,45 +66,59 @@
 
 # ---------------------------------------------------------------------------- #
 
+    # These are the oddballs.
+    # `fetchInfo` is polymorphic - it is conventionally declared using
+    # `fetcher.fetchInfo', and defined by the user, a discoverer,
+    # or a translator.
+    # This abstraction allows users to add their own fetchers, or customize
+    # the behavior of existing fetchers at the expense of making things harder
+    # to read and understand.
+    #
+    # When in doubt or if you get frustrated - remember that you can always set
+    # `floco.packages.*.*.source` directly and set any other `pdef' fields that
+    # are relevant to the build plan.
+    # While these abstractions may be bit of a headache, they're necessary to
+    # allow the `floco' framework to be extensible.
+
+    _module.args.basedir = let
+      isExt = f:
+        ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
+        ( f != "<unknown-file>" ) &&
+        ( f != "lib/modules.nix" );
+      dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
+      exts = builtins.filter isExt dls;
+      val  = if exts != [] then dirOf ( builtins.head exts ) else
+             config.fetchInfo.path or config.metaFiles.pjsDir;
+    in lib.mkDefault val;
+
+    fetcher = let
+      type    = config.fetchInfo.type or "path";
+      fetcher = if type == "path" then "path" else "fetchTree_${type}";
+    in lib.mkDefault fetcher;
+
     fetchInfo = let
-      # Locks `fetchInfo'
-      fii = import ../fetchInfo/implementations.nix { inherit lib; };
-      unlocked = {
+      default = builtins.mapAttrs ( _: lib.mkDefault ) ( {
         type = "tarball";
         url  = let
           bname = baseNameOf config.ident;
           inherit (config) version;
         in "https://registry.npmjs.org/${config.ident}/-/" +
-           "${bname}-${version}.tgz";
-      } // ( config.metaFiles.metaRaw.fetchInfo or {} );
-    in lib.mkDefault ( fii.fetchTree.tarball { config = unlocked; } );
-
+            "${bname}-${version}.tgz";
+      } // ( config.metaFiles.metaRaw.fetchInfo or {} ) );
+    in lib.mkDefault default;
 
     sourceInfo = let
-      # We wrap `builtins.path' to make paths absolute.
-      # TODO: use a `specialArgs.basedir' or find some way to access the
-      # declarations' `file' information so that this is less fucky.
-      # Honestly I really don't like relying on `metaFiles.*' being defined to
-      # handle this.
-      pathW = { path, ... } @ args: let
-        args' = if lib.hasPrefix "/" ( toString path ) then args else args // {
-          name = args.name or "source";
-          path =
-            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-            + "/" + path;
-        };
-      in builtins.path args';
-      isFT    = ( config.fetchInfo.type or null ) != null;
-      isFile  = ( config.fetchInfo.type or null ) == "file";
-      fetcher = if isFT then builtins.fetchTree else pathW;
-      src     = if isFile then builtins.fetchTarball {
-        url = "file:${
-          builtins.unsafeDiscardStringContext ( fetcher config.fetchInfo )
-        }";
-      } else fetcher config.fetchInfo;
-    in lib.mkDefault (
-      if isFT && ( ! isFile ) then src else { outPath = src; }
-    );
+      type    = config.fetchInfo.type or "path";
+      fetched = fetchers.${config.fetcher}.function config.fetchInfo;
+      src     = if type != "file" then fetched else builtins.fetchTarball {
+        url = "file:${builtins.unsafeDiscardStringContext fetched}";
+      };
+    in lib.mkDefault ( if type == "file" then { outPath = src; } else src );
+
+
+# ---------------------------------------------------------------------------- #
+
+    ltype = lib.mkIf ( config.fetchInfo ? path ) ( lib.mkDefault "dir" );
 
 
 # ---------------------------------------------------------------------------- #
@@ -89,7 +128,8 @@
         if ! ( builtins.elem ( config.fsInfo.dir or "." ) ["." "./." "" null] )
         then "/" + config.fsInfo.dir
         else "";
-    in lib.mkDefault ( config.sourceInfo.outPath + dp );
+      projDir = config.fetchInfo.path or config.sourceInfo.outPath;
+    in lib.mkDefault ( projDir + dp );
 
     metaFiles.pjs = lib.mkDefault (
       lib.importJSON ( config.metaFiles.pjsDir + "/package.json" )
@@ -106,13 +146,8 @@
     {
       inherit (config) ident version ltype;
       fetchInfo =
-        if ( config.fetchInfo.type or "path" ) != "path"
-        then config.fetchInfo
-        else config.fetchInfo // {
-          path = builtins.replaceStrings [
-            ( toString ( config.metaFiles.lockDir or config.metaFiles.pjsDir ) )
-          ] ["."] ( toString config.fetchInfo.path );
-        };
+        fetchers.${config.fetcher}.serializeFetchInfo ( basedir + "/<phony>" )
+                                                      config.fetchInfo;
     }
     ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {
       inherit (config) key;

@@ -13,20 +13,24 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    options.packages = lib.mkOption {
-      type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
-        shorthandOnlyDefinesConfig = true;
-        modules = [
-          {
-            _module.args = {
-              pkgs  = lib.mkDefault pkgs;
-              floco = config;
-            };
-          }
-          ../package/implementation.nix
-        ];
-      } ) );
-    };
+  _file = "<floco>/packages/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
+  options.packages = lib.mkOption {
+    type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
+      shorthandOnlyDefinesConfig = true;
+      modules = [
+        {
+          _module.args = {
+            pkgs  = lib.mkDefault pkgs;
+            floco = config;
+          };
+        }
+        ../package/implementation.nix
+      ];
+    } ) );
+  };
 
 
 # ---------------------------------------------------------------------------- #

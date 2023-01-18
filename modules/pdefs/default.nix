@@ -1,1 +1,8 @@
-{ imports = [./interface.nix ./implementation.nix]; }
+{
+  _file   = "<floco>/pdefs";
+  imports = [
+    ../fetchers
+    ../pdef/deferred.nix
+    ./interface.nix ./implementation.nix
+  ];
+}

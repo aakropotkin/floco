@@ -45,6 +45,7 @@ OPTIONS
                       extend or modify the module definitions used to translate
                       and export \`pdef' records.
                       If no config is given default settings will be used.
+  -j,--json           Export JSON instead of a Nix expression.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 ENVIRONMENT
@@ -111,6 +112,7 @@ while [[ "$#" -gt 0 ]]; do
     -l|--lock-dir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -o|--out-file) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -c|--config)   FLOCO_CONFIG="$2"; shift; ;;
+    -j|--json)     JSON=:; ;;
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
     -v|--version)  echo "$_version"; exit 0; ;;
@@ -133,8 +135,15 @@ if [[ -n "${FLOCO_CONFIG:-}" ]]; then
   FLOCO_CONFIG="$( $REALPATH "$FLOCO_CONFIG"; )";
 fi
 : "${LOCKDIR:=$PWD}";
-: "${OUTFILE:=$LOCKDIR/pdefs.nix}";
+: "${JSON=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
+if [[ -z "${OUTFILE:-}" ]]; then
+  if [[ -z "$JSON" ]]; then
+    OUTFILE="$LOCKDIR/pdefs.nix";
+  else
+    OUTFILE="$LOCKDIR/pdefs.json";
+  fi
+fi
 
 
 # ---------------------------------------------------------------------------- #
@@ -170,7 +179,7 @@ fi
 
 # Backup existing outfile if one exists
 if [[ -r "$OUTFILE" ]]; then
-  echo "$_as_me: backing up existing \`pdefs.nix' to \`$OUTFILE~'" >&2;
+  echo "$_as_me: backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
   cp -p -- "$OUTFILE" "$OUTFILE~";
 fi
 
@@ -217,10 +226,17 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_CONFIG=}";
-export FLAKE_REF FLOCO_CONFIG OUTFILE;
+export FLAKE_REF FLOCO_CONFIG JSON OUTFILE;
+
+if [[ -z "$JSON" ]]; then
+  _NIX_FLAGS="--raw";
+else
+  _NIX_FLAGS="--json";
+fi
+
 
 # TODO: unstringize `fetchInfo' relative paths.
-$NIX --no-substitute eval --show-trace --raw -f - <<'EOF' >"$OUTFILE"
+$NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
@@ -229,18 +245,16 @@ let
   #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
   #          then [cfgPath]
   #          else [];
-  #outfile = builtins.getEnv "OUTFILE";
-  #oldfile = if ( outfile == "" ) then null else outfile + "~";
-  #old     = if ( outfile != "" ) && ( builtins.pathExists oldfile )
-  #          then [oldfile]
-  #          else [];
+  outfile = builtins.getEnv "OUTFILE";
+  asJSON   = ( builtins.getEnv "JSON" ) != "";
   pl2pdefs = import "${floco}/modules/plockToPdefs/implementation.nix" {
     inherit lib;
     lockDir = toString ./.;
     plock   = lib.importJSON ./package-lock.json;
+    basedir = dirOf outfile;
   };
-  pdefs = map ( v: v._export ) pl2pdefs.packages;
-in lib.generators.toPretty {} pdefs
+in if asJSON then pl2pdefs.exports else
+   lib.generators.toPretty {} pl2pdefs.exports
 EOF
 
 
@@ -249,12 +263,10 @@ EOF
 # Nix doesn't quote some reserved keywords when dumping expressions, so we
 # post-process a bit to add quotes.
 
-$SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/' "$OUTFILE";
-
-$SED -i                                    \
-  -e 's,path = ".";,path = ./.;,'          \
-  -e 's,path = "\(.[^"]*\)";,path = \1;,'  \
-  "$OUTFILE";
+if [[ -z "$JSON" ]]; then
+  $SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
+          "$OUTFILE";
+fi
 
 
 # ---------------------------------------------------------------------------- #

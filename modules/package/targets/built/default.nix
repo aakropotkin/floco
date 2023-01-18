@@ -1,1 +1,4 @@
-{ imports = [./interface.nix ./implementation.nix]; }
+{
+  _file   = "<floco>/package/targets/built";
+  imports = [./interface.nix ./implementation.nix];
+}

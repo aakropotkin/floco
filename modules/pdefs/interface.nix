@@ -13,6 +13,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdefs/interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options.pdefs = lib.mkOption {
 
     description = lib.mdDoc ''
@@ -20,11 +24,6 @@ in {
       and modules.
       These records are used to generate build recipes and build plans.
     '';
-
-    type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
-      modules                    = [];
-    } ) );
 
     example = {
       lodash."4.17.21" = {
@@ -50,8 +49,6 @@ in {
         treeInfo = {};
       };
     };
-
-    default = {};
 
   };  # End `options.pdefs'
 

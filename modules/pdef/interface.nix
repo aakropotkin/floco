@@ -14,6 +14,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/interface.nix";
+
+  config._module.args.name = "pdef";
+
   imports = [
     ./binInfo/interface.nix
     ./depInfo/interface.nix
@@ -28,10 +32,6 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options = {
-
-# ---------------------------------------------------------------------------- #
-
-    inherit (import ../fetchInfo/interfaces.nix { inherit lib; }) fetchInfo;
 
 # ---------------------------------------------------------------------------- #
 
@@ -89,6 +89,28 @@ in {
       '';
       type    = ft.ltype;
       default = "file";
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
+    fetchInfo = lib.mkOption {
+      description = lib.mdDoc ''
+        Arguments passed to fetchers to produce a package/module's source tree.
+
+        This field may be explicitly set to `null` if `sourceInfo` is
+        set instead.
+
+        The `sourceInfo` produced by these arguments is primarily used for
+        "discovery" and "translation" of project metadata to create a build
+        plan, while `floco.packages.*.*.source` is what is used by builds.
+        The default/fallback for `floco.packages.*.*.source` bottoms out here
+        at `fetchInfo`, but you may find that it is more convenient/optimal to
+        perform filtering of a source tree directly on
+        `floco.packages.*.*.source` records rather than here to avoid
+        prematurely copying trees to the Nix store in the event that they aren't
+        needed for the eventual build plan.
+      '';
     };
 
 

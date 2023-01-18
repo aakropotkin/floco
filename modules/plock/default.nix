@@ -14,6 +14,8 @@
 
 in {
 
+  _file = "<floco>/plock";
+
   imports = [
     ( import ./implementation.nix { inherit lib lockDir plock; } )
     ./interface.nix

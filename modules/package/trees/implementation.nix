@@ -8,6 +8,10 @@
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/package/trees/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   config.warnings = lib.mkIf (
     ( config.pdef.treeInfo == null )
   ) ( if config.pdef.lifecycle.install || config.pdef.lifecycle.build then [''

@@ -12,6 +12,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/treeInfo/interface.nix";
+
   options.treeInfo = lib.mkOption {
     description = lib.mdDoc ''
       `node_modules/` trees used for various lifecycle events.

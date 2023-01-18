@@ -33,6 +33,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/plock/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   config = {
     inherit plock lockDir;
     inherit (plock) lockfileVersion;

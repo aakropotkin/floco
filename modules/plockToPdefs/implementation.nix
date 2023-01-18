@@ -19,9 +19,15 @@
 
 { lib
 , lockDir
-, plock   ? lib.importJSON "${lockDir}/package-lock.json"
+, plock   ? lib.importJSON ( lockDir + "/package-lock.json" )
+, basedir ? lockDir
 , ...
 }: let
+
+# ---------------------------------------------------------------------------- #
+
+  inherit (( lib.evalModules { modules = [../fetchers]; } ).config) fetchers;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -71,8 +77,32 @@
             if lib.hasPrefix "git+" resolved then "git" else
             if lib.hasPrefix "https" resolved then "file" else
             throw "Unable to derive lifecycle type from entry: '${pp}'.";
+    # TODO: `github'
+    fetchInfo = let
+      type = if ltype == "file" then "tarball" else "git";
+    in if builtins.elem ltype ["dir" "link"] then {
+      path = let
+        len = builtins.stringLength resolved;
+      in if resolved == "." then lockDir else
+         if lib.hasPrefix "file:" resolved
+         then lockDir + ( "/" + ( builtins.substring 5 len resolved ) )
+         else lockDir + ( "/" + resolved );
+    } else if type == "git" then {
+      inherit type;
+      url        = resolved;
+      allRefs    = false;
+      submodules = false;
+      shallow    = true;
+      rev        = let
+        m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolved;
+      in builtins.head m;
+    } else {
+      inherit type;
+      url = resolved;
+    };
   in {
-    inherit ident version key ltype;
+    inherit ident version key ltype fetchInfo;
+
     binInfo.binPairs = bin;
 
     metaFiles = {
@@ -82,22 +112,11 @@
 
     fsInfo = { inherit gypfile; dir = "."; };
 
-    fetchInfo = let
-      # Locks `fetchInfo'
-      fii = import ../fetchInfo/implementations.nix { inherit lib; };
-    in if builtins.elem ltype ["dir" "link"] then {
-      path = let
-        len = builtins.stringLength resolved;
-      in if resolved == "." then lockDir else
-         if lib.hasPrefix "file:" resolved
-         then lockDir + ( "/" + ( builtins.substring 5 len resolved ) )
-         else lockDir + ( "/" + resolved );
-    } else fii.fetchTree.any {  # TODO: `github'
-      config.type = if ltype == "file" then "tarball" else "git";
-      config.url  = resolved;
-    };
-
     lifecycle.install = hasInstallScript;
+
+    fetcher = if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
+
+    _module.args = { inherit basedir; };
 
   };
 
@@ -114,10 +133,14 @@
 
   rough = let
     proc = plentKey: plentRaw: [
-      { config = toPdef plentKey plentRaw; }
+      {
+        _file  = lockDir + "/package-lock.json";
+        config = toPdef plentKey plentRaw;
+      }
     ] ++ (
       if plentKey == "" then [{
-        config.treeInfo = removeAttrs rootTreeInfo [""];
+        _file                   = lockDir + "/package-lock.json";
+        config.treeInfo         = removeAttrs rootTreeInfo [""];
         config._export.treeInfo = let
           base = removeAttrs rootTreeInfo [""];
           nopt = builtins.mapAttrs ( _: v:
@@ -161,19 +184,20 @@
 
 # ---------------------------------------------------------------------------- #
 
-  configs = builtins.concatLists ( builtins.attrValues translatedPlents );
+  configs  = builtins.concatLists ( builtins.attrValues translatedPlents );
+  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
+      ( lib.evalModules { inherit modules; } ).config
+    ) ( lib.filterAttrs ( path: _:
+      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
+    ) ( translatedPlents ) ) );
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
 
-  inherit configs;
-  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
-    ( lib.evalModules { inherit modules; } ).config
-  ) ( lib.filterAttrs ( path: _:
-    ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-  ) ( translatedPlents ) ) );
+  inherit configs packages;
+  exports = lib.unique ( map ( v: v._export ) packages );
 
 }
 

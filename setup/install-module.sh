@@ -308,18 +308,31 @@ pjsPatchNodeShebang() {
 if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
   pushd "$TO";
   for bp in $BIN_PAIRS; do
-    pjsPatchNodeShebang "${bp#*,}";
+    _bin="${bp#*,}";
+    _bin="${_bin#/}";
+    _bin="./${_bin#./}";
+    pjsPatchNodeShebang "$_bin";
   done
   popd;
 elif [[ -z "$NO_BINS$NO_PERMS" ]]; then
   pushd "$TO" >/dev/null;
   # shellcheck disable=SC2046
-  $CHMOD +wx $( for bp in $BIN_PAIRS; do echo "${bp#*,}"; done; );
+  $CHMOD +wx $( for bp in $BIN_PAIRS; do
+    _bin="${bp#*,}";
+    _bin="${_bin#/}";
+    _bin="./${_bin#./}";
+    echo "$_bin";
+  done; );
   popd >/dev/null;
 fi
 
 
 # ---------------------------------------------------------------------------- #
+
+# So a handful of dingbats out there wrote `"bin": { "foo": "/bin/foo" }', so
+# we have to be careful to strip prefixes.
+# I haven't checked to see exactly how NPM responds to these, but I imagine they
+# do the exact same thing.
 
 if [[ -z "$NO_BINS$NO_BIN_LINKS" ]]; then
   $MKDIR -p "$NMDIR/.bin";
@@ -328,7 +341,10 @@ if [[ -z "$NO_BINS$NO_BIN_LINKS" ]]; then
       echo "$_as_me: WARNING: creation of '$NMDIR/.bin/${bp%,*}' skipped - \
 file already exists." >&2;
     else
-      $LN -sr -- "$TO/${bp#*,}" "$NMDIR/.bin/${bp%,*}";
+      _bin="${bp#*,}";
+      _bin="${_bin#/}";
+      _bin="${_bin#./}";
+      $LN -sr -- "$TO/$_bin" "$NMDIR/.bin/${bp%,*}";
     fi
   done
 fi

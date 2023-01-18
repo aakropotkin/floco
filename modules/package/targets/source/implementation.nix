@@ -8,6 +8,10 @@
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/package/targets/source/implementation.nix";
+
+# ---------------------------------------------------------------------------- #
+
   config.source = lib.mkDefault config.pdef.sourceInfo.outPath;
 
 

@@ -12,6 +12,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/sysInfo/interface.nix";
+
   options.sysInfo = lib.mkOption {
     description = ''
       Indicates platform, arch, and Node.js version support.
