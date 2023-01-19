@@ -17,12 +17,14 @@
 , stdenv    ? pkgsFor.stdenv
 , nix-flake ?
   builtins.getFlake "github:NixOS/nix/${builtins.nixVersion or "2.12.0"}"
-, boost    ? pkgsFor.boost
-, treeFor  ? import ../treeFor { inherit nixpkgs system pkgsFor; }
-, semver   ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
-, npm      ? pkgsFor.nodejs-14_x.pkgs.npm
-, bash     ? pkgsFor.bash
-, nix      ? nix-flake.packages.${system}.nix
+, boost     ? pkgsFor.boost
+, treeFor   ? import ../treeFor { inherit nixpkgs system pkgsFor; }
+, semver    ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
+, npm       ? pkgsFor.nodejs-14_x.pkgs.npm
+, bash      ? pkgsFor.bash
+, pkgconfig ? pkgsFor.pkgconfig
+, darwin    ? pkgsFor.darwin
+, nix       ? nix-flake.packages.${system}.nix
 }: stdenv.mkDerivation {
   inherit bash nix;
   pname   = "nix-floco-plugin";
@@ -34,12 +36,20 @@
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
   libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs = [nix.dev boost.dev];
+  buildInputs = [
+    nix.dev boost.dev
+  ] ++ ( if ! stdenv.isDarwin then [] else [
+    darwin.apple_sdk.frameworks.Security
+  ] );
   propagatedBuildInputs = [npm treeFor semver];
+  nativeBuildInputs     = [pkgconfig];
   buildPhase = ''
     runHook preBuild;
-    $CXX -shared -g -fPIC -o libfloco$libExt -std=c++17 ./*.cc  \
-       ${if stdenv.isDarwin then "-undefined suppress -flat_namespace" else ""};
+    DEP_CXXFLAGS=( $( pkg-config --libs --cflags nix-expr; ) );
+    echo "DEP_CXXFLAGS: ''${DEP_CXXFLAGS[*]}" >&2;
+    $CXX -shared -g -fPIC -o "libfloco$libExt" ./*.cc  \
+         "''${DEP_CXXFLAGS[@]}"                        \
+         ${if stdenv.isDarwin then "-flat_namespace" else ""};
     runHook postBuild;
   '';
   installPhase = ''

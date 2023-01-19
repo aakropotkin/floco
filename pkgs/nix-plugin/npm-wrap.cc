@@ -135,9 +135,7 @@ prim_semverSat(
           state.mkList( v, k );
           for ( const auto & [n, version] : enumerate( goods ) )
             {
-              ( v.listElems()[n] = state.allocValue() )->mkString(
-                std::move( version )
-              );
+              ( v.listElems()[n] = state.allocValue() )->mkString( version );
             }
         }
     }
