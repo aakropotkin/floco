@@ -181,3 +181,8 @@ in production code-bases as pieces of reliable infrastructure.
     in order to support things like =optionDependencies=, =peerDependencies=,
     =bundledDependencies=, and other oddballs which are a prerequisite for use
     in the general case.
+
+* Community
+** Matrix
+Sadly IRC is dead. IRC remains dead. And [[https://en.wikipedia.org/wiki/Andrew_Lee_(entrepreneur)][Andrew "Fuck-Stick" Lee]] has killed him. So like most folks these days we use Matrix Chat.
+[[https://matrix.to/#/#floco:matrix.org][#floco:matrix.org]]
