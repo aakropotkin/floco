@@ -108,7 +108,7 @@ in {
               This routine accepts two arguemnts.
               The first is `_file` indicating an absolute path the the file
               being serialized to - this is useful for creating relative paths.
-              The second is the serialized form of `fetchInfo`.
+              The second is the deserialized form of `fetchInfo`.
 
               See Also: deserializeFetchInfo, lockFetchInfo
             '';
