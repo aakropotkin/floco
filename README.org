@@ -185,7 +185,11 @@ in production code-bases as pieces of reliable infrastructure.
 * Community
 ** Matrix
 Sadly IRC is dead. IRC remains dead. And [[https://en.wikipedia.org/wiki/Andrew_Lee_(entrepreneur)][Andrew "Fuck-Stick" Lee]] has killed him. So like most folks these days we use Matrix Chat.
+
 Space: [[https://matrix.to/#/#floco:matrix.org][#floco:matrix.org]]
+
 General Room: [[https://matrix.to/#/!wMSeevIIjIbAOVbqHh:matrix.org?via=matrix.org]] ( Recommended )
+
 Support Room: [[https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org]]
+
 Development Room: [[https://matrix.to/#/!qDFpEnHkbpkhLSenko:matrix.org?via=matrix.org]]
