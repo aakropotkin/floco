@@ -26,21 +26,23 @@ in {
 # ---------------------------------------------------------------------------- #
 
       ident = lib.mkOption {
-        description = ''
-          Package identifier/name as found in `package.json:.name'.
+        description = lib.mdDoc ''
+          Package identifier/name as found in `package.json:.name`.
         '';
         type = ft.ident;
       };
 
       version = lib.mkOption {
-        description = "Package version as found in `package.json:.version'.";
-        type        = ft.version;
+        description = lib.mdDoc ''
+          Package version as found in `package.json:.version`.
+        '';
+        type = ft.version;
       };
 
       key = lib.mkOption {
-        description = ''
-          Unique key used to refer to this package in `tree' submodules and
-          other `floco' configs, metadata, and structures.
+        description = lib.mdDoc ''
+          Unique key used to refer to this package in `tree` submodules and
+          other `floco` configs, metadata, and structures.
         '';
         type = ft.key;
       };
@@ -106,11 +108,11 @@ in {
 # ---------------------------------------------------------------------------- #
 
       bin = lib.mkOption {
-        description = ''
-          Pairs of `{ <NAME> = <REL-PATH>; ... }' indicating executables that
+        description = lib.mdDoc ''
+          Pairs of `{ <NAME> = <REL-PATH>; ... }` indicating executables that
           will installed, and their associated source code to be symlinked.
 
-          These can be used "as is" to set `<PKG-ENT>.binInfo.binPairs'.
+          These can be used "as is" to set `<PKG-ENT>.binInfo.binPairs`.
         '';
         type    = nt.attrsOf nt.str;
         default = {};
@@ -136,10 +138,10 @@ in {
       };
 
       sha1 = lib.mkOption {
-        description = ''
+        description = lib.mdDoc ''
           SHA1 hash for tarball.
           This field may exist if another integrity hash was already provided
-          in the `integrity' field.
+          in the `integrity` field.
           It is not strictly specified whether the value need be an SRI, but I
           have never found a non SRI hash in a lockfile produced after NPM v8.
         '';
