@@ -57,6 +57,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 *** =lockFetchInfo=
@@ -80,6 +81,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 *** =pure=
@@ -157,6 +159,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 *** =lockFetchInfo=
@@ -180,6 +183,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 *** =pure=
@@ -256,6 +260,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 **** =lockFetchInfo=
@@ -279,6 +284,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 **** =pure=
@@ -355,6 +361,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 **** =lockFetchInfo=
@@ -378,6 +385,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 **** =pure=
@@ -454,6 +462,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 **** =lockFetchInfo=
@@ -477,6 +486,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 **** =pure=
@@ -553,6 +563,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 **** =lockFetchInfo=
@@ -576,6 +587,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 **** =pure=
@@ -652,6 +664,7 @@ This function must NOT return a raw string.
 {
   function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
+
 #+END_SRC
 
 **** =lockFetchInfo=
@@ -675,6 +688,7 @@ This routine is used to create lockfiles during discovery phases.
     };
   in { sha256 = sourceInfo.narHash; } // fetchInfo;
 }
+
 #+END_SRC
 
 **** =pure=
@@ -725,7 +739,8 @@ resources purely.
       key = "lodash/4.17.21";
     };
   };
-}#+END_SRC
+}
+#+END_SRC
 
 *** =built=
 - option :: ~floco.packages.<ident>.<version>.built~
@@ -794,7 +809,8 @@ See Also: *.overrideAttrs
   preBuild = ''
     echo "Howdy" >&2;
   '';
-}#+END_SRC
+}
+#+END_SRC
 
 **** =overrideAttrs=
 - option :: ~floco.packages.<ident>.<version>.built.overrideAttrs~
@@ -815,6 +831,7 @@ See Also: *.override
     ];
   };
 }
+
 #+END_SRC
 
 **** =package=
@@ -835,7 +852,8 @@ undefined in =package.json= it is skipped.
 [
   "build:part1"
   "build:part2"
-]#+END_SRC
+]
+#+END_SRC
 
 **** =tree=
 - option :: ~floco.packages.<ident>.<version>.built.tree~
@@ -857,6 +875,7 @@ checkSystemSupport = {
 , platform ? stdenv.hostPlatform
 , system   ? platform.system
 }: ( builtins.match "x86_64-*" system ) != null
+
 #+END_SRC
 
 *** =dist=
@@ -983,7 +1002,8 @@ See Also: *.overrideAttrs
   preinstall = ''
     echo "Howdy" >&2;
   '';
-}#+END_SRC
+}
+#+END_SRC
 
 **** =overrideAttrs=
 - option :: ~floco.packages.<ident>.<version>.installed.overrideAttrs~
@@ -1004,6 +1024,7 @@ See Also: *.override
     ];
   };
 }
+
 #+END_SRC
 
 **** =package=
@@ -1025,7 +1046,8 @@ undefined in =package.json= it is skipped.
 [
   "install:part1"
   "install:part2"
-]#+END_SRC
+]
+#+END_SRC
 
 **** =tree=
 - option :: ~floco.packages.<ident>.<version>.installed.tree~
@@ -1462,6 +1484,7 @@ recommend using a =package-lock.json(v2/3)= to fill these values.
   };
   # ...
 }
+
 #+END_SRC
 
 ***** =dev=
@@ -2017,6 +2040,7 @@ recommend using a =package-lock.json(v2/3)= to fill these values.
   };
   # ...
 }
+
 #+END_SRC
 
 **** =dev=
@@ -2092,7 +2116,8 @@ These records are used to generate build recipes and build plans.
       version = "4.17.21";
     };
   };
-}#+END_SRC
+}
+#+END_SRC
 
 *** =binInfo=
 - option :: ~floco.pdefs.<ident>.<version>.binInfo~
@@ -2486,6 +2511,7 @@ recommend using a =package-lock.json(v2/3)= to fill these values.
   };
   # ...
 }
+
 #+END_SRC
 
 **** =dev=

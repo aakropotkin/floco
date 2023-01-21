@@ -152,7 +152,7 @@
     in if ! ( fields ? example ) then "" else
        if ( builtins.match ".*\n.*" e ) == null
        then "- example :: =${ens}=\n"
-       else "- example ::\n#+BEGIN_SRC nix\n${e}#+END_SRC\n";
+       else "- example ::\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
     declPaths = let
       gen = p: let
         m   = builtins.match "<floco>(/.*)" p;
