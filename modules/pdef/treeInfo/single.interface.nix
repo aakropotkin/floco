@@ -13,6 +13,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  _file = "<floco>/pdef/treeInfo/single.interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   # Arbitrary booleans can be added to indicate when a tree member is only
   # required for certain lifecycle events.
   freeformType = nt.attrsOf nt.bool;

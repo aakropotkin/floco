@@ -8,21 +8,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  transformDeclPaths' = {
-    to ? "<floco>"
-  }: option: let
-    subst = p: let
-      m = builtins.match ".*/floco/modules/(.*)" p;
-    in if m == null then p else to + "/modules/" + ( builtins.head m );
-  in option // {
-    declarations = map subst option.declarations;
-  };
-
-  transformDeclPaths = transformDeclPaths' {};
-
-
-# ---------------------------------------------------------------------------- #
-
   # Helpers taken from `<nixpkgs>/nixos/lib/make-options-doc/default.nix'
 
   substSpecial = x:
@@ -37,7 +22,7 @@
   # option definitions preserving only fields which are relevant for docs.
   mkOptionsList = {
     options
-  , transformOptions ? transformDeclPaths
+  , transformOptions ? lib.id
   }: let
     # This routine is what really does most of the work:
     rawOpts         = lib.optionAttrSetToDocList options;
@@ -62,7 +47,7 @@
   # Those need to be processed by some `markdown' renderer.
   mkOptionsNix = {
     options
-  , transformOptions ? transformDeclPaths
+  , transformOptions ? lib.id
   } @ args: builtins.listToAttrs ( map ( o: {
     name  = o.name;
     value = removeAttrs o ["name" "visible" "internal"];
@@ -74,7 +59,7 @@
   # This could be done with `lib.mapAttrsRecursive' but this is simpler.
   mkOptionsNixNoCtx = {
     options
-  , transformOptions ? transformDeclPaths
+  , transformOptions ? lib.id
   }: let
     optionsNix = mkOptionsNix { inherit options transformOptions; };
     str = builtins.unsafeDiscardStringContext ( builtins.toJSON optionsNix );
@@ -129,7 +114,7 @@
 
   mkOptionsOrg = {
     options
-  , transformOptions ? transformDeclPaths
+  , transformOptions ? lib.id
   }: mkOptionsList {
     inherit options;
     transformOptions = opt: transformMdToOrg ( transformOptions opt );
@@ -161,15 +146,18 @@
         if ( example._type or null ) == "literalExpression"
         then example.text
         else lib.generators.toPretty {} example;
+      ens = let
+        m = builtins.match "\"([^\"]+)\"" e;
+      in if m == null then e else builtins.head m;
     in if ! ( fields ? example ) then "" else
        if ( builtins.match ".*\n.*" e ) == null
-       then "- example :: =${e}=\n"
-       else "- example ::\n#+BEGIN_SRC nix\n${e}\n#+END_SRC\n";
+       then "- example :: =${ens}=\n"
+       else "- example ::\n#+BEGIN_SRC nix\n${e}#+END_SRC\n";
     declPaths = let
       gen = p: let
         m   = builtins.match "<floco>(/.*)" p;
         sub = if m == null then p else builtins.head m;
-        url = "https://github.com/aakropotkin/floco/blob/main${sub}";
+        url = "https://github.com/aakropotkin/floco/blob/main/modules${sub}";
       in "[[${url}][${p}]]";
     in map gen declarations;
     t = if ( builtins.match "string matching .*" ( toString type ) ) == null
@@ -193,7 +181,7 @@
   renderOrgFile = {
     title   ? "Floco Options Manual"
   , options
-  , transformOptions ? transformDeclPaths
+  , transformOptions ? lib.id
   }: let
     odoc  = mkOptionsOrg { inherit options transformOptions; };
     clean = map ( o:
@@ -211,7 +199,6 @@ in {
     mkOptionsNixNoCtx
     nonGreedySplitQuote
     mdToOrg
-    transformDeclPaths' transformDeclPaths
     transformMdToOrg
     mkOptionsOrg
     renderOrgOptionHeading

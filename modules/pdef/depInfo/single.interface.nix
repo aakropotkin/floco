@@ -12,6 +12,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/depInfo/single.interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   # Additional bool fields may be added in association with various lifecycle
   # events such as `test', `lint', etc allowing users to minimize the trees
   # used for those events.

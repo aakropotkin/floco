@@ -12,6 +12,12 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
+  _file = "<floco>/pdef/peerInfo/single.interface.nix";
+
+# ---------------------------------------------------------------------------- #
+
   options = {
     descriptor = lib.mkOption {
       description = lib.mdDoc ''
