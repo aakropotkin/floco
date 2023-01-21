@@ -55,7 +55,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -155,7 +155,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -254,7 +254,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -353,7 +353,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -452,7 +452,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -551,7 +551,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 
@@ -650,7 +650,7 @@ This function must NOT return a raw string.
 - example ::
 #+BEGIN_SRC nix
 {
-  function = fetchInfo: { outPath = builtins.path fetchInfo; }
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
 }
 #+END_SRC
 

@@ -179,7 +179,7 @@ in {
             type    = nt.raw;
             example = lib.literalExpression ''
               {
-                function = fetchInfo: { outPath = builtins.path fetchInfo; }
+                function = fetchInfo: { outPath = builtins.path fetchInfo; };
               }
             '';
           };
@@ -188,9 +188,13 @@ in {
 # ---------------------------------------------------------------------------- #
 
         } )  # End module
+
       ];  # End `options.fetchers.type.modules'
+
     };  # End `options.fetchers.type'
+
     default = {};
+
   };  # End `options.fetchers'
 
 
