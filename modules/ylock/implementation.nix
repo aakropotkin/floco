@@ -63,10 +63,17 @@ in {
 
   config = {
     _module.args.ylock = lib.mkDefault null;
-    inherit lockDir ylock;
-    lockfileVersion = ylock.__metadata.version;
-    ylents = builtins.mapAttrs mkEnt ( removeAttrs ylock ["__metadata"] );
+    inherit lockDir;
   };
+
+  imports = [{
+    _file  = lockDir + "/yarn.lock";
+    config = {
+      inherit ylock;
+      lockfileVersion = ylock.__metadata.version;
+      ylents = builtins.mapAttrs mkEnt ( removeAttrs ylock ["__metadata"] );
+    };
+  }];
 
 
 # ---------------------------------------------------------------------------- #
