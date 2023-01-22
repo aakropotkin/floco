@@ -171,6 +171,8 @@ pushd "$LOCKDIR" >/dev/null;
 
 echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
 
+#STRATEGY_FLAG='--install-strategy=shallow';
+
 $NPM install            \
   --save                \
   --package-lock-only   \

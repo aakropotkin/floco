@@ -16,7 +16,7 @@
         if builtins.isAttrs fetchInfo then fetchInfo.type or "path" else
         builtins.head ( builtins.match "([^+:]+)[+:].*" fetchInfo );
       fetcher = if type == "path" then "path" else "fetchTree_${type}";
-    in lib.mkDefault fetcher;
+    in lib.mkOverride 900 fetcher;
   } // serialized;
 
 

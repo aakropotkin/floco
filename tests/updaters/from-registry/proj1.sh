@@ -96,7 +96,7 @@ cleanup() {
 }
 
 _es=0;
-trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
+trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT EXIT;
 
 
 # ---------------------------------------------------------------------------- #
@@ -146,10 +146,12 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-OUTFILE="$( mktmp_auto; )";
+OUTFILE="$( mktmp_auto --suffix=.json; )";
+rm -f "$OUTFILE";
 $NIX run "$FLAKE_REF#fromRegistry" -- "$PKG" --json --out-file "$OUTFILE";
 
 TARGET_ENT="$( mktmp_auto; )";
+# XXX: This only works when `PKG' is a raw identifier.
 $JQ "map( select( .ident == \"$PKG\" ) )[0]" "$OUTFILE" > "$TARGET_ENT";
 
 
@@ -164,6 +166,31 @@ echo "Assert that \`fetchInfo' is defined as an \`npm' tarball:" >&2;
 $JQ -e '
   ( .fetchInfo // "" )|test( "^tarball\\+https://registry\\.npmjs\\.org" )
 ' "$TARGET_ENT" >&2;
+
+
+# ---------------------------------------------------------------------------- #
+
+TARGET_NAME="$PKG";
+TARGET_VERSION="$( $JQ -r '.version' "$TARGET_ENT"; )";
+export OUTFILE TARGET_NAME TARGET_VERSION FLAKE_REF;
+$NIX build --show-trace --no-link -f - <<'EOF'
+let
+  floco   = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
+  pkgsFor = floco.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.extend
+              floco.overlays.default;
+  inherit (floco) lib;
+  mod = lib.evalModules {
+    modules = [
+      "${floco}/modules/top"
+      ( lib.addPdefs ( builtins.getEnv "OUTFILE" ) )
+      { _module.args.pkgs = pkgsFor; }
+    ];
+  };
+  ident   = builtins.getEnv "TARGET_NAME";
+  version = builtins.getEnv "TARGET_VERSION";
+  pkg = mod.config.floco.packages.${ident}.${version}.global;
+in pkg
+EOF
 
 
 # ---------------------------------------------------------------------------- #

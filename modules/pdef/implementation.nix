@@ -118,7 +118,11 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    ltype = lib.mkIf ( config.fetchInfo ? path ) ( lib.mkDefault "dir" );
+    ltype = lib.mkDefault (
+      if config.fetchInfo ? path then "dir" else
+      if builtins.elem config.fetchInfo.type ["file" "tarball"] then "file" else
+      "git"
+    );
 
 
 # ---------------------------------------------------------------------------- #
