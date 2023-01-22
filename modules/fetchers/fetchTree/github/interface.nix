@@ -9,7 +9,7 @@
   _file = "<floco>/fetchers/fetcher/fetchTree/github/interface.nix";
 
   options.fetchTree_github = lib.mkOption {
-    description = lib.mdDoc "`builtins.fetchTree[github]` args";
+    description = lib.mdDoc "`builtins.fetchTree[github]` fetcher";
   };
 
 }
