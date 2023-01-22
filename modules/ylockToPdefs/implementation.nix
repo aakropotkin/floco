@@ -75,7 +75,7 @@
       revOrRef' = if rev == null then { inherit ref; } else { inherit rev; };
     in if builtins.elem ltype ["dir" "link"] then {
       path = let
-        rplen = builtins.stringLenth "${ident}@workspace:";
+        rplen = builtins.stringLength "${ident}@workspace:";
       in if resolution == "${ident}@workspace:." then lockDir else
          lockDir + ( "/" + ( builtins.substring rplen len resolution ) );
     } else if type == "git" then {
