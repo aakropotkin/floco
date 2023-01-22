@@ -1,11 +1,8 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-# Update a `pdefs.nix' file using a `package-lock.json' v3 provided by `npm'.
-#
-# This script will trash any existing `node_modules/' trees, and if a
-# `package-lock.json' file already exists, it will be updated to use the v3
-# schema as a side effect of this script.
+# Generate a package from the `npm' registry including its full dep-graph.
+# Dev. dependencies will be omitted from generated definitions.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -15,30 +12,23 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco update npm-plock";
+_as_me="floco update registry";
 
 _version="0.1.0";
 
 # [-c FLOCO-CONFIG-FILE]
-_usage_msg="$_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="$_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
-Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
+Generate a package from the \`npm' registry including its full dep-graph.
 ";
 
 _help_msg="$_usage_msg
 
-This script will trash any existing \`node_modules/' trees, and if a
-\`package-lock.json' file already exists, it will be updated to use the v3
-schema as a side effect of this script.
+Dev. dependencies will be omitted from generated definitions.
 
 OPTIONS
-  -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
-                      This directory must contain a \`package.json', but need
-                      not
-                      contain a \`package-lock.json'.
-                      Defaults to current working directory.
   -o,--out-file PATH  Path to write generated \`pdef' records.
-                      Defaults to \`<LOCK-DIR>/pdefs.nix'.
+                      Defaults to \`PWD/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -c,--config PATH    Path to a \`floco' configuration file which may be used to
@@ -54,6 +44,7 @@ ENVIRONMENT
   JQ            Command to use as \`jq' executable.
   SED           Command to use as \`sed' executable.
   REALPATH      Command to use as \`realpath' executable.
+  MKTEMP        Command to use as \`mktemp' executable.
   FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
@@ -79,11 +70,12 @@ usage() {
 : "${JQ:=jq}";
 : "${REALPATH:=realpath}";
 : "${SED:=sed}";
+: "${MKTEMP:=mktemp}";
 
 
 # ---------------------------------------------------------------------------- #
 
-unset OUTFILE LOCKDIR;
+unset OUTFILE PKG;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -110,7 +102,6 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
-    -l|--lock-dir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -o|--out-file) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -c|--config)   FLOCO_CONFIG="$2"; shift; ;;
     -j|--json)     JSON=:; ;;
@@ -124,9 +115,13 @@ while [[ "$#" -gt 0 ]]; do
       exit 1;
     ;;
     *)
-      echo "$_as_me: Unexpected argument(s) '$*'" >&2;
-      usage -f >&2;
-      exit 1;
+      if [[ -z "${PKG:-}" ]]; then
+        PKG="$1";
+      else
+        echo "$_as_me: Unexpected argument(s) '$*'" >&2;
+        usage -f >&2;
+        exit 1;
+      fi
     ;;
   esac
   shift;
@@ -135,14 +130,13 @@ done
 if [[ -n "${FLOCO_CONFIG:-}" ]]; then
   FLOCO_CONFIG="$( $REALPATH "$FLOCO_CONFIG"; )";
 fi
-: "${LOCKDIR:=$PWD}";
 : "${JSON=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
-    OUTFILE="$LOCKDIR/pdefs.nix";
+    OUTFILE="$PWD/pdefs.nix";
   else
-    OUTFILE="$LOCKDIR/pdefs.json";
+    OUTFILE="$PWD/pdefs.json";
   fi
 fi
 
@@ -163,65 +157,45 @@ esac
 
 # ---------------------------------------------------------------------------- #
 
-# Lint target package for stuff that will trip up attempts to generate `pdefs'.
-if [[ "$( $JQ -r '.name // null' "$LOCKDIR/package.json"; )" = 'null' ]]; then
-  echo "$_as_me: target package is unnamed. name it you dingus." >&2;
-  exit 1;
-fi
-
-if [[ "$( $JQ -r '.version // null' "$LOCKDIR/package.json"; )" = 'null' ]];
-then
-  echo "$_as_me: target package is unversioned. version it you dangus." >&2;
-  exit 1;
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
 # Backup existing outfile if one exists
 if [[ -r "$OUTFILE" ]]; then
   echo "$_as_me: backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
   cp -p -- "$OUTFILE" "$OUTFILE~";
 fi
 
-# Backup existing lockfile if one exists
-if [[ -r "$LOCKDIR/package-lock.json" ]]; then
-  printf '%s' "$_as_me: backup up existing \`package-lock.json' to "  \
-              "\`$LOCKDIR/package-lock.json~'" >&2;
-  echo '' >&2;
-  cp -p -- "$LOCKDIR/package-lock.json" "$LOCKDIR/package-lock.json~";
-fi
-
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -d "$LOCKDIR/node_modules" ]]; then
-  echo "$_as_me: deleting \`$LOCKDIR/node_modules' to avoid pollution" >&2;
-  rm -rf "$LOCKDIR/node_modules";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
+LOCKDIR="$( $MKTEMP -d; )";
 pushd "$LOCKDIR" >/dev/null;
+
+echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
+
 $NPM install            \
+  --save                \
   --package-lock-only   \
   --ignore-scripts      \
   --lockfile-version=3  \
   --no-audit            \
   --no-fund             \
   --no-color            \
+  --global-style        \
   "$@"                  \
+  "$PKG"                \
 ;
 
 
 # ---------------------------------------------------------------------------- #
 
 cleanup() {
-  rm -f "$OUTFILE";
+  popd >/dev/null;
+  rm -rf "$LOCKDIR";
+  if [[ "$_es" -ne 0 ]]; then
+    rm -f "$OUTFILE";
+  fi
 }
 _es=0;
-trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
+trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT EXIT;
 
 
 # ---------------------------------------------------------------------------- #
@@ -246,16 +220,32 @@ let
   #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
   #          then [cfgPath]
   #          else [];
-  outfile = builtins.getEnv "OUTFILE";
-  asJSON   = ( builtins.getEnv "JSON" ) != "";
-  pl2pdefs = import "${floco}/modules/plockToPdefs/implementation.nix" {
+  asJSON  = ( builtins.getEnv "JSON" ) != "";
+  base = import "${floco}/modules/plockToPdefs/implementation.nix" {
     inherit lib;
     lockDir = toString ./.;
     plock   = lib.importJSON ./package-lock.json;
-    basedir = dirOf outfile;
   };
-in if asJSON then pl2pdefs.exports else
-   lib.generators.toPretty {} pl2pdefs.exports
+  phony = builtins.head ( builtins.filter ( v:
+    ( v.ident == "@floco/phony" ) && ( v.version == "0.0.0-0" )
+  ) base.exports );
+  target   = builtins.head ( builtins.attrNames phony.depInfo );
+  ppath    = "node_modules/${target}";
+  tver     = baseNameOf phony.treeInfo.${ppath}.key;
+  pplen    = ( builtins.stringLength ppath ) + 1;
+  treeInfo = let
+    np    = removeAttrs phony.treeInfo [ppath];
+    remap = p: {
+      name  = builtins.substring pplen ( builtins.stringLength p ) p;
+      value = np.${p};
+    };
+  in builtins.listToAttrs ( map remap ( builtins.attrNames np ) );
+  parted = builtins.partition ( v:
+    ( v.ident == target ) && ( v.version == tver )
+  ) ( builtins.tail base.exports );
+  injected = ( builtins.head parted.right ) // { inherit treeInfo; };
+  pl2pdefs = [injected] ++ parted.wrong;
+in if asJSON then pl2pdefs else lib.generators.toPretty {} pl2pdefs
 EOF
 
 
@@ -268,6 +258,12 @@ if [[ -z "$JSON" ]]; then
   $SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
           "$OUTFILE";
 fi
+
+
+# ---------------------------------------------------------------------------- #
+
+
+exit 0;
 
 
 # ---------------------------------------------------------------------------- #
