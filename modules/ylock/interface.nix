@@ -1,6 +1,6 @@
 # ============================================================================ #
 #
-# Typed representation of a `package-lock.json(v2/3)' file.
+# Typed representation of a `yarn.lock(v5)' file.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -14,22 +14,22 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  _file = "<floco>/plock/interface.nix";
+  _file = "<floco>/ylock/interface.nix";
 
 # ---------------------------------------------------------------------------- #
 
   options = {
 
-    plock = lib.mkOption {
+    ylock = lib.mkOption {
       description = lib.mdDoc ''
-        Raw `package-lock.json` contents produced by `npm`.
+        Raw `yarn.lock` contents produced by `yarn`.
       '';
       type = nt.attrsOf nt.anything;
     };
 
     lockDir = lib.mkOption {
       description = lib.mdDoc ''
-        Path to the directory containing `package-lock.json`.
+        Path to the directory containing `yarn.lock`.
         We require this path so that we can fetch source trees declared as
         relative paths in the lockfile.
 
@@ -44,30 +44,23 @@ in {
       example = toString ./my-project;
     };
 
-    plents = lib.mkOption {
+    ylents = lib.mkOption {
       description = lib.mdDoc ''
-        Translated "package lock entries" ( called `plent` throughout `floco` )
-        as attributes remapped from the `package-lock.json:.packages.*` fields.
-
-        NOTE: At this time only `package-lock.json` version 2 and 3 are
-        supported because version 1 locks lack a `packages.*` field.
+        Translated "yarn lock entries" ( called `ylent's throughout `floco' ).
+        This excludes the `__metadata` entry.
       '';
-      type = nt.attrsOf ( import ./types.nix { inherit lib; } ).plent;
+      type = nt.attrsOf ( import ./types.nix { inherit lib; } ).ylent;
     };
 
+    # Pulled from `__metadata.version' field.
     lockfileVersion = lib.mkOption {
       description = lib.mdDoc ''
-        `npm` lockfile schema version.
+        `yarn` lockfile schema version.
 
-        At this time only version 2 and 3 are supported.
-        The beta repository `github:aameen-tulip/at-node-nix` implements support
-        for `package-lock.json` v1 which will be migrated at a later date.
-
-        It is strongly recommended that you use version 3 as:
-          ~npm i --package-lock-only --lockfile-version=3 --ignore-scripts;~
+        At this time only version 5 is supported.
       '';
-      type    = nt.addCheck nt.int ( x: builtins.elem x [2 3] );
-      example = 3;
+      type    = nt.addCheck nt.int ( x: builtins.elem x [5] );
+      example = 5;
     };
 
   };  # End `options'

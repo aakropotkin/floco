@@ -321,6 +321,48 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+          ylock = lib.mkOption {
+            description = lib.mdDoc ''
+              Raw contents of `yarn.lock`.
+
+              NOTE: This field must only be set when the "root" package in the
+              lockfile is associated this the package being declared.
+              Information concerning dependencies is instead stashed
+              in `metaFiles.ylent.*`.
+
+              See Also: plent
+            '';
+            type     = nt.nullOr ( nt.attrsOf nt.anything );
+            default  = null;
+            internal = true;
+          };
+
+          ylent = lib.mkOption {
+            description = lib.mdDoc ''
+              Raw contents of a `yarn.lock:.*` record.
+
+              See Also: plock plentKey
+            '';
+            type     = nt.nullOr ( nt.attrsOf nt.anything );
+            default  = null;
+            internal = true;
+          };
+
+          ylentKey = lib.mkOption {
+            description = lib.mdDoc ''
+              The key used to lookup a plent in `yarn.lock`.
+              This key is a comma separated list of descriptors which should
+              resolve to the declared entry.
+            '';
+            type     = nt.nullOr nt.str;
+            default  = null;
+            example  = "foo@npm:^1.0.0, foo@npm:^1.2.0";
+            internal = true;
+          };
+
+
+# ---------------------------------------------------------------------------- #
+
         };  # End `metaFiles.type.options'
       };  # End `metaFiles.type'
 
