@@ -1,9 +1,9 @@
 #+TITLE: floco
-=floco= is a Node.js package management and build tool powered by
+=floco= is a JavaScript package management and build tool powered by
 [[https://nixos.org][Nix]].
 
-=floco= is a bold departure from conventional Node.js package management tooling
-focusing on reproducibility, distributed caching, and sandboxing.
+=floco= is a bold departure from conventional JavaScript package management
+tooling focusing on reproducibility, distributed caching, and sandboxing.
 
 Every package is built in a strictly declared sandbox isolated from the runtime
 system, much like an /OCI/ container.
@@ -33,8 +33,8 @@ that is the best place to dive in.
 The summary is:
 Generate a config, copy a boilerplate template, and you're set.
 
-I haven't created =nix flake init -t <TEMPLATE>;= outputs yet, so you gotta
-go read the guide for now, but those are coming soon.
+A simple template with the boilerplate needed for use with our /updaters/
+is available through ~nix flake init -t github:aakropotkin/floco~.
 
 * Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
@@ -46,6 +46,40 @@ as replacements for ~pacote extract~ ( =install-module.sh= ) and
 
 These routines can be found in the ~<floco>/setup/~ subdir, named after the
 =setup-hooks= pattern found in [[https://github.com/NixOS/nixpkgs][nixpkgs]].
+
+You can install these as standalone executables using the =floco-utils=
+installable in the top-level flake.
+
+* Updaters/Generators
+The top level flake provides an installable =floco-updaters= as well as
+=app= targets ( =fromPlock= and =fromRegistry= ) that can be used to generate
+=pdefs.nix= and =pdefs.json= files to be loaded by =lib.addPdefs= as configs.
+
+These scripts will allow you to convert existing JavaScript projects to be
+used with =floco=, and update/regenerate configs as projects'
+dependencies and build requirements change.
+
+** =fromPlock=
+This generator is intended for use with local projects.
+It is essentially a wrapper around =npm i --package-lock-only=.
+
+For example usage please see
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]].
+
+** =fromRegistry=
+This generator is intended for use with published registry packages that
+you'd like to make accessible to =floco= and =nix=.
+
+This script behaves almost identically to =fromPlock=, except that it
+ignores =devDependencies= entirely, and accepts package descriptors as an
+argument ( as =npm= or =yarn= would ).
+
+For example usage please see
+[[https://github.com/aakropotkin/floco/blob/main/tests/updaters/from-registry/proj1.sh][proj1.sh test]].
+
+This script most useful for packaging executables and generating =treeInfo=
+information for packages that have =install= scripts ( such as =node-gyp=
+compilation ).
 
 * Modules
 Package metadata collection, also called /translation/, and project
@@ -75,7 +109,7 @@ drastically improve performance by leveraging
 [[https://www.tweag.io/blog/2020-06-25-eval-cache/][eval caching]] to avoid
 re-evaluation of recipe generation on successive runs.
 
-** =pdef= Package Defintions
+** =pdef= Package Definitions
 The =pdef= record closely mirrors the pseudo-standard schema used by most
 =package.json= files; but is much stricter about how declarations
 are written.
@@ -84,7 +118,7 @@ If desired, users could ditch =package.json= files altogether and simply
 write =pdef= records for their projects.
 
 ** Translators
-At time of writing only a few translators have been migrated from the beta
+At time of writing only a few translators have been migrated from the alpha
 iteration, [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but
 in the near future these will be finalized for production use.
 
@@ -106,7 +140,7 @@ Node.js package management.
 While =floco= currently relies on =npm= to generate /ideal trees/, this
 is expected to end soon.
 
-The beta repository
+The alpha repository
 [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]] contains a
 large body of routines to perform /best effort/ =treeInfo=
 mapping, specifically handling projects which only require a single
@@ -126,14 +160,171 @@ option for large projects.
 This translator will automatically fill =treeInfo= submodules, and
 triggers minimal network fetching.
 
+*** =yarn.lock= v5
+A rudimentary translator exists to collect information from =yarn.lock=
+v5 ( produced by =yarn= v3 ), but because these lockfiles lack
+/ideal tree/ information users will need to provide =treeInfo= themselves.
+
+In the future we intend to produce =treeInfo= from these locks using
+the pinned version information they contain; but this routine still needs
+to be authored.
+
+* Experimental Features
+** =treeFor=
+A CLI frontend for the =npm= /ideal tree/ routine,
+[[https://github.com/npm/cli/blob/main/workspaces/arborist/README.md][arborist]],
+modified such that =package-lock.json= files can be emitted to =STDOUT=
+without modifying the project.
+
+This is expected to be used in later iterations of the /updaters/ allowing
+them to be run on ~/nix/store/~ paths.
+The =builtins.npmLock= example in the section takes advantage of this.
+
+This executable is exposed as an installable and =app= in the
+top-level flake.
+
+
+** Nix Plugin
+A =nix= plugin for use with ~nix --plugin-files ...~ is available in the
+top level flake, along with a wrapper executable, =floco=, which
+automatically loads this plugin.
+
+In the future this plugin is expected to grow into a full executable that
+provides a suite of CLI commands; but for now it accepts =nix= arguments
+and sub-commands.
+
+This plugin was developed for Nix v2.12.0, but is likely compatible with
+a wider range of versions.
+
+*** New Builtins
+Our plugin adds a few new =builtins= to the =nix= evaluator which are
+useful for dynamically generating package definitions.
+
+**** =builtins.npmShow=
+Wraps ~npm show~ allowing Nix to query package registries using a users
+existing =npm= config and any environment =NPM_CONFIG_*= variables.
+
+While =floco= is already able to fetch package registry information
+without any external tools; this builtin is useful for accessing private
+package registries and inheriting authorization settings with
+minimal setup.
+
+#+BEGIN_SRC shell :results output :exports both
+nix run github:aakropotkin/floco#floco -- eval --json --expr '
+builtins.attrNames ( builtins.npmShow "lodash" )
+'|jq;
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[
+  "_cached",
+  "_contentLength",
+  "_hasShrinkwrap",
+  "_id",
+  "_nodeVersion",
+  "_npmOperationalInternal",
+  "_npmUser",
+  "_npmVersion",
+  "_rev",
+  "author",
+  "bugs",
+  "contributors",
+  "description",
+  "directories",
+  "dist",
+  "dist-tags",
+  "gitHead",
+  "homepage",
+  "icon",
+  "keywords",
+  "license",
+  "main",
+  "maintainers",
+  "name",
+  "readmeFilename",
+  "repository",
+  "scripts",
+  "time",
+  "users",
+  "version",
+  "versions"
+]
+#+end_example
+
+**** =builtins.npmResolve=
+Resolves package descriptors such as =foo@^1.0.0= or =bar@latest=
+using =npm=, returning a resolved URI.
+
+This has the same environment and configuration properties as =npmShow=.
+
+NOTE: if you use ranges such as =lodash@2.x= you will want to use
+=builtins.split= to parse the output.
+
+#+BEGIN_SRC shell :results output :exports both
+nix run github:aakropotkin/floco#floco -- eval --expr '
+builtins.npmResolve "lodash@latest"
+';
+#+END_SRC
+
+#+RESULTS:
+: "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+
+**** =builtins.npmLock=
+Produces a virtual =package-lock.json= for a given project path
+without modifying the project or making any writes to the filesystem.
+
+This is an ideal alternative to the =fromRegistry= /updater/ when
+used in combination with =builtins.fetchTree= and =builtins.npmResolve=.
+
+In practice you can dynamically generate full dependency closures'
+=treeInfo= records using this routine.
+I currently use it for this purpose out in the field; but have avoided
+using it in the default modules so that they are usable without plugins.
+
+#+BEGIN_SRC shell :results output :exports both
+nix run github:aakropotkin/floco#floco -- eval --impure --expr 'let
+  url   = builtins.npmResolve "pacote@latest";
+  src   = builtins.fetchTree { type = "tarball"; inherit url; };
+  plock = builtins.npmLock src;
+in builtins.attrNames plock
+';
+#+END_SRC
+
+#+RESULTS:
+: [ "lockfileVersion" "name" "packages" "requires" "version" ]
+
+**** =builtins.semverSat=
+Runs =node-semver= to test whether a semantic version satisfies
+a constraint.
+In the future =node-semver= will be replaced using a native C++ port
+[[https://github.com/aakropotkin/semi.git][semi]].
+
+This largely exists as a stop-gap until the pure =nix= implementation
+from the alpha repository is polished and/or =semi= is completed.
+
+#+BEGIN_SRC shell :results output :exports both
+nix run github:aakropotkin/floco#floco -- eval --expr '[
+  ( builtins.semverSat "^4.2.0" "4.0.0" )
+  ( builtins.semverSat "^4.2.0" "4.2.0" )
+  ( builtins.semverSat "^4.2.0" "4.2.1" )
+  ( builtins.semverSat "^4.2.0" "4.3.0" )
+]
+';
+#+END_SRC
+
+#+RESULTS:
+: [ false true true true ]
+
+
 * Future Extensions
 Many of the following extensions have function drafts or well tested
-prototypes in the beta release of floco; but are not developed enough for use
-in production code-bases as pieces of reliable infrastructure.
+prototypes in the alpha release of =floco=; but are not developed enough for
+use in production code-bases as pieces of reliable infrastructure.
 
 - Improved support for package.json workspaces.
-  + Currently reliance on npm and special configuration based on in depth
-    knowledge of floco is necessary to accomplish workspace support.
+  + Currently reliance on =npm= and special configuration based on in depth
+    knowledge of =floco= is necessary to accomplish workspace support.
   + Practically a template or example using workspaces is likely sufficient
     for the immediate future; but the NixOS Module system is expected to
     resolve issues that previously made workspaces complex to manage.
@@ -143,29 +334,15 @@ in production code-bases as pieces of reliable infrastructure.
     Ideally a simple bash script would provide familiar commands such as
     ~floco add <PKG>~, ~floco publish~, ~floco update~, ~floco build~,
     etc that =npm= and =yarn= users are already familiar with.
-- Improved project composition structures.
-  + Currently a rudimentary API for composing projects exists for defining,
-    consuming, and modifying package definitions across multiple repositories;
-    and while it does an incredible job of hiding complexity it is not well
-    documented, and the migration to =Nixpkgs= Modules will necessitate small
-    changes to the existing implementations of these APIs.
 - Nix plugin to read/write caches globally and into =flake.lock=.
   + This is the real end goal for =floco=.
     It should be possible to read/write =floco= metadata to =flake.lock= and
     existing =nix= caches.
-  + There is currently a draft plugin which allows nix to adopt npm URIs to
+  + There is currently a draft plugin which allows nix to adopt =npm= URIs to
     refer to packages as =lodash@4.17.21= which could be expanded upon.
   + Project templates and propagation of build recipes could allow =nix= to
     abstract away the generation of =flake.nix= for the vast majority of
     projects which would be a significant UX breakthrough.
-- =yarn.lock= translators.
-  + Development of =yarn= translators was dropped after the creation of the
-    first working prototype in favor of =package-lock.json= translation.
-    There is a large collection of existing routines that can translate
-    =yarn.lock= to =nix= in
-    [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but not
-    using the =floco= metadata schema, and not in a coherent or
-    documented flow.
 - Semantic version parsing, and /ideal tree/ formation.
   + Currently =floco= really relies on =npm= and its =package-lock.json= to
     construct non-trivial node_module/ metadata declarations.
@@ -173,10 +350,15 @@ in production code-bases as pieces of reliable infrastructure.
     use yarn since interoperability between =yarn= and =npm= across their
     associated lockfiles is implemented incredibly poorly, to such a degree
     that you cannot trust them to behave predictably in the same source tree.
-  + Semver parsing and solving SAT is implemented in the beta repository, and
+  + Semver parsing and solving SAT is implemented in the alpha repository, and
     has been testing on large non-trivial inputs quite successfully.
     Still this effort requires a few weeks of polishing to really approve for
     use in production.
+    - For now we have provided
+      [[https://github.com/npm/node-semver.git][node-semver]] as an
+      installable in the top-level flake for use in scripts and our
+      [[https://github.com/aakropotkin/floco/blob/main/pkgs/nix-plugin][nix-plugin]]
+      through =builtins.semverSat=.
   + Construction of ideal tree from semver SAT is a project in and of itself
     in order to support things like =optionDependencies=, =peerDependencies=,
     =bundledDependencies=, and other oddballs which are a prerequisite for use
@@ -184,12 +366,17 @@ in production code-bases as pieces of reliable infrastructure.
 
 * Community
 ** Matrix
-Sadly IRC is dead. IRC remains dead. And [[https://en.wikipedia.org/wiki/Andrew_Lee_(entrepreneur)][Andrew "Fuck-Stick" Lee]] has killed him. So like most folks these days we use Matrix Chat.
+Sadly IRC is dead. IRC remains dead. And [[https://en.wikipedia.org/wiki/Andrew_Lee_(entrepreneur)][Andrew "Fuck-Stick" Lee]] has
+killed him. So like most folks these days we use Matrix Chat.
 
 Space: [[https://matrix.to/#/#floco:matrix.org][#floco:matrix.org]]
 
-General Room: [[https://matrix.to/#/!wMSeevIIjIbAOVbqHh:matrix.org?via=matrix.org]] ( Recommended )
+General Room:
+[[https://matrix.to/#/!wMSeevIIjIbAOVbqHh:matrix.org?via=matrix.org]]
+( Recommended )
 
-Support Room: [[https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org]]
+Support Room:
+[[https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org]]
 
-Development Room: [[https://matrix.to/#/!qDFpEnHkbpkhLSenko:matrix.org?via=matrix.org]]
+Development Room:
+[[https://matrix.to/#/!qDFpEnHkbpkhLSenko:matrix.org?via=matrix.org]]
