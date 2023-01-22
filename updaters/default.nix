@@ -13,12 +13,15 @@
 , nodejs    ? pkgsFor.nodejs-slim-14_x
 , npm       ? pkgsFor.nodejs-14_x.pkgs.npm
 , gnused    ? pkgsFor.gnused
-, flakeRef  ? ../.
+, nix-flake ?
+  builtins.getFlake "github:NixOS/nix/${builtins.nixVersion or "2.12.0"}"
+, nix      ? nix-flake.packages.${system}.nix
+, flakeRef ? ../.
 }: let
 
 # ---------------------------------------------------------------------------- #
 
-  scripts = [./npm-plock.sh];
+  scripts = [./npm-plock.sh ./from-registry.sh];
 
 
 # ---------------------------------------------------------------------------- #
@@ -31,7 +34,7 @@ in {
       name = pname + "-" + version;
       inherit
         system pname version scripts flakeRef
-        bash coreutils jq nodejs gnused npm
+        bash coreutils jq nodejs gnused npm nix
       ;
       preferLocalBuild = true;
       allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
@@ -44,9 +47,9 @@ in {
           bname="''${script##*/}";
           bname="''${bname:33}";
           case "$bname" in
-            npm-plock.sh)
+            npm-plock.sh|from-registry.sh)
+              spath="$npm/bin:$common_path:$gnused/bin:$nix/bin";
               extra=": \\\"\\\''${FLAKE_REF:=$flakeRef}\\\";";
-              spath="$npm/bin:$common_path:$gnused/bin";
             ;;
             *) extra=""; spath="$common_path"; ;;
           esac
@@ -60,7 +63,9 @@ in {
         done
       ''];
     };
-  in drv // { meta.mainProgram = "npm-plock.sh"; };
+  in drv // {
+    meta.mainProgram = "npm-plock.sh";
+  };
 }
 
 

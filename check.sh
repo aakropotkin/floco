@@ -40,7 +40,7 @@ SDIR="${SPATH%/*}";
 
 # ---------------------------------------------------------------------------- #
 
-run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
+run_test "Packages Module"        "$SDIR/tests/modules/packages/check.sh";
 run_test "Packages Module (dist)" "$SDIR/tests/modules/packages/dist/check.sh";
 
 run_test "pdef lodash registry"                                      \
@@ -50,9 +50,11 @@ run_test "install-module lodash"                   \
   $NIX build --no-link --show-trace                \
        -f "$SDIR/tests/setup/lodash-install.nix";
 
-run_test "run-script trivial"                  \
-  $NIX build --no-link --show-trace            \
-       -f "$SDIR/tests/setup/run-script.nix";
+run_test "run-script trivial"                                               \
+  $NIX build --no-link --show-trace -f "$SDIR/tests/setup/run-script.nix";
+
+run_test "updaters: from-registry pacote"                \
+         "$SDIR/tests/updaters/from-registry/proj1.sh";
 
 
 # ---------------------------------------------------------------------------- #

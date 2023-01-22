@@ -40,9 +40,13 @@
       }) floco-utils;
 
       inherit (import ./updaters {
+        nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
+        nix-flake = throw "floco: Nix should not be referenced from flake";
         inherit (final) system bash coreutils jq gnused;
         nodejs = final.nodejs-slim-14_x;
         npm    = final.nodejs-14_x.pkgs.npm;
+        inherit (nix.packages.${final.system}) nix;
+        flakeRef = ./.;
       }) floco-updaters;
 
       treeFor = import ./pkgs/treeFor {
@@ -85,9 +89,17 @@
 
   in {  # Begin `outputs'
 
+# ---------------------------------------------------------------------------- #
+
     lib = import ./lib { inherit (nixpkgs) lib; };
 
+
+# ---------------------------------------------------------------------------- #
+
     inherit overlays nixosModules;
+
+
+# ---------------------------------------------------------------------------- #
 
     packages = eachSupportedSystemMap ( system: let
       pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
@@ -102,13 +114,23 @@
       ;
     } );
 
+
+# ---------------------------------------------------------------------------- #
+
     apps = eachSupportedSystemMap ( system: let
       pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
     in {
+
       fromPlock = {
         type    = "app";
         program = "${pkgsFor.floco-updaters}/bin/npm-plock.sh";
       };
+
+      fromRegistry = {
+        type    = "app";
+        program = "${pkgsFor.floco-updaters}/bin/from-registry.sh";
+      };
+
     } );
 
 

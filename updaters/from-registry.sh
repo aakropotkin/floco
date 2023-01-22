@@ -14,7 +14,7 @@ set -o pipefail;
 
 _as_me="floco update registry";
 
-_version="0.1.0";
+_version="0.1.1";
 
 # [-c FLOCO-CONFIG-FILE]
 _usage_msg="$_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
@@ -31,24 +31,25 @@ OPTIONS
                       Defaults to \`PWD/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
                       translation, and will be backed up to \`PDEFS-FILE~'.
-  -c,--config PATH    Path to a \`floco' configuration file which may be used to
-                      extend or modify the module definitions used to translate
-                      and export \`pdef' records.
-                      If no config is given default settings will be used.
   -j,--json           Export JSON instead of a Nix expression.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 ENVIRONMENT
-  NIX           Command to use as \`nix' executable.
-  NPM           Command to use as \`npm' executable.
-  JQ            Command to use as \`jq' executable.
-  SED           Command to use as \`sed' executable.
-  REALPATH      Command to use as \`realpath' executable.
-  MKTEMP        Command to use as \`mktemp' executable.
-  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
+  NIX           Command used as \`nix' executable.
+  NPM           Command used as \`npm' executable.
+  JQ            Command used as \`jq' executable.
+  SED           Command used as \`sed' executable.
+  REALPATH      Command used as \`realpath' executable.
+  MKTEMP        Command used as \`mktemp' executable.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
 ";
+#  -c,--config PATH    Path to a \`floco' configuration file which may be used to
+#                      extend or modify the module definitions used to translate
+#                      and export \`pdef' records.
+#                      If no config is given default settings will be used.
+
+#  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
 
 
 # ---------------------------------------------------------------------------- #
@@ -85,14 +86,13 @@ while [[ "$#" -gt 0 ]]; do
       declare -a _args;
       _args=();
       shift;
-      while read -r -n1 opt; do
-        if [[ -z "$opt" ]]; then
-          break;
-        fi
-        _args+=( "-$opt" );
-      done <<<"${_arg#-}";
+      _i=1;
+      while [[ "$_i" -lt "${#_arg}" ]]; do
+        _args+=( "-${_arg:$_i:1}" );
+        _i="$(( _i + 1 ))";
+      done
       set -- "${_args[@]}" "$@";
-      unset _arg _args;
+      unset _arg _args _i;
       continue;
     ;;
     --*=*)
@@ -102,7 +102,7 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
-    -o|--out-file) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
+    -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -c|--config)   FLOCO_CONFIG="$2"; shift; ;;
     -j|--json)     JSON=:; ;;
     -u|--usage)    usage;    exit 0; ;;
