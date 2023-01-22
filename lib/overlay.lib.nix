@@ -45,14 +45,13 @@ final: prev: let
 
 in {
 
-  libfloco = callLibs [
+  libfloco = ( callLibs [
     ./access-pdefs.nix
     ./checkSystemSupport.nix
     ./focus-tree.nix
     ./options.nix
     ./paths.nix
-    ./url-code.nix
-  ];
+  ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
   inherit (final.libfloco)
