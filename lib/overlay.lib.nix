@@ -51,6 +51,7 @@ in {
     ./focus-tree.nix
     ./options.nix
     ./paths.nix
+    ./url-code.nix
   ];
   libdoc = callLib ./mdoc.nix;
 
@@ -62,6 +63,8 @@ in {
     realpathRel
     moduleDropDefaults
     isAbspath
+    urlEncode
+    urlDecode
   ;
 
 }
