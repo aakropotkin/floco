@@ -12,7 +12,7 @@ set -o pipefail
 
 _as_me='floco run';
 
-_version='0.1.0';
+_version='0.1.1';
 
 _usage_msg="run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
 
@@ -144,7 +144,7 @@ if [[ -z "$NO_MODIFY_PATH" ]]; then
   # or the filesystem root.
   if [[ -z "$NO_PARENT_BINS" ]]; then
     _curr="${PWD%/*}";
-    while [[ "$_curr" != "/" ]]; do
+    while [[ "${_curr:-/}" != "/" ]]; do
       if [[ -d "$_curr/node_modules/.bin" ]]; then
         PATH="$PATH:$_curr/node_modules/.bin";
       fi

@@ -30,11 +30,23 @@ There's a dedicated
 [[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]]
 that is the best place to dive in.
 
-The summary is:
-Generate a config, copy a boilerplate template, and you're set.
+For projects that depend only on registry packages without =install= scripts,
+the following process will have you up and running:
+#+BEGIN_SRC shell
+set -euo pipefail;
+cd ./my-project;
+nix flake init -t github:aakropotkin/floco;
+nix run github:aakropotkin/floco#fromPlock;
+[[ -r ./package-lock.json~ ]] && mv ./package-lock.json{~,};
+nix build -f ./. global;
+ls -R ./result;
+#+END_SRC
 
+** Templates
 A simple template with the boilerplate needed for use with our /updaters/
 is available through ~nix flake init -t github:aakropotkin/floco~.
+
+More templates are on the way.
 
 * Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
@@ -49,6 +61,67 @@ These routines can be found in the ~<floco>/setup/~ subdir, named after the
 
 You can install these as standalone executables using the =floco-utils=
 installable in the top-level flake.
+
+** =install-module.sh=
+This is used to install modules into a =node_modules/= directory or a
+/FHS prefix/.
+This routine is used internally by ~<floco>/builders/tree.nix~ but may also
+be used as a regular executable for scripting outside of derivations.
+
+#+BEGIN_SRC shell
+nix shell github:aakropotkin/floco#floco{,-utils};
+# Downloads and unpacks a module from an identifier/descriptor.
+dlmod() {
+  export PKG="$1";
+  floco eval --impure --raw --expr '( builtins.fetchTree {
+    type = "tarball";
+    url  = let
+      res = builtins.npmResolve ( builtins.getEnv "PKG" );
+      m   = builtins.match ".*\n([^\n]+)\n?" res;
+    in if m == null then res else builtins.head m;
+  } ).outPath';
+}
+# Hop into a temp area and install `semver' and its dependencies.
+pushd "$( mktemp -d; )";
+install-module.sh "$( dlmod "semver@7.3.8"; )" ./node_modules;
+install-module.sh "$( dlmod "lru-cache@^6.0.0"; )" ./node_modules;
+install-module.sh "$( dlmod "yallist@^4.0.0"; )" ./node_modules;
+./node_modules/.bin/semver --help|head -n1;
+TDIR="$PWD";
+popd;
+rm -rf "$TDIR";
+#+END_SRC
+
+#+RESULTS:
+: SemVer 7.3.8
+
+** =run-script.sh=
+This is used to run a =package.json:.scripts.*= routine in the runtime
+environment of ~node_modules/~.
+This routine is equivalent to ~npm run~ or ~yarn run~.
+
+Continuing the example above for =install-module.sh= ( before ~popd~ ),
+we can replace ~./node_modules/.bin/semver --help|head -n1;~ with a script:
+#+BEGIN_SRC shell
+# ...<SNIP>...
+install-module.sh "$( dlmod "yallist@^4.0.0"; )" ./node_modules;
+
+# Define and run a script.
+echo '{
+  "scripts": {
+    "print-semver-version": "semver --help|head -n1",
+    "print-node-version": "node --version"
+  }
+}' > ./package.json;
+run-script.sh print-semver-version print-node-version;
+
+TDIR="$PWD";
+popd;
+rm -rf "$TDIR";
+#+END_SRC
+
+#+RESULTS:
+: SemVer 7.3.8 | v18.12.1
 
 * Updaters/Generators
 The top level flake provides an installable =floco-updaters= as well as
