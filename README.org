@@ -68,7 +68,7 @@ This is used to install modules into a =node_modules/= directory or a
 This routine is used internally by ~<floco>/builders/tree.nix~ but may also
 be used as a regular executable for scripting outside of derivations.
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :exports both :results output
 nix shell github:aakropotkin/floco#floco{,-utils};
 # Downloads and unpacks a module from an identifier/descriptor.
 dlmod() {
@@ -102,7 +102,7 @@ This routine is equivalent to ~npm run~ or ~yarn run~.
 
 Continuing the example above for =install-module.sh= ( before ~popd~ ),
 we can replace ~./node_modules/.bin/semver --help|head -n1;~ with a script:
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :exports both :results output
 # ...<SNIP>...
 install-module.sh "$( dlmod "yallist@^4.0.0"; )" ./node_modules;
 
