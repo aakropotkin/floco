@@ -15,6 +15,15 @@ installations - we will cover handling these dependencies
 in another guide.
 For now we're keeping things simple.
 
+Please note that the boilerplate =default.nix=,
+=foverrides.nix=, and a related file =floco-cfg.nix= are
+provided in the
+~nix flake init -t github:aakropotkin/floco;~ template.
+The template is functionally the same as this examples'
+files except that portions of =default.nix= are moved to
+a general purpose file =floco-cfg.nix= ( our trivial
+example doesn't have any use for this separation ).
+
 * Creating the Project
 In the spirit of completeness, this guide uses real sources
 so that we can automatically detect if it's out of date
