@@ -121,7 +121,10 @@ rm -rf "$TDIR";
 #+END_SRC
 
 #+RESULTS:
-: SemVer 7.3.8 | v18.12.1
+#+begin_example
+SemVer 7.3.8
+v18.12.1
+#+end_example
 
 * Updaters/Generators
 The top level flake provides an installable =floco-updaters= as well as
