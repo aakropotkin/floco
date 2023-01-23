@@ -58,6 +58,7 @@ in {
         in prev.buildInputs ++ [
           config.floco.packages."typescript".${tsVersion}.global
         ];
+      };
     in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
       lib.mkForce ov
     );
