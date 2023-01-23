@@ -12,12 +12,14 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco update registry";
+#_as_me="floco update registry";
+_as_me='from-registry.sh';
 
-_version="0.1.1";
+_version="0.2.0";
 
 # [-c FLOCO-CONFIG-FILE]
-_usage_msg="Usage: $_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: \
+$_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Generate a package from the \`npm' registry including its full dep-graph.
 ";
@@ -32,6 +34,7 @@ Options:
                       If the outfile already exists, it may be used to optimize
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -j,--json           Export JSON instead of a Nix expression.
+  -B,--no-backup      Remove backups of \`PDEFS-FILE' when process succeeds.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 Environment:
@@ -103,12 +106,13 @@ while [[ "$#" -gt 0 ]]; do
       continue;
     ;;
     -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
-    -c|--config)   FLOCO_CONFIG="$2"; shift; ;;
-    -j|--json)     JSON=:; ;;
-    -u|--usage)    usage;    exit 0; ;;
-    -h|--help)     usage -f; exit 0; ;;
-    -v|--version)  echo "$_version"; exit 0; ;;
-    --) shift; break; ;;
+    -B|--no-backup)          NO_BACKUP=:; ;;
+    -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
+    -j|--json)               JSON=:; ;;
+    -u|--usage)              usage;    exit 0; ;;
+    -h|--help)               usage -f; exit 0; ;;
+    -v|--version)            echo "$_version"; exit 0; ;;
+    --)                      shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
@@ -130,8 +134,11 @@ done
 if [[ -n "${FLOCO_CONFIG:-}" ]]; then
   FLOCO_CONFIG="$( $REALPATH "$FLOCO_CONFIG"; )";
 fi
+
 : "${JSON=}";
+: "${NO_BACKUP=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
+
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
     OUTFILE="$PWD/pdefs.nix";
@@ -157,6 +164,14 @@ esac
 
 # ---------------------------------------------------------------------------- #
 
+case "$( $NPM --version; )" in
+  9.*) STRATEGY_FLAG='--install-strategy=shallow'; ;;
+  *)   STRATEGY_FLAG='--global-style'; ;;
+esac
+
+
+# ---------------------------------------------------------------------------- #
+
 # Backup existing outfile if one exists
 if [[ -r "$OUTFILE" ]]; then
   echo "$_as_me: backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
@@ -169,9 +184,36 @@ fi
 LOCKDIR="$( $MKTEMP -d; )";
 pushd "$LOCKDIR" >/dev/null;
 
-echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
 
-#STRATEGY_FLAG='--install-strategy=shallow';
+# ---------------------------------------------------------------------------- #
+
+cleanup() {
+  popd >/dev/null;
+  rm -rf "$LOCKDIR";
+  if [[ ( -n "$NO_BACKUP" ) && ( -r "$OUTFILE~" ) ]]; then
+    echo "$_as_me: Deleting backup \`$OUTFILE'." >&2;
+    rm -f "$OUTFILE~";
+  fi
+}
+
+bail() {
+  echo "$_as_me: Encountered an error. Restoring backup files." >&2;
+  rm -f "$OUTFILE";
+  if [[ -r "$OUTFILE~" ]]; then
+    echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
+    mv -- "$OUTFILE~" "$OUTFILE";
+  fi
+  cleanup;
+}
+
+_es=0;
+trap '_es="$?"; bail; exit "$_es";' HUP TERM INT QUIT;
+trap '_es="$?"; cleanup; exit "$_es";' EXIT;
+
+
+# ---------------------------------------------------------------------------- #
+
+echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
 
 $NPM install            \
   --save                \
@@ -181,23 +223,10 @@ $NPM install            \
   --no-audit            \
   --no-fund             \
   --no-color            \
-  --global-style        \
+  "$STRATEGY_FLAG"      \
   "$@"                  \
   "$PKG"                \
 ;
-
-
-# ---------------------------------------------------------------------------- #
-
-cleanup() {
-  popd >/dev/null;
-  rm -rf "$LOCKDIR";
-  if [[ "$_es" -ne 0 ]]; then
-    rm -f "$OUTFILE";
-  fi
-}
-_es=0;
-trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT EXIT;
 
 
 # ---------------------------------------------------------------------------- #

@@ -15,9 +15,10 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco update npm-plock";
+#_as_me="floco update npm-plock";
+_as_me='npm-plock.sh';
 
-_version="0.1.1";
+_version="0.2.0";
 
 # [-c FLOCO-CONFIG-FILE]
 _usage_msg="Usage: $_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
@@ -28,8 +29,8 @@ Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
 _help_msg="$_usage_msg
 
 This script will trash any existing \`node_modules/' trees, and if a
-\`package-lock.json' file already exists, it will be updated to use the v3
-schema as a side effect of this script.
+\`package-lock.json' file already exists, it will be backed up and restored
+on exit to ensure that it is unmodified by this script.
 
 Options:
   -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
@@ -42,6 +43,7 @@ Options:
                       If the outfile already exists, it may be used to optimize
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -j,--json           Export JSON instead of a Nix expression.
+  -B,--no-backup      Remove backups of \`PDEFS-FILE' when process succeeds.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 Environment:
@@ -112,12 +114,13 @@ while [[ "$#" -gt 0 ]]; do
     ;;
     -l|--lock-dir|--lockdir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
-    -c|--config)   FLOCO_CONFIG="$2"; shift; ;;
-    -j|--json)     JSON=:; ;;
-    -u|--usage)    usage;    exit 0; ;;
-    -h|--help)     usage -f; exit 0; ;;
-    -v|--version)  echo "$_version"; exit 0; ;;
-    --) shift; break; ;;
+    -B|--no-backup)          NO_BACKUP=:; ;;
+    -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
+    -j|--json)               JSON=:; ;;
+    -u|--usage)              usage;    exit 0; ;;
+    -h|--help)               usage -f; exit 0; ;;
+    -v|--version)            echo "$_version"; exit 0; ;;
+    --)                      shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
       usage -f >&2;
@@ -135,9 +138,12 @@ done
 if [[ -n "${FLOCO_CONFIG:-}" ]]; then
   FLOCO_CONFIG="$( $REALPATH "$FLOCO_CONFIG"; )";
 fi
+
 : "${LOCKDIR:=$PWD}";
 : "${JSON=}";
+: "${NO_BACKUP=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
+
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
     OUTFILE="$LOCKDIR/pdefs.nix";
@@ -204,6 +210,38 @@ fi
 # ---------------------------------------------------------------------------- #
 
 pushd "$LOCKDIR" >/dev/null;
+
+
+# ---------------------------------------------------------------------------- #
+
+cleanup() {
+  if [[ -r "$LOCKDIR/package-lock.json~" ]]; then
+    echo "$_as_me: Restoring original \`package-lock.json'." >&2;
+    mv "$LOCKDIR/package-lock.json~" "$LOCKDIR/package-lock.json";
+  fi
+  if [[ ( -n "$NO_BACKUP" ) && ( -r "$OUTFILE~" ) ]]; then
+    echo "$_as_me: Deleting backup \`$OUTFILE'." >&2;
+    rm -f "$OUTFILE~";
+  fi
+}
+
+bail() {
+  echo "$_as_me: Encountered an error. Restoring backup files." >&2;
+  rm -f "$OUTFILE";
+  if [[ -r "$OUTFILE~" ]]; then
+    echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
+    mv -- "$OUTFILE~" "$OUTFILE";
+  fi
+  cleanup;
+}
+
+_es=0;
+trap '_es="$?"; bail; exit "$_es";' HUP TERM INT QUIT;
+trap '_es="$?"; cleanup; exit "$_es";' EXIT;
+
+
+# ---------------------------------------------------------------------------- #
+
 $NPM install            \
   --package-lock-only   \
   --ignore-scripts      \
@@ -217,17 +255,8 @@ $NPM install            \
 
 # ---------------------------------------------------------------------------- #
 
-cleanup() {
-  rm -f "$OUTFILE";
-}
-_es=0;
-trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT;
-
-
-# ---------------------------------------------------------------------------- #
-
 : "${FLOCO_CONFIG=}";
-export FLAKE_REF FLOCO_CONFIG JSON OUTFILE;
+export FLAKE_REF FLOCO_CONFIG JSON OUTFILE LOCKDIR;
 
 if [[ -z "$JSON" ]]; then
   _NIX_FLAGS="--raw";
@@ -246,11 +275,11 @@ let
   #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
   #          then [cfgPath]
   #          else [];
-  outfile = builtins.getEnv "OUTFILE";
+  outfile  = builtins.getEnv "OUTFILE";
   asJSON   = ( builtins.getEnv "JSON" ) != "";
   pl2pdefs = import "${floco}/modules/plockToPdefs/implementation.nix" {
     inherit lib;
-    lockDir = toString ./.;
+    lockDir = builtins.getEnv "LOCKDIR";
     plock   = lib.importJSON ./package-lock.json;
     basedir = dirOf outfile;
   };

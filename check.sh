@@ -56,6 +56,8 @@ run_test "run-script trivial"                                               \
 run_test "updaters: from-registry pacote"                \
          "$SDIR/tests/updaters/from-registry/proj1.sh";
 
+run_test "updaters: npm-plock proj1" "$SDIR/tests/updaters/npm-plock/proj1.sh";
+
 
 # ---------------------------------------------------------------------------- #
 
