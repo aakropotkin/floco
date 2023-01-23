@@ -20,6 +20,8 @@
   scripts = {
     run-script     = ../../setup/run-script.sh;
     install-module = ../../setup/install-module.sh;
+    npm-plock      = ../../updaters/npm-plock.sh;
+    from-registry  = ../../updaters/from-registry.sh;
   };
 
   genManpage = script: derivation {
@@ -58,8 +60,15 @@
 in {
   run-script-org     = genOrgmode scripts.run-script;
   run-script-man     = genManpage scripts.run-script;
+
   install-module-org = genOrgmode scripts.install-module;
   install-module-man = genManpage scripts.install-module;
+
+  npm-plock-org = genOrgmode scripts.npm-plock;
+  npm-plock-man = genManpage scripts.npm-plock;
+
+  from-registry-org = genOrgmode scripts.from-registry;
+  from-registry-man = genManpage scripts.from-registry;
 }
 
 # ---------------------------------------------------------------------------- #

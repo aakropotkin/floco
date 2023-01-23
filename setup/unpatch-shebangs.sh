@@ -14,18 +14,18 @@ _as_me='floco unpatch';
 
 _version='0.1.0';
 
-_usage_msg="unpatch-shebangs.sh [OPTIONS] SCRIPT [SCRIPT...]
+_usage_msg="Usage: unpatch-shebangs.sh [OPTIONS] SCRIPT [SCRIPT...]
 
 Unpatch shebang lines in scripts so that they can be run outside of Nix.
 ";
 
 _help_msg="$_usage_msg
-OPTIONS
+Options:
   -u,--usage              Print usage message to STDOUT
   -h,--help               Print this message to STDOUT
   -V,--version            Print version to STDOUT
 
-ENVIRONMENT
+Environment:
   The following environment variables may be used to locate various executables
   or in place of options/flags.
 

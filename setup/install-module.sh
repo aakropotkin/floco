@@ -15,14 +15,14 @@ _as_me='floco install-module';
 
 _version='0.1.0';
 
-_usage_msg="install-module.sh [OPTIONS] FROM NM-DIR
+_usage_msg="Usage: install-module.sh [OPTIONS] FROM NM-DIR
 
 Module rooted at \`FROM' ( as \`FROM/package.json' ), will be installed to
 \`NM-DIR/<NAME>' symlinking any executables to \`NM-DIR/.bin'.
 ";
 
 _help_msg="$_usage_msg
-OPTIONS
+Options:
   -t,--to             Treat \`NM-DIR' as literal install dir
   -i,--ident ID       Treat \`ID' as the package identifier/name
   -b,--bins           Force processing of bins
@@ -37,7 +37,7 @@ OPTIONS
   -h,--help           Print this message to STDOUT
   -V,--version        Print version to STDOUT
 
-ENVIRONMENT
+Environment:
   The following environment variables may be used unless explicitly overridden
   by options/flags mentioned above.
   These variables are not required, but may be used as an optimization to skip

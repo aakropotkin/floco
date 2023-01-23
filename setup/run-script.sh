@@ -14,14 +14,14 @@ _as_me='floco run';
 
 _version='0.1.1';
 
-_usage_msg="run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
+_usage_msg="Usage: run-script.sh [OPTIONS] SCRIPT-NAME [SCRIPT-NAMES...]
 
 Run one or more scripts from \`package.json' in a wrapped runtime environment.
 This script must be run from a directory containing a \`package.json' file.
 ";
 
 _help_msg="$_usage_msg
-OPTIONS
+Options:
   -p,--modify-path        Force modification of \`PATH' with bin directories
   -P,--no-modify-path     Do not modify \`PATH' with bin directories
   -I,--no-ignore-missing  Throw an error if a script is undefined
@@ -32,7 +32,7 @@ OPTIONS
   -h,--help               Print this message to STDOUT
   -V,--version            Print version to STDOUT
 
-ENVIRONMENT
+Environment:
   The following environment variables may be used to locate various executables
   or in place of options/flags.
 

@@ -1,0 +1,37 @@
+* NAME
+from-registry.sh - manual page for from-registry.sh 0.1.1
+
+* SYNOPSIS
+*floco* /update registry IDENT/[/@DESCRIPTOR=latest/] [/-o PDEFS-FILE/]
+[/-- NPM-FLAGS/...]
+
+* DESCRIPTION
+Generate a package from the =npm= registry including its full dep-graph.
+
+Dev. dependencies will be omitted from generated definitions.
+
+* OPTIONS
+- *-o*,--out-file PATH :: Path to write generated =pdef= records.
+  Defaults to =PWD/pdefs.nix=. If the outfile already exists, it may be
+  used to optimize translation, and will be backed up to =PDEFS-FILE~=.
+
+- *-j*,--json :: Export JSON instead of a Nix expression.
+
+- *--* NPM-FLAGS... :: Used to separate =floco update registry= flags
+  from =npm= flags.
+
+* ENVIRONMENT
+- NIX :: Command used as =nix= executable.
+
+- NPM :: Command used as =npm= executable.
+
+- JQ :: Command used as =jq= executable.
+
+- SED :: Command used as =sed= executable.
+
+- REALPATH :: Command used as =realpath= executable.
+
+- MKTEMP :: Command used as =mktemp= executable.
+
+- FLAKE_REF :: Flake URI ref to use for =floco=. defaults to
+  =github:aakropotkin/floco=.

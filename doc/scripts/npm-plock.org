@@ -1,0 +1,44 @@
+* NAME
+npm-plock.sh - manual page for npm-plock.sh 0.1.1
+
+* SYNOPSIS
+*floco* /update npm-plock /[/-l LOCK-DIR/] [/-o PDEFS-FILE/] [/--
+NPM-FLAGS/...]
+
+* DESCRIPTION
+Update a =pdefs.nix= file using a =package-lock.json= v3 provided by
+=npm=.
+
+This script will trash any existing =node_modules/= trees, and if a
+=package-lock.json= file already exists, it will be updated to use the
+v3 schema as a side effect of this script.
+
+* OPTIONS
+- *-l*,--lock-dir PATH :: Path to directory containing
+  =package[-lock].json=. This directory must contain a =package.json=,
+  but need not contain a =package-lock.json=. Defaults to current
+  working directory.
+
+- *-o*,--out-file PATH :: Path to write generated =pdef= records.
+  Defaults to =<LOCK-DIR>/pdefs.nix=. If the outfile already exists, it
+  may be used to optimize translation, and will be backed up to
+  =PDEFS-FILE~=.
+
+- *-j*,--json :: Export JSON instead of a Nix expression.
+
+- *--* NPM-FLAGS... :: Used to separate =floco update npm-plock= flags
+  from =npm= flags.
+
+* ENVIRONMENT
+- NIX :: Command used as =nix= executable.
+
+- NPM :: Command used as =npm= executable.
+
+- JQ :: Command used as =jq= executable.
+
+- SED :: Command used as =sed= executable.
+
+- REALPATH :: Command used as =realpath= executable.
+
+- FLAKE_REF :: Flake URI ref to use for =floco=. defaults to
+  =github:aakropotkin/floco=.

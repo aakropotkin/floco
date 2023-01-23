@@ -1,0 +1,56 @@
+* NAME
+run-script.sh - manual page for run-script.sh 0.1.1
+
+* SYNOPSIS
+*run-script.sh* [/OPTIONS/] /SCRIPT-NAME /[/SCRIPT-NAMES/...]
+
+* DESCRIPTION
+Run one or more scripts from =package.json= in a wrapped runtime
+environment. This script must be run from a directory containing a
+=package.json= file.
+
+* OPTIONS
+- *-p*,--modify-path :: Force modification of =PATH= with bin
+  directories
+
+- *-P*,--no-modify-path :: Do not modify =PATH= with bin directories
+
+- *-I*,--no-ignore-missing :: Throw an error if a script is undefined
+
+- *-i*,--ignore-missing :: Do not throw an error if a script is
+  undefined
+
+- *-b*,--parent-bins :: Force searching up for bin directories
+
+- *-B*,--no-parent-bins :: Do not search up for bin directories
+
+- *-u*,--usage :: Print usage message to STDOUT
+
+- *-h*,--help :: Print this message to STDOUT
+
+- *-V*,--version :: Print version to STDOUT
+
+* ENVIRONMENT
+
+#+begin_quote
+The following environment variables may be used to locate various
+executables or in place of options/flags.
+
+Variables marked as "Bool" are treated as false when unset or set to the
+empty string, or true for any non-empty value. Flags will always take
+priority over environment variables.
+
+#+end_quote
+
+- NO_MODIFY_PATH :: Do not modify =PATH= with bin directories. ( Bool )
+
+- NO_PARENT_BINS :: Do not search up for bin directories. ( Bool )
+
+- IGNORE_MISSING :: Do not throw an error if a script is undefined. (
+  Bool )
+
+- NODEJS :: Absolute path to =node= executable.
+
+- JQ :: Absolute path to =jq= executable.
+
+- BASH :: Absolute path to =bash= executable.

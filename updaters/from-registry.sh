@@ -17,7 +17,7 @@ _as_me="floco update registry";
 _version="0.1.1";
 
 # [-c FLOCO-CONFIG-FILE]
-_usage_msg="$_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: $_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Generate a package from the \`npm' registry including its full dep-graph.
 ";
@@ -26,7 +26,7 @@ _help_msg="$_usage_msg
 
 Dev. dependencies will be omitted from generated definitions.
 
-OPTIONS
+Options:
   -o,--out-file PATH  Path to write generated \`pdef' records.
                       Defaults to \`PWD/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
@@ -34,7 +34,7 @@ OPTIONS
   -j,--json           Export JSON instead of a Nix expression.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
-ENVIRONMENT
+Environment:
   NIX           Command used as \`nix' executable.
   NPM           Command used as \`npm' executable.
   JQ            Command used as \`jq' executable.

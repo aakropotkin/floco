@@ -20,7 +20,7 @@ _as_me="floco update npm-plock";
 _version="0.1.1";
 
 # [-c FLOCO-CONFIG-FILE]
-_usage_msg="$_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: $_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
 ";
@@ -31,7 +31,7 @@ This script will trash any existing \`node_modules/' trees, and if a
 \`package-lock.json' file already exists, it will be updated to use the v3
 schema as a side effect of this script.
 
-OPTIONS
+Options:
   -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
                       This directory must contain a \`package.json', but need
                       not
@@ -44,7 +44,7 @@ OPTIONS
   -j,--json           Export JSON instead of a Nix expression.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
-ENVIRONMENT
+Environment:
   NIX           Command used as \`nix' executable.
   NPM           Command used as \`npm' executable.
   JQ            Command used as \`jq' executable.
