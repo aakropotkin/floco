@@ -33,20 +33,35 @@ in {
              ( bname != "result" ) && ( ! ( test "result-.*" bname ) )
            ) );
     };
-    # FIXME: This adds a copy of `typescript' to the "build" environment
-    # as a globally installed executable.
-    # This allows `typescript' to be dropped from your `node_modules/'
-    # directory in order to speed up builds.
-    # You can remove or modify this block as you see fit.
-    built.tree = removeAttrs cfg.trees.dev ["node_modules/typescript"];
-    built.overrideAttrs =
-      lib.mkIf ( cfg.trees.dev ? "node_modules/typescript" ) ( prev: {
+
+    # CHANGEME: The following two blocks provide an example of dropping
+    # `typescript' from the `node_modules/' directory of the `built' target,
+    # and adding `typescript' as a globally installed package instead.
+    # This strategy can be used to limit time spent copying files.
+
+    # Remove `node_modules/typescript' since it will instead be accessed
+    # using `PATH'.
+    built.tree = let
+      noTs = cfg.trees.dev.overrideAttrs ( prev: {
+        keyTree = removeAttrs prev.keyTree ["node_modules/typescript"];
+      } );
+    in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
+      lib.mkForce noTs
+    );
+
+    built.overrideAttrs = let
+      ov = prev: {
+        # Add `typescript' as a globally installed package.
         buildInputs = let
-          tsVersion = baseNameOf cfg.trees.dev."node_modules/typescript";
+          tsVersion =
+            baseNameOf cfg.pdef.treeInfo."node_modules/typescript".key;
         in prev.buildInputs ++ [
           config.floco.packages."typescript".${tsVersion}.global
         ];
-      } );
+    in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
+      lib.mkForce ov
+    );
+
   };
 }
 
