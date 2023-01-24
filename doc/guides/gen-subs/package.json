@@ -1,0 +1,7 @@
+{
+  "name": "@floco/phony",
+  "version": "4.2.0",
+  "devDependencies": {
+    "@babel/core": "7.20.12"
+  }
+}

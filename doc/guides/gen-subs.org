@@ -1,0 +1,150 @@
+#+TITLE: Generate Subtrees
+
+This guide provides an example of using the experimental features in the
+[[file:../../pkgs/nix-plugin/default.nix][nix-plugin]] to generate =treeInfo=
+records for transitive dependencies.
+
+Here we cover generating a single tree for a single dependency; but the example
+is set up such that the reader can perform this operation recursively as
+an exercise.
+This exercise is designed to be a softball, largely it requires that you
+actually read this guide rather than copy/paste its snippets.
+
+* Setup
+You'll find a directory ready to use with this example
+[[file:./gen-subs][here]], but the setup is simple enough for us to inline
+here the reader.
+
+#+BEGIN_SRC shell
+mkdir ./gen-subs;
+cd ./gen-subs;
+echo '{
+  "name": "@floco/phony",
+  "version": "4.2.0",
+  "devDependencies": {
+    "@babel/core": "7.20.12"
+  }
+}' > ./package.json;
+nix flake init -t github:aakropotkin/floco;
+nix run github:aakropotkin/floco#fromPlock;
+#+END_SRC
+
+* Context
+Now that we have our project setup, I want to clearly describe the problem
+we're trying to solve here.
+
+Having generated a =pdefs.nix= file using the =fromPlock= updater, we'll find
+that we only have =treeInfo= records for the project at the root of the
+lockfile, and in cases of trivial dependencies we may also
+find ~treeInfo = {};~ set on some =pdef= records.
+This is usually sufficient for building most projects, but if we needed to
+run a =node-gyp= or =install= script for a dependency, or wanted to install
+one of them globally we'd need to provide a =treeInfo= value in our configs
+to produce the required =node_modules/= tree.
+
+We have two tools in our toolkit for handling these situations, one is the
+=fromRegistry= updater script which is currently the recommended approach; but
+if we wanted to perform this operation virtually we can do so using
+=builtins.npmLock= from the =nix-plugin=.
+In the field you may find that this approach helps reduce headaches when
+composing multiple projects, and is a good way to avoid writing redundant
+metadata to multiple =pdefs.nix= files.
+
+* Enter the =floco= REPL
+You can spin up a REPL with the =nix-plugin= with the following invocation,
+the code example below assumes that you have loaded the plugin.
+
+~nix run github:aakropotkin/floco#floco -- repl;~
+
+#+BEGIN_SRC nix
+nix-repl> :lf github:aakropotkin/floco
+
+# Load our existing config
+nix-repl> mod = lib.evalModules {
+            modules = [
+              "${sourceInfo}/modules/top"
+              {
+                config._module.args.pkgs = let
+                  inherit (inputs) nixpkgs;
+                  npkgs = nixpkgs.legacyPackages.${builtins.currentSystem};
+                in npkgs.extend overlays.default;
+              }
+              ./floco-cfg.nix
+            ];
+          }
+
+# Collect `pdefs' that are missing `fetchInfo' records.
+nix-repl> pdl = lib.collect ( v: v ? _export ) mod.config.floco.pdefs
+nix-repl> mts = builtins.filter ( v: ( v.treeInfo or null ) == null )
+
+# Lets pick on a random project. Just happens to be `@ampproject/remapping'
+nix-repl> p = builtins.head mts
+
+# Generate a virtual `package-lock.json'
+nix-repl> plock = builtins.npmLock p.sourceInfo
+
+# Feed this to the `package-lock.json' -> `pdefs' translator
+nix-repl> base = import "${sourceInfo}/modules/plockToPdefs/implementation.nix" {
+            inherit lib plock;
+            lockDir = p.sourceInfo.outPath;
+          }
+
+# Lets find our `pdef' records for the root project so we can extract the
+# `treeInfo' record.
+# Note that there may be multiple records so we use `builtins.filter'.
+nix-repl> target = builtins.filter ( v:
+            ( v.ident == p.ident ) && ( v.version == p.version )
+          ) base.exports
+
+# If we peek at the first one we'll see the `fetchInfo' and `ltype' are
+# problematic, but we've got our `treeInfo' here!
+nix-repl> builtins.head target
+{
+  depInfo = { ... };
+  fetchInfo = "path:.";
+  ident = "@ampproject/remapping";
+  lifecycle = { ... };
+  ltype = "dir";
+  treeInfo = { ... };
+  version = "2.2.0";
+}
+
+# We can merge with our second record which has the correct `ltype' and
+# `fetchInfo' record ( pulled from the NPM registry ) to correct these bad
+# fields, but since the registry provides no `treeInfo' we'll preserve this
+# field from the first.
+nix-repl> t = ( builtins.head target ) // ( builtins.elemAt target 1 )
+
+# Since we aren't interested in `devDependencies' we'll go ahead and remove
+# those from the `treeInfo'.
+# Leaving them is harmless, but if you want to write this info to a file these
+# can consume a lot of space unnecessarily.
+nix-repl> pt = t // {
+            treeInfo = lib.filterAttrs ( _: v: ! ( v.dev or false ) )
+                                       t.treeInfo;
+          }
+
+# Lets take a look at our tree:
+nix-repl> pt.treeInfo
+  {
+    "node_modules/@jridgewell/gen-mapping" = { ... };
+    "node_modules/@jridgewell/gen-mapping/node_modules/@jridgewell/set-array" = { ... };
+    "node_modules/@jridgewell/gen-mapping/node_modules/@jridgewell/sourcemap-codec" = { ... };
+    "node_modules/@jridgewell/trace-mapping" = { ... };
+    "node_modules/@jridgewell/trace-mapping/node_modules/@jridgewell/resolve-uri" = { ... };
+    "node_modules/@jridgewell/trace-mapping/node_modules/@jridgewell/sourcemap-codec" = { ... };
+  }
+
+# Bingo! Now if we wanted we could write this more complete record to a file.
+# For reference here's the top level that we expect to see:
+nix-repl> pt
+  {
+    depInfo = { ... };
+    fetchInfo = "tarball+https://registry.npmjs.org/@ampproject/remapping/-/remapping-2.2.0.tgz?narHash=sha256-fqn74UKWiyYk1poPyDIGx+9pH0rpAfjs+6xULBMktFQ=";
+    ident = "@ampproject/remapping";
+    lifecycle = { ... };
+    ltype = "file";
+    treeInfo = { ... };
+    version = "2.2.0";
+  }
+#+END_SRC

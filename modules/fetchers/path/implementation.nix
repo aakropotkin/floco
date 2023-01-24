@@ -34,7 +34,11 @@ in {
 
     inherit (config) pure;
 
-    function = lib.mkDefault ( args: { outPath = builtins.path args; } );
+    function = lib.mkDefault ( args: let
+        args' = if ( args.sha256 or null ) != null then args else
+                removeAttrs args ["sha256"];
+      in { outPath = builtins.path args'; }
+    );
 
 # ---------------------------------------------------------------------------- #
 
@@ -61,7 +65,8 @@ in {
       in lib.moduleDropDefaults config.path.fetchInfo serializable;
       #sha256 = if fetchInfo.sha256 != null then fetchInfo.sha256 else
       #         ( config.path.lockFetchInfo fetchInfo ).sha256;
-      fp = if builtins.isPath _file then toString _file else _file;
+      fp = if builtins.isPath _file then toString _file else
+           builtins.unsafeDiscardStringContext _file;
       rp = if builtins.pathExists ( fp + "/." ) then /. + fp else
            /. + ( dirOf fp );
       path     = lib.realpathRel rp fetchInfo.path;
@@ -71,7 +76,8 @@ in {
 # ---------------------------------------------------------------------------- #
 
     deserializeFetchInfo = lib.mkDefault ( _file: s: let
-      fp = if builtins.isPath _file then toString _file else _file;
+      fp = if builtins.isPath _file then toString _file else
+           builtins.unsafeDiscardStringContext _file;
       rp = if builtins.pathExists ( fp + "/." ) then /. + fp else
            /. + ( dirOf fp );
       p  = if builtins.isAttrs s then s.path else
@@ -102,13 +108,12 @@ in {
               default = name: type: true;
             };
             recursive = lib.mkOption { type = nt.bool; default = true; };
-            sha256    = lib.mkOption ( {
+            sha256    = lib.mkOption {
               type = let
                 base = nt.either ft.sha256_hash ft.sha256_sri;
-              in if fetchers.config.path.pure then base else nt.nullOr base;
-            } // ( if fetchers.config.path.pure then {} else {
+              in nt.nullOr base;
               default = null;
-            } ) );
+            };
           };  # End `fetchInfo.options'
 
           config.sha256 = let

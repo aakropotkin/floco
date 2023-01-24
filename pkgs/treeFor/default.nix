@@ -12,23 +12,11 @@
 
   fmod = ( lib.evalModules {
     modules = [
+      ../../modules/top
       {
         config._module.args.pkgs = pkgsFor;
       }
       ( lib.addPdefs ./pdefs.nix )
-      #{
-      #  config.floco.packages."@floco/treefor"."0.1.0".source =
-      #    lib.mkForce ( builtins.path {
-      #      name   = "source";
-      #      path   = ./.;
-      #      filter = name: type:
-      #        ( ! ( builtins.elem ( baseNameOf name ) [
-      #                "node_modules" "result"
-      #              ] ) ) &&
-      #        ( ( builtins.match ".*\\.nix" name ) == null );
-      #    } );
-      #}
-      ../../modules/top
     ];
   } ).config.floco;
 

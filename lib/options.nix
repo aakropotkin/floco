@@ -25,8 +25,9 @@ in {
       fp = if builtins.isPath file then toString file else file;
       rp = if builtins.pathExists ( fp + "/." ) then fp else dirOf fp;
     in if builtins.isPath value then value else
-       if lib.isAbspath value then /. + value else
-       /. + ( rp + ( "/" + value ) );
+       if lib.isAbspath value
+       then /. + ( builtins.unsafeDiscardStringContext value )
+       else /. + ( rp + ( "/" + value ) );
     fixupDef = def: def // { value = toVal def; };
     fixed    = map fixupDef defs;
   in lib.mergeEqualOption loc fixed;
