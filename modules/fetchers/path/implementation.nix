@@ -68,12 +68,15 @@ in {
 # ---------------------------------------------------------------------------- #
 
     deserializeFetchInfo = lib.mkDefault ( _file: s: let
+      file = if builtins.isPath _file then _file else /. + _file;
       p = if builtins.isAttrs s then s.path else
           if builtins.isPath s then s else
           lib.removePrefix "path:" s;
-      path   = if lib.isAbspath p then p else ( dirOf _file ) + ( "/" + p );
+      path'  = if lib.isAbspath p then p else ( dirOf file ) + ( "/" + p );
       attrs' = if builtins.isAttrs s then s else {};
-    in attrs' // { inherit path; } );
+    in attrs' // {
+      path = if builtins.isPath path' then path' else /. + path';
+    } );
 
 
 # ---------------------------------------------------------------------------- #
@@ -84,7 +87,11 @@ in {
         ( { config, ... }: {
           options = {
             name   = lib.mkOption { type = nt.str; default = "source"; };
-            path   = lib.mkOption { type = nt.path; };
+            path = lib.mkOption {
+              type = ( nt.either nt.path nt.str ) // {
+                merge = lib.mergeRelativePathOption;
+              };
+            };
             filter = lib.mkOption {
               type    = nt.functionTo ( nt.functionTo nt.bool );
               default = name: type: true;

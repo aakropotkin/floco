@@ -34,6 +34,7 @@ in {
           imports = [
             ./path/implementation.nix
             ./fetchTree/implementation.nix
+            ./composed/implementation.nix
           ];
 
           config._module.args = { inherit (config) fetcher; };

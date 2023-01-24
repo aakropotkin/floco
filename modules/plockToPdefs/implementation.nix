@@ -101,7 +101,7 @@
       url = resolved;
     };
   in {
-    inherit ident version key ltype fetchInfo;
+    inherit ident version key ltype;
 
     binInfo.binPairs = bin;
 
@@ -113,6 +113,9 @@
     fsInfo = { inherit gypfile; dir = "."; };
 
     lifecycle.install = hasInstallScript;
+
+    fetchInfo = if fetchInfo ? path then fetchInfo else
+                fetchers."fetchTree_${fetchInfo.type}".lockFetchInfo fetchInfo;
 
     fetcher = if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
 

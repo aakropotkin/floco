@@ -132,6 +132,7 @@ in {
         if ! ( builtins.elem ( config.fsInfo.dir or "." ) ["." "./." "" null] )
         then "/" + config.fsInfo.dir
         else "";
+      #projDir = config.fetchInfo.path or config.sourceInfo.outPath;
       projDir = config.fetchInfo.path or config.sourceInfo.outPath;
     in lib.mkDefault ( projDir + dp );
 
