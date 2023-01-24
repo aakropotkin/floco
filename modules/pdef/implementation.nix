@@ -33,14 +33,23 @@ in {
     internal = true;
     visible  = false;
     type     = nt.enum ( builtins.attrNames ( removeAttrs fetchers ["pure"] ) );
+    default  = "composed";
   };
 
-  options.fetchInfo = lib.mkOption {
-    type = let
-      fetcher = fetchers.${config.fetcher};
-      coerce  = fetcher.deserializeFetchInfo ( basedir + "/<phony>" );
-    in nt.coercedTo lib.types.str coerce ( nt.lazyAttrsOf nt.anything );
-  };
+  options.fetchInfo = let
+    mkFetchInfoType = fetcher: let
+      coerce = _file: fi: fetcher.deserializeFetchInfo _file fi;
+    in ( nt.coercedTo nt.str ( coerce "<phony>" ) fetcher.fetchInfo ) // {
+      inherit (nt.either nt.str fetcher.fetchInfo) check;
+      inherit (fetcher.fetchInfo) substSubModules;
+      merge = loc: defs: let
+        coerced = map ( { file, value, ... } @ def: def // {
+          value = if builtins.isAttrs value then value else
+                  fetcher.deserializeFetchInfo file value;
+        } ) defs;
+      in fetcher.fetchInfo.merge loc coerced;
+    };
+  in lib.mkOption { type = mkFetchInfoType fetchers.${config.fetcher}; };
 
 
 # ---------------------------------------------------------------------------- #
@@ -91,11 +100,6 @@ in {
              config.fetchInfo.path or config.metaFiles.pjsDir;
     in lib.mkDefault val;
 
-    fetcher = let
-      type    = config.fetchInfo.type or "path";
-      fetcher = if type == "path" then "path" else "fetchTree_${type}";
-    in lib.mkDefault fetcher;
-
     fetchInfo = let
       default = builtins.mapAttrs ( _: lib.mkDefault ) ( {
         type = "tarball";
@@ -132,7 +136,6 @@ in {
         if ! ( builtins.elem ( config.fsInfo.dir or "." ) ["." "./." "" null] )
         then "/" + config.fsInfo.dir
         else "";
-      #projDir = config.fetchInfo.path or config.sourceInfo.outPath;
       projDir = config.fetchInfo.path or config.sourceInfo.outPath;
     in lib.mkDefault ( projDir + dp );
 
@@ -151,7 +154,7 @@ in {
     {
       inherit (config) ident version ltype;
       fetchInfo =
-        fetchers.${config.fetcher}.serializeFetchInfo ( basedir + "/<phony>" )
+        fetchers.${config.fetcher}.serializeFetchInfo basedir
                                                       config.fetchInfo;
     }
     ( lib.mkIf ( config.key != "${config.ident}/${config.version}" ) {

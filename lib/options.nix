@@ -22,10 +22,11 @@ in {
 
   mergeRelativePathOption = loc: defs: let
     toVal = { file, value, ... } @ def: let
-      fp = if builtins.isPath file then file else /. + file;
+      fp = if builtins.isPath file then toString file else file;
+      rp = if builtins.pathExists ( fp + "/." ) then fp else dirOf fp;
     in if builtins.isPath value then value else
        if lib.isAbspath value then /. + value else
-       fp + ( "/" + value );
+       /. + ( rp + "/" + value );
     fixupDef = def: def // { value = toVal def; };
     fixed    = map fixupDef defs;
   in lib.mergeEqualOption loc fixed;

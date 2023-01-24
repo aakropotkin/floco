@@ -61,18 +61,23 @@ in {
       in lib.moduleDropDefaults config.path.fetchInfo serializable;
       #sha256 = if fetchInfo.sha256 != null then fetchInfo.sha256 else
       #         ( config.path.lockFetchInfo fetchInfo ).sha256;
-      path     = lib.realpathRel ( dirOf _file ) fetchInfo.path;
+      fp = if builtins.isPath _file then toString _file else _file;
+      rp = if builtins.pathExists ( fp + "/." ) then /. + fp else
+           /. + ( dirOf fp );
+      path     = lib.realpathRel rp fetchInfo.path;
       isSimple = ( builtins.attrNames keeps ) == ["path"];
     in if isSimple then "path:" + path else keeps // { inherit path; } );
 
 # ---------------------------------------------------------------------------- #
 
     deserializeFetchInfo = lib.mkDefault ( _file: s: let
-      file = if builtins.isPath _file then _file else /. + _file;
-      p = if builtins.isAttrs s then s.path else
-          if builtins.isPath s then s else
-          lib.removePrefix "path:" s;
-      path'  = if lib.isAbspath p then p else ( dirOf file ) + ( "/" + p );
+      fp = if builtins.isPath _file then toString _file else _file;
+      rp = if builtins.pathExists ( fp + "/." ) then /. + fp else
+           /. + ( dirOf fp );
+      p  = if builtins.isAttrs s then s.path else
+           if builtins.isPath s then s else
+           lib.removePrefix "path:" s;
+      path'  = if lib.isAbspath p then p else rp + ( "/" + p );
       attrs' = if builtins.isAttrs s then s else {};
     in attrs' // {
       path = if builtins.isPath path' then path' else /. + path';

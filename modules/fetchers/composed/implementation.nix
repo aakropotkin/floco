@@ -126,7 +126,7 @@ in {
       fn = fi: let
         sf   = cfg.subs.${cfg.identifyFetcher fi};
         args = let
-          so = removeAttrs ( sf.getSubOptions [] ) ["_module"];
+          so = removeAttrs ( sf.fetchInfo.getSubOptions [] ) ["_module"];
         in builtins.intersectAttrs so fi;
       in sf.function args;
     in lib.mkDefault fn;
@@ -143,7 +143,8 @@ in {
 
     serializeFetchInfo = let
       fn = _file: fetchInfo:
-        cfg.subs.${cfg.identifyFetcher fetchInfo}.serializeFetchInfo fetchInfo;
+        cfg.subs.${cfg.identifyFetcher fetchInfo}.serializeFetchInfo _file
+                                                                     fetchInfo;
     in lib.mkDefault fn;
 
 
@@ -152,7 +153,7 @@ in {
     deserializeFetchInfo = let
       fn = _file: fetchInfo: let
         sf = cfg.identifyFetcher fetchInfo;
-      in cfg.subs.${sf}.deserializeFetchInfo fetchInfo;
+      in cfg.subs.${sf}.deserializeFetchInfo _file fetchInfo;
     in lib.mkDefault fn;
 
 
