@@ -60,6 +60,8 @@ in {
     checkSystemSupportFor
     focusTree
     realpathRel
+    mergePreferredOption
+    mergeRelativePathOption
     moduleDropDefaults
     isAbspath
     urlEncode

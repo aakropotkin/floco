@@ -36,6 +36,7 @@ in {
           imports = [
             ./path/interface.nix
             ./fetchTree/interface.nix
+            ./composed/interface.nix
           ];
 
           options.pure = lib.mkOption {
