@@ -41,7 +41,9 @@ in {
       coerce = _file: fi: fetcher.deserializeFetchInfo _file fi;
     in ( nt.coercedTo nt.str ( coerce "<phony>" ) fetcher.fetchInfo ) // {
       inherit (nt.either nt.str fetcher.fetchInfo) check;
-      inherit (fetcher.fetchInfo) substSubModules;
+      substSubModules = m: mkFetchInfoType ( fetcher // {
+        fetchInfo = fetcher.fetchInfo.substSubModules m;
+      } );
       merge = loc: defs: let
         coerced = map ( { file, value, ... } @ def: def // {
           value = if builtins.isAttrs value then value else
