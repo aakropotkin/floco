@@ -54,18 +54,22 @@
       m = builtins.match ".*@patch:([^#]+)#.*" resolution;
     in if m == null then null else
        lib.urlDecode ( builtins.head m );
+    hasTarballSuffix =
+      ( builtins.match ".*\\.(tgz|tar\\.([gbx]z))" resolution ) != null;
     ltype =
       if "${ident}@workspace:." == resolution then "dir" else
       if linkType == "soft" then "link" else
       if lib.hasPrefix "${ident}@workspace:" resolution then "link" else
       if lib.hasPrefix "${ident}@npm:" resolution then "file" else
+      if hasTarballSuffix then "file" else
       if lib.hasInfix ".git#" resolution then "git" else
-      if ( unpatched != null ) && ( lib.hasPrefix "npm:" unpatched )
-      then "file"
-      else throw "Unable to derive lifecycle type from entry: '${pp}'.";
+      if ( unpatched != null ) && ( lib.hasPrefix "${ident}@npm:" unpatched )
+      then "file" else
+      throw "Unable to derive lifecycle type from entry: '${pp}'.";
     fetchInfo = let
-      type = if ltype == "file" then "tarball" else "git";
-      len  = builtins.stringLength resolution;
+      type   = if ltype == "file" then "tarball" else "git";
+      len    = builtins.stringLength resolution;
+      rgtlen = ( builtins.stringLength ident ) + 1;
       # For revs: "<IDENT>@https://github.com/<USER>/<REPO>.git#commit=<FULL-REV>"
       rev   = let
         m = builtins.match "[^#]+#commit=([[:xdigit:]]{40})" resolution;
@@ -81,16 +85,17 @@
          lockDir + ( "/" + ( builtins.substring rplen len resolution ) );
     } else if type == "git" then {
       inherit type;
-      url = let
-        rglen = ( builtins.stringLength ident ) + 1;
-      in builtins.substring rglen len resolution;
+      url = builtins.substring rgtlen len resolution;
       allRefs    = rev != null;
       submodules = false;
       shallow    = true;
     } // revOrRef' else {
       inherit type;
-      url = "https://registry.npmjs.org/${ident}/-/" +
-            "${baseNameOf ident}-${version}.tgz";
+      url = let
+        reg = "https://registry.npmjs.org/${ident}/-/" +
+              "${baseNameOf ident}-${version}.tgz";
+      in if hasTarballSuffix then builtins.substring rgtlen len resolution else
+         reg;
     };
   in {
     inherit ident version key ltype fetchInfo;
