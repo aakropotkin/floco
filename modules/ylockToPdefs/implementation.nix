@@ -66,8 +66,9 @@
     fetchInfo = let
       type = if ltype == "file" then "tarball" else "git";
       len  = builtins.stringLength resolution;
+      # For revs: "<IDENT>@https://github.com/<USER>/<REPO>.git#commit=<FULL-REV>"
       rev   = let
-        m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolution;
+        m = builtins.match "[^#]+#commit=([[:xdigit:]]{40})" resolution;
       in if m == null then null else builtins.head m;
       ref   = let
         m = builtins.match "[^#]+#(.*)" resolution;
@@ -83,7 +84,7 @@
       url = let
         rglen = ( builtins.stringLength ident ) + 1;
       in builtins.substring rglen len resolution;
-      allRefs    = false;
+      allRefs    = rev != null;
       submodules = false;
       shallow    = true;
     } // revOrRef' else {
