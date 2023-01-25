@@ -59,7 +59,7 @@
       if linkType == "soft" then "link" else
       if lib.hasPrefix "${ident}@workspace:" resolution then "link" else
       if lib.hasPrefix "${ident}@npm:" resolution then "file" else
-      if lib.hasInfix "\.git#" resolution then "git" else
+      if lib.hasInfix ".git#" resolution then "git" else
       if ( unpatched != null ) && ( lib.hasPrefix "npm:" unpatched )
       then "file"
       else throw "Unable to derive lifecycle type from entry: '${pp}'.";

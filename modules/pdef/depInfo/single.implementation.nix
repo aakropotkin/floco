@@ -12,14 +12,13 @@
 , devDependenciesMeta  ? {}
 , optionalDependencies ? {}
 , bundleDependencies   ? false
-, bundledDependencies  ? {}
+, bundledDependencies  ? []
 , ...
 }: let
 
 # ---------------------------------------------------------------------------- #
 
-  runtimeDeps =
-    requires // optionalDependencies // bundledDependencies // dependencies;
+  runtimeDeps = requires // optionalDependencies // dependencies;
 
 # ---------------------------------------------------------------------------- #
 
@@ -28,18 +27,21 @@ in builtins.mapAttrs ( _: lib.mkDefault ) {
 # ---------------------------------------------------------------------------- #
 
   descriptor = runtimeDeps.${ident} or devDependencies.${ident} or "*";
-  runtime    = runtimeDeps ? ${ident};
-  dev        = ( runtimeDeps ? ${ident} ) ||
-               ( devDependencies ? ${ident} ) ||
-               ( devDependenciesMeta ? ${ident} );
+  runtime    = ( runtimeDeps ? ${ident} ) ||
+               ( builtins.elem ident bundledDependencies );
+  dev = ( runtimeDeps ? ${ident} ) ||
+        ( devDependencies ? ${ident} ) ||
+        ( devDependenciesMeta ? ${ident} );
   optional = ( optionalDependencies ? ${ident} ) ||
              ( devDependenciesMeta.${ident}.optional or false );
   bundled = ( bundleDependencies && ( runtimeDeps ? ${ident} ) ) ||
-            ( bundledDependencies ? ${ident} );
+            ( builtins.elem ident bundledDependencies );
+
 
 # ---------------------------------------------------------------------------- #
 
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

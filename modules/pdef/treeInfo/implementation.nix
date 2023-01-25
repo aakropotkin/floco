@@ -13,7 +13,8 @@
   config = let
     prod = lib.filterAttrs ( _: v: v.runtime or false ) config.depInfo;
     need = if config.lifecycle.build then config.depInfo else prod;
-    cond = ( config ? metaFiles.metaRaw.treeInfo ) || ( need == {} );
+    cond = ( config.metaFiles.metaRaw.treeInfo or null ) != null ||
+           ( need == {} );
   in {
 
     treeInfo = lib.mkIf cond ( lib.mkDefault (

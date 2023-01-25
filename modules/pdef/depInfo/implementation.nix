@@ -30,7 +30,7 @@
     # to type check these fields first.
     attrs  = builtins.filter builtins.isAttrs ( builtins.attrValues raw );
     merged = builtins.foldl' ( a: b: a // b ) {} attrs;
-  in builtins.attrNames merged;
+  in ( builtins.attrNames merged ) ++ ( raw.bundledDependencies or [] );
 
 
 # ---------------------------------------------------------------------------- #
