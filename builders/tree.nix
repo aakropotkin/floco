@@ -60,20 +60,64 @@ in {
     if builtins.all check ( builtins.attrNames x.passthru.pathTree ) then x else
     throw "tree: Encountered `../*' path in `pathTree'.";
 
+  cmdFileSimple = let
+    procL = to: [
+      "bash $install_module -t " pathTree.${to} " \"$out/" to "\"\n"
+    ];
+    linesL = builtins.concatMap procL ( builtins.attrNames pathTree );
+    body   = builtins.concatStringsSep "" linesL;
+  in writeText "node_modules-tree-argfile" body;
+
+  cmdFilePdefOpt = let
+    procL = to: let
+      key     = keyTree.${to};
+      ident   = dirOf key;
+      version = baseNameOf key;
+      pkg     = floco.packages.${ident}.${version};
+      dir     = pkg.prepared.outPath;
+      pdef    = pkg.pdef;
+      env     = let
+        binPairs' = if pdef.binInfo.binPairs == {} then {} else {
+          BIN_PAIRS = let
+            tuples = builtins.attrValues (
+              builtins.mapAttrs ( n: p: "${n},${p}" ) pdef.binInfo.binPairs
+            );
+          in builtins.concatStringsSep " " tuples;
+        };
+        binDir' = if binPairs' != {} then {} else
+                  if pdef.binInfo.binDir == null then {} else {
+                    BIN_DIR = pdef.binInfo.binDir;
+                  };
+        binLinks' = if to == "node_modules/${ident}" then {} else {
+          NO_BIN_LINKS = ":";
+        };
+        bin' = if ( binPairs' == {} ) && ( binDir' == {} ) then {
+          NO_BINS  = ":";
+          NO_PERMS = ":";
+        } else binPairs' // binDir' // binLinks';
+      in {
+        IDENT    = ident;
+        NO_PATCH = ":";
+      } // bin';
+      vars = builtins.concatStringsSep " " (
+        lib.mapAttrsToList lib.toShellVar env
+      );
+    in [vars " bash $install_module -t " dir " \"$out/" to "\"\n"];
+    linesL = builtins.concatMap procL ( builtins.attrNames keyTree );
+    body   = builtins.concatStringsSep "" linesL;
+  in writeText "node_modules-tree-argfile" body;
+
+
   drv = derivation {
     inherit name system install_module;
     builder = "${bash}/bin/bash";
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
-    argFile = let
-      procL  = to: [pathTree.${to} " \"$out/" to "\"\n"];
-      linesL = builtins.concatMap procL ( builtins.attrNames pathTree );
-      body   = builtins.concatStringsSep "" linesL;
-    in writeText "node_modules-tree-argfile" body;
+    cmdFile = if keyTree == null then cmdFileSimple else cmdFilePdefOpt;
     args = ["-ec" ''
       mkdir -p "$out/node_modules";
-      while read -r args; do
-        eval "bash $install_module -t $args";
-      done <"$argFile"
+      while read -r cmd; do
+        eval "$cmd";
+      done <"$cmdFile"
     ''];
     preferLocalBuild = true;
     allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
