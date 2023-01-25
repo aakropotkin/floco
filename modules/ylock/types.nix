@@ -11,6 +11,13 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Conversion from YAML may cause some descriptors to be interpreted as
+  # integers ( 1 ) or floats ( 1.0 ), so we coerce to strings.
+  desc = nt.coercedTo ( nt.either nt.int nt.float ) builtins.toString nt.str;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -95,12 +102,12 @@ in {
 # ---------------------------------------------------------------------------- #
 
       dependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
+        type    = nt.attrsOf desc;
         default = {};
       };
 
       devDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
+        type    = nt.attrsOf desc;
         default = {};
       };
 
@@ -110,7 +117,7 @@ in {
       };
 
       peerDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
+        type    = nt.attrsOf desc;
         default = {};
       };
 
@@ -120,7 +127,7 @@ in {
       };
 
       optionalDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
+        type    = nt.attrsOf desc;
         default = {};
       };
 

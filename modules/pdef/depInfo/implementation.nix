@@ -23,10 +23,13 @@
     get = f:
       if ( config.metaFiles.${f} or {} ) == null then {} else
       take config.metaFiles.${f};
-  in ( get "pjs" ) // ( get "plent" ) // ( get "metaRaw" );
+  in ( get "pjs" ) // ( get "plent" ) // ( get "ylent" ) // ( get "metaRaw" );
 
   idents = let
-    merged = builtins.foldl' ( a: b: a // b ) {} ( builtins.attrValues raw );
+    # `requires' may be a boolen if it appears at the top level, so we want
+    # to type check these fields first.
+    attrs  = builtins.filter builtins.isAttrs ( builtins.attrValues raw );
+    merged = builtins.foldl' ( a: b: a // b ) {} attrs;
   in builtins.attrNames merged;
 
 
