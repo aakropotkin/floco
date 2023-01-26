@@ -13,7 +13,7 @@ set -o pipefail;
 
 _as_me='floco install-module';
 
-_version='0.1.0';
+_version='0.2.0';
 
 _usage_msg="Usage: install-module.sh [OPTIONS] FROM NM-DIR
 
@@ -25,6 +25,9 @@ _help_msg="$_usage_msg
 Options:
   -t,--to             Treat \`NM-DIR' as literal install dir
   -i,--ident ID       Treat \`ID' as the package identifier/name
+  -c,--copy           Copy module files when installing.
+  -C,--no-copy        Symlink module files when installing.
+                      This mode will preserve existing \`node_modules/'.
   -b,--bins           Force processing of bins
   -B,--no-bins        Skip processing bins
   -p,--perms          Force fixing of \`FROM' permissions for dirs and bins
@@ -58,23 +61,24 @@ Environment:
   NO_PERMS      Skip checking/fixup of directory and executable permissions
                 when non-empty. ( Bool )
   NO_PATCH      Skip patching shebangs in scripts when non-empty. ( Bool )
+  NO_COPY       Symlink module instead of copying.
   NODEJS        Absolute path to \`node' executable.
                 May be omitted if patching shebangs is disabled.
   JQ            Absolute path to \`jq' executable.
                 May be omitted if \`IDENT' is known and any \`*BIN*' variable is
                 is non-empty ( it is only needed to read \`package.json' ).
-  ID            Absolute path to \`id' executable.
-  CHMOD         Absolute path to \`chmod' executable.
-  CHOWN         Absolute path to \`chown' executable.
-  MKDIR         Absolute path to \`mkdir' executable.
-  CP            Absolute path to \`cp' executable.
+  ID            Command used as \`id' executable.
+  CHMOD         Command used as \`chmod' executable.
+  CHOWN         Command used as \`chown' executable.
+  MKDIR         Command used as \`mkdir' executable.
+  CP            Command used as \`cp' executable.
                 This is useful for adding additional flags or wrapping the
                 program used to copy files.
-  LN            Absolute path to \`ln' executable.
-  REALPATH      Absolute path to \`realpath' executable.
-  TAIL          Absolute path to \`tail' executable.
-  FIND          Absolute path to \`find' executable.
-  BASH          Absolute path to \`bash' executable.
+  LN            Command used as \`ln' executable.
+  REALPATH      Command used as \`realpath' executable.
+  TAIL          Command used as \`tail' executable.
+  FIND          Command used as \`find' executable.
+  BASH          Command used as \`bash' executable.
 ";
 
 
@@ -125,6 +129,8 @@ while [[ "$#" -gt 0 ]]; do
     ;;
     -t|--to)           NM_IS_TO=:; ;;
     -i|--ident)        IDENT="$2"; shift; ;;
+    -c|--copy)         NO_COPY=; ;;
+    -C|--no-copy)      NO_COPY=:; NO_PERMS=:; NO_PATCH=:; ;;
     -b|--bins)         NO_BINS=''; ;;
     -B|--no-bins)      NO_BINS=:; unset BIN_PAIRS BIN_DIR; ;;
     -p|--perms)        NO_PERMS=''; ;;
@@ -180,6 +186,7 @@ fi
 : "${NO_BIN_LINKS=}";
 : "${NO_PERMS=}";
 : "${NO_PATCH=:}";
+: "${NO_COPY=}";
 : "${OWNER:=$( $ID -un; )}";
 : "${GROUP:=$( $ID -gn; )}";
 
@@ -187,15 +194,32 @@ fi
 # ---------------------------------------------------------------------------- #
 
 # Copy package/module
-$MKDIR -p "$TO";
-$CHMOD 0755 "$TO";
-$CP -r --no-preserve=mode,ownership --preserve=timestamp --reflink=auto -T  \
-    -- "$FROM" "$TO";
-if [[ -z "$NO_PERMS" ]]; then
-  $CHOWN -R "$OWNER:$GROUP" "$TO";
-  pushd "$FROM" >/dev/null;
-  $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
-  popd >/dev/null;
+do_copy() {
+  $MKDIR -p "$TO";
+  $CHMOD 0755 "$TO";
+  $CP -r --no-preserve=mode,ownership --preserve=timestamp --reflink=auto -T  \
+      -- "$FROM" "$TO";
+  if [[ -z "$NO_PERMS" ]]; then
+    $CHOWN -R "$OWNER:$GROUP" "$TO";
+    pushd "$FROM" >/dev/null;
+    $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
+    popd >/dev/null;
+  fi
+}
+
+do_link() {
+  $MKDIR -p "${TO%/*}";
+  $CHMOD 0755 "${TO%/*}";
+  $LN -sfT -- "$FROM" "$TO";
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+if [[ -z "${NO_COPY:-}" ]]; then
+  do_copy;
+else
+  do_link;
 fi
 
 
