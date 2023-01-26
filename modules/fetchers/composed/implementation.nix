@@ -29,14 +29,19 @@ in {
         description = lib.mdDoc ''
           Inner/child fetchers which may be called to perform real operations.
         '';
-        type = nt.submodule {
-          freeformType = nt.attrsOf ( nt.submodule { imports = [fetcher]; } );
+        type = let
+          fetcherT = nt.submodule {
+            freeformType = nt.attrsOf nt.anything;
+            imports      = [fetcher];
+          };
+        in nt.submodule {
+          freeformType = nt.attrsOf fetcherT;
 
           options.path = lib.mkOption {
             description = lib.mdDoc ''
               Fetcher used for local filesystem paths.
             '';
-            type    = nt.submodule { imports = [fetcher]; };
+            type    = fetcherT;
             default = config.path;
           };
 
@@ -45,7 +50,7 @@ in {
               Fetcher used for unpacking tarballs.
               Tarballs may be local files or remote URLs.
             '';
-            type    = nt.submodule { imports = [fetcher]; };
+            type    = fetcherT;
             default = config.fetchTree_tarball;
           };
 
@@ -53,7 +58,7 @@ in {
             description = lib.mdDoc ''
               Fetcher used for fetching files from remote URLs.
             '';
-            type    = nt.submodule { imports = [fetcher]; };
+            type    = fetcherT;
             default = config.fetchTree_file;
           };
 
@@ -61,7 +66,7 @@ in {
             description = lib.mdDoc ''
               Fetcher used to clone source trees from `git`.
             '';
-            type    = nt.submodule { imports = [fetcher]; };
+            type    = fetcherT;
             default = config.fetchTree_git;
           };
 
@@ -70,7 +75,7 @@ in {
               Fetcher used to clone source trees from GitHub.
               This is an optimized form of the `git` fetcher.
             '';
-            type    = nt.submodule { imports = [fetcher]; };
+            type    = fetcherT;
             default = config.fetchTree_git;
           };
 

@@ -22,7 +22,37 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.fetchTree_tarball = lib.mkOption {
-    type = nt.submodule { imports = [fetcher]; };
+    type = nt.submodule {
+      imports = [fetcher];
+
+      options.serializerStyle = lib.mkOption {
+        description = lib.mdDoc ''
+          Preferred serialization style used to write lockfiles.
+          - `string` writes `fetchInfo` to a URI string equivalent to the one
+            used for `flake` inputs.
+          - `attrs` emits `fetchInfo` as an attribute set, dropping some fields
+            if they can be inferred by `deserializeFetchInfo`.
+
+          Note that the function `deserializeFetchInfo` must be able to read
+          either form regardless of how this option is set.
+        '';
+        type    = nt.enum ["string" "attrs"];
+        default = "attrs";
+        example = "string";
+      };
+
+      options.serializeFetchInfo_string = lib.mkOption {
+        type     = nt.functionTo ( nt.functionTo nt.str );
+        internal = true;
+        visible  = false;
+      };
+      options.serializeFetchInfo_attrs = lib.mkOption {
+        type     = nt.functionTo ( nt.functionTo ( nt.attrsOf lib.jsonAtom ) );
+        internal = true;
+        visible  = false;
+      };
+
+    };  # End `options.fetchTree_tarball.type'
   };
 
 
@@ -53,7 +83,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    serializeFetchInfo = lib.mkDefault ( _file: fetchInfo: let
+    serializeFetchInfo_string = lib.mkDefault ( _file: fetchInfo: let
       pre = let
         m = builtins.match "tarball\\+.*" fetchInfo.url;
       in if m == null then "tarball+" else "";
@@ -66,6 +96,24 @@ in {
          then ""
          else psep + "narHash=" + fetchInfo.narHash;
     in pre + fetchInfo.url + post );
+
+
+# ---------------------------------------------------------------------------- #
+
+    serializeFetchInfo_attrs = lib.mkDefault ( _file: fetchInfo: let
+      nh' = if ( fetchInfo.narHash or null ) == null then {} else {
+        inherit (fetchInfo) narHash;
+      };
+    in nh' // { type = "tarball"; inherit (fetchInfo) url; } );
+
+
+# ---------------------------------------------------------------------------- #
+
+    serializeFetchInfo = lib.mkDefault (
+      if config.fetchTree_tarball.serializerStyle == "string"
+      then config.fetchTree_tarball.serializeFetchInfo_string
+      else config.fetchTree_tarball.serializeFetchInfo_attrs
+    );
 
 
 # ---------------------------------------------------------------------------- #

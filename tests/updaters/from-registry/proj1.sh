@@ -164,7 +164,13 @@ $JQ -e '( .treeInfo // {} ) != {}' "$TARGET_ENT" >&2;
 
 echo "Assert that \`fetchInfo' is defined as an \`npm' tarball:" >&2;
 $JQ -e '
-  ( .fetchInfo // "" )|test( "^tarball\\+https://registry\\.npmjs\\.org" )
+if ( .fetchInfo|type ) == "string" then
+  ( ( .fetchInfo // "" ) |test( "^tarball\\+https://registry\\.npmjs\\.org" ) )
+else
+  ( ( .fetchInfo // {} )
+    |( ( ( .type // "" ) == "tarball" ) and
+       ( ( .url // "" )|test( "^https://registry.npmjs.org" ) ) ) )
+end
 ' "$TARGET_ENT" >&2;
 
 

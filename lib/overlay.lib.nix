@@ -51,21 +51,30 @@ in {
     ./focus-tree.nix
     ./options.nix
     ./paths.nix
+    ./types.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
   inherit (final.libfloco)
     addPdefs
     getPdef
+
     checkSystemSupportFor
+
     focusTree
-    realpathRel
+
     mergePreferredOption
     mergeRelativePathOption
     moduleDropDefaults
+
+    realpathRel
     isAbspath
+
     urlEncode
     urlDecode
+
+    jsonAtom
+    jsonValue
   ;
 
 }
