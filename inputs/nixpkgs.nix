@@ -1,6 +1,6 @@
 let
   lock = builtins.fromJSON ( builtins.readFile ../flake.lock );
-  nl   = lock.nodes.nixpkgs_2.locked;
+  nl   = lock.nodes.nixpkgs.locked;
   uri  = nl.type + ":" + nl.owner + "/" + nl.repo + "/" + nl.rev;
 in {
   inherit uri;
