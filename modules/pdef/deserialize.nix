@@ -22,12 +22,20 @@ in {
 
   _file = "<floco>/pdef/deserialize.nix";
 
-  config.binInfo   = mkCached options.binInfo.default;
-  config.depInfo   = mkCached {};
-  config.peerInfo  = mkCached {};
-  config.sysInfo   = mkCached options.sysInfo.default;
-  config.fsInfo    = mkCached options.fsInfo.default;
-  config.lifecycle = mkCached options.lifecycle.default;
+  config.binInfo      = lib.mapAttrsRecursive ( _: mkCached ) options.binInfo.default;
+  config.depInfo      = mkCached {};
+  config.peerInfo     = mkCached {};
+  config.sysInfo      = lib.mapAttrsRecursive ( _: mkCached ) options.sysInfo.default;
+  config.lifecycle    = lib.mapAttrsRecursive ( _: mkCached ) options.lifecycle.default;
+  config.fsInfo       = lib.mapAttrsRecursive ( _: mkCached ) options.fsInfo.default;
+  config.deserialized = true;
+
+  # We explicitly set this to empty to prevent various routines from trying to
+  # fetch the file contents.
+  # This ensures that only the declared information is used.
+  config.metaFiles.pjs   = mkCached {};
+  config.metaFiles.plent = mkCached {};
+  config.metaFiles.ylent = mkCached {};
 
 }
 

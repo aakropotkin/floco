@@ -393,6 +393,21 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    deserialized = lib.mkOption {
+      internal    = true;
+      visible     = false;
+      type        = nt.bool;
+      default     = false;
+      description = lib.mdDoc ''
+        Indicates that a record is pulled from a serialized format.
+
+        This option controls how default/fallback values are set in submodules.
+      '';
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `options'
 
 
