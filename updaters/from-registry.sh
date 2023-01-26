@@ -286,7 +286,7 @@ EOF
 # post-process a bit to add quotes.
 
 if [[ -z "$JSON" ]]; then
-  $SED -i 's/ \(assert\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
+  $SED -i 's/ \(assert\|throw\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
           "$OUTFILE";
 fi
 
