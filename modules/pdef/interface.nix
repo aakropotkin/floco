@@ -374,7 +374,7 @@ in {
 
     _export = lib.mkOption {
       internal    = true;
-      description = ''
+      description = lib.mdDoc ''
         This should never be explicitly defined by users or config files.
         This field exists to allow a locked representation of a package
         definition to be made available at eval time in order to debug/trace
