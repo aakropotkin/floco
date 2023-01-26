@@ -58,7 +58,7 @@ in {
             if [[ "''${copyTree:-0}" != 1 ]]; then
               ln -s "$NMTREE/node_modules" ./node_modules;
             else
-              cp -r --reflink=auto -- "$NMTREE/node_modules" ./node_modules;
+              cp -r --reflink=auto -T -- "$NMTREE/node_modules" ./node_modules;
               chmod -R +w ./node_modules;
             fi
           fi

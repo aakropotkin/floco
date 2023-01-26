@@ -197,13 +197,20 @@ fi
 do_copy() {
   $MKDIR -p "$TO";
   $CHMOD 0755 "$TO";
-  $CP -r --no-preserve=mode,ownership --preserve=timestamp --reflink=auto -T  \
-      -- "$FROM" "$TO";
   if [[ -z "$NO_PERMS" ]]; then
+    $CP                             \
+      -r                            \
+      --no-preserve=mode,ownership  \
+      --preserve=timestamp          \
+      --reflink=auto -T             \
+      -- "$FROM" "$TO"              \
+    ;
     $CHOWN -R "$OWNER:$GROUP" "$TO";
     pushd "$FROM" >/dev/null;
     $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
     popd >/dev/null;
+  else
+    $CP -r --reflink=auto -T -- "$FROM" "$TO";
   fi
 }
 

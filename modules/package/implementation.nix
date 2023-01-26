@@ -119,7 +119,7 @@ in {
         inherit (config.pdef) version;
         install_module    = ../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
-        NMTREE            = config.trees.prod;
+        NMTREE            = config.trees.global or config.trees.prod;
         src               = config.prepared;
         nativeBuildInputs = [pkgs.jq];
         buildInputs       = [pkgs.nodejs-14_x];

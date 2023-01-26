@@ -29,7 +29,7 @@ in {
       '';
       type = nt.submodule {
 
-        freeformType = nt.attrsOf nt.package;
+        freeformType = nt.attrsOf ( nt.nullOr nt.package );
 
 # ---------------------------------------------------------------------------- #
 
