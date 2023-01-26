@@ -212,6 +212,729 @@ See Also: deserializeFetchInfo, lockFetchInfo
 - type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
+*** =composed=
+- option :: ~floco.fetchers.composed~
+- description :: Generic fetcher comprised of multiple sub-fetchers.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/interface.nix][<floco>/fetchers/composed/interface.nix]]
+
+**** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+**** =fetchInfo=
+- option :: ~floco.fetchers.composed.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+**** =function=
+- option :: ~floco.fetchers.composed.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+**** =identifyFetcher=
+- option :: ~floco.fetchers.composed.identifyFetcher~
+- description :: Function which identifies which sub-fetcher will be used for a given
+=fetchInfo= input.
+
+This routine accepts a single argument with must be either a
+serialized string form of =fetchInfo= or an attrset form
+of =fetchInfo=.
+
+This function returns a string, being the attribute name of a
+sub-fetcher as =subs.<NAME>=.
+- type :: function that evaluates to a(n) string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+**** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+**** =pure=
+- option :: ~floco.fetchers.composed.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+**** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+**** =subs=
+- option :: ~floco.fetchers.composed.subs~
+- description :: Inner/child fetchers which may be called to perform real operations.
+- type :: attribute set of (attribute set of anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+***** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.<name>.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.<name>.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =function=
+- option :: ~floco.fetchers.composed.subs.<name>.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+***** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.<name>.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+***** =pure=
+- option :: ~floco.fetchers.composed.subs.<name>.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.<name>.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =file=
+- option :: ~floco.fetchers.composed.subs.file~
+- description :: Fetcher used for fetching files from remote URLs.
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+****** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.file.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.file.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =function=
+- option :: ~floco.fetchers.composed.subs.file.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+****** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.file.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+****** =pure=
+- option :: ~floco.fetchers.composed.subs.file.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.file.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =git=
+- option :: ~floco.fetchers.composed.subs.git~
+- description :: Fetcher used to clone source trees from =git=.
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+****** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.git.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.git.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =function=
+- option :: ~floco.fetchers.composed.subs.git.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+****** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.git.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+****** =pure=
+- option :: ~floco.fetchers.composed.subs.git.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.git.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =github=
+- option :: ~floco.fetchers.composed.subs.github~
+- description :: Fetcher used to clone source trees from GitHub.
+This is an optimized form of the =git= fetcher.
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+****** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.github.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.github.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =function=
+- option :: ~floco.fetchers.composed.subs.github.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+****** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.github.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+****** =pure=
+- option :: ~floco.fetchers.composed.subs.github.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.github.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =path=
+- option :: ~floco.fetchers.composed.subs.path~
+- description :: Fetcher used for local filesystem paths.
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+****** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.path.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.path.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =function=
+- option :: ~floco.fetchers.composed.subs.path.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+****** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.path.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+****** =pure=
+- option :: ~floco.fetchers.composed.subs.path.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.path.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+***** =tarball=
+- option :: ~floco.fetchers.composed.subs.tarball~
+- description :: Fetcher used for unpacking tarballs.
+Tarballs may be local files or remote URLs.
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+
+****** =deserializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.tarball.deserializeFetchInfo~
+- description :: Function which transforms serialized =fetchInfo= ( an attrset or
+string ) into its attrset form as specified by the
+=fetchInfo= submodule.
+
+This routine should produce an exact replica of the original
+record before it was serialized by =serializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being deserialized - this is useful for resolving relative paths.
+The second is the serialized form of =fetchInfo=.
+
+See Also: serializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =fetchInfo=
+- option :: ~floco.fetchers.composed.subs.tarball.fetchInfo~
+- description :: Submodule type representing arguments passed to fetch function in
+order to produce a =sourceInfo= record.
+
+This is used to typecheck when parsing lockfiles.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =function=
+- option :: ~floco.fetchers.composed.subs.tarball.function~
+- description :: Function which performs the fetch.
+This function will be passed a =fetchInfo= record and must return
+a =sourceInfo= record which at a minimum must contain the field
+=outPath= as a member.
+
+This function must NOT return a raw string.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  function = fetchInfo: { outPath = builtins.path fetchInfo; };
+}
+
+#+END_SRC
+
+****** =lockFetchInfo=
+- option :: ~floco.fetchers.composed.subs.tarball.lockFetchInfo~
+- description :: A function which fills missing arguments from an "impure"
+=fetchInfo= record to produce a "pure" =fetchInfo= record.
+
+This routine is used to create lockfiles during discovery phases.
+- type :: function that evaluates to a(n) lazy attribute set of raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lockFetchInfo = fetchInfo: let
+    outPath = builtins.path {
+      inherit (fetchInfo) name path filter recursive;
+    };
+    sourceInfo = builtins.fetchTree {
+      type = "path";
+      path = outPath;
+    };
+  in { sha256 = sourceInfo.narHash; } // fetchInfo;
+}
+
+#+END_SRC
+
+****** =pure=
+- option :: ~floco.fetchers.composed.subs.tarball.pure~
+- description :: Whether fetcher is restricted to pure evaluations.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+****** =serializeFetchInfo=
+- option :: ~floco.fetchers.composed.subs.tarball.serializeFetchInfo~
+- description :: Function which transforms =fetchInfo= into a minimal value to be
+written to a lockile.
+
+The return value may be a string or attrset of values that are
+coercible to JSON and must not contain absolute filesystem paths.
+
+This function's output should produce an exact replica of
+=fetchInfo= when passed to =deserializeFetchInfo=.
+
+This routine accepts two arguemnts.
+The first is =_file= indicating an absolute path the the file
+being serialized to - this is useful for creating relative paths.
+The second is the deserialized form of =fetchInfo=.
+
+See Also: deserializeFetchInfo, lockFetchInfo
+- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
 *** =fetchTree_file=
 - option :: ~floco.fetchers.fetchTree_file~
 - description :: =builtins.fetchTree[file]= args
@@ -313,9 +1036,23 @@ See Also: deserializeFetchInfo, lockFetchInfo
 - type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
+**** =serializerStyle=
+- option :: ~floco.fetchers.fetchTree_file.serializerStyle~
+- description :: Preferred serialization style used to write lockfiles.
+- =string= writes =fetchInfo= to a URI string equivalent to the one
+  used for =flake= inputs.
+- =attrs= emits =fetchInfo= as an attribute set, dropping some fields
+  if they can be inferred by =deserializeFetchInfo=.
+
+Note that the function =deserializeFetchInfo= must be able to read
+either form regardless of how this option is set.
+- type :: one of "string", "attrs"
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/file/implementation.nix][<floco>/fetchers/fetcher/fetchTree/file/implementation.nix]]
+- example :: =string=
+
 *** =fetchTree_git=
 - option :: ~floco.fetchers.fetchTree_git~
-- description :: =builtins.fetchTree[git]= args
+- description :: =builtins.fetchTree[git]= fetcher
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/git/implementation.nix][<floco>/fetchers/fetcher/fetchTree/git/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/git/interface.nix][<floco>/fetchers/fetcher/fetchTree/git/interface.nix]]
 
@@ -416,7 +1153,7 @@ See Also: deserializeFetchInfo, lockFetchInfo
 
 *** =fetchTree_github=
 - option :: ~floco.fetchers.fetchTree_github~
-- description :: =builtins.fetchTree[github]= args
+- description :: =builtins.fetchTree[github]= fetcher
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/github/implementation.nix][<floco>/fetchers/fetcher/fetchTree/github/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/github/interface.nix][<floco>/fetchers/fetcher/fetchTree/github/interface.nix]]
 
@@ -615,6 +1352,20 @@ The second is the deserialized form of =fetchInfo=.
 See Also: deserializeFetchInfo, lockFetchInfo
 - type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
+
+**** =serializerStyle=
+- option :: ~floco.fetchers.fetchTree_tarball.serializerStyle~
+- description :: Preferred serialization style used to write lockfiles.
+- =string= writes =fetchInfo= to a URI string equivalent to the one
+  used for =flake= inputs.
+- =attrs= emits =fetchInfo= as an attribute set, dropping some fields
+  if they can be inferred by =deserializeFetchInfo=.
+
+Note that the function =deserializeFetchInfo= must be able to read
+either form regardless of how this option is set.
+- type :: one of "string", "attrs"
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/tarball/implementation.nix][<floco>/fetchers/fetcher/fetchTree/tarball/implementation.nix]]
+- example :: =string=
 
 *** =path=
 - option :: ~floco.fetchers.path~
@@ -1202,7 +1953,9 @@ perform filtering of a source tree directly on
 =floco.packages.*.*.source= records rather than here to avoid
 prematurely copying trees to the Nix store in the event that they aren't
 needed for the eventual build plan.
-- type :: (lazy attribute set of anything) or string convertible to it
+- type :: Arguments passed underlying fetchers, and optionally the field
+`type` used to manually indicate which sub-fetcher should be used.
+
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/implementation.nix][<floco>/pdef/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
 
 **** =fsInfo=
@@ -2229,7 +2982,9 @@ perform filtering of a source tree directly on
 =floco.packages.*.*.source= records rather than here to avoid
 prematurely copying trees to the Nix store in the event that they aren't
 needed for the eventual build plan.
-- type :: (lazy attribute set of anything) or string convertible to it
+- type :: Arguments passed underlying fetchers, and optionally the field
+`type` used to manually indicate which sub-fetcher should be used.
+
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/implementation.nix][<floco>/pdef/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
 
 *** =fsInfo=

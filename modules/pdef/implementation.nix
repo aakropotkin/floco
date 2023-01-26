@@ -40,6 +40,7 @@ in {
     mkFetchInfoType = fetcher: let
       coerce = _file: fi: fetcher.deserializeFetchInfo _file fi;
     in ( nt.coercedTo nt.str ( coerce "<phony>" ) fetcher.fetchInfo ) // {
+      inherit (fetcher.fetchInfo) description __toString name;
       inherit (nt.either nt.str fetcher.fetchInfo) check;
       substSubModules = m: mkFetchInfoType ( fetcher // {
         fetchInfo = fetcher.fetchInfo.substSubModules m;

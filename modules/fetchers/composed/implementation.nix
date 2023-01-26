@@ -169,7 +169,7 @@ in {
       mkFetchInfoType = subs: let
         self = {
           name        = "fetchInfo (composed)";
-          description = lib.mdDoc ''
+          description = ''
             Arguments passed underlying fetchers, and optionally the field
             `type` used to manually indicate which sub-fetcher should be used.
           '';
