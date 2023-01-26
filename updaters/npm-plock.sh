@@ -265,7 +265,6 @@ else
 fi
 
 
-# TODO: unstringize `fetchInfo' relative paths.
 $NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );

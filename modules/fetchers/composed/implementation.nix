@@ -43,6 +43,7 @@ in {
             '';
             type    = fetcherT;
             default = config.path;
+            visible = "shallow";
           };
 
           options.tarball = lib.mkOption {
@@ -52,6 +53,7 @@ in {
             '';
             type    = fetcherT;
             default = config.fetchTree_tarball;
+            visible = "shallow";
           };
 
           options.file = lib.mkOption {
@@ -60,6 +62,7 @@ in {
             '';
             type    = fetcherT;
             default = config.fetchTree_file;
+            visible = "shallow";
           };
 
           options.git = lib.mkOption {
@@ -68,6 +71,7 @@ in {
             '';
             type    = fetcherT;
             default = config.fetchTree_git;
+            visible = "shallow";
           };
 
           options.github = lib.mkOption {
@@ -77,6 +81,7 @@ in {
             '';
             type    = fetcherT;
             default = config.fetchTree_git;
+            visible = "shallow";
           };
 
         };  # End `options.composed.type.options.subs.type'

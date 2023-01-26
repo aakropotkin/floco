@@ -2,7 +2,6 @@
 #
 # Add or lookup `pdef' records from the `config.floco.pdefs' set.
 #
-#
 # ---------------------------------------------------------------------------- #
 
 { lib }: let
