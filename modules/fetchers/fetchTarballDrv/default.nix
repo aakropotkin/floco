@@ -1,4 +1,4 @@
 {
-  _file = "<floco>/fetchers/fetcher/fetchTarball";
+  _file = "<floco>/fetchers/fetcher/fetchTarballDrv";
   imports = [./interface.nix ./implementation.nix];
 }

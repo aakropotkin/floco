@@ -13,13 +13,12 @@ let
       ../../../modules/fetchers
       ( { config, ... }: {
         options.input = lib.mkOption {
-          type = config.fetchers.fetchTarball.fetchInfo;
+          type = config.fetchers.fetchTarballDrv.fetchInfo;
         };
         config.input.url =
           "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz";
 
-        config.fetchers.fetchTarball.serializerHashKey = "sha256";
-        config.fetchers.fetchTarball.serializerStyle   = "string";
+        config.fetchers.fetchTarball.serializerStyle = "string";
 
       } )
     ];

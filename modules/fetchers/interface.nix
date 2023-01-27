@@ -36,7 +36,7 @@ in {
           imports = [
             ./path/interface.nix
             ./fetchTree/interface.nix
-            ./fetchTarball/interface.nix
+            ./fetchTarballDrv/interface.nix
             ./composed/interface.nix
           ];
 

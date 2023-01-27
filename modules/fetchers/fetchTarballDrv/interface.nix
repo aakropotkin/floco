@@ -6,10 +6,10 @@
 
 { lib, ... }: {
 
-  _file = "<floco>/fetchers/fetcher/fetchTarball/interface.nix";
+  _file = "<floco>/fetchers/fetcher/fetchTarballDrv/interface.nix";
 
   options.fetchTarball = lib.mkOption {
-    description = lib.mdDoc "`builtins.fetchTarball` abstraction";
+    description = lib.mdDoc "Derivation form of `builtins.fetchTarball`.";
   };
 
 }
