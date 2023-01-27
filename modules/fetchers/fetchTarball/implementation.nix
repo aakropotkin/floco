@@ -52,6 +52,19 @@ in {
         visible  = false;
       };
 
+      options.serializerHashKey = lib.mkOption {
+        description = lib.mdDoc ''
+          Attribute or query parameter name used to refer to `narHash`/`sha256`
+          when serializing a `fetchInfo` record.
+
+          This option allows you to control which name is written to lockfiles
+          which may be useful for interop with other `tarball` fetchers.
+        '';
+        type    = nt.enum ["narHash" "sha256"];
+        default = "narHash";
+        example = "sha256";
+      };
+
     };  # End `options.fetchTarball.type'
   };
 
@@ -69,53 +82,60 @@ in {
         sha256 = if ( args.sha256 or null ) != null then args.sha256 else
                  args.narHash;
       };
-    in builtins.fetchTarball ( ( removeAttrs args ["type"] ) // swapNar ) );
+      args' = ( removeAttrs args ["type" "narHash"] ) // swapNar;
+    in { outPath = builtins.fetchTarball args'; } );
 
 
 # ---------------------------------------------------------------------------- #
 
     lockFetchInfo = lib.mkDefault ( fetchInfo: let
-        sourceInfo = builtins.fetchTree {
-          type = "tarball";
-          inherit (fetchInfo) url;
-        };
-        narHash' = if ( fetchInfo.narHash or null ) == null then {
-          sha256 = sourceInfo.narHash;
-        } else {
-          sha256 = fetchInfo.narHash;
-        };
-        sha256 = if ( fetchInfo.sha256 or null ) != null then {} else narHash';
-      in fetchInfo // narHash'
-    );
+      sourceInfo = builtins.fetchTree {
+        type = "path";
+        path = ( config.fetchTarball.function fetchInfo ).outPath;
+      };
+      hash = let
+        s = fetchInfo.sha256 or null;
+        n = fetchInfo.narHash or null;
+      in if s != null then s else if n != null then n else sourceInfo.narHash;
+    in fetchInfo // { sha256 = hash; } );
 
 
 # ---------------------------------------------------------------------------- #
 
     serializeFetchInfo_string = lib.mkDefault ( _file: fetchInfo: let
-      pre = let
+      hash = let
+        s = fetchInfo.sha256 or null;
+        n = fetchInfo.narHash or null;
+      in if s == null then n else s;
+      key  = config.fetchTarball.serializerHashKey;
+      pre  = let
         m = builtins.match "tarball\\+.*" fetchInfo.url;
       in if m == null then "tarball+" else "";
       psep =
         if ( builtins.match ".*\\?.*" fetchInfo.url ) == null then "?" else "&";
-      post = let
-        mh = builtins.match "[^?]+\\?([^?]+&)?narHash=[^&]+(&[^?]+)?"
-                            fetchInfo.url;
-      in if ( mh != null ) || ( ( fetchInfo.narHash or null ) == null )
-         then ""
-         else psep + "narHash=" + fetchInfo.narHash;
-    in pre + fetchInfo.url + post );
+      mh = builtins.match "[^?]+\\?([^?]+&)?(narHash|sha256)=[^&]+(&[^?]+)?"
+                          fetchInfo.url;
+      k  = builtins.elemAt mh 1;
+      post = if ( mh != null ) || ( hash == null ) then "" else
+             psep + key + "=" + fetchInfo.narHash;
+      base = pre + fetchInfo.url + post;
+      sub  = let
+        nkey = if key == "narHash" then "sha256=" else "narHash=";
+      in builtins.replaceStrings [nkey] [( key + "=" )] base;
+    in if ( mh == null ) || ( k == key ) then base else sub );
 
 
 # ---------------------------------------------------------------------------- #
 
     serializeFetchInfo_attrs = lib.mkDefault ( _file: fetchInfo: let
-      nh' = if ( fetchInfo.narHash or null ) == null then {} else {
-        inherit (fetchInfo) narHash;
+      hash = let
+        s = fetchInfo.sha256 or null;
+        n = fetchInfo.narHash or null;
+      in if s == null then n else s;
+      hash' = if hash == null then {} else {
+        ${config.fetchTarball.serializerHashKey} = hash;
       };
-      sha256' = if ( fetchInfo.sha256 or null ) == null then {} else {
-        narHash = fetchInfo.sha256;
-      };
-    in nh' // sha256' // { type = "tarball"; inherit (fetchInfo) url; } );
+    in hash' // { type = "tarball"; inherit (fetchInfo) url; } );
 
 
 # ---------------------------------------------------------------------------- #
@@ -135,18 +155,20 @@ in {
       prms = builtins.elemAt m 3;
       ps   = if prms == null then [] else
              builtins.filter builtins.isString ( builtins.split "&" prms );
-      pp  = builtins.partition ( lib.hasPrefix "narHash=" ) ps;
+      pp = let
+        pred = s: ( builtins.match "(narHash|sha256)=.*" s ) != null;
+      in builtins.partition pred ps;
       nhp = builtins.head pp.right;
-      nh' = if ( ( builtins.elemAt m 2 ) == null ) || ( pp.right == [] )
-            then {} else {
-              sha256 = builtins.head ( builtins.match "narHash=(.*)" nhp );
-            };
+      hash' = let
+        hash = builtins.elemAt ( builtins.match "(narHash|sha256)=(.*)" nhp ) 1;
+        noParams = ( builtins.elemAt m 2 ) == null;
+      in if noParams || ( pp.right == [] ) then {} else { sha256 = hash; };
       pnh = if pp.wrong == [] then "" else
             "?" + ( builtins.concatStringsSep "&" pp.wrong );
     in if builtins.isAttrs s then s else {
       type = "tarball";
       url  = path + pnh;
-    } // nh' );
+    } // hash' );
 
 
 # ---------------------------------------------------------------------------- #
@@ -155,6 +177,7 @@ in {
       shorthandOnlyDefinesConfig = true;
       modules = [
         ( { config, ... }: {
+          imports = [( lib.mkAliasOptionModule ["sha256"] ["narHash"] )];
           options = {
             type = lib.mkOption {
               type    = nt.enum ["tarball"];
@@ -168,15 +191,7 @@ in {
             } // ( if fetchers.config.fetchTarball.pure then {} else {
               default = null;
             } ) );
-            sha256 = lib.mkOption ( {
-              type = if fetchers.config.fetchTarball.pure then ft.narHash
-                     else nt.nullOr ft.narHash;
-            } // ( if fetchers.config.fetchTarball.pure then {} else {
-              default = null;
-            } ) );
           };  # End `fetchInfo.options'
-
-          config.narHash = lib.mkDefault config.sha256;
 
           config.sha256 = let
             locked = fetchers.config.fetchTarball.lockFetchInfo {

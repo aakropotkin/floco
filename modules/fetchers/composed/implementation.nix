@@ -52,7 +52,7 @@ in {
               Tarballs may be local files or remote URLs.
             '';
             type    = fetcherT;
-            default = config.fetchTree_tarball;
+            default = config.fetchTarball;
             visible = "shallow";
           };
 
