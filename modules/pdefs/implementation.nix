@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, ... }: let
+{ lib, options, config, pkgs, ... }: let
 
   nt   = lib.types;
   oloc = builtins.length options.pdefs.loc;
@@ -27,6 +27,7 @@ in {
         in {
           imports = [config.pdef];
           config._module.args.fetchers = lib.mkDefault config.fetchers;
+          config._module.args.pkgs     = lib.mkDefault config.pkgs;
 
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".

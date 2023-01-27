@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, ... }: let
+{ lib, options, config, pkgs, ... }: let
 
   nt = lib.types;
 
@@ -36,6 +36,7 @@ in {
   config.pdef = { ... }: {
     imports = [./implementation.nix];
     config._module.args.fetchers = config.fetchers;
+    config._module.args.pkgs     = pkgs;
   };
 
 

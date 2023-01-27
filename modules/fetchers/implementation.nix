@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: let
+{ lib, config, pkgs, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -38,7 +38,10 @@ in {
             ./composed/implementation.nix
           ];
 
-          config._module.args = { inherit (config) fetcher; };
+          config._module.args = {
+            inherit (config) fetcher;
+            pkgs = lib.mkDefault pkgs;
+          };
 
         } )
       ];

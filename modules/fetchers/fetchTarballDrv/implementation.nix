@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, fetcher, ... } @ fetchers: let
+{ lib, config, pkgs, fetcher, ... } @ fetchers: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -65,42 +65,23 @@ in {
     inherit (config) pure;
 
     function = lib.mkDefault ( args: let
-      dropArExt = n: let
-        tarball_ext_p = "\\.(tar(\\.[gx]z)?|gz|tgz|zip|xz|bz(ip)?)";
-        m = builtins.match "(.*)${tarball_ext_p}(#.*)?" n;
-      in if m == null then n else builtins.head m;
-      drv = derivation {
-        name       = dropArExt ( baseNameOf args.url );
-        outputHash =
-          args.narHash or
+      drv = pkgs.fetchzip {
+        name       = "source";
+        outputHash = args.narHash or
           ( config.fetchTarballDrv.lockFetchInfo args ).narHash;
         inherit (args) url;
-        builder          = "builtin:fetchurl";
-        system           = "builtin";
-        outputHashMode   = "recursive";
         outputHashAlgo   = "sha256";
-        unpack           = false;
-        executable       = false;
         preferLocalBuild = true;
-        impureEnvVars = [
-          "http_proxy" "https_proxy" "ftp_proxy" "all_proxy" "no_proxy"
-        ];
-        urls = [args.url];
       };
-    in {
-      outPath = builtins.fetchTarball ( "file:" +
-        ( builtins.unsafeDiscardStringContext drv.outPath )
-      );
-      narHash = drv.outputHash;
-    } );
+    in { inherit (drv) outPath; narHash = drv.outputHash; } );
 
 
 # ---------------------------------------------------------------------------- #
 
     serializeFetchInfo_string =
-      lib.mkDefault config.fetchTree_file.serializeFetchInfo_string;
+      lib.mkDefault config.fetchTree_tarball.serializeFetchInfo_string;
     serializeFetchInfo_attrs =
-      lib.mkDefault config.fetchTree_file.serializeFetchInfo_attrs;
+      lib.mkDefault config.fetchTree_tarball.serializeFetchInfo_attrs;
 
     serializeFetchInfo = lib.mkDefault (
       if config.fetchTarballDrv.serializerStyle == "string"
@@ -108,12 +89,12 @@ in {
       else config.fetchTarballDrv.serializeFetchInfo_attrs
     );
 
-    lockFetchInfo = lib.mkDefault config.fetchTree_file.lockFetchInfo;
+    lockFetchInfo = lib.mkDefault config.fetchTree_tarball.lockFetchInfo;
 
     deserializeFetchInfo =
-      lib.mkDefault config.fetchTree_file.deserializeFetchInfo;
+      lib.mkDefault config.fetchTree_tarball.deserializeFetchInfo;
 
-    fetchInfo = config.fetchTree_file.fetchInfo;
+    fetchInfo = config.fetchTree_tarball.fetchInfo;
 
 
 # ---------------------------------------------------------------------------- #
