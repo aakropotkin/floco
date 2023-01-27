@@ -8,7 +8,12 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib ? import ../../../lib {} }: let
+{ nixpkgs ? ( import ../../../inputs ).nixpkgs.flake
+, lib     ? import ../../../lib { inherit (nixpkgs) lib; }
+, system  ? builtins.currentSystem
+, pkgsFor ?
+  nixpkgs.legacyPackages.${system}.extend ( import ../../../overlay.nix )
+}: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -20,6 +25,7 @@
           ident   = "lodash";
           version = "4.17.21";
         };
+        config._module.args.pkgs = pkgsFor;
       }
     ];
   };

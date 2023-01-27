@@ -54,6 +54,7 @@ in {
             type    = fetcherT;
             default = config.fetchTree_tarball;
             visible = "shallow";
+            example = "config.floco.fetchers.fetchTarballDrv";
           };
 
           options.file = lib.mkOption {

@@ -1,4 +1,4 @@
-{ lib, ... }: {
+{ lib, pkgs, ... }: {
 
   _file = "<floco>/pdef";
 
@@ -15,7 +15,13 @@
 
   # Very low priority fallback
   config._module.args.fetchers = lib.mkOverride 1400 (
-    ( lib.evalModules { modules = [../fetchers]; } ).config.fetchers
+    ( lib.evalModules {
+      modules = [
+        ../fetchers
+        { config._module.args = { inherit pkgs; }; }
+      ];
+      specialArgs = { inherit lib; };
+    } ).config.fetchers
   );
 
 }

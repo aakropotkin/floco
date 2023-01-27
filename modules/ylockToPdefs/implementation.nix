@@ -5,12 +5,15 @@
 , lockDir
 , basedir ? lockDir
 , ylock   ? null
+, config  ? {}
 , ...
 } @ args: let
 
 # ---------------------------------------------------------------------------- #
 
-  inherit (( lib.evalModules { modules = [../fetchers]; } ).config) fetchers;
+  inherit (( lib.evalModules {
+    modules = [../top config];
+  } ).config.floco) fetchers;
 
 
 # ---------------------------------------------------------------------------- #

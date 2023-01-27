@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, ... }: let
+{ lib, config, pkgs, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -34,10 +34,14 @@ in {
           imports = [
             ./path/implementation.nix
             ./fetchTree/implementation.nix
+            ./fetchTarballDrv/implementation.nix
             ./composed/implementation.nix
           ];
 
-          config._module.args = { inherit (config) fetcher; };
+          config._module.args = {
+            inherit (config) fetcher;
+            pkgs = lib.mkDefault pkgs;
+          };
 
         } )
       ];
