@@ -11,7 +11,7 @@ const Arborist = require( '@npmcli/arborist' );
 let opts = {
   lockfileVersion:   3,
   nodeVersion:       process.version,
-  path:              process.argv[2],
+  path:              process.env.PWD,
   cache:             `${process.env.HOME}/.npm/_cacache`,
   packumentCache:    new Map(),
   workspacesEnabled: true,
@@ -27,8 +27,38 @@ let opts = {
    *   - linked: (coming soon) install in node_modules/.store, link in place,
    *             unhoisted.
    */
-  installStrategy: 'nested',
+  packageLockOnly: true,
+  installStrategy: 'shallow'
 };
+
+let skip = false;
+process.argv.slice( 2 ).forEach( function( arg, i, array ) {
+  if ( skip )
+    {
+      skip = false;
+    }
+  else
+    {
+      switch( arg )
+        {
+          case '--install-strategy=hoisted':
+            opts['installStrategy'] = 'hoisted';
+            break;
+          case '--install-strategy=nested':
+            opts['installStrategy'] = 'nested';
+            break;
+          case '--install-strategy=shallow':
+            opts['installStrategy'] = 'shallow';
+            break;
+          case '--install-strategy':
+            opts['installStrategy'] = args[i + 1];
+            skip = true;
+            break;
+          default:
+            opts['path'] = arg;
+        }
+    }
+} );
 
 
 /* -------------------------------------------------------------------------- */
