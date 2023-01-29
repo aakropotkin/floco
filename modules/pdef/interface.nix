@@ -8,7 +8,6 @@
 { lib, ... }: let
 
   nt = lib.types;
-  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 in {
 

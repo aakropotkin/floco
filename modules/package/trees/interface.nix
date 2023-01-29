@@ -7,7 +7,6 @@
 { lib, ... }: let
 
   nt = lib.types;
-  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 in {
 
@@ -75,13 +74,7 @@ in {
             # except we drop the `optional' field.
             modules = [{
               freeformType = nt.attrsOf nt.bool;
-              options.key = lib.mkOption {
-                description = lib.mdDoc ''
-                  Unique key used to refer to this package in `tree` submodules
-                  and other `floco` configs, metadata, and structures.
-                '';
-                type = ft.key;
-              };
+              options.key = lib.mkKeyOption;
               options.dev = lib.mkOption {
                 description = ''
                   Whether the dependency is required ONLY during
