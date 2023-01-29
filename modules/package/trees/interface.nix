@@ -7,7 +7,7 @@
 { lib, ... }: let
 
   nt = lib.types;
-  ft = import ../../pdef/types.nix { inherit lib; };
+  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 in {
 

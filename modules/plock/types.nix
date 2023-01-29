@@ -7,7 +7,7 @@
 { lib }: let
 
   nt = lib.types;
-  ft = import ../pdef/types.nix { inherit lib; };
+  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 # ---------------------------------------------------------------------------- #
 
@@ -25,27 +25,9 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-      ident = lib.mkOption {
-        description = lib.mdDoc ''
-          Package identifier/name as found in `package.json:.name`.
-        '';
-        type = ft.ident;
-      };
-
-      version = lib.mkOption {
-        description = lib.mdDoc ''
-          Package version as found in `package.json:.version`.
-        '';
-        type = ft.version;
-      };
-
-      key = lib.mkOption {
-        description = lib.mdDoc ''
-          Unique key used to refer to this package in `tree` submodules and
-          other `floco` configs, metadata, and structures.
-        '';
-        type = ft.key;
-      };
+      key     = lib.mkKeyOption;
+      ident   = lib.mkIdentOption;
+      version = lib.mkVersionOption;
 
 
 # ---------------------------------------------------------------------------- #

@@ -35,11 +35,61 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  moduleDropDefaults = submodule: value: let
-    subs = submodule.getSubOptions [];
-  in lib.filterAttrs ( f: v:
-    ( ! ( subs.${f} ? default ) ) || ( v != subs.${f}.default )
-  ) value;
+  mkKeyOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Unique key used to refer to this package in `tree` submodules and other
+      `floco` configs, metadata, and structures.
+    '';
+    type    = lib.libfloco.key;
+    example = "@floco/test/4.2.0";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  mkIdentOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Package identifier/name as found in `package.json:.name`.
+    '';
+    type    = lib.libfloco.ident;
+    example = "@floco/foo";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  mkVersionOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Package version as found in `package.json:.version`.
+    '';
+    type    = lib.libfloco.version;
+    example = "4.2.0";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  mkLtypeOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Package "lifecycle type"/"pacote source type".
+      This option effects which lifecycle events may run when preparing a
+      package/module for consumption or installation.
+
+      For example, the `file` ( distributed tarball ) lifecycle does not run
+      any `scripts.[pre|post]build` phases or result in any `devDependencies`
+      being added to the build plan - since these packages will have been
+      "built" before distribution.
+      However, `scripts.[pre|post]install` scripts ( generally `node-gyp`
+      compilation ) does run for the `file` lifecycle.
+
+      This option is effectively a shorthand for setting `lifecycle` defaults,
+      but may also used by some fetchers and scrapers.
+
+      See Also: lifecycle, fetchInfo
+    '';
+    type    = lib.libfloco.ltype;
+    default = "file";
+  };
 
 
 # ---------------------------------------------------------------------------- #

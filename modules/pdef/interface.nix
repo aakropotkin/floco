@@ -8,7 +8,7 @@
 { lib, ... }: let
 
   nt = lib.types;
-  ft = import ./types.nix { inherit lib; };
+  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 in {
 
@@ -35,61 +35,10 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    ident = lib.mkOption {
-      description = lib.mdDoc ''
-        Package identifier/name as found in `package.json:.name`.
-      '';
-      type    = ft.ident;
-      example = "@floco/foo";
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    version = lib.mkOption {
-      description = lib.mdDoc ''
-        Package version as found in `package.json:.version`.
-      '';
-      type    = ft.version;
-      example = "4.2.0";
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    key = lib.mkOption {
-      description = lib.mdDoc ''
-        Unique key used to refer to this package in `tree` submodules and other
-        `floco` configs, metadata, and structures.
-      '';
-      type    = ft.key;
-      example = "@floco/foo/4.2.0";
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
-    ltype = lib.mkOption {
-      description = lib.mdDoc ''
-        Package "lifecycle type"/"pacote source type".
-        This option effects which lifecycle events may run when preparing a
-        package/module for consumption or installation.
-
-        For example, the `file` ( distributed tarball ) lifecycle does not run
-        any `scripts.[pre|post]build` phases or result in any `devDependencies`
-        being added to the build plan - since these packages will have been
-        "built" before distribution.
-        However, `scripts.[pre|post]install` scripts ( generally `node-gyp`
-        compilation ) does run for the `file` lifecycle.
-
-        This option is effectively a shorthand for setting `lifecycle` defaults,
-        but may also used by some fetchers and scrapers.
-
-        See Also: lifecycle, fetchInfo
-      '';
-      type    = ft.ltype;
-      default = "file";
-    };
+    key     = lib.mkKeyOption;
+    ident   = lib.mkIdentOption;
+    version = lib.mkVersionOption;
+    ltype   = lib.mkLtypeOption;
 
 
 # ---------------------------------------------------------------------------- #

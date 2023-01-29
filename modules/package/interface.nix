@@ -7,7 +7,7 @@
 { lib, ... }: let
 
   nt = lib.types;
-  ft = import ../pdef/types.nix { inherit lib; };
+  ft = { inherit (lib.libfloco) ident version ltype key; };
 
 in {
 
@@ -23,14 +23,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    key = lib.mkOption {
-      description = lib.mdDoc ''
-        Unique key used to refer to this package in `tree` submodules and other
-        `floco` configs, metadata, and structures.
-      '';
-      type    = ft.key;
-      example = "@floco/test/4.2.0";
-    };
+    key = lib.mkKeyOption;
 
 
 # ---------------------------------------------------------------------------- #

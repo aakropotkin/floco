@@ -50,6 +50,7 @@ in {
     ./checkSystemSupport.nix
     ./focus-tree.nix
     ./options.nix
+    ./modules.nix
     ./paths.nix
     ./types.nix
   ] ) // ( import ./url-code.nix );
@@ -65,6 +66,11 @@ in {
 
     mergePreferredOption
     mergeRelativePathOption
+    mkKeyOption
+    mkIdentOption
+    mkVersionOption
+    mkLtypeOption
+
     moduleDropDefaults
 
     realpathRel
@@ -78,6 +84,7 @@ in {
   ;
 
 }
+
 
 # ---------------------------------------------------------------------------- #
 #
