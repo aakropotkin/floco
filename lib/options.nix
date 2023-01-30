@@ -122,6 +122,34 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  mkPjsBinOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Declaration of executable binaries produced by a package/module.
+
+      This must be either an attrset of `{ <NAME> = <REL-PATH>; }` or a relative
+      path to a single file which will adopt the basename of the
+      package/module as the executable's name.
+    '';
+    type    = lib.libfloco.pjsBin;
+    default = {};
+    example.semver = "bin/semver.js";
+  };
+
+  mkBinPairsOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Pairs of `{ <NAME> = <REL-PATH>; ... }` indicating executables that
+      will installed, and their associated source code to be symlinked.
+
+      These can be used "as is" to set `<PKG-ENT>.binInfo.binPairs`.
+    '';
+    type    = lib.libfloco.binPairs;
+    default = {};
+    example.semver = "bin/semver.js";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 

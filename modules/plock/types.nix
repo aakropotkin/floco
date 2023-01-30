@@ -65,17 +65,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-      bin = lib.mkOption {
-        description = lib.mdDoc ''
-          Pairs of `{ <NAME> = <REL-PATH>; ... }` indicating executables that
-          will installed, and their associated source code to be symlinked.
-
-          These can be used "as is" to set `<PKG-ENT>.binInfo.binPairs`.
-        '';
-        type    = nt.attrsOf nt.str;
-        default = {};
-        example.semver = "bin/semver.js";
-      };
+      bin = lib.mkBinPairsOption;
 
 
 # ---------------------------------------------------------------------------- #

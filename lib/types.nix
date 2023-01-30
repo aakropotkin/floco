@@ -69,6 +69,12 @@
 
 # ---------------------------------------------------------------------------- #
 
+  binPairs = nt.attrsOf nt.str;
+  pjsBin   = nt.either nt.str lib.libfloco.binPairs;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -82,6 +88,9 @@ in {
 
     depAttrs
     depMetas
+
+    binPairs
+    pjsBin
   ;
 
 }

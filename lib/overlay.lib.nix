@@ -72,6 +72,8 @@ in {
     mkLtypeOption
     mkDepAttrsOption
     mkDepMetasOption
+    mkPjsBinOption
+    mkBinPairsOption
 
     moduleDropDefaults
 
