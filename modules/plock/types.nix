@@ -31,40 +31,17 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-      dependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
-        default = {};
-      };
-
       requires = lib.mkOption {
         type    = nt.either ( nt.attrsOf nt.str ) nt.bool;
         default = {};
       };
 
-      devDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
-        default = {};
-      };
-
-      devDependenciesMeta = lib.mkOption {
-        type    = nt.attrsOf ( nt.attrsOf nt.bool );
-        default = {};
-      };
-
-      peerDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
-        default = {};
-      };
-
-      peerDependenciesMeta = lib.mkOption {
-        type    = nt.attrsOf ( nt.attrsOf nt.bool );
-        default = {};
-      };
-
-      optionalDependencies = lib.mkOption {
-        type    = nt.attrsOf nt.str;
-        default = {};
-      };
+      dependencies         = lib.mkDepAttrsOption;
+      devDependencies      = lib.mkDepAttrsOption;
+      devDependenciesMeta  = lib.mkDepMetasOption;
+      peerDependencies     = lib.mkDepAttrsOption;
+      peerDependenciesMeta = lib.mkDepMetasOption;
+      optionalDependencies = lib.mkDepAttrsOption;
 
       dev      = lib.mkOption { type = nt.bool; default = false; };
       optional = lib.mkOption { type = nt.bool; default = false; };

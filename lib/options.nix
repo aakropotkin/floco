@@ -94,6 +94,34 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  mkDepAttrsOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Dependency declarations as attrs of `{ <NAME> = <DESCRIPTOR>; }`
+      describing the required version ranges or location of a given dependency.
+    '';
+    type    = lib.libfloco.depAttrs;
+    default = {};
+    example = { lodash = "^4.17.21"; };
+  };
+
+  mkDepMetasOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Dependency metadata/options declarations.
+      Represented as attrs of `{ <NAME> = { <OPTION> = <BOOL>; }; }` indicating
+      additional metadata about dependencies that cannot be inferred from
+      their category.
+
+      Conventionally this is used to indicate whether dependencies are optional,
+      but additional `boolean` toggles may be used.
+    '';
+    type    = lib.libfloco.depAttrs;
+    default = {};
+    example = { lodash.optional = true; };
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 

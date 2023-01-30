@@ -62,6 +62,13 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # `package.json', `package-lock.json', and other non-`floco' metadata.
+  depAttrs = nt.attrsOf nt.str;
+  depMetas = nt.attrsOf ( nt.attrsOf nt.bool );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -72,6 +79,9 @@ in {
     ident
     key
     ltype
+
+    depAttrs
+    depMetas
   ;
 
 }

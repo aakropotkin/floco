@@ -70,6 +70,8 @@ in {
     mkIdentOption
     mkVersionOption
     mkLtypeOption
+    mkDepAttrsOption
+    mkDepMetasOption
 
     moduleDropDefaults
 
