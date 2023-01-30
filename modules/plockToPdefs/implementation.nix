@@ -85,37 +85,32 @@
       rev        = let
         m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolved;
       in builtins.head m;
-    } else {
-      inherit type;
-      url = resolved;
-    };
+    } else { inherit type; url = resolved; };
   in {
+    _module.args = { inherit basedir; };
     inherit ident version key ltype;
-
-    binInfo.binPairs = bin;
-
+    binInfo.binPairs  = bin;
+    fsInfo            = { inherit gypfile; dir = "."; };
+    lifecycle.install = hasInstallScript;
+    fetchInfo = if fetchInfo ? path then fetchInfo else
+                fetchers."fetchTree_${fetchInfo.type}".lockFetchInfo fetchInfo;
+    fetcher =
+      if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
     metaFiles = {
       inherit lockDir plentKey;
       plent = plock.packages.${plentKey};
     } // ( if plentKey != "" then {} else { inherit plock; } );
-
-    fsInfo = { inherit gypfile; dir = "."; };
-
-    lifecycle.install = hasInstallScript;
-
-    fetchInfo = if fetchInfo ? path then fetchInfo else
-                fetchers."fetchTree_${fetchInfo.type}".lockFetchInfo fetchInfo;
-
-    fetcher = if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
-
-    _module.args = { inherit basedir; };
-
   };
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
+
+# ---------------------------------------------------------------------------- #
+
+  config._module.args.basedir = lib.mkDefault config.lockDir;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -136,16 +131,18 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config._module.args.basedir = lib.mkDefault config.lockDir;
-
-
-# ---------------------------------------------------------------------------- #
-
+  # TODO: in order to fill `treeInfo' records for anything other than the
+  # root of the lockfile you need to clear any `dev' and `optional' fields,
+  # and then reprocess them from the context of the "new root".
+  # Additionally you need to "pull down" and `requires'.
   config.rootTreeInfo = let
     mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
     noDotDot  = lib.filterAttrs ( path: _: lib.hasPrefix "node_modules" path )
                                 config.plents;
   in builtins.mapAttrs mkTreeEnt noDotDot;
+
+
+# ---------------------------------------------------------------------------- #
 
   config.pdefsByPath = let
     base = builtins.mapAttrs toPdef config.plents;
