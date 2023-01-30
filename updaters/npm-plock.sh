@@ -18,10 +18,9 @@ set -o pipefail;
 #_as_me="floco update npm-plock";
 _as_me='npm-plock.sh';
 
-_version="0.2.0";
+_version="0.3.0";
 
-# [-c FLOCO-CONFIG-FILE]
-_usage_msg="Usage: $_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
 ";
@@ -44,6 +43,10 @@ Options:
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -j,--json           Export JSON instead of a Nix expression.
   -B,--no-backup      Remove backups of \`PDEFS-FILE' when process succeeds.
+  -c,--config PATH    Path to a \`floco' configuration file which may be used to
+                      extend or modify the module definitions used to translate
+                      and export \`pdef' records.
+                      If no config is given default settings will be used.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 Environment:
@@ -52,15 +55,10 @@ Environment:
   JQ            Command used as \`jq' executable.
   SED           Command used as \`sed' executable.
   REALPATH      Command used as \`realpath' executable.
+  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
 ";
-#  -c,--config PATH    Path to a \`floco' configuration file which may be used to
-#                      extend or modify the module definitions used to translate
-#                      and export \`pdef' records.
-#                      If no config is given default settings will be used.
-
-#  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
 
 
 # ---------------------------------------------------------------------------- #
@@ -293,8 +291,8 @@ let
       }
     ];
   };
-in if asJSON then mod.config.floco.exports else
-   lib.generators.toPretty {} mod.config.floco.exports
+  contents.floco.pdefs = mod.config.floco.exports;
+in if asJSON then contents else lib.generators.toPretty {} contents
 EOF
 
 
