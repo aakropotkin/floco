@@ -101,7 +101,7 @@ in {
     '';
     type    = lib.libfloco.depAttrs;
     default = {};
-    example = { lodash = "^4.17.21"; };
+    example.lodash = "^4.17.21";
   };
 
   mkDepMetasOption = lib.mkOption {
@@ -116,7 +116,7 @@ in {
     '';
     type    = lib.libfloco.depAttrs;
     default = {};
-    example = { lodash.optional = true; };
+    example.lodash.optional = true;
   };
 
 

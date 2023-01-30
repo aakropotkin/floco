@@ -59,7 +59,7 @@ in {
       engines = lib.mkOption {
         type    = nt.attrsOf nt.str;
         default = {};
-        example = { node = ">=8.0.0"; };
+        example.node = ">=8.0.0";
       };
 
 
@@ -74,7 +74,7 @@ in {
         '';
         type    = nt.attrsOf nt.str;
         default = {};
-        example = { "semver" = "bin/semver.js"; };
+        example.semver = "bin/semver.js";
       };
 
 
@@ -127,6 +127,7 @@ in {
   };  # End `plent'
 
 }  # End `types.nix'
+
 
 # ---------------------------------------------------------------------------- #
 #
