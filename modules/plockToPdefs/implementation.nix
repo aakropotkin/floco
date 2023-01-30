@@ -115,44 +115,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  #rough = let
-  #  proc = plentKey: plentRaw: [
-  #    {
-  #      _file  = lockDir + "/package-lock.json";
-  #      config = toPdef plentKey plentRaw;
-  #    }
-  #  ] ++ (
-  #    if plentKey == "" then [{
-  #      _file                   = lockDir + "/package-lock.json";
-  #      config.treeInfo         = removeAttrs rootTreeInfo [""];
-  #      config._export.treeInfo = let
-  #        base = removeAttrs rootTreeInfo [""];
-  #        nopt = builtins.mapAttrs ( _: v:
-  #          if v.optional then v else removeAttrs v ["optional"]
-  #        ) base;
-  #        ndev = builtins.mapAttrs ( _: v:
-  #          if v.dev then v else removeAttrs v ["dev"]
-  #        ) nopt;
-  #      in ndev;
-  #    }] else []
-  #  );
-  #in builtins.mapAttrs proc config.plents;
-
-
-# ---------------------------------------------------------------------------- #
-
-  #configs  = builtins.concatLists ( builtins.attrValues translatedPlents );
-  #packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
-  #    ( lib.evalModules {
-  #        modules = modules ++ [config.records.pdef];
-  #      } ).config
-  #  ) ( lib.filterAttrs ( path: _:
-  #    ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-  #  ) ( translatedPlents ) ) );
-
-
-# ---------------------------------------------------------------------------- #
-
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -181,9 +143,8 @@ in {
 
   config.rootTreeInfo = let
     mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
-    noDotDot  = lib.filterAttrs ( path: _:
-      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-    ) config.plents;
+    noDotDot  = lib.filterAttrs ( path: _: lib.hasPrefix "node_modules" path )
+                                config.plents;
   in builtins.mapAttrs mkTreeEnt noDotDot;
 
   config.pdefsByPath = let
