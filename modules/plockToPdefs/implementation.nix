@@ -154,7 +154,7 @@
           ) nopt;
         in ndev;
       }] else []
-    ) ++ [../pdef];
+    ) ++ [../records/pdef];
   in builtins.mapAttrs proc plconf.config.plents;
 
   translatedPlents = rough;

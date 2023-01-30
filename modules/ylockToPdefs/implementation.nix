@@ -122,7 +122,7 @@ in {
         _file  = lockDir + "/yarn.lock";
         config = toPdef ylentKey ylent;
       };
-    in ( lib.evalModules { modules = [mod ../pdef]; } ).config._export;
+    in ( lib.evalModules { modules = [mod ../records/pdef]; } ).config._export;
   in builtins.attrValues ( builtins.mapAttrs proc ylents );
 
 }

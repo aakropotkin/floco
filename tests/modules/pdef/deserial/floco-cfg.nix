@@ -1,7 +1,7 @@
 { lib, ... }: {
   imports = [
-    ../../../../modules/pdef/deserialize.nix
-    ../../../../modules/pdef
+    ../../../../modules/records/pdef/deserialize.nix
+    ../../../../modules/records/pdef
     {
       ident     = "lodash";
       version   = "4.17.21";

@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, pkgs, ... }: let
+{ lib, config, pkgs, ... }: let
 
   nt = lib.types;
 
@@ -12,26 +12,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  _file = "<floco>/top/implementation.nix";
+  _file = "<floco>/records/implementation.nix";
 
 # ---------------------------------------------------------------------------- #
 
-  options.floco = lib.mkOption {
-    type = nt.submoduleWith {
-      shorthandOnlyDefinesConfig = false;
-      modules = [
-        ( { ... }: {
-          imports = [
-            ../records/implementation.nix
-            ../pdefs/implementation.nix
-            ../packages/implementation.nix
-            ../fetchers/implementation.nix
-          ];
-          config._module.args.pkgs = lib.mkDefault pkgs;
-        } )
-      ];
-    };
-  };
+  config.records = {
+    _module.args.fetchers = lib.mkDefault config.fetchers;
+    _module.args.pkgs     = lib.mkDefault pkgs;
+  };  # End `config.records'
 
 
 # ---------------------------------------------------------------------------- #

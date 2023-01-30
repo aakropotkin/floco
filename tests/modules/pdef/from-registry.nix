@@ -11,7 +11,7 @@ let
   lib     = import ../../../lib { inherit (nixpkgs) lib; };
 in ( lib.evalModules {
   modules = [
-    ../../../modules/pdef
+    ../../../modules/records/pdef
     {
       ident   = "lodash";
       version = "4.17.21";

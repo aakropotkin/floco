@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------- #
 
   addFetcher = fetchers: { fetchInfo, ... } @ serialized: {
-    _module.args.fetchers = lib.mkDefault fetchers;
+    _module.args.fetchers = lib.mkOverride 1002 fetchers;
     fetcher = let
       type =
         if builtins.isAttrs fetchInfo then fetchInfo.type or "path" else

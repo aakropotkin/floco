@@ -21,7 +21,11 @@ in {
   options.pdef = lib.mkOption {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
-      modules                    = [( { ... }: { imports = [floco.pdef]; } )];
+      modules = [
+        ( { ... }: {
+          imports = [floco.records.pdef];
+        } )
+      ];
     };
   };
 

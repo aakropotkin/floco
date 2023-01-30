@@ -23,7 +23,7 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
-        ../pdef/deferred.nix
+        ../records/interface.nix
         ../pdefs/interface.nix
         ../packages/interface.nix
         ../fetcher/interface.nix

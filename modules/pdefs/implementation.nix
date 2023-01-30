@@ -25,7 +25,7 @@ in {
         ( { options, fetcher, fetchers, basedir, ... }: let
           inherit (options.key) loc;
         in {
-          imports = [config.pdef];
+          imports = [config.records.pdef];
           config._module.args.fetchers = lib.mkDefault config.fetchers;
           config._module.args.pkgs     = lib.mkDefault config.pkgs;
 
