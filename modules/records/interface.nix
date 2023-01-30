@@ -29,9 +29,18 @@ in {
       '';
 
       type = nt.submoduleWith {
-        modules = [( { ... }: { imports = [./pdef/deferred.nix]; } )];
+        modules = [
+          ( { ... }: {
+            imports = [
+              ./pdef/deferred.nix
+              ./pjsCore
+            ];
+          } )
+        ];
         specialArgs = { inherit lib; };
       };
+
+      default = {};
 
     };
 

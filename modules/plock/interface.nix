@@ -24,7 +24,7 @@ in {
       description = lib.mdDoc ''
         Raw `package-lock.json` contents produced by `npm`.
       '';
-      type = nt.attrsOf nt.anything;
+      type = nt.lazyAttrsOf nt.anything;
     };
 
     lockDir = lib.mkOption {
@@ -52,7 +52,10 @@ in {
         NOTE: At this time only `package-lock.json` version 2 and 3 are
         supported because version 1 locks lack a `packages.*` field.
       '';
-      type = nt.attrsOf ( import ./types.nix { inherit lib; } ).plent;
+      type = nt.attrsOf ( nt.submoduleWith {
+        specialArgs = { inherit lib; };
+        modules = [./plent/interface.nix];
+      } );
     };
 
     lockfileVersion = lib.mkOption {

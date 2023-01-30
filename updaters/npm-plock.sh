@@ -282,6 +282,9 @@ let
     plock   = lib.importJSON ./package-lock.json;
     basedir = dirOf outfile;
   };
+  mod = lib.evalModules {
+
+  };
 in if asJSON then pl2pdefs.exports else
    lib.generators.toPretty {} pl2pdefs.exports
 EOF
