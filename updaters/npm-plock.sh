@@ -269,24 +269,32 @@ $NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
-  # TODO: use `old' and `cfg' as modules.
-  #cfgPath = builtins.getEnv "FLOCO_CONFIG";
-  #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
-  #          then [cfgPath]
-  #          else [];
-  outfile  = builtins.getEnv "OUTFILE";
-  asJSON   = ( builtins.getEnv "JSON" ) != "";
-  pl2pdefs = import "${floco}/modules/plockToPdefs/implementation.nix" {
-    inherit lib;
-    lockDir = builtins.getEnv "LOCKDIR";
-    plock   = lib.importJSON ./package-lock.json;
-    basedir = dirOf outfile;
-  };
+  cfgPath = builtins.getEnv "FLOCO_CONFIG";
+  cfg =
+    if ( cfgPath == "" ) || ( ! ( builtins.pathExists cfgPath ) ) then [] else
+    if ( builtins.match ".*\\.json" cfgPath ) == null then [cfgPath] else
+    [( lib.modules.importJSON cfgPath )];
+  outfile = builtins.getEnv "OUTFILE";
+  asJSON  = ( builtins.getEnv "JSON" ) != "";
   mod = lib.evalModules {
-
+    modules = cfg ++ [
+      floco.nixosModules.floco
+      {
+        options.floco = lib.mkOption {
+          type = lib.types.submoduleWith {
+            shorthandOnlyDefinesConfig = false;
+            modules = [{
+              imports = ["${floco}/modules/plockToPdefs"];
+              config._module.args.basedir = /. + ( dirOf outfile );
+              config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
+            }];
+          };
+        };
+      }
+    ];
   };
-in if asJSON then pl2pdefs.exports else
-   lib.generators.toPretty {} pl2pdefs.exports
+in if asJSON then mod.config.floco.exports else
+   lib.generators.toPretty {} mod.config.floco.exports
 EOF
 
 

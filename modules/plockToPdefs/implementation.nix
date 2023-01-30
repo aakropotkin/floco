@@ -121,13 +121,6 @@ in {
     } );
   };
 
-  options.rootTreeInfo = lib.mkOption {
-    type = nt.lazyAttrsOf (
-      nt.submodule ../records/pdef/treeInfo/single.interface.nix
-    );
-    default = {};
-  };
-
 
 # ---------------------------------------------------------------------------- #
 

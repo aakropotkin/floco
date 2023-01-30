@@ -43,7 +43,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.plents = lib.mkOption {
-    type = nt.attrsOf ( nt.submoduleWith {
+    type = nt.lazyAttrsOf ( nt.submoduleWith {
       modules = [config.records.pjsCore];
     } );
   };
