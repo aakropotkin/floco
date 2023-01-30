@@ -167,6 +167,18 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+          options.input = lib.mkOption {
+            description = lib.mdDoc ''
+              String type representing a stringized form of `fetchInfo`.
+
+              This string is analogous to Nix `flakes`' `input.url` strings.
+            '';
+            type = nt.optionType;
+          };
+
+
+# ---------------------------------------------------------------------------- #
+
           options.function = lib.mkOption {
             description = lib.mdDoc ''
               Function which performs the fetch.

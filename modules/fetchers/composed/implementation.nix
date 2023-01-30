@@ -170,6 +170,17 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    input = lib.mkDefault ( nt.oneOf [
+      cfg.path.input
+      cfg.tarball.input
+      cfg.file.input
+      cfg.git.input
+      cfg.github.input
+    ] );
+
+
+# ---------------------------------------------------------------------------- #
+
     fetchInfo = let
       subFis          = builtins.mapAttrs ( _: f: f.fetchInfo ) cfg.subs;
       mkFetchInfoType = subs: let

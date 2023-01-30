@@ -94,7 +94,9 @@ in {
     deserializeFetchInfo =
       lib.mkDefault config.fetchTree_tarball.deserializeFetchInfo;
 
-    fetchInfo = config.fetchTree_tarball.fetchInfo;
+    fetchInfo = lib.mkDefault config.fetchTree_tarball.fetchInfo;
+
+    input = lib.mkDefault config.fetchTree_tarball.input;
 
 
 # ---------------------------------------------------------------------------- #
