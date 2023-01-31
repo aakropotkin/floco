@@ -19,13 +19,13 @@
           depInfo = {
             "@gar/promisify" = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.1.3";
+              runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -41,13 +41,13 @@
           depInfo = {
             "@gar/promisify" = {
               descriptor = "^1.1.3";
-              runtime = true;
               pin = "1.1.3";
+              runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -65,48 +65,48 @@
           depInfo = {
             "@npmcli/promise-spawn" = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.0.0";
+              runtime = true;
             };
             lru-cache = {
               descriptor = "^7.4.4";
-              runtime = true;
               pin = "7.14.1";
+              runtime = true;
             };
             mkdirp = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             npm-pick-manifest = {
               descriptor = "^7.0.0";
-              runtime = true;
               pin = "7.0.2";
+              runtime = true;
             };
             proc-log = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             promise-inflight = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
             promise-retry = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
             which = {
               descriptor = "^2.0.2";
-              runtime = true;
               pin = "2.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -129,13 +129,13 @@
           depInfo = {
             npm-bundled = {
               descriptor = "^1.1.1";
-              runtime = true;
               pin = "1.1.2";
+              runtime = true;
             };
             npm-normalize-package-bin = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -153,13 +153,13 @@
           depInfo = {
             mkdirp = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -175,13 +175,13 @@
           depInfo = {
             mkdirp = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -212,8 +212,8 @@
           depInfo = {
             infer-owner = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -231,23 +231,23 @@
           depInfo = {
             "@npmcli/node-gyp" = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             "@npmcli/promise-spawn" = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.0.0";
+              runtime = true;
             };
             node-gyp = {
               descriptor = "^8.4.1";
-              runtime = true;
               pin = "8.4.1";
+              runtime = true;
             };
             read-package-json-fast = {
               descriptor = "^2.0.3";
-              runtime = true;
               pin = "2.0.3";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -302,8 +302,8 @@
           depInfo = {
             debug = {
               descriptor = "4";
-              runtime = true;
               pin = "4.3.4";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -321,18 +321,18 @@
           depInfo = {
             debug = {
               descriptor = "^4.1.0";
-              runtime = true;
               pin = "4.3.4";
+              runtime = true;
             };
             depd = {
               descriptor = "^1.1.2";
-              runtime = true;
               pin = "1.1.2";
+              runtime = true;
             };
             humanize-ms = {
               descriptor = "^1.2.1";
-              runtime = true;
               pin = "1.2.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -350,13 +350,13 @@
           depInfo = {
             clean-stack = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.2.0";
+              runtime = true;
             };
             indent-string = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -400,13 +400,13 @@
           depInfo = {
             delegates = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.0";
+              runtime = true;
             };
             readable-stream = {
               descriptor = "^3.6.0";
-              runtime = true;
               pin = "3.6.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -437,13 +437,13 @@
           depInfo = {
             balanced-match = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
             concat-map = {
               descriptor = "0.0.1";
-              runtime = true;
               pin = "0.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -459,8 +459,8 @@
           depInfo = {
             balanced-match = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -478,8 +478,8 @@
           depInfo = {
             semver = {
               descriptor = "^7.0.0";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -497,92 +497,93 @@
           depInfo = {
             "@npmcli/fs" = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.1.1";
+              runtime = true;
             };
             "@npmcli/move-file" = {
               descriptor = "^1.0.1";
+              pin = "1.1.2";
               runtime = true;
             };
             chownr = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             fs-minipass = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.1.0";
+              runtime = true;
             };
             glob = {
               descriptor = "^7.1.4";
-              runtime = true;
               pin = "7.2.3";
+              runtime = true;
             };
             infer-owner = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             lru-cache = {
               descriptor = "^6.0.0";
-              runtime = true;
               pin = "6.0.0";
+              runtime = true;
             };
             minipass = {
               descriptor = "^3.1.1";
-              runtime = true;
               pin = "3.3.6";
+              runtime = true;
             };
             minipass-collect = {
               descriptor = "^1.0.2";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
             minipass-flush = {
               descriptor = "^1.0.5";
-              runtime = true;
               pin = "1.0.5";
+              runtime = true;
             };
             minipass-pipeline = {
               descriptor = "^1.2.2";
-              runtime = true;
               pin = "1.2.4";
+              runtime = true;
             };
             mkdirp = {
               descriptor = "^1.0.3";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             p-map = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
             promise-inflight = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
             ssri = {
               descriptor = "^8.0.1";
-              runtime = true;
               pin = "8.0.1";
+              runtime = true;
             };
             tar = {
               descriptor = "^6.0.2";
-              runtime = true;
               pin = "6.1.13";
+              runtime = true;
             };
             unique-filename = {
               descriptor = "^1.1.1";
-              runtime = true;
               pin = "1.1.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -598,93 +599,93 @@
           depInfo = {
             "@npmcli/fs" = {
               descriptor = "^2.1.0";
-              runtime = true;
               pin = "2.1.2";
+              runtime = true;
             };
             "@npmcli/move-file" = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             chownr = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             fs-minipass = {
               descriptor = "^2.1.0";
-              runtime = true;
               pin = "2.1.0";
+              runtime = true;
             };
             glob = {
               descriptor = "^8.0.1";
-              runtime = true;
               pin = "8.1.0";
+              runtime = true;
             };
             infer-owner = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             lru-cache = {
               descriptor = "^7.7.1";
-              runtime = true;
               pin = "7.14.1";
+              runtime = true;
             };
             minipass = {
               descriptor = "^3.1.6";
-              runtime = true;
               pin = "3.3.6";
+              runtime = true;
             };
             minipass-collect = {
               descriptor = "^1.0.2";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
             minipass-flush = {
               descriptor = "^1.0.5";
-              runtime = true;
               pin = "1.0.5";
+              runtime = true;
             };
             minipass-pipeline = {
               descriptor = "^1.2.4";
-              runtime = true;
               pin = "1.2.4";
+              runtime = true;
             };
             mkdirp = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.4";
+              runtime = true;
             };
             p-map = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
             promise-inflight = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
             ssri = {
               descriptor = "^9.0.0";
-              runtime = true;
               pin = "9.0.1";
+              runtime = true;
             };
             tar = {
               descriptor = "^6.1.11";
-              runtime = true;
               pin = "6.1.13";
+              runtime = true;
             };
             unique-filename = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -772,8 +773,8 @@
           depInfo = {
             ms = {
               descriptor = "2.1.2";
-              runtime = true;
               pin = "2.1.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -836,8 +837,8 @@
           depInfo = {
             iconv-lite = {
               descriptor = "^0.6.2";
-              runtime = true;
               pin = "0.6.3";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -881,8 +882,8 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.3.6";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -926,35 +927,42 @@
           depInfo = {
             aproba = {
               descriptor = "^1.0.3 || ^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             color-support = {
               descriptor = "^1.1.3";
+              pin = "1.1.3";
               runtime = true;
             };
             console-control-strings = {
               descriptor = "^1.1.0";
+              pin = "1.1.0";
               runtime = true;
             };
             has-unicode = {
               descriptor = "^2.0.1";
+              pin = "2.0.1";
               runtime = true;
             };
             signal-exit = {
               descriptor = "^3.0.7";
+              pin = "3.0.7";
               runtime = true;
             };
             string-width = {
               descriptor = "^4.2.3";
+              pin = "4.2.3";
               runtime = true;
             };
             strip-ansi = {
               descriptor = "^6.0.1";
+              pin = "6.0.1";
               runtime = true;
             };
             wide-align = {
               descriptor = "^1.1.5";
+              pin = "1.1.5";
               runtime = true;
             };
           };
@@ -973,33 +981,33 @@
           depInfo = {
             "fs.realpath" = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.0";
+              runtime = true;
             };
             inflight = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.6";
+              runtime = true;
             };
             inherits = {
               descriptor = "2";
-              runtime = true;
               pin = "2.0.4";
+              runtime = true;
             };
             minimatch = {
               descriptor = "^3.1.1";
-              runtime = true;
               pin = "3.1.2";
+              runtime = true;
             };
             once = {
               descriptor = "^1.3.0";
-              runtime = true;
               pin = "1.4.0";
+              runtime = true;
             };
             path-is-absolute = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1015,28 +1023,28 @@
           depInfo = {
             "fs.realpath" = {
               descriptor = "^1.0.0";
-              runtime = true;
               pin = "1.0.0";
+              runtime = true;
             };
             inflight = {
               descriptor = "^1.0.4";
-              runtime = true;
               pin = "1.0.6";
+              runtime = true;
             };
             inherits = {
               descriptor = "2";
-              runtime = true;
               pin = "2.0.4";
+              runtime = true;
             };
             minimatch = {
               descriptor = "^5.0.1";
-              runtime = true;
               pin = "5.1.6";
+              runtime = true;
             };
             once = {
               descriptor = "^1.3.0";
-              runtime = true;
               pin = "1.4.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1067,6 +1075,7 @@
           depInfo = {
             function-bind = {
               descriptor = "^1.1.1";
+              pin = "1.1.1";
               runtime = true;
             };
           };
@@ -1098,6 +1107,7 @@
           depInfo = {
             lru-cache = {
               descriptor = "^7.5.1";
+              pin = "7.14.1";
               runtime = true;
             };
           };
@@ -1129,16 +1139,17 @@
           depInfo = {
             "@tootallnate/once" = {
               descriptor = "1";
-              runtime = true;
               pin = "1.1.2";
+              runtime = true;
             };
             agent-base = {
               descriptor = "6";
-              runtime = true;
               pin = "6.0.2";
+              runtime = true;
             };
             debug = {
               descriptor = "4";
+              pin = "4.3.4";
               runtime = true;
             };
           };
@@ -1155,16 +1166,17 @@
           depInfo = {
             "@tootallnate/once" = {
               descriptor = "2";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             agent-base = {
               descriptor = "6";
-              runtime = true;
               pin = "6.0.2";
+              runtime = true;
             };
             debug = {
               descriptor = "4";
+              pin = "4.3.4";
               runtime = true;
             };
           };
@@ -1183,11 +1195,12 @@
           depInfo = {
             agent-base = {
               descriptor = "6";
-              runtime = true;
               pin = "6.0.2";
+              runtime = true;
             };
             debug = {
               descriptor = "4";
+              pin = "4.3.4";
               runtime = true;
             };
           };
@@ -1206,8 +1219,8 @@
           depInfo = {
             ms = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.1.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1225,6 +1238,7 @@
           depInfo = {
             safer-buffer = {
               descriptor = ">= 2.1.2 < 3.0.0";
+              pin = "2.1.2";
               runtime = true;
             };
           };
@@ -1243,8 +1257,8 @@
           depInfo = {
             minimatch = {
               descriptor = "^5.0.1";
-              runtime = true;
               pin = "5.1.6";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1301,13 +1315,13 @@
           depInfo = {
             once = {
               descriptor = "^1.3.0";
-              runtime = true;
               pin = "1.4.0";
+              runtime = true;
             };
             wrappy = {
               descriptor = "1";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1351,6 +1365,7 @@
           depInfo = {
             has = {
               descriptor = "^1.0.3";
+              pin = "1.0.3";
               runtime = true;
             };
           };
@@ -1434,8 +1449,8 @@
           depInfo = {
             yallist = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1464,68 +1479,82 @@
           depInfo = {
             agentkeepalive = {
               descriptor = "^4.2.1";
-              runtime = true;
               pin = "4.2.1";
+              runtime = true;
             };
             cacache = {
               descriptor = "^16.1.0";
+              pin = "16.1.3";
               runtime = true;
             };
             http-cache-semantics = {
               descriptor = "^4.1.0";
+              pin = "4.1.1";
               runtime = true;
             };
             http-proxy-agent = {
               descriptor = "^5.0.0";
+              pin = "5.0.0";
               runtime = true;
             };
             https-proxy-agent = {
               descriptor = "^5.0.0";
+              pin = "5.0.1";
               runtime = true;
             };
             is-lambda = {
               descriptor = "^1.0.1";
+              pin = "1.0.1";
               runtime = true;
             };
             lru-cache = {
               descriptor = "^7.7.1";
+              pin = "7.14.1";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.6";
+              pin = "3.3.6";
               runtime = true;
             };
             minipass-collect = {
               descriptor = "^1.0.2";
+              pin = "1.0.2";
               runtime = true;
             };
             minipass-fetch = {
               descriptor = "^2.0.3";
+              pin = "2.1.2";
               runtime = true;
             };
             minipass-flush = {
               descriptor = "^1.0.5";
+              pin = "1.0.5";
               runtime = true;
             };
             minipass-pipeline = {
               descriptor = "^1.2.4";
+              pin = "1.2.4";
               runtime = true;
             };
             negotiator = {
               descriptor = "^0.6.3";
+              pin = "0.6.3";
               runtime = true;
             };
             promise-retry = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             socks-proxy-agent = {
               descriptor = "^7.0.0";
+              pin = "7.0.0";
               runtime = true;
             };
             ssri = {
               descriptor = "^9.0.0";
+              pin = "9.0.1";
               runtime = true;
             };
           };
@@ -1542,68 +1571,82 @@
           depInfo = {
             agentkeepalive = {
               descriptor = "^4.1.3";
-              runtime = true;
               pin = "4.2.1";
+              runtime = true;
             };
             cacache = {
               descriptor = "^15.2.0";
+              pin = "15.3.0";
               runtime = true;
             };
             http-cache-semantics = {
               descriptor = "^4.1.0";
+              pin = "4.1.1";
               runtime = true;
             };
             http-proxy-agent = {
               descriptor = "^4.0.1";
+              pin = "4.0.1";
               runtime = true;
             };
             https-proxy-agent = {
               descriptor = "^5.0.0";
+              pin = "5.0.1";
               runtime = true;
             };
             is-lambda = {
               descriptor = "^1.0.1";
+              pin = "1.0.1";
               runtime = true;
             };
             lru-cache = {
               descriptor = "^6.0.0";
+              pin = "6.0.0";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.3";
+              pin = "3.3.6";
               runtime = true;
             };
             minipass-collect = {
               descriptor = "^1.0.2";
+              pin = "1.0.2";
               runtime = true;
             };
             minipass-fetch = {
               descriptor = "^1.3.2";
+              pin = "1.4.1";
               runtime = true;
             };
             minipass-flush = {
               descriptor = "^1.0.5";
+              pin = "1.0.5";
               runtime = true;
             };
             minipass-pipeline = {
               descriptor = "^1.2.4";
+              pin = "1.2.4";
               runtime = true;
             };
             negotiator = {
               descriptor = "^0.6.2";
+              pin = "0.6.3";
               runtime = true;
             };
             promise-retry = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             socks-proxy-agent = {
               descriptor = "^6.0.0";
+              pin = "6.2.1";
               runtime = true;
             };
             ssri = {
               descriptor = "^8.0.0";
+              pin = "8.0.1";
               runtime = true;
             };
           };
@@ -1622,8 +1665,8 @@
           depInfo = {
             brace-expansion = {
               descriptor = "^1.1.7";
-              runtime = true;
               pin = "1.1.11";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1639,8 +1682,8 @@
           depInfo = {
             brace-expansion = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1658,8 +1701,8 @@
           depInfo = {
             yallist = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1688,6 +1731,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -1707,18 +1751,22 @@
             encoding = {
               descriptor = "^0.1.12";
               optional = true;
+              pin = "0.1.13";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.0";
+              pin = "3.3.6";
               runtime = true;
             };
             minipass-sized = {
               descriptor = "^1.0.3";
+              pin = "1.0.3";
               runtime = true;
             };
             minizlib = {
               descriptor = "^2.0.0";
+              pin = "2.1.2";
               runtime = true;
             };
           };
@@ -1736,18 +1784,22 @@
             encoding = {
               descriptor = "^0.1.13";
               optional = true;
+              pin = "0.1.13";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.6";
+              pin = "3.3.6";
               runtime = true;
             };
             minipass-sized = {
               descriptor = "^1.0.3";
+              pin = "1.0.3";
               runtime = true;
             };
             minizlib = {
               descriptor = "^2.1.2";
+              pin = "2.1.2";
               runtime = true;
             };
           };
@@ -1766,6 +1818,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -1784,10 +1837,12 @@
           depInfo = {
             jsonparse = {
               descriptor = "^1.3.1";
+              pin = "1.3.1";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -1806,6 +1861,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -1824,6 +1880,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -1842,12 +1899,13 @@
           depInfo = {
             minipass = {
               descriptor = "^3.0.0";
+              pin = "3.3.6";
               runtime = true;
             };
             yallist = {
               descriptor = "^4.0.0";
-              runtime = true;
               pin = "4.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1914,47 +1972,52 @@
           depInfo = {
             env-paths = {
               descriptor = "^2.2.0";
-              runtime = true;
               pin = "2.2.1";
+              runtime = true;
             };
             glob = {
               descriptor = "^7.1.4";
-              runtime = true;
               pin = "7.2.3";
+              runtime = true;
             };
             graceful-fs = {
               descriptor = "^4.2.6";
-              runtime = true;
               pin = "4.2.10";
+              runtime = true;
             };
             make-fetch-happen = {
               descriptor = "^9.1.0";
+              pin = "9.1.0";
               runtime = true;
             };
             nopt = {
               descriptor = "^5.0.0";
+              pin = "5.0.0";
               runtime = true;
             };
             npmlog = {
               descriptor = "^6.0.0";
+              pin = "6.0.2";
               runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
             tar = {
               descriptor = "^6.1.2";
+              pin = "6.1.13";
               runtime = true;
             };
             which = {
               descriptor = "^2.0.2";
+              pin = "2.0.2";
               runtime = true;
             };
           };
@@ -1978,8 +2041,8 @@
           depInfo = {
             abbrev = {
               descriptor = "1";
-              runtime = true;
               pin = "1.1.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -1997,19 +2060,22 @@
           depInfo = {
             hosted-git-info = {
               descriptor = "^5.0.0";
+              pin = "5.2.1";
               runtime = true;
             };
             is-core-module = {
               descriptor = "^2.8.1";
+              pin = "2.11.0";
               runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
             validate-npm-package-license = {
               descriptor = "^3.0.4";
+              pin = "3.0.4";
               runtime = true;
             };
           };
@@ -2028,8 +2094,8 @@
           depInfo = {
             npm-normalize-package-bin = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2045,8 +2111,8 @@
           depInfo = {
             npm-normalize-package-bin = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2064,8 +2130,8 @@
           depInfo = {
             semver = {
               descriptor = "^7.1.1";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2107,20 +2173,22 @@
           depInfo = {
             hosted-git-info = {
               descriptor = "^5.0.0";
+              pin = "5.2.1";
               runtime = true;
             };
             proc-log = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
             validate-npm-package-name = {
               descriptor = "^4.0.0";
+              pin = "4.0.0";
               runtime = true;
             };
           };
@@ -2144,21 +2212,23 @@
           depInfo = {
             glob = {
               descriptor = "^8.0.1";
-              runtime = true;
               pin = "8.1.0";
+              runtime = true;
             };
             ignore-walk = {
               descriptor = "^5.0.1";
+              pin = "5.0.1";
               runtime = true;
             };
             npm-bundled = {
               descriptor = "^2.0.0";
+              pin = "2.0.1";
               runtime = true;
             };
             npm-normalize-package-bin = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2176,21 +2246,23 @@
           depInfo = {
             npm-install-checks = {
               descriptor = "^5.0.0";
+              pin = "5.0.0";
               runtime = true;
             };
             npm-normalize-package-bin = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
             npm-package-arg = {
               descriptor = "^9.0.0";
+              pin = "9.1.2";
               runtime = true;
             };
             semver = {
               descriptor = "^7.3.5";
-              runtime = true;
               pin = "7.3.8";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2208,32 +2280,38 @@
           depInfo = {
             make-fetch-happen = {
               descriptor = "^10.0.6";
+              pin = "10.2.1";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.6";
+              pin = "3.3.6";
               runtime = true;
             };
             minipass-fetch = {
               descriptor = "^2.0.3";
+              pin = "2.1.2";
               runtime = true;
             };
             minipass-json-stream = {
               descriptor = "^1.0.1";
+              pin = "1.0.1";
               runtime = true;
             };
             minizlib = {
               descriptor = "^2.1.2";
+              pin = "2.1.2";
               runtime = true;
             };
             npm-package-arg = {
               descriptor = "^9.0.1";
+              pin = "9.1.2";
               runtime = true;
             };
             proc-log = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2251,19 +2329,22 @@
           depInfo = {
             are-we-there-yet = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.0.1";
+              runtime = true;
             };
             console-control-strings = {
               descriptor = "^1.1.0";
+              pin = "1.1.0";
               runtime = true;
             };
             gauge = {
               descriptor = "^4.0.3";
+              pin = "4.0.4";
               runtime = true;
             };
             set-blocking = {
               descriptor = "^2.0.0";
+              pin = "2.0.0";
               runtime = true;
             };
           };
@@ -2282,8 +2363,8 @@
           depInfo = {
             wrappy = {
               descriptor = "1";
-              runtime = true;
               pin = "1.0.2";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2301,8 +2382,8 @@
           depInfo = {
             aggregate-error = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.1.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2325,92 +2406,107 @@
           depInfo = {
             "@npmcli/git" = {
               descriptor = "^3.0.0";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
             "@npmcli/installed-package-contents" = {
               descriptor = "^1.0.7";
+              pin = "1.0.7";
               runtime = true;
             };
             "@npmcli/promise-spawn" = {
               descriptor = "^3.0.0";
+              pin = "3.0.0";
               runtime = true;
             };
             "@npmcli/run-script" = {
               descriptor = "^3.0.1";
-              runtime = true;
               pin = "3.0.3";
+              runtime = true;
             };
             cacache = {
               descriptor = "^16.0.0";
+              pin = "16.1.3";
               runtime = true;
             };
             chownr = {
               descriptor = "^2.0.0";
+              pin = "2.0.0";
               runtime = true;
             };
             fs-minipass = {
               descriptor = "^2.1.0";
+              pin = "2.1.0";
               runtime = true;
             };
             infer-owner = {
               descriptor = "^1.0.4";
+              pin = "1.0.4";
               runtime = true;
             };
             minipass = {
               descriptor = "^3.1.6";
+              pin = "3.3.6";
               runtime = true;
             };
             mkdirp = {
               descriptor = "^1.0.4";
+              pin = "1.0.4";
               runtime = true;
             };
             npm-package-arg = {
               descriptor = "^9.0.0";
+              pin = "9.1.2";
               runtime = true;
             };
             npm-packlist = {
               descriptor = "^5.0.0";
+              pin = "5.1.3";
               runtime = true;
             };
             npm-pick-manifest = {
               descriptor = "^7.0.0";
+              pin = "7.0.2";
               runtime = true;
             };
             npm-registry-fetch = {
               descriptor = "^13.0.1";
+              pin = "13.3.1";
               runtime = true;
             };
             proc-log = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             promise-retry = {
               descriptor = "^2.0.1";
-              runtime = true;
               pin = "2.0.1";
+              runtime = true;
             };
             read-package-json = {
               descriptor = "^5.0.0";
+              pin = "5.0.2";
               runtime = true;
             };
             read-package-json-fast = {
               descriptor = "^2.0.3";
-              runtime = true;
               pin = "2.0.3";
+              runtime = true;
             };
             rimraf = {
               descriptor = "^3.0.2";
-              runtime = true;
               pin = "3.0.2";
+              runtime = true;
             };
             ssri = {
               descriptor = "^9.0.0";
+              pin = "9.0.1";
               runtime = true;
             };
             tar = {
               descriptor = "^6.1.11";
+              pin = "6.1.13";
               runtime = true;
             };
           };
@@ -2421,494 +2517,6 @@
           };
           ident = "pacote";
           ltype = "file";
-          treeInfo = {
-            "node_modules/@gar/promisify" = {
-              key = "@gar/promisify/1.1.3";
-              link = true;
-            };
-            "node_modules/@npmcli/fs" = {
-              key = "@npmcli/fs/2.1.2";
-              link = true;
-            };
-            "node_modules/@npmcli/git" = {
-              key = "@npmcli/git/3.0.2";
-              # TODO: finish linking closure
-              #link = true;
-            };
-            "node_modules/@npmcli/installed-package-contents" = {
-              key = "@npmcli/installed-package-contents/1.0.7";
-              link = true;
-            };
-            "node_modules/@npmcli/move-file" = {
-              key = "@npmcli/move-file/2.0.1";
-              link = true;
-            };
-            "node_modules/@npmcli/node-gyp" = {
-              key = "@npmcli/node-gyp/2.0.0";
-              link = true;
-            };
-            "node_modules/@npmcli/promise-spawn" = {
-              key = "@npmcli/promise-spawn/3.0.0";
-              link = true;
-            };
-            "node_modules/@npmcli/run-script" = {
-              key = "@npmcli/run-script/3.0.3";
-              #link = true;
-            };
-            "node_modules/@tootallnate/once" = {
-              key = "@tootallnate/once/1.1.2";
-              link = true;
-            };
-            "node_modules/abbrev" = {
-              key = "abbrev/1.1.1";
-              link = true;
-            };
-            "node_modules/agent-base" = {
-              key = "agent-base/6.0.2";
-              link = true;
-            };
-            "node_modules/agentkeepalive" = {
-              key = "agentkeepalive/4.2.1";
-              link = true;
-            };
-            "node_modules/aggregate-error" = {
-              key = "aggregate-error/3.1.0";
-              link = true;
-            };
-            "node_modules/ansi-regex" = {
-              key = "ansi-regex/5.0.1";
-              link = true;
-            };
-            "node_modules/aproba" = {
-              key = "aproba/2.0.0";
-              link = true;
-            };
-            "node_modules/are-we-there-yet" = {
-              key = "are-we-there-yet/3.0.1";
-              link = true;
-            };
-            "node_modules/balanced-match" = {
-              key = "balanced-match/1.0.2";
-              link = true;
-            };
-            "node_modules/brace-expansion" = {
-              key = "brace-expansion/2.0.1";
-              link = true;
-            };
-            "node_modules/builtins" = {
-              key = "builtins/5.0.1";
-            };
-            "node_modules/cacache" = {
-              key = "cacache/16.1.3";
-            };
-            "node_modules/chownr" = {
-              key = "chownr/2.0.0";
-            };
-            "node_modules/clean-stack" = {
-              key = "clean-stack/2.2.0";
-            };
-            "node_modules/color-support" = {
-              key = "color-support/1.1.3";
-            };
-            "node_modules/concat-map" = {
-              key = "concat-map/0.0.1";
-            };
-            "node_modules/console-control-strings" = {
-              key = "console-control-strings/1.1.0";
-            };
-            "node_modules/debug" = {
-              key = "debug/4.3.4";
-            };
-            "node_modules/delegates" = {
-              key = "delegates/1.0.0";
-            };
-            "node_modules/depd" = {
-              key = "depd/1.1.2";
-            };
-            "node_modules/emoji-regex" = {
-              key = "emoji-regex/8.0.0";
-            };
-            "node_modules/encoding" = {
-              key = "encoding/0.1.13";
-              optional = true;
-            };
-            "node_modules/env-paths" = {
-              key = "env-paths/2.2.1";
-              link = true;
-            };
-            "node_modules/err-code" = {
-              key = "err-code/2.0.3";
-              link = true;
-            };
-            "node_modules/fs-minipass" = {
-              key = "fs-minipass/2.1.0";
-            };
-            "node_modules/fs.realpath" = {
-              key = "fs.realpath/1.0.0";
-            };
-            "node_modules/function-bind" = {
-              key = "function-bind/1.1.1";
-            };
-            "node_modules/gauge" = {
-              key = "gauge/4.0.4";
-            };
-            "node_modules/glob" = {
-              key = "glob/8.1.0";
-              link = true;
-            };
-            "node_modules/graceful-fs" = {
-              key = "graceful-fs/4.2.10";
-              link = true;
-            };
-            "node_modules/has" = {
-              key = "has/1.0.3";
-            };
-            "node_modules/has-unicode" = {
-              key = "has-unicode/2.0.1";
-            };
-            "node_modules/hosted-git-info" = {
-              key = "hosted-git-info/5.2.1";
-            };
-            "node_modules/http-cache-semantics" = {
-              key = "http-cache-semantics/4.1.1";
-            };
-            "node_modules/http-proxy-agent" = {
-              key = "http-proxy-agent/4.0.1";
-            };
-            "node_modules/https-proxy-agent" = {
-              key = "https-proxy-agent/5.0.1";
-            };
-            "node_modules/humanize-ms" = {
-              key = "humanize-ms/1.2.1";
-            };
-            "node_modules/iconv-lite" = {
-              key = "iconv-lite/0.6.3";
-              optional = true;
-            };
-            "node_modules/ignore-walk" = {
-              key = "ignore-walk/5.0.1";
-            };
-            "node_modules/imurmurhash" = {
-              key = "imurmurhash/0.1.4";
-            };
-            "node_modules/indent-string" = {
-              key = "indent-string/4.0.0";
-            };
-            "node_modules/infer-owner" = {
-              key = "infer-owner/1.0.4";
-            };
-            "node_modules/inflight" = {
-              key = "inflight/1.0.6";
-            };
-            "node_modules/inherits" = {
-              key = "inherits/2.0.4";
-              link = true;
-            };
-            "node_modules/ip" = {
-              key = "ip/2.0.0";
-            };
-            "node_modules/is-core-module" = {
-              key = "is-core-module/2.11.0";
-            };
-            "node_modules/is-fullwidth-code-point" = {
-              key = "is-fullwidth-code-point/3.0.0";
-            };
-            "node_modules/is-lambda" = {
-              key = "is-lambda/1.0.1";
-            };
-            "node_modules/isexe" = {
-              key = "isexe/2.0.0";
-            };
-            "node_modules/json-parse-even-better-errors" = {
-              key = "json-parse-even-better-errors/2.3.1";
-            };
-            "node_modules/jsonparse" = {
-              key = "jsonparse/1.3.1";
-            };
-            "node_modules/lru-cache" = {
-              key = "lru-cache/7.14.1";
-              link = true;
-            };
-            "node_modules/make-fetch-happen" = {
-              key = "make-fetch-happen/9.1.0";
-            };
-            "node_modules/make-fetch-happen/node_modules/@npmcli/fs" = {
-              key = "@npmcli/fs/1.1.1";
-              link = true;
-            };
-            "node_modules/make-fetch-happen/node_modules/@npmcli/move-file" = {
-              key = "@npmcli/move-file/1.1.2";
-            };
-            "node_modules/make-fetch-happen/node_modules/brace-expansion" = {
-              key = "brace-expansion/1.1.11";
-              link = true;
-            };
-            "node_modules/make-fetch-happen/node_modules/cacache" = {
-              key = "cacache/15.3.0";
-            };
-            "node_modules/make-fetch-happen/node_modules/glob" = {
-              key = "glob/7.2.3";
-              link = true;
-            };
-            "node_modules/make-fetch-happen/node_modules/lru-cache" = {
-              key = "lru-cache/6.0.0";
-              link = true;
-            };
-            "node_modules/make-fetch-happen/node_modules/minimatch" = {
-              key = "minimatch/3.1.2";
-              link = true;
-            };
-            "node_modules/make-fetch-happen/node_modules/ssri" = {
-              key = "ssri/8.0.1";
-            };
-            "node_modules/make-fetch-happen/node_modules/unique-filename" = {
-              key = "unique-filename/1.1.1";
-            };
-            "node_modules/make-fetch-happen/node_modules/unique-slug" = {
-              key = "unique-slug/2.0.2";
-            };
-            "node_modules/minimatch" = {
-              key = "minimatch/5.1.6";
-              link = true;
-            };
-            "node_modules/minipass" = {
-              key = "minipass/3.3.6";
-            };
-            "node_modules/minipass-collect" = {
-              key = "minipass-collect/1.0.2";
-            };
-            "node_modules/minipass-fetch" = {
-              key = "minipass-fetch/1.4.1";
-            };
-            "node_modules/minipass-flush" = {
-              key = "minipass-flush/1.0.5";
-            };
-            "node_modules/minipass-json-stream" = {
-              key = "minipass-json-stream/1.0.1";
-            };
-            "node_modules/minipass-pipeline" = {
-              key = "minipass-pipeline/1.2.4";
-            };
-            "node_modules/minipass-sized" = {
-              key = "minipass-sized/1.0.3";
-            };
-            "node_modules/minizlib" = {
-              key = "minizlib/2.1.2";
-            };
-            "node_modules/mkdirp" = {
-              key = "mkdirp/1.0.4";
-            };
-            "node_modules/ms" = {
-              key = "ms/2.1.2";
-              link = true;
-            };
-            "node_modules/negotiator" = {
-              key = "negotiator/0.6.3";
-            };
-            "node_modules/node-gyp" = {
-              key = "node-gyp/8.4.1";
-            };
-            "node_modules/node-gyp/node_modules/brace-expansion" = {
-              key = "brace-expansion/1.1.11";
-              link = true;
-            };
-            "node_modules/node-gyp/node_modules/glob" = {
-              key = "glob/7.2.3";
-              link = true;
-            };
-            "node_modules/node-gyp/node_modules/minimatch" = {
-              key = "minimatch/3.1.2";
-              link = true;
-            };
-            "node_modules/nopt" = {
-              key = "nopt/5.0.0";
-            };
-            "node_modules/normalize-package-data" = {
-              key = "normalize-package-data/4.0.1";
-            };
-            "node_modules/npm-bundled" = {
-              key = "npm-bundled/1.1.2";
-            };
-            "node_modules/npm-install-checks" = {
-              key = "npm-install-checks/5.0.0";
-            };
-            "node_modules/npm-normalize-package-bin" = {
-              key = "npm-normalize-package-bin/1.0.1";
-              link = true;
-            };
-            "node_modules/npm-package-arg" = {
-              key = "npm-package-arg/9.1.2";
-            };
-            "node_modules/npm-packlist" = {
-              key = "npm-packlist/5.1.3";
-            };
-            "node_modules/npm-packlist/node_modules/npm-bundled" = {
-              key = "npm-bundled/2.0.1";
-            };
-            "node_modules/npm-packlist/node_modules/npm-normalize-package-bin" = {
-              key = "npm-normalize-package-bin/2.0.0";
-              link = true;
-            };
-            "node_modules/npm-pick-manifest" = {
-              key = "npm-pick-manifest/7.0.2";
-            };
-            "node_modules/npm-pick-manifest/node_modules/npm-normalize-package-bin" = {
-              key = "npm-normalize-package-bin/2.0.0";
-              link = true;
-            };
-            "node_modules/npm-registry-fetch" = {
-              key = "npm-registry-fetch/13.3.1";
-            };
-            "node_modules/npm-registry-fetch/node_modules/@tootallnate/once" = {
-              key = "@tootallnate/once/2.0.0";
-              link = true;
-            };
-            "node_modules/npm-registry-fetch/node_modules/http-proxy-agent" = {
-              key = "http-proxy-agent/5.0.0";
-            };
-            "node_modules/npm-registry-fetch/node_modules/make-fetch-happen" = {
-              key = "make-fetch-happen/10.2.1";
-            };
-            "node_modules/npm-registry-fetch/node_modules/minipass-fetch" = {
-              key = "minipass-fetch/2.1.2";
-            };
-            "node_modules/npm-registry-fetch/node_modules/socks-proxy-agent" = {
-              key = "socks-proxy-agent/7.0.0";
-            };
-            "node_modules/npmlog" = {
-              key = "npmlog/6.0.2";
-            };
-            "node_modules/once" = {
-              key = "once/1.4.0";
-              link = true;
-            };
-            "node_modules/p-map" = {
-              key = "p-map/4.0.0";
-            };
-            "node_modules/path-is-absolute" = {
-              key = "path-is-absolute/1.0.1";
-              link = true;
-            };
-            "node_modules/proc-log" = {
-              key = "proc-log/2.0.1";
-              link = true;
-            };
-            "node_modules/promise-inflight" = {
-              key = "promise-inflight/1.0.1";
-              link = true;
-            };
-            "node_modules/promise-retry" = {
-              key = "promise-retry/2.0.1";
-              link = true;
-            };
-            "node_modules/read-package-json" = {
-              key = "read-package-json/5.0.2";
-            };
-            "node_modules/read-package-json-fast" = {
-              key = "read-package-json-fast/2.0.3";
-              link = true;
-            };
-            "node_modules/read-package-json/node_modules/npm-normalize-package-bin" = {
-              key = "npm-normalize-package-bin/2.0.0";
-              link = true;
-            };
-            "node_modules/readable-stream" = {
-              key = "readable-stream/3.6.0";
-            };
-            "node_modules/retry" = {
-              key = "retry/0.12.0";
-              link = true;
-            };
-            "node_modules/rimraf" = {
-              key = "rimraf/3.0.2";
-              link = true;
-            };
-            "node_modules/safe-buffer" = {
-              key = "safe-buffer/5.2.1";
-            };
-            "node_modules/safer-buffer" = {
-              key = "safer-buffer/2.1.2";
-              optional = true;
-            };
-            "node_modules/semver" = {
-              key = "semver/7.3.8";
-              link = true;
-            };
-            "node_modules/set-blocking" = {
-              key = "set-blocking/2.0.0";
-            };
-            "node_modules/signal-exit" = {
-              key = "signal-exit/3.0.7";
-            };
-            "node_modules/smart-buffer" = {
-              key = "smart-buffer/4.2.0";
-            };
-            "node_modules/socks" = {
-              key = "socks/2.7.1";
-            };
-            "node_modules/socks-proxy-agent" = {
-              key = "socks-proxy-agent/6.2.1";
-            };
-            "node_modules/spdx-correct" = {
-              key = "spdx-correct/3.1.1";
-            };
-            "node_modules/spdx-exceptions" = {
-              key = "spdx-exceptions/2.3.0";
-            };
-            "node_modules/spdx-expression-parse" = {
-              key = "spdx-expression-parse/3.0.1";
-            };
-            "node_modules/spdx-license-ids" = {
-              key = "spdx-license-ids/3.0.12";
-            };
-            "node_modules/ssri" = {
-              key = "ssri/9.0.1";
-            };
-            "node_modules/string-width" = {
-              key = "string-width/4.2.3";
-            };
-            "node_modules/string_decoder" = {
-              key = "string_decoder/1.3.0";
-            };
-            "node_modules/strip-ansi" = {
-              key = "strip-ansi/6.0.1";
-            };
-            "node_modules/tar" = {
-              key = "tar/6.1.13";
-            };
-            "node_modules/tar/node_modules/minipass" = {
-              key = "minipass/4.0.1";
-            };
-            "node_modules/unique-filename" = {
-              key = "unique-filename/2.0.1";
-            };
-            "node_modules/unique-slug" = {
-              key = "unique-slug/3.0.0";
-            };
-            "node_modules/util-deprecate" = {
-              key = "util-deprecate/1.0.2";
-            };
-            "node_modules/validate-npm-package-license" = {
-              key = "validate-npm-package-license/3.0.4";
-            };
-            "node_modules/validate-npm-package-name" = {
-              key = "validate-npm-package-name/4.0.0";
-            };
-            "node_modules/which" = {
-              key = "which/2.0.2";
-            };
-            "node_modules/wide-align" = {
-              key = "wide-align/1.1.5";
-            };
-            "node_modules/wrappy" = {
-              key = "wrappy/1.0.2";
-              link = true;
-            };
-            "node_modules/yallist" = {
-              key = "yallist/4.0.0";
-              link = true;
-            };
-          };
           version = "13.3.0";
         };
       };
@@ -2956,13 +2564,13 @@
           depInfo = {
             err-code = {
               descriptor = "^2.0.2";
-              runtime = true;
               pin = "2.0.3";
+              runtime = true;
             };
             retry = {
               descriptor = "^0.12.0";
-              runtime = true;
               pin = "0.12.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -2980,21 +2588,23 @@
           depInfo = {
             glob = {
               descriptor = "^8.0.1";
-              runtime = true;
               pin = "8.1.0";
+              runtime = true;
             };
             json-parse-even-better-errors = {
               descriptor = "^2.3.1";
+              pin = "2.3.1";
               runtime = true;
             };
             normalize-package-data = {
               descriptor = "^4.0.0";
+              pin = "4.0.1";
               runtime = true;
             };
             npm-normalize-package-bin = {
               descriptor = "^2.0.0";
-              runtime = true;
               pin = "2.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -3012,13 +2622,13 @@
           depInfo = {
             json-parse-even-better-errors = {
               descriptor = "^2.3.0";
-              runtime = true;
               pin = "2.3.1";
+              runtime = true;
             };
             npm-normalize-package-bin = {
               descriptor = "^1.0.1";
-              runtime = true;
               pin = "1.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -3036,15 +2646,17 @@
           depInfo = {
             inherits = {
               descriptor = "^2.0.3";
-              runtime = true;
               pin = "2.0.4";
+              runtime = true;
             };
             string_decoder = {
               descriptor = "^1.1.1";
+              pin = "1.3.0";
               runtime = true;
             };
             util-deprecate = {
               descriptor = "^1.0.1";
+              pin = "1.0.2";
               runtime = true;
             };
           };
@@ -3081,8 +2693,8 @@
           depInfo = {
             glob = {
               descriptor = "^7.1.3";
-              runtime = true;
               pin = "7.2.3";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -3131,8 +2743,8 @@
           depInfo = {
             lru-cache = {
               descriptor = "^6.0.0";
-              runtime = true;
               pin = "6.0.0";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -3189,10 +2801,12 @@
           depInfo = {
             ip = {
               descriptor = "^2.0.0";
+              pin = "2.0.0";
               runtime = true;
             };
             smart-buffer = {
               descriptor = "^4.2.0";
+              pin = "4.2.0";
               runtime = true;
             };
           };
@@ -3211,14 +2825,17 @@
           depInfo = {
             agent-base = {
               descriptor = "^6.0.2";
+              pin = "6.0.2";
               runtime = true;
             };
             debug = {
               descriptor = "^4.3.3";
+              pin = "4.3.4";
               runtime = true;
             };
             socks = {
               descriptor = "^2.6.2";
+              pin = "2.7.1";
               runtime = true;
             };
           };
@@ -3235,14 +2852,17 @@
           depInfo = {
             agent-base = {
               descriptor = "^6.0.2";
+              pin = "6.0.2";
               runtime = true;
             };
             debug = {
               descriptor = "^4.3.3";
+              pin = "4.3.4";
               runtime = true;
             };
             socks = {
               descriptor = "^2.6.2";
+              pin = "2.7.1";
               runtime = true;
             };
           };
@@ -3261,10 +2881,12 @@
           depInfo = {
             spdx-expression-parse = {
               descriptor = "^3.0.0";
+              pin = "3.0.1";
               runtime = true;
             };
             spdx-license-ids = {
               descriptor = "^3.0.0";
+              pin = "3.0.12";
               runtime = true;
             };
           };
@@ -3296,10 +2918,12 @@
           depInfo = {
             spdx-exceptions = {
               descriptor = "^2.1.0";
+              pin = "2.3.0";
               runtime = true;
             };
             spdx-license-ids = {
               descriptor = "^3.0.0";
+              pin = "3.0.12";
               runtime = true;
             };
           };
@@ -3331,6 +2955,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.1.1";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -3347,6 +2972,7 @@
           depInfo = {
             minipass = {
               descriptor = "^3.1.1";
+              pin = "3.3.6";
               runtime = true;
             };
           };
@@ -3365,14 +2991,17 @@
           depInfo = {
             emoji-regex = {
               descriptor = "^8.0.0";
+              pin = "8.0.0";
               runtime = true;
             };
             is-fullwidth-code-point = {
               descriptor = "^3.0.0";
+              pin = "3.0.0";
               runtime = true;
             };
             strip-ansi = {
               descriptor = "^6.0.1";
+              pin = "6.0.1";
               runtime = true;
             };
           };
@@ -3391,6 +3020,7 @@
           depInfo = {
             safe-buffer = {
               descriptor = "~5.2.0";
+              pin = "5.2.1";
               runtime = true;
             };
           };
@@ -3409,8 +3039,8 @@
           depInfo = {
             ansi-regex = {
               descriptor = "^5.0.1";
-              runtime = true;
               pin = "5.0.1";
+              runtime = true;
             };
           };
           fetchInfo = {
@@ -3428,26 +3058,32 @@
           depInfo = {
             chownr = {
               descriptor = "^2.0.0";
+              pin = "2.0.0";
               runtime = true;
             };
             fs-minipass = {
               descriptor = "^2.0.0";
+              pin = "2.1.0";
               runtime = true;
             };
             minipass = {
               descriptor = "^4.0.0";
+              pin = "4.0.1";
               runtime = true;
             };
             minizlib = {
               descriptor = "^2.1.1";
+              pin = "2.1.2";
               runtime = true;
             };
             mkdirp = {
               descriptor = "^1.0.3";
+              pin = "1.0.4";
               runtime = true;
             };
             yallist = {
               descriptor = "^4.0.0";
+              pin = "4.0.0";
               runtime = true;
             };
           };
@@ -3466,6 +3102,7 @@
           depInfo = {
             unique-slug = {
               descriptor = "^2.0.0";
+              pin = "2.0.2";
               runtime = true;
             };
           };
@@ -3482,6 +3119,7 @@
           depInfo = {
             unique-slug = {
               descriptor = "^3.0.0";
+              pin = "3.0.0";
               runtime = true;
             };
           };
@@ -3500,6 +3138,7 @@
           depInfo = {
             imurmurhash = {
               descriptor = "^0.1.4";
+              pin = "0.1.4";
               runtime = true;
             };
           };
@@ -3516,6 +3155,7 @@
           depInfo = {
             imurmurhash = {
               descriptor = "^0.1.4";
+              pin = "0.1.4";
               runtime = true;
             };
           };
@@ -3547,10 +3187,12 @@
           depInfo = {
             spdx-correct = {
               descriptor = "^3.0.0";
+              pin = "3.1.1";
               runtime = true;
             };
             spdx-expression-parse = {
               descriptor = "^3.0.0";
+              pin = "3.0.1";
               runtime = true;
             };
           };
@@ -3569,6 +3211,7 @@
           depInfo = {
             builtins = {
               descriptor = "^5.0.0";
+              pin = "5.0.1";
               runtime = true;
             };
           };
@@ -3592,6 +3235,7 @@
           depInfo = {
             isexe = {
               descriptor = "^2.0.0";
+              pin = "2.0.0";
               runtime = true;
             };
           };
@@ -3610,6 +3254,7 @@
           depInfo = {
             string-width = {
               descriptor = "^1.0.2 || 2 || 3 || 4";
+              pin = "4.2.3";
               runtime = true;
             };
           };
