@@ -24,6 +24,7 @@ in {
       modules = [
         ( { ... }: {
           imports = [floco.records.pdef];
+          config._module.args = { inherit (floco) pdefs fetchers; };
         } )
       ];
     };

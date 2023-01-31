@@ -27,7 +27,10 @@
         url     = "https://registry.npmjs.org/which/-/which-2.0.2.tgz";
         narHash = "sha256-u114pFUXCCiUamLVVZma0Au+didZhD6RCoGTbrh2OhU=";
       };
-      treeInfo."node_modules/isexe".key = "isexe/2.0.0";
+      treeInfo."node_modules/isexe" = {
+        key  = "isexe/2.0.0";
+        link = true;
+      };
     };
 
   };

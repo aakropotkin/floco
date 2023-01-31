@@ -1,6 +1,11 @@
 # ============================================================================ #
 #
-#
+# FIXME: this fucks up and won't resolve to peers in subdirs properly.
+# Ex:
+#   foo/node_modules/bar
+#   bar
+#   foo/node_modules/baz
+# baz can incorrectly resolve `bar' at the root instead of the peer.
 #
 # ---------------------------------------------------------------------------- #
 

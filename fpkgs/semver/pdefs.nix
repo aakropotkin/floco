@@ -20,13 +20,9 @@
       };
       ident = "semver";
       ltype = "file";
-      treeInfo = {
-        "node_modules/lru-cache" = {
-          key = "lru-cache/6.0.0";
-        };
-        "node_modules/lru-cache/node_modules/yallist" = {
-          key = "yallist/4.0.0";
-        };
+      treeInfo."node_modules/lru-cache" = {
+        key  = "lru-cache/6.0.0";
+        link = true;
       };
       version = "7.3.8";
     };
@@ -46,6 +42,10 @@
       ident = "lru-cache";
       ltype = "file";
       version = "6.0.0";
+      treeInfo."node_modules/yallist" = {
+        key  = "yallist/4.0.0";
+        link = true;
+      };
     };
 
     yallist."4.0.0" = {

@@ -98,6 +98,10 @@
     in {
       inherit basic;
       default = basic;
+      fillPins = {
+        description = "Expression for filling missing `pin's in `pdefs.nix'.";
+        path        = ./templates/fill-pins;
+      };
     };
 
 

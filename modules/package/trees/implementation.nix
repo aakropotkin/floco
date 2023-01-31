@@ -26,7 +26,7 @@
 
   config.trees = let
     mkTree = args: let
-      fn = import ../../../builders/tree.nix;
+      fn = import ../../../builders/treeFromInfo.nix;
       real = lib.callPackageWith {
         inherit (pkgs) system coreutils findutils jq bash;
         inherit floco;
@@ -38,7 +38,7 @@
           match = builtins.intersectAttrs ( lib.functionArgs fn ) final;
         in mkTree match;
       };
-    in if ( args.keyTree or args.pathTree or {} ) == {} then null else ext;
+    in if ( args.treeInfo or {} ) == {} then null else ext;
     cond = config.pdef.treeInfo != null;
   in {
 
@@ -55,22 +55,16 @@
 # ---------------------------------------------------------------------------- #
 
     prod = lib.mkIf cond ( lib.mkDefault ( mkTree {
-      keyTree = let
-        keeps = lib.filterAttrs ( _: { dev ? false, ... }: ! dev )
-                                config.trees.supported;
-      in builtins.mapAttrs ( _: v: v.key ) keeps;
+      treeInfo = lib.filterAttrs ( _: { dev ? false, ... }: ! dev )
+                                 config.trees.supported;
     } ) );
 
 
 # ---------------------------------------------------------------------------- #
 
     dev = lib.mkIf cond ( lib.mkDefault ( mkTree {
-      keyTree = builtins.mapAttrs ( _: v: v.key ) config.trees.supported;
+      treeInfo = config.trees.supported;
     } ) );
-
-
-# ---------------------------------------------------------------------------- #
-
 
 
 # ---------------------------------------------------------------------------- #
