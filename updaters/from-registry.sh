@@ -15,11 +15,11 @@ set -o pipefail;
 #_as_me="floco update registry";
 _as_me='from-registry.sh';
 
-_version="0.2.0";
+_version="0.3.0";
 
 # [-c FLOCO-CONFIG-FILE]
 _usage_msg="Usage: \
-$_as_me IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+$_as_me [OPTIONS...] IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Generate a package from the \`npm' registry including its full dep-graph.
 ";
@@ -35,6 +35,10 @@ Options:
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -j,--json           Export JSON instead of a Nix expression.
   -B,--no-backup      Remove backups of \`PDEFS-FILE' when process succeeds.
+  -c,--config PATH    Path to a \`floco' configuration file which may be used to
+                      extend or modify the module definitions used to translate
+                      and export \`pdef' records.
+                      If no config is given default settings will be used.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 Environment:
@@ -44,15 +48,10 @@ Environment:
   SED           Command used as \`sed' executable.
   REALPATH      Command used as \`realpath' executable.
   MKTEMP        Command used as \`mktemp' executable.
+  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
 ";
-#  -c,--config PATH    Path to a \`floco' configuration file which may be used to
-#                      extend or modify the module definitions used to translate
-#                      and export \`pdef' records.
-#                      If no config is given default settings will be used.
-
-#  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
 
 
 # ---------------------------------------------------------------------------- #
@@ -232,7 +231,7 @@ $NPM install            \
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_CONFIG=}";
-export FLAKE_REF FLOCO_CONFIG JSON OUTFILE;
+export FLAKE_REF LOCKDIR FLOCO_CONFIG JSON OUTFILE;
 
 if [[ -z "$JSON" ]]; then
   _NIX_FLAGS="--raw";
@@ -246,20 +245,32 @@ $NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
-  # TODO: use `old' and `cfg' as modules.
-  #cfgPath = builtins.getEnv "FLOCO_CONFIG";
-  #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
-  #          then [cfgPath]
-  #          else [];
+  cfgPath = builtins.getEnv "FLOCO_CONFIG";
+  cfg =
+    if ( cfgPath == "" ) || ( ! ( builtins.pathExists cfgPath ) ) then [] else
+    if ( builtins.match ".*\\.json" cfgPath ) == null then [cfgPath] else
+    [( lib.modules.importJSON cfgPath )];
+  outfile = builtins.getEnv "OUTFILE";
   asJSON  = ( builtins.getEnv "JSON" ) != "";
-  base = import "${floco}/modules/plockToPdefs/implementation.nix" {
-    inherit lib;
-    lockDir = toString ./.;
-    plock   = lib.importJSON ./package-lock.json;
+  mod = lib.evalModules {
+    modules = cfg ++ [
+      floco.nixosModules.floco
+      {
+        options.floco = lib.mkOption {
+          type = lib.types.submoduleWith {
+            shorthandOnlyDefinesConfig = false;
+            modules = [{
+              imports = ["${floco}/modules/plockToPdefs"];
+              config._module.args.basedir = /. + ( dirOf outfile );
+              config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
+            }];
+          };
+        };
+      }
+    ];
   };
-  phony = builtins.head ( builtins.filter ( v:
-    ( v.ident == "@floco/phony" ) && ( v.version == "0.0.0-0" )
-  ) base.exports );
+  base     = mod.config.floco.exports;
+  phony    = base."@floco/phony"."0.0.0-0";
   target   = builtins.head ( builtins.attrNames phony.depInfo );
   ppath    = "node_modules/${target}";
   tver     = baseNameOf phony.treeInfo.${ppath}.key;
@@ -271,12 +282,12 @@ let
       value = np.${p};
     };
   in builtins.listToAttrs ( map remap ( builtins.attrNames np ) );
-  parted = builtins.partition ( v:
-    ( v.ident == target ) && ( v.version == tver )
-  ) ( builtins.tail base.exports );
-  injected = ( builtins.head parted.right ) // { inherit treeInfo; };
-  pl2pdefs = [injected] ++ parted.wrong;
-in if asJSON then pl2pdefs else lib.generators.toPretty {} pl2pdefs
+  contents.floco.pdefs = ( removeAttrs base ["@tulip/phony"] ) // {
+    ${target} = base.${target} // {
+      ${tver} = base.${target}.${tver} // { inherit treeInfo; };
+    };
+  };
+in if asJSON then contents else lib.generators.toPretty {} contents
 EOF
 
 

@@ -114,7 +114,7 @@ $NIX run "$FLAKE_REF#fromPlock" -- --json;
 
 TARGET_ENT="$( mktmp_auto; )";
 # XXX: This only works when `PKG' is a raw identifier.
-$JQ 'map( select( .ident == "@floco/phony" ) )[0]' ./pdefs.json > "$TARGET_ENT";
+$JQ '.floco.pdefs["@floco/phony"]["4.2.0"]' ./pdefs.json > "$TARGET_ENT";
 
 
 # ---------------------------------------------------------------------------- #
