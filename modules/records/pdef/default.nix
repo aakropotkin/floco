@@ -13,6 +13,8 @@
     ./interface.nix ./implementation.nix
   ];
 
+  config._module.args.pdefs = lib.mkOverride 1400 {};
+
   # Very low priority fallback
   config._module.args.fetchers = lib.mkOverride 1400 (
     ( lib.evalModules {

@@ -58,6 +58,24 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    link = lib.mkOption {
+      description =  lib.mdDoc ''
+        Whether the dependency can by symlinked into `node_modules/`.
+
+        When symlinks are enabled the `global` target for a package must be
+        defined, and its `<global>/lib/node_modules` directory contents will
+        be symlinked into the consumer's `node_modules/` directory.
+
+        When symlinks are enabled it is an error to declare any subpaths in
+        `treeInfo` under a "linked" dependency.
+      '';
+      type    = nt.bool;
+      default = false;
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
 
   };  # End `options'
 

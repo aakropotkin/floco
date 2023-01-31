@@ -61,6 +61,9 @@ run_test "updaters: from-registry pacote"                \
 
 run_test "updaters: npm-plock proj1" "$SDIR/tests/updaters/npm-plock/proj1.sh";
 
+run_test "treeInfo from pins"                                                \
+  test "$( $NIX eval -f "$SDIR/tests/modules/pdefs/pinned" ok; )" = 'true';
+
 
 # ---------------------------------------------------------------------------- #
 

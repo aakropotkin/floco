@@ -104,10 +104,10 @@
   , floco  ? config.floco
   , pdefs  ? floco.pdefs
   }: {
-    key
+    key     ? ident + "/" + version
   , ident   ? dirOf key
   , version ? baseNameOf key
-  }: pdefs.${ident}.${version};
+  }: pdefs.${ident}.${version} or null;
 
 
 # ---------------------------------------------------------------------------- #
