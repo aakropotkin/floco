@@ -8,15 +8,17 @@
 , lib     ? import ../../lib { inherit (nixpkgs) lib; }
 , system  ? builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}
-, config  ? {
-    imports = [../../modules/top];
-    config._module.args.pkgs = pkgsFor;
-  }
 }: let
 
 # ---------------------------------------------------------------------------- #
 
-  floco = lib.evalModules { modules = [config ./floco.nix]; };
+  floco = lib.evalModules {
+    modules = [
+      ../../modules/top
+      { config._module.args.pkgs = pkgsFor; }
+      ./floco-cfg.nix
+    ];
+  };
 
 # ---------------------------------------------------------------------------- #
 

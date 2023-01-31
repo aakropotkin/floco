@@ -113,7 +113,7 @@ in {
     builder = "${bash}/bin/bash";
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
     cmdFile = if keyTree == null then cmdFileSimple else cmdFilePdefOpt;
-    args = ["-ec" ''
+    args = ["-eu" "-o" "pipefail" "-c" ''
       mkdir -p "$out/node_modules";
       while read -r cmd; do
         eval "$cmd";

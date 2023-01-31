@@ -1,28 +1,37 @@
 # ============================================================================ #
 #
-# Package shim exposing installable targets from `floco` modules.
+#
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, lib     ? import ../../lib { inherit (nixpkgs) lib; }
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
-}: let
+{ lib, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
-  fmod = lib.evalModules {
-    modules = [
-      ../../modules/top
-      { config._module.args.pkgs = pkgsFor; }
-      ./floco-cfg.nix
-    ];
+  nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+in {
+
+  options.rootTreeInfo = lib.mkOption {
+    type = nt.lazyAttrsOf (
+      nt.submodule ../records/pdef/treeInfo/single.interface.nix
+    );
+    default = {};
   };
 
-# ---------------------------------------------------------------------------- #
+  options.pdefsByPath = lib.mkOption {
+    type    = nt.lazyAttrsOf ( nt.submodule {} );
+    default = {};
+  };
 
-in fmod.config.floco.packages.semver."7.3.8".global
+  options.exports = lib.mkOption {
+    type    = nt.lazyAttrsOf ( nt.lazyAttrsOf lib.libfloco.jsonValue );
+    default = {};
+  };
+
+}
 
 
 # ---------------------------------------------------------------------------- #

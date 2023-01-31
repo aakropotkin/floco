@@ -17,24 +17,13 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib
-, lockDir
-, plock   ? lib.importJSON ( lockDir + "/package-lock.json" )
-, basedir ? lockDir
-, ...
-}: let
+{ lib, config, basedir, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
-  inherit (( lib.evalModules { modules = [../fetchers]; } ).config) fetchers;
+  nt = lib.types;
 
-
-# ---------------------------------------------------------------------------- #
-
-  plconf = lib.evalModules {
-    modules     = [../plock];
-    specialArgs = { inherit lockDir plock; };
-  };
+  inherit (config) lockDir fetchers plock;
 
 
 # ---------------------------------------------------------------------------- #
@@ -96,111 +85,79 @@
       rev        = let
         m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolved;
       in builtins.head m;
-    } else {
-      inherit type;
-      url = resolved;
-    };
+    } else { inherit type; url = resolved; };
   in {
+    _module.args = { inherit basedir; };
     inherit ident version key ltype;
-
-    binInfo.binPairs = bin;
-
+    binInfo.binPairs  = bin;
+    fsInfo            = { inherit gypfile; dir = "."; };
+    lifecycle.install = hasInstallScript;
+    fetchInfo = if fetchInfo ? path then fetchInfo else
+                fetchers."fetchTree_${fetchInfo.type}".lockFetchInfo fetchInfo;
+    fetcher =
+      if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
     metaFiles = {
       inherit lockDir plentKey;
       plent = plock.packages.${plentKey};
     } // ( if plentKey != "" then {} else { inherit plock; } );
-
-    fsInfo = { inherit gypfile; dir = "."; };
-
-    lifecycle.install = hasInstallScript;
-
-    fetchInfo = if fetchInfo ? path then fetchInfo else
-                fetchers."fetchTree_${fetchInfo.type}".lockFetchInfo fetchInfo;
-
-    fetcher = if fetchInfo ? path then "path" else "fetchTree_${fetchInfo.type}";
-
-    _module.args = { inherit basedir; };
-
   };
-
-
-# ---------------------------------------------------------------------------- #
-
-  # `treeInfo' for root package
-  rootTreeInfo = let
-    mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
-    noDotDot  = lib.filterAttrs ( path: _:
-      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-    ) plconf.config.plents;
-  in builtins.mapAttrs mkTreeEnt noDotDot;
-
-  rough = let
-    proc = plentKey: plentRaw: [
-      {
-        _file  = lockDir + "/package-lock.json";
-        config = toPdef plentKey plentRaw;
-      }
-    ] ++ (
-      if plentKey == "" then [{
-        _file                   = lockDir + "/package-lock.json";
-        config.treeInfo         = removeAttrs rootTreeInfo [""];
-        config._export.treeInfo = let
-          base = removeAttrs rootTreeInfo [""];
-          nopt = builtins.mapAttrs ( _: v:
-            if v.optional then v else removeAttrs v ["optional"]
-          ) base;
-          ndev = builtins.mapAttrs ( _: v:
-            if v.dev then v else removeAttrs v ["dev"]
-          ) nopt;
-        in ndev;
-      }] else []
-    ) ++ [../records/pdef];
-  in builtins.mapAttrs proc plconf.config.plents;
-
-  translatedPlents = rough;
-
-  #translatedPlents = let
-  #  addTreeInfo = plentKey: config: let
-  #    treeInfo = removeAttrs ( lib.focusTree {
-  #      treeInfo = rootTreeInfo;
-  #      newRoot  = plentKey;
-  #      inherit (
-  #        ( lib.addPdefs ( builtins.attrValues rough ) ).config.floco
-  #      ) pdefs;
-  #    } ).treeInfo [""];
-  #  in ( lib.evalModules {
-  #    # Regenerates `_export'.
-  #    modules = [
-  #      { config = toPdef plentKey plconf.config.plents.${plentKey}; }
-  #      { config.treeInfo = lib.mkForce treeInfo; }
-  #      ../pdef
-  #    ];
-  #  } ).config;
-  #  proc = plentKey: config:
-  #    if ( plentKey == "" ) ||
-  #       ( config.treeInfo != null ) ||
-  #       config.lifecycle.build
-  #    then builtins.deepSeq config config
-  #    else ( let x = addTreeInfo plentKey config; in builtins.deepSeq x x );
-  #in builtins.mapAttrs proc ( builtins.deepSeq rough rough );
-
-
-# ---------------------------------------------------------------------------- #
-
-  configs  = builtins.concatLists ( builtins.attrValues translatedPlents );
-  packages = builtins.attrValues ( builtins.mapAttrs ( _: modules:
-      ( lib.evalModules { inherit modules; } ).config
-    ) ( lib.filterAttrs ( path: _:
-      ( path == "" ) || ( lib.hasPrefix "node_modules" path )
-    ) ( translatedPlents ) ) );
 
 
 # ---------------------------------------------------------------------------- #
 
 in {
 
-  inherit configs packages;
-  exports = lib.unique ( map ( v: v._export ) packages );
+# ---------------------------------------------------------------------------- #
+
+  config._module.args.basedir = lib.mkDefault config.lockDir;
+
+
+# ---------------------------------------------------------------------------- #
+
+  options.pdefsByPath = lib.mkOption {
+    type = nt.lazyAttrsOf ( nt.submodule {
+      imports = [config.records.pdef];
+      config._module.args.basedir = lib.mkDefault basedir;
+    } );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  # TODO: in order to fill `treeInfo' records for anything other than the
+  # root of the lockfile you need to clear any `dev' and `optional' fields,
+  # and then reprocess them from the context of the "new root".
+  # Additionally you need to "pull down" and `requires'.
+  config.rootTreeInfo = let
+    mkTreeEnt = plentKey: plent: { inherit (plent) key optional dev; };
+    noDotDot  = lib.filterAttrs ( path: _: lib.hasPrefix "node_modules" path )
+                                config.plents;
+  in builtins.mapAttrs mkTreeEnt noDotDot;
+
+
+# ---------------------------------------------------------------------------- #
+
+  config.pdefsByPath = let
+    base = builtins.mapAttrs toPdef config.plents;
+  in base // { "" = base."" // { treeInfo = config.rootTreeInfo; }; };
+
+  config.pdefs = let
+    pdl       = builtins.attrValues config.pdefsByPath;
+    scrubbed  = map ( v: removeAttrs v ["metaFiles" "_export"] ) pdl;
+    byId      = builtins.groupBy ( v: v.ident ) scrubbed;
+    byVersion = builtins.mapAttrs ( _: builtins.groupBy ( v: v.version ) ) byId;
+  in builtins.mapAttrs ( _: builtins.mapAttrs ( _: vs: ( { ... }: {
+    _file   = config.lockDir + "/package-lock.json";
+    imports = vs;
+    config._module.args = { inherit basedir; };
+  } ) ) ) byVersion;
+
+
+  config.exports =
+    builtins.mapAttrs ( _: builtins.mapAttrs ( _: v: v._export ) ) config.pdefs;
+
+
+# ---------------------------------------------------------------------------- #
 
 }
 

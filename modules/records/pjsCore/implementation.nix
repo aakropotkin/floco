@@ -1,29 +1,30 @@
 # ============================================================================ #
 #
-# Package shim exposing installable targets from `floco` modules.
+# Core fields found on `package.json' style metadata records.
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, lib     ? import ../../lib { inherit (nixpkgs) lib; }
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
-}: let
+{ lib, config, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
-  fmod = lib.evalModules {
-    modules = [
-      ../../modules/top
-      { config._module.args.pkgs = pkgsFor; }
-      ./floco-cfg.nix
-    ];
-  };
+  nt = lib.types;
 
 # ---------------------------------------------------------------------------- #
 
-in fmod.config.floco.packages.semver."7.3.8".global
+in {
 
+  _file = "<floco>/records/pjsCore/implementation.nix";
+
+  config.pjsCore = lib.mkDefault ( { config, ... }: {
+    options.bin = lib.mkPjsBinOption // {
+      type = nt.coercedTo nt.str
+                          ( p: { ${baseNameOf config.ident} = p; } )
+                          lib.libfloco.binPairs;
+    };
+  } );
+
+}
 
 # ---------------------------------------------------------------------------- #
 #

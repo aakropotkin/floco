@@ -4,15 +4,16 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib
-, lockDir
-, plock   ? lib.importJSON "${lockDir}/package-lock.json"
-, ...
-}: let
+{ lib, config, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
+
+  inherit (config) plock;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -41,9 +42,23 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  options.plents = lib.mkOption {
+    type = nt.lazyAttrsOf ( nt.submoduleWith {
+      modules = [config.records.pjsCore];
+    } );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   config = {
-    inherit plock lockDir;
-    inherit (plock) lockfileVersion;
+
+    inherit (config.plock) lockfileVersion;
+
+    plock = lib.mkDefault (
+      lib.importJSON ( config.lockDir + "/package-lock.json" )
+    );
+
     plents = let
       proc = plentKey: plentRaw: let
         # We inherit these fields "as is" from the lockfile.
@@ -114,6 +129,7 @@ in {
   };
 
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

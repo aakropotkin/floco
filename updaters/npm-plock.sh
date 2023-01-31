@@ -18,10 +18,9 @@ set -o pipefail;
 #_as_me="floco update npm-plock";
 _as_me='npm-plock.sh';
 
-_version="0.2.0";
+_version="0.3.0";
 
-# [-c FLOCO-CONFIG-FILE]
-_usage_msg="Usage: $_as_me [-l LOCK-DIR] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Update a \`pdefs.nix' file using a \`package-lock.json' v3 provided by \`npm'.
 ";
@@ -44,6 +43,10 @@ Options:
                       translation, and will be backed up to \`PDEFS-FILE~'.
   -j,--json           Export JSON instead of a Nix expression.
   -B,--no-backup      Remove backups of \`PDEFS-FILE' when process succeeds.
+  -c,--config PATH    Path to a \`floco' configuration file which may be used to
+                      extend or modify the module definitions used to translate
+                      and export \`pdef' records.
+                      If no config is given default settings will be used.
   -- NPM-FLAGS...     Used to separate \`$_as_me' flags from \`npm' flags.
 
 Environment:
@@ -52,15 +55,10 @@ Environment:
   JQ            Command used as \`jq' executable.
   SED           Command used as \`sed' executable.
   REALPATH      Command used as \`realpath' executable.
+  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
 ";
-#  -c,--config PATH    Path to a \`floco' configuration file which may be used to
-#                      extend or modify the module definitions used to translate
-#                      and export \`pdef' records.
-#                      If no config is given default settings will be used.
-
-#  FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
 
 
 # ---------------------------------------------------------------------------- #
@@ -269,21 +267,32 @@ $NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
-  # TODO: use `old' and `cfg' as modules.
-  #cfgPath = builtins.getEnv "FLOCO_CONFIG";
-  #cfg     = if ( cfgPath != "" ) && ( builtins.pathExists cfgPath )
-  #          then [cfgPath]
-  #          else [];
-  outfile  = builtins.getEnv "OUTFILE";
-  asJSON   = ( builtins.getEnv "JSON" ) != "";
-  pl2pdefs = import "${floco}/modules/plockToPdefs/implementation.nix" {
-    inherit lib;
-    lockDir = builtins.getEnv "LOCKDIR";
-    plock   = lib.importJSON ./package-lock.json;
-    basedir = dirOf outfile;
+  cfgPath = builtins.getEnv "FLOCO_CONFIG";
+  cfg =
+    if ( cfgPath == "" ) || ( ! ( builtins.pathExists cfgPath ) ) then [] else
+    if ( builtins.match ".*\\.json" cfgPath ) == null then [cfgPath] else
+    [( lib.modules.importJSON cfgPath )];
+  outfile = builtins.getEnv "OUTFILE";
+  asJSON  = ( builtins.getEnv "JSON" ) != "";
+  mod = lib.evalModules {
+    modules = cfg ++ [
+      floco.nixosModules.floco
+      {
+        options.floco = lib.mkOption {
+          type = lib.types.submoduleWith {
+            shorthandOnlyDefinesConfig = false;
+            modules = [{
+              imports = ["${floco}/modules/plockToPdefs"];
+              config._module.args.basedir = /. + ( dirOf outfile );
+              config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
+            }];
+          };
+        };
+      }
+    ];
   };
-in if asJSON then pl2pdefs.exports else
-   lib.generators.toPretty {} pl2pdefs.exports
+  contents.floco.pdefs = mod.config.floco.exports;
+in if asJSON then contents else lib.generators.toPretty {} contents
 EOF
 
 

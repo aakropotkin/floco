@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, ... }: let
+{ lib, ... }: let
 
   nt = lib.types;
 
@@ -32,9 +32,7 @@ in {
       specialArgs.lib =
         if lib ? libfloco then lib else import ../../lib { inherit lib; };
     };
-    default = let
-      subs = options.floco.type.getSubOptions [];
-    in builtins.mapAttrs ( _: s: s.default ) ( removeAttrs subs ["_module"] );
+    default = {};
   };
 
 

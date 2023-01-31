@@ -152,7 +152,7 @@ $NIX run "$FLAKE_REF#fromRegistry" -- "$PKG" --json --out-file "$OUTFILE";
 
 TARGET_ENT="$( mktmp_auto; )";
 # XXX: This only works when `PKG' is a raw identifier.
-$JQ "map( select( .ident == \"$PKG\" ) )[0]" "$OUTFILE" > "$TARGET_ENT";
+$JQ ".floco.pdefs[\"$PKG\"]|to_entries|.[0].value" "$OUTFILE" > "$TARGET_ENT";
 
 
 # ---------------------------------------------------------------------------- #

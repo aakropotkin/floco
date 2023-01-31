@@ -15,18 +15,24 @@
 # ---------------------------------------------------------------------------- #
 
 in {
-  # Removes any `*.nix' files as well as `node_modules/' and
-  # `package-lock.json' from the source tree before using them in builds.
+
+# ---------------------------------------------------------------------------- #
+
   config.floco.packages.${ident}.${version} = let
     cfg = config.floco.packages.${ident}.${version};
-  in {
+  in {  # Begin target package overrides
+
+# ---------------------------------------------------------------------------- #
+
+    # Removes any `*.nix' files as well as `node_modules/' and
+    # `package-lock.json' from the source tree before using them in builds.
     source = builtins.path {
       name   = "source";
       path   = ./.;
       filter = name: type: let
         bname  = baseNameOf name;
         test   = p: s: ( builtins.match p s ) != null;
-        ignore = ["node_modules" "package-lock.json"];
+        ignore = ["node_modules" "package-lock.json" "yarn.lock"];
       in ( ! ( builtins.elem bname ignore ) ) &&
          ( ! ( test ".*\\.nix" bname ) ) &&
          ( ( type == "symlink" ) -> (
@@ -34,10 +40,17 @@ in {
            ) );
     };
 
+
+# ---------------------------------------------------------------------------- #
+
     # CHANGEME: The following two blocks provide an example of dropping
     # `typescript' from the `node_modules/' directory of the `built' target,
     # and adding `typescript' as a globally installed package instead.
     # This strategy can be used to limit time spent copying files.
+
+    # The use of `lib.mkIf' causes this override to be applied only if your
+    # target package depends on `typescript'; as an optimization you can
+    # remove the conditional or remove this block entirely.
 
     # Remove `node_modules/typescript' since it will instead be accessed
     # using `PATH'.
@@ -63,7 +76,14 @@ in {
       lib.mkForce ov
     );
 
-  };
+
+# ---------------------------------------------------------------------------- #
+
+  };  # End target package overrides
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 

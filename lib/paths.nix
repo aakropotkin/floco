@@ -101,6 +101,14 @@
 
 
 # ---------------------------------------------------------------------------- #
+  
+  pathComps = p: let
+    s  = toString p;
+    ss = builtins.filter builtins.isString ( builtins.split "/" s );
+  in builtins.length ss;
+
+
+# ---------------------------------------------------------------------------- #
 
   # Get relative path between parent and subdir.
   # This will not work for non-subdirs.
@@ -109,7 +117,8 @@
     p = toString ( /. + from );
     s = asAbspath from to;
     dropP = "." + ( substring ( stringLength p ) ( stringLength s ) s );
-    isSub = ( stringLength p ) < ( stringLength s );
+
+    isSub = ( pathComps p ) < ( pathComps s );
     swapped = realpathRel' s p;
     dist = countMatches "/" swapped;
     dots = concatStringsSep "/" ( builtins.genList ( _: ".." ) dist );
@@ -127,7 +136,7 @@
     parent       = commonParent from to;
     fromToParent = realpathRel' from parent;
     parentToTo   = realpathRel' parent to;
-    joined       = "${fromToParent}/${parentToTo}";
+    joined       = fromToParent + ( "/" + parentToTo );
     san = builtins.replaceStrings ["/./"] ["/"] joined;
     sanF = s: let m = builtins.match "(\\./)(.*)" s; in
               if ( m == null ) then s else ( builtins.elemAt m 1 );

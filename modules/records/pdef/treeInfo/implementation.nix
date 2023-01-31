@@ -21,7 +21,7 @@
       config.metaFiles.metaRaw.treeInfo or {}
     ) );
 
-    _export = lib.mkIf cond {
+    _export = lib.mkIf ( cond || ( ( config.treeInfo or null ) != null ) ) {
       treeInfo = let
         subs = import ./single.interface.nix { inherit lib; };
       in builtins.mapAttrs ( _: e: lib.filterAttrs ( f: v:

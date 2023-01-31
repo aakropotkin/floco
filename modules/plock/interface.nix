@@ -24,7 +24,8 @@ in {
       description = lib.mdDoc ''
         Raw `package-lock.json` contents produced by `npm`.
       '';
-      type = nt.attrsOf nt.anything;
+      type    = nt.lazyAttrsOf nt.anything;
+      default = {};
     };
 
     lockDir = lib.mkOption {
@@ -40,7 +41,7 @@ in {
         A common trick to ensure that you are passing a regular filesystem path
         is to stringize as: `lockDir = toString ./.;`.
       '';
-      type    = nt.path;
+      type = nt.path;
       example = toString ./my-project;
     };
 
@@ -52,7 +53,11 @@ in {
         NOTE: At this time only `package-lock.json` version 2 and 3 are
         supported because version 1 locks lack a `packages.*` field.
       '';
-      type = nt.attrsOf ( import ./types.nix { inherit lib; } ).plent;
+      type = nt.lazyAttrsOf ( nt.submoduleWith {
+        specialArgs = { inherit lib; };
+        modules = [./plent/interface.nix];
+      } );
+      default = {};
     };
 
     lockfileVersion = lib.mkOption {
@@ -68,6 +73,7 @@ in {
       '';
       type    = nt.addCheck nt.int ( x: builtins.elem x [2 3] );
       example = 3;
+      default = 3;
     };
 
   };  # End `options'
