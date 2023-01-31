@@ -233,29 +233,31 @@ Pop open the =pdefs.nix= file and we'll drop =typescript=.
 # `pdefs.nix'
 {
   floco = {
-    "@floco/test" = {
-      "4.2.0" = {
-        ident = "@floco/test";
-        version = "4.2.0";
-        # ...
-        treeInfo = {
-        "@types/lodash" = {
-            key = "@types/lodash/4.14.191";
-            dev = true;
-        };
-        "lodash" = {
-            key = "lodash/4.17.21";
-        };
-        # We're removing `typescript':
-        ## typescript = {
-        ##   key = "typescript/4.9.4";
-        ##   dev = true;
-        ## };
+    pdefs = {
+      "@floco/test" = {
+        "4.2.0" = {
+          ident = "@floco/test";
+          version = "4.2.0";
+          # ...
+          treeInfo = {
+            "@types/lodash" = {
+              key = "@types/lodash/4.14.191";
+              dev = true;
+            };
+            "lodash" = {
+              key = "lodash/4.17.21";
+            };
+            # We're removing `typescript':
+            ## typescript = {
+            ##   key = "typescript/4.9.4";
+            ##   dev = true;
+            ## };
+          };
         };
       };
+      # ...
     };
   };
-  # ...
 }
 #+END_SRC
 
