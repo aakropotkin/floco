@@ -282,7 +282,7 @@ let
       value = np.${p};
     };
   in builtins.listToAttrs ( map remap ( builtins.attrNames np ) );
-  contents.floco.pdefs = ( removeAttrs base ["@tulip/phony"] ) // {
+  contents.floco.pdefs = ( removeAttrs base ["@floco/phony"] ) // {
     ${target} = base.${target} // {
       ${tver} = base.${target}.${tver} // { inherit treeInfo; };
     };
