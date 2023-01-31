@@ -4,9 +4,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ floco  ? builtins.getFlake "github:aakropotkin/floco"
-, lib    ? floco.lib
-, system ? builtins.currentSystem
+{ floco   ? builtins.getFlake "github:aakropotkin/floco"
+, nixpkgs ? floco.inputs.nixpkgs
+, lib     ? floco.lib
+, system  ? builtins.currentSystem
+, pkgsFor ? nixpkgs.legacyPackages.${system}.extend floco.overlays.default
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -20,12 +22,8 @@
 
   fmod = lib.evalModules {
     modules = [
-      "${floco}/modules/top"
-      {
-        config._module.args.pkgs =
-          floco.inputs.nixpkgs.legacyPackages.${system}.extend
-            floco.overlays.default;
-      }
+      floco.nixosModules.floco
+      { config._module.args.pkgs = pkgsFor; }
       ./floco-cfg.nix
     ];
   };
