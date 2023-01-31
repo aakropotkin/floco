@@ -124,8 +124,8 @@ After that we'll add a =default.nix= file to expose a few derivations to the
 
   fmod = lib.evalModules {
     modules = [
+      floco.nixosModules.floco
       {
-        imports = ["${floco}/modules/top"];
         config._module.args.pkgs =
           floco.inputs.nixpkgs.legacyPackages.${system}.extend
             floco.overlays.default;
@@ -178,17 +178,9 @@ test-built> shrinking RPATHs of ELF executables and libraries in /nix/store/51di
 test-built> patching script interpreter paths in /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0
 test-built> /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0/bin.js: interpreter directive changed from "#! /usr/bin/env node" to "/nix/store/mwd1dxh5rcy0wi9vgv2brlxpr5gmngr7-nodejs-14.20.1/bin/node"
 test-built> checking for references to /build/ in /nix/store/51dibgxp3na6q21p50slmfw02ql3cqn0-test-built-4.2.0...
-[ 1, 2, 3, 4 ]
-4
-[ 1, 2, 3 ]
-4.17.21
 
 # If we run again you'll see we skip the build:
 $ nix run -f ./. -L global;
-[ 1, 2, 3, 4 ]
-4
-[ 1, 2, 3 ]
-4.17.21
 
 # Lets build our tarball:
 $ nix build -f ./. dist;
@@ -239,28 +231,32 @@ Pop open the =pdefs.nix= file and we'll drop =typescript=.
 
 #+BEGIN_SRC nix
 # `pdefs.nix'
-[
-  {
-    ident = "@floco/test";
-    version = "4.2.0";
-    # ...
-    treeInfo = {
-      "@types/lodash" = {
-        key = "@types/lodash/4.14.191";
-        dev = true;
+{
+  floco = {
+    "@floco/test" = {
+      "4.2.0" = {
+        ident = "@floco/test";
+        version = "4.2.0";
+        # ...
+        treeInfo = {
+        "@types/lodash" = {
+            key = "@types/lodash/4.14.191";
+            dev = true;
+        };
+        "lodash" = {
+            key = "lodash/4.17.21";
+        };
+        # We're removing `typescript':
+        ## typescript = {
+        ##   key = "typescript/4.9.4";
+        ##   dev = true;
+        ## };
+        };
       };
-      "lodash" = {
-        key = "lodash/4.17.21";
-      };
-      # We're removing `typescript':
-      ## typescript = {
-      ##   key = "typescript/4.9.4";
-      ##   dev = true;
-      ## };
     };
-  }
+  };
   # ...
-]
+}
 #+END_SRC
 
 Next we'll make a new file called =foverrides.nix= to get the global form
@@ -292,13 +288,13 @@ list members ).
 
 #+BEGIN_SRC nix
 # default.nix
-# ...
 # ---------------------------------------------------------------------------- #
-
+{
+# ...
   fmod = lib.evalModules {
     modules = [
+      floco.nixosModules.floco
       {
-        imports = ["${floco}/modules/top"];
         config._module.args.pkgs =
           floco.inputs.nixpkgs.legacyPackages.${system}.extend
             floco.overlays.default;
@@ -310,9 +306,8 @@ list members ).
       ./foverrides.nix
     ];
   };
-
+}
 # ---------------------------------------------------------------------------- #
-# ...
 #+END_SRC
 
 Now if you rebuild you won't have to copy =typescript=, instead you will
