@@ -38,11 +38,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  filled = {
-    floco.pdefs = builtins.mapAttrs ( _: builtins.mapAttrs ( _: fillDepInfos ) )
-                                    raw.floco.pdefs;
-  };
-
+  filled.floco.pdefs =
+    builtins.mapAttrs ( _: builtins.mapAttrs ( _: fillDepInfos ) )
+                      raw.floco.pdefs;
 
 
 # ---------------------------------------------------------------------------- #

@@ -41,7 +41,7 @@ in {
         A common trick to ensure that you are passing a regular filesystem path
         is to stringize as: `lockDir = toString ./.;`.
       '';
-      type = nt.path;
+      type    = nt.path;
       example = toString ./my-project;
     };
 
@@ -60,20 +60,13 @@ in {
       default = {};
     };
 
-    lockfileVersion = lib.mkOption {
+    linkedLocks = lib.mkOption {
       description = lib.mdDoc ''
-        `npm` lockfile schema version.
-
-        At this time only version 2 and 3 are supported.
-        The beta repository `github:aameen-tulip/at-node-nix` implements support
-        for `package-lock.json` v1 which will be migrated at a later date.
-
-        It is strongly recommended that you use version 3 as:
-          ~npm i --package-lock-only --lockfile-version=3 --ignore-scripts;~
+        List of paths to lockfiles contained in "linked" projects.
+        These are often needed to complete a full dependency graph.
       '';
-      type    = nt.addCheck nt.int ( x: builtins.elem x [2 3] );
-      example = 3;
-      default = 3;
+      type    = nt.listOf nt.path;
+      default = [];
     };
 
   };  # End `options'

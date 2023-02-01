@@ -53,11 +53,19 @@ in {
 
   config = {
 
-    inherit (config.plock) lockfileVersion;
-
     plock = lib.mkDefault (
       lib.importJSON ( config.lockDir + "/package-lock.json" )
     );
+
+    linkedLocks = let
+      hasLock = plentKey: plentRaw: let
+        p = config.lockDir + ( "/" + plentRaw.resolved + "/package-lock.json" );
+      in ( plentRaw.link or false ) && ( builtins.pathExists p );
+      haveLock = lib.filterAttrs hasLock config.plock.packages;
+      locks    = builtins.attrValues ( builtins.mapAttrs ( _: plentRaw:
+        config.lockDir + ( "/" + plentRaw.resolved + "/package-lock.json" )
+      ) haveLock );
+    in lib.mkDefault locks;
 
     plents = let
       proc = plentKey: plentRaw: let

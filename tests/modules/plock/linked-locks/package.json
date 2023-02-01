@@ -1,0 +1,8 @@
+{
+    "name": "@floco/test-workspace",
+    "version": "4.2.0",
+    "workspaces": [
+      "./proj0",
+      "./proj1"
+    ]
+}

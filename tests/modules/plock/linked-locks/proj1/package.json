@@ -1,0 +1,8 @@
+{
+  "name": "@floco/proj1",
+  "version": "4.2.0",
+  "dependencies": {
+    "@floco/proj0": "../proj0",
+    "semver": "^7.3.8"
+  }
+}
