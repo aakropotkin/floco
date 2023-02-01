@@ -67,6 +67,8 @@ run_test "treeInfo from pins"                                                \
 run_test "linkedLocks"                                                       \
   $NIX eval --json -f "$SDIR/tests/modules/plock/linked-locks" linkedLocks;
 
+run_test "nix flake check" $NIX flake check "$SDIR";
+
 
 # ---------------------------------------------------------------------------- #
 
