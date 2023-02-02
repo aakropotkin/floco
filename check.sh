@@ -82,6 +82,9 @@ run_test "treeInfo from pins"                                                \
 run_test "linkedLocks"                                                       \
   $NIX eval --json -f "$SDIR/tests/modules/plock/linked-locks" linkedLocks;
 
+run_test "target override/extras"                                       \
+  $NIX build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
+
 run_test "nix flake check" $NIX flake check "$SDIR";
 
 
