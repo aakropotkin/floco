@@ -34,6 +34,7 @@ in {
             imports = [
               ./pdef/deferred.nix
               ./pjsCore
+              ./target
             ];
           } )
         ];

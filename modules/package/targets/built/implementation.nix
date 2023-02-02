@@ -4,8 +4,9 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, ... }: let
+{ lib, config, floco, pkgs, ... }: let
 
+  nt  = lib.types;
   cfg = config.built;
 
 in {
@@ -16,11 +17,20 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  options.built = lib.mkOption {
+    type = nt.submodule { imports = [floco.records.target]; };
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   config = {
 
 # ---------------------------------------------------------------------------- #
 
     built.enable = lib.mkDefault config.pdef.lifecycle.build;
+
+    built.scripts = lib.mkDefault ["prebuild" "build" "postbuild" "prepublish"];
 
     built.tree = lib.mkDefault (
       if cfg.enable then config.trees.dev else null

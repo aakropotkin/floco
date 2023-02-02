@@ -4,19 +4,17 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{
+{ lib, pkgs, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
-  _file = "<floco>/targets/interface.nix";
+  _file = "<floco>/records/target/implementation.nix";
 
 # ---------------------------------------------------------------------------- #
 
-  imports = [
-    ./source/interface.nix
-    ./built/interface.nix
-    ./installed/interface.nix
-  ];
+  config.target = { ... }: {
+    config._module.args.pkgs = lib.mkOverride 1001 pkgs;
+  };
 
 
 # ---------------------------------------------------------------------------- #

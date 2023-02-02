@@ -14,7 +14,7 @@
 
 in {
 
-  _file   = "<floco>/records/pjsCore/interface.nix";
+  _file = "<floco>/records/pjsCore/interface.nix";
 
   options.pjsCore = lib.mkOption {
     type = nt.deferredModuleWith {

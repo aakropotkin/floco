@@ -20,6 +20,7 @@ in {
   options.pdef = lib.mkOption {
     description = lib.mdDoc ''
       Abstract record used to declare a package/module at a specific version.
+
       This is a "deferred" module making it extensible.
       Its base interface must be implemented, but the implementations themselves
       may be swapped or overridden.
