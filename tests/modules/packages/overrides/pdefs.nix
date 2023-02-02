@@ -28,16 +28,19 @@
           ltype = "dir";
           treeInfo = {
             "node_modules/@types/lodash" = {
-              dev = true;
-              key = "@types/lodash/4.14.191";
+              key  = "@types/lodash/4.14.191";
+              dev  = true;
+              link = true;
             };
             "node_modules/lodash" = {
-              key = "lodash/4.17.21";
+              key  = "lodash/4.17.21";
+              link = true;
             };
-            #"node_modules/typescript" = {
-            #  dev = true;
-            #  key = "typescript/4.9.5";
-            #};
+            "node_modules/typescript" = {
+              key  = "typescript/4.9.5";
+              dev  = true;
+              link = true;
+            };
           };
           version = "4.2.0";
         };
