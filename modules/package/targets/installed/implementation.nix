@@ -48,8 +48,8 @@ in {
           pkgs.jq
           pkgs.nodejs-14_x.pkgs.node-gyp
           pkgs.nodejs-14_x.python
-        ] ++ maybeXcbuild ++ maybeTest;
-        buildInputs = [pkgs.nodejs-14_x];
+        ] ++ maybeXcbuild ++ maybeTest ++ cfg.extraNativeBuildInputs;
+        buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
         configurePhase = ''
           runHook preConfigure;
 
@@ -115,11 +115,8 @@ in {
         warns = map ( m: "WARNING: ${m}" ) cfg.warnings;
         msg   = builtins.concatStringsSep "\n" warns;
       in if cfg.warnings == [] then x else builtins.trace msg x;
-      withOv = assert cfg.override != null -> cfg.overrideAttrs == null;
-        if cfg.override != null then drv.override cfg.override else
-        if cfg.overrideAttrs != null
-        then drv.overrideAttrs cfg.overrideAttrs
-        else drv;
+      withOv = if cfg.overrideAttrs == null then drv else
+               drv.overrideAttrs cfg.overrideAttrs;
     in lib.mkDefault (
       if cfg.enable then warn withOv else config.built.package
     );

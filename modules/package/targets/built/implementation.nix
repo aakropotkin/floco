@@ -27,7 +27,7 @@ in {
     );
 
     built.package = let
-      drv = lib.makeOverridable pkgs.stdenv.mkDerivation {
+      drv = lib.makeOverridable pkgs.stdenv.mkDerivation ( {
         pname = "${baseNameOf config.pdef.ident}-built";
         inherit (config.pdef) version;
         inherit (cfg) copyTree scripts;
@@ -43,8 +43,8 @@ in {
                config.preferMultipleOutputDerivations
             then []
             else [config.lint];
-        in [pkgs.jq] ++ maybeLint;
-        buildInputs = [pkgs.nodejs-14_x];
+        in [pkgs.jq] ++ maybeLint ++ cfg.extraNativeBuildInputs;
+        buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
         dontUpdateAutotoolsGnuConfigScripts = true;
         configurePhase = ''
           runHook preConfigure;
@@ -88,16 +88,13 @@ in {
           runHook postInstall;
         '';
         dontStrip = true;
-      };
+      } // cfg.override );
       warn = x: let
         warns = map ( m: "WARNING: ${m}" ) cfg.warnings;
         msg   = builtins.concatStringsSep "\n" warns;
       in if cfg.warnings == [] then x else builtins.trace msg x;
-      withOv = assert cfg.override != null -> cfg.overrideAttrs == null;
-        if cfg.override != null then drv.override cfg.override else
-        if cfg.overrideAttrs != null
-        then drv.overrideAttrs cfg.overrideAttrs
-        else drv;
+      withOv = if cfg.overrideAttrs == null then drv else
+               drv.overrideAttrs cfg.overrideAttrs;
     in lib.mkDefault ( if cfg.enable then warn withOv else config.source );
 
 

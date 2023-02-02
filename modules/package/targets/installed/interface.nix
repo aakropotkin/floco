@@ -67,7 +67,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-        options.dependsOnLint = lib.mkOption {
+        options.dependsOnTest = lib.mkOption {
           description = lib.mdDoc ''
             Causes the `installed` lifecycle stage to be blocked by successful
             `test` checking ( requires `test` to be non-null ).
@@ -130,17 +130,69 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+        options.extraBuildInputs = lib.mkOption {
+          description = lib.mdDoc ''
+            Additional `buildInputs` passed to the builder.
+
+            "Build Inputs" are packages/tools that are available at build time
+            and respect cross-compilation/linking settings.
+            These are conventionally libraries, headers, compilers, or linkers,
+            and should not be confused with `nativeBuildInputs` which are
+            better suited for utilities used only to drive builds ( such as
+            `make`, `coreutils`, `grep`, etc ).
+
+            This is processed before overrides, and may be set multiple times
+            across modules to create a concatenated list.
+
+            See Also: extraNativeBuildInputs
+          '';
+          type    = nt.listOf nt.package;
+          default = [];
+          example = lib.literalExpression ''
+            { pkgs, ... }: {
+              config.extraBuildInputs = [pkgs.openssl.dev];
+            }
+          '';
+        };
+
+
+        options.extraNativeBuildInputs = lib.mkOption {
+          description = lib.mdDoc ''
+            Additional `nativeBuildInputs` passed to the builder.
+
+            "Native Build Inputs" are packages/tools that are available at build
+            time that are insensitive to cross-compilation/linking settings.
+            These are conventionally CLI tools such as `make`, `coreutils`,
+            `grep`, etc that are required to drive a build, but don't produce
+            different outputs depending on the `build`, `host`, or
+            `target` platform.
+
+            This is processed before overrides, and may be set multiple times
+            across modules to create a concatenated list.
+          '';
+          type    = nt.listOf nt.package;
+          default = [];
+          example = lib.literalExpression ''
+            { pkgs, ... }: {
+              config.extraNativeBuildInputs = [pkgs.typescript];
+            }
+          '';
+        };
+
+
+# ---------------------------------------------------------------------------- #
+
         options.override = lib.mkOption {
           description = lib.mdDoc ''
             Overrides applied to `stdenv.mkDerivation` invocation.
-            This option is a shorthand form of `overrideAttrs` and it is an
-            error to set both options.
+            This option is processed after `extra*` options, and
+            before `overrideAttrs`.
 
-            See Also: *.overrideAttrs
+            See Also: overrideAttrs
           '';
-          type    = nt.nullOr ( nt.attrsOf nt.anything );
-          default = null;
-          example.preinstall = ''
+          type    = nt.attrsOf nt.anything;
+          default = {};
+          example.preBuild = ''
             echo "Howdy" >&2;
           '';
         };
@@ -151,18 +203,18 @@ in {
             Override function applied to `stdenv.mkDerivation` invocation.
             This option is an advanced form of `override` which allows `prev`
             arguments to be referenced.
-            It is an error to set both options.
+            The function is evaluated after `extra*` options, and after applying
+            `override` to the orginal argument set.
 
-            See Also: *.override
+            See Also: override
           '';
           type    = nt.nullOr ( nt.functionTo nt.anything );
           default = null;
           example = lib.literalExpression ''
             { pkgs, config, ... }: {
-              config.installed.overrideAttrs = prev: {
-                nativeinstallInputs = prev.nativeinstallInputs ++ [
-                  pkgs.typescript
-                ];
+              config.built.overrideAttrs = prev: {
+                # Append pre-release tag to version.
+                version = prev.version + "-pre";
               };
             }
           '';

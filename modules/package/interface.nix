@@ -118,8 +118,8 @@ in {
 
     preferMultipleOutputDerivations = lib.mkOption {
       description = lib.mdDoc ''
-        Whether builders should prefer preparing sources with a single multiple
-        output derivation vs. multiple single output derivations.
+        Whether builders should prefer preparing sources with a single "multiple
+        output derivation" vs. multiple single output derivations.
 
         Setting this to `false` is sometimes useful for breaking dependency
         cycles for `global` packages or to intentionally introduce additional

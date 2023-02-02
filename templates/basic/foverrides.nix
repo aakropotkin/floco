@@ -56,7 +56,7 @@ in {
     # using `PATH'.
     built.tree = let
       noTs = cfg.trees.dev.overrideAttrs ( prev: {
-        keyTree = removeAttrs prev.keyTree ["node_modules/typescript"];
+        treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
       } );
     in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
       lib.mkForce noTs
