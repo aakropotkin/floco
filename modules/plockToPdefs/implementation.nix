@@ -65,6 +65,7 @@
             if lib.hasPrefix "." plentKey then "dir" else
             if lib.hasPrefix "git+" resolved then "git" else
             if lib.hasPrefix "https" resolved then "file" else
+            if plentKey == resolved then "dir" else
             throw "Unable to derive lifecycle type from entry: '${pp}'.";
     # TODO: `github'
     fetchInfo = let
@@ -86,9 +87,14 @@
         m = builtins.match "[^#]+#([[:xdigit:]]{40})" resolved;
       in builtins.head m;
     } else { inherit type; url = resolved; };
-  in {
-    _module.args = { inherit basedir; };
+    depInfo' = if ( ! config.includePins ) || link then {} else {
+      depInfo = builtins.mapAttrs ( _: pin: { inherit pin; } )
+                                  config.scopes.${plentKey}.pins;
+    };
+  in depInfo' // {
+    _module.args = { inherit basedir; pdefs = {}; };
     inherit ident version key ltype;
+    treeInfo          = null;  # This is required to avoid infinite recursion.
     binInfo.binPairs  = bin;
     fsInfo            = { inherit gypfile; dir = "."; };
     lifecycle.install = hasInstallScript;
@@ -139,17 +145,29 @@ in {
 
   config.pdefsByPath = let
     base = builtins.mapAttrs toPdef config.plents;
-  in base // { "" = base."" // { treeInfo = config.rootTreeInfo; }; };
+    withRootTreeInfo = base // {
+      "" = base."" // {
+        treeInfo = config.rootTreeInfo;
+      };
+    };
+  in if config.includeRootTreeInfo then withRootTreeInfo else base;
 
   config.pdefs = let
     pdl       = builtins.attrValues config.pdefsByPath;
-    scrubbed  = map ( v: removeAttrs v ["metaFiles" "_export"] ) pdl;
+    scrubbed  = map ( v: let
+      drops = removeAttrs v ["metaFiles" "_export"];
+      fixTI = if ( v.treeInfo or null ) != null then drops else
+              removeAttrs drops ["treeInfo"];
+    in fixTI ) pdl;
     byId      = builtins.groupBy ( v: v.ident ) scrubbed;
     byVersion = builtins.mapAttrs ( _: builtins.groupBy ( v: v.version ) ) byId;
   in builtins.mapAttrs ( _: builtins.mapAttrs ( _: vs: ( { ... }: {
     _file   = config.lockDir + "/package-lock.json";
     imports = vs;
-    config._module.args = { inherit basedir; };
+    config._module.args = {
+      inherit basedir;
+      inherit (config) pdefs;
+    };
   } ) ) ) byVersion;
 
 
