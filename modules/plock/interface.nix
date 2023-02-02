@@ -69,6 +69,19 @@ in {
       default = [];
     };
 
+    scopes = lib.mkOption {
+      description = lib.mdDoc ''
+        Maps lockfile paths to resolution scopes.
+
+        This information is used to create pinned version lists, construct
+        subtrees, and other /ideal tree/ operations.
+      '';
+      type = nt.attrsOf ( nt.submoduleWith {
+        specialArgs = { inherit lib; };
+        modules     = [./scope/interface.nix];
+      } );
+    };
+
   };  # End `options'
 
 }

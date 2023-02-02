@@ -69,6 +69,18 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  mkDescriptorOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A package "descriptor" or "specifier" being either a semantic version
+      number, or a URI.
+    '';
+    type    = lib.libfloco.descriptor;
+    example = "^4.2.0";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   mkLtypeOption = lib.mkOption {
     description = lib.mdDoc ''
       Package "lifecycle type"/"pacote source type".

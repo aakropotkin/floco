@@ -48,14 +48,29 @@ in {
     } );
   };
 
+  options.scopes = lib.mkOption {
+    type = nt.attrsOf ( nt.submoduleWith {
+      modules = [
+        ./scope/implementation.nix
+        { config._module.args = { inherit (config) plents; }; }
+        ( { ... }: { config._module.args = { inherit (config) scopes; }; } )
+      ];
+    } );
+  };
+
 
 # ---------------------------------------------------------------------------- #
 
   config = {
 
+# ---------------------------------------------------------------------------- #
+
     plock = lib.mkDefault (
       lib.importJSON ( config.lockDir + "/package-lock.json" )
     );
+
+
+# ---------------------------------------------------------------------------- #
 
     linkedLocks = let
       hasLock = plentKey: plentRaw: let
@@ -66,6 +81,9 @@ in {
         config.lockDir + ( "/" + plentRaw.resolved + "/package-lock.json" )
       ) haveLock );
     in lib.mkDefault locks;
+
+
+# ---------------------------------------------------------------------------- #
 
     plents = let
       proc = plentKey: plentRaw: let
@@ -113,7 +131,7 @@ in {
         );
 
         version = plentRaw.version or (
-          if plentKey == "" then plock.version else
+          if plentKey == "" then plock.version or "0.0.0-0" else
           ( realEntry plentKey ).version
         );
       in ix // {
@@ -134,7 +152,22 @@ in {
         );
       };
     in builtins.mapAttrs proc ( plock.packages or {} );
-  };
+
+# ---------------------------------------------------------------------------- #
+
+    scopes = let
+      realEntries = lib.filterAttrs ( _: v: ! ( v.link or false ) )
+                                    ( plock.packages or {} );
+    in builtins.foldl' ( acc: path: acc // { ${path} = { inherit path; }; } ) {}
+                       ( builtins.attrNames realEntries );
+
+
+# ---------------------------------------------------------------------------- #
+
+  };  # End `config'
+
+
+# ---------------------------------------------------------------------------- #
 
 }
 

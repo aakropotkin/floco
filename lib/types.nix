@@ -15,7 +15,7 @@
   jsonAtom = nt.nullOr ( nt.oneOf [nt.str nt.bool nt.int nt.float] );
 
   jsonValue = ( nt.oneOf [
-    jsonAtom
+    lib.libfloco.jsonAtom
     ( nt.listOf jsonValue )
     ( nt.attrsOf jsonValue )
   ] ) // {
@@ -35,6 +35,16 @@
     build_p   = "${dan_c}+(\\.[[:alnum:]]+)*";
     version_p = "${core_p}(-${tag_p})?(\\+${build_p})?";
   in nt.strMatching version_p;
+
+
+# ---------------------------------------------------------------------------- #
+
+  uri = nt.str;
+
+
+# ---------------------------------------------------------------------------- #
+
+  descriptor = nt.either lib.libfloco.version lib.libfloco.uri;
 
 
 # ---------------------------------------------------------------------------- #
@@ -63,7 +73,7 @@
 # ---------------------------------------------------------------------------- #
 
   # `package.json', `package-lock.json', and other non-`floco' metadata.
-  depAttrs = nt.attrsOf nt.str;
+  depAttrs = nt.attrsOf lib.libfloco.descriptor;
   depMetas = nt.attrsOf ( nt.attrsOf nt.bool );
 
 
@@ -82,6 +92,8 @@ in {
     jsonValue
 
     version
+    uri
+    descriptor
     ident
     key
     ltype
