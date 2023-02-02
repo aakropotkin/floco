@@ -45,7 +45,6 @@ in {
         pname = "${baseNameOf config.pdef.ident}-built";
         inherit (config.pdef) version;
         inherit (cfg) copyTree scripts;
-        run_script        = ../../../../setup/run-script.sh;
         install_module    = ../../../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         NMTREE            = cfg.tree;
@@ -57,7 +56,10 @@ in {
                config.preferMultipleOutputDerivations
             then []
             else [config.lint];
-        in [pkgs.jq] ++ maybeLint ++ cfg.extraNativeBuildInputs;
+        in [
+          pkgs.jq
+          pkgs.floco-hooks
+        ] ++ maybeLint ++ cfg.extraNativeBuildInputs;
         buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
         dontUpdateAutotoolsGnuConfigScripts = true;
         configurePhase = ''
@@ -65,17 +67,8 @@ in {
 
           set -eu;
           set -o pipefail;
-          export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
-          if [[ -n "''${NMTREE:-}" ]]; then
-            if [[ "''${copyTree:-0}" != 1 ]]; then
-              ln -s "$NMTREE/node_modules" ./node_modules;
-            else
-              cp -r --reflink=auto -T -- "$NMTREE/node_modules" ./node_modules;
-              chmod -R +w ./node_modules;
-            fi
-          fi
 
           runHook postConfigure;
         '';
@@ -84,7 +77,7 @@ in {
 
           set -eu;
           set -o pipefail;
-          bash -eu "$run_script" -PBi $scripts;
+          runPjsScripts -i $scripts;
 
           runHook postBuild;
         '';

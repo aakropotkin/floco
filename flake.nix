@@ -34,8 +34,23 @@
 
 # ---------------------------------------------------------------------------- #
 
-    nixosModules.floco = {
+    nixosModules.floco = import ./modules/top;
+
+    nixosModules.plockToPdefs = { lib, lockDir, basedir, ... }: {
       imports = [./modules/top];
+      config._module.args.basedir = lib.mkDefault lockDir;
+      options.floco = lib.mkOption {
+        type = lib.types.submoduleWith {
+          shorthandOnlyDefinesConfig = false;
+          modules = [
+            ./modules/plockToPdefs
+            {
+              config._module.args.basedir = basedir;
+              config.lockDir = lib.mkDefault lockDir;
+            }
+          ];
+        };
+      };
     };
 
 
@@ -47,11 +62,9 @@
 
     lib = import ./lib { inherit (nixpkgs) lib; };
 
-
 # ---------------------------------------------------------------------------- #
 
     inherit overlays nixosModules;
-
 
 # ---------------------------------------------------------------------------- #
 
@@ -61,6 +74,7 @@
       inherit (pkgsFor)
         floco
         floco-utils
+        floco-hooks
         floco-updaters
         treeFor
         semver

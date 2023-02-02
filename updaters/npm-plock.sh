@@ -276,20 +276,10 @@ let
   asJSON  = ( builtins.getEnv "JSON" ) != "";
   mod = lib.evalModules {
     modules = cfg ++ [
-      floco.nixosModules.floco
-      {
-        options.floco = lib.mkOption {
-          type = lib.types.submoduleWith {
-            shorthandOnlyDefinesConfig = false;
-            modules = [{
-              imports = ["${floco}/modules/plockToPdefs"];
-              config._module.args.basedir = /. + ( dirOf outfile );
-              config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
-            }];
-          };
-        };
-      }
+      floco.nixosModules.plockToPdefs
+      { config._module.args.basedir = /. + ( dirOf outfile ); }
     ];
+    specialArgs.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
   };
   contents.floco.pdefs = mod.config.floco.exports;
 in if asJSON then contents else lib.generators.toPretty {} contents

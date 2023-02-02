@@ -45,7 +45,6 @@ in {
         pname = "${baseNameOf config.pdef.ident}-installed";
         inherit (config.pdef) version;
         inherit (cfg) copyTree scripts;
-        run_script        = ../../../../setup/run-script.sh;
         install_module    = ../../../../setup/install-module.sh;
         IDENT             = config.pdef.ident;
         NMTREE            = cfg.tree;
@@ -62,6 +61,7 @@ in {
           pkgs.jq
           pkgs.nodejs-14_x.pkgs.node-gyp
           pkgs.nodejs-14_x.python
+          pkgs.floco-hooks
         ] ++ maybeXcbuild ++ maybeTest ++ cfg.extraNativeBuildInputs;
         buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
         configurePhase = ''
@@ -69,17 +69,8 @@ in {
 
           set -eu;
           set -o pipefail;
-          export PATH="$PATH:$PWD/node_modules/.bin";
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
-          if [[ -n "''${NMTREE:-}" ]]; then
-            if [[ "''${copyTree:-0}" != 1 ]]; then
-              ln -s "$NMTREE/node_modules" ./node_modules;
-            else
-              cp -r --reflink=auto -T -- "$NMTREE/node_modules" ./node_modules;
-              chmod -R +w ./node_modules;
-            fi
-          fi
 
           runHook postConfigure;
         '';
@@ -89,22 +80,22 @@ in {
           set -eu;
           set -o pipefail;
           if [[ -r ./binding.gyp ]]; then
-            bash -eu "$run_script" -PBi preinstall;
+            runPjsScript -i preinstall;
             case "$( jq -r '.scripts.install // null' ./package.json; )" in
               null)
                 _pjs_backup="$( <package.json; )";
                 echo "$_pjs_backup"|jq '.scripts+={
                   install: "node-gyp rebuild"
                 }' >package.json;
-                bash -eu "$run_script" -PBi preinstall install postinstall;
+                runPjsScripts -i preinstall install postinstall;
                 echo "$_pjs_backup" >package.json;
               ;;
               *)
-                bash -eu "$run_script" -PBi preinstall install postinstall;
+                runPjsScripts -i preinstall install postinstall;
               ;;
             esac
           else
-            bash -eu "$run_script" -PBi preinstall install postinstall;
+            runPjsScripts -i preinstall install postinstall;
           fi
 
           runHook postBuild;

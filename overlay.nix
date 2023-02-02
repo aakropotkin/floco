@@ -5,7 +5,7 @@ final: prev: {
   inherit (import ./setup {
     inherit (final) system bash coreutils findutils jq gnused;
     nodejs = final.nodejs-slim-14_x;
-  }) floco-utils;
+  }) floco-utils floco-hooks;
 
   inherit (import ./updaters {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";

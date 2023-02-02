@@ -23,6 +23,7 @@
 # ---------------------------------------------------------------------------- #
 
 in {
+
   floco-utils = let
     pname   = "floco-utils";
     version = "0.1.0";
@@ -60,6 +61,13 @@ in {
       done
     ''];
   };
+
+  floco-hooks = import ./hooks {
+    inherit (pkgsFor) makeSetupHook;
+    inherit (nixpkgs) lib;
+    inherit jq;
+  };
+
 }
 
 
