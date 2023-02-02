@@ -49,11 +49,10 @@ in {
   };
 
   options.scopes = lib.mkOption {
-    type = nt.attrsOf ( nt.submoduleWith {
+    type = nt.lazyAttrsOf ( nt.submoduleWith {
       modules = [
         ./scope/implementation.nix
-        { config._module.args = { inherit (config) plents; }; }
-        ( { ... }: { config._module.args = { inherit (config) scopes; }; } )
+        { config._module.args = { inherit (config) plents scopes; }; }
       ];
     } );
   };

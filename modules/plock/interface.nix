@@ -76,7 +76,7 @@ in {
         This information is used to create pinned version lists, construct
         subtrees, and other /ideal tree/ operations.
       '';
-      type = nt.attrsOf ( nt.submoduleWith {
+      type = nt.lazyAttrsOf ( nt.submoduleWith {
         specialArgs = { inherit lib; };
         modules     = [./scope/interface.nix];
       } );
