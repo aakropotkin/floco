@@ -26,10 +26,14 @@ in {
           inherit (options.key) loc;
         in {
           imports = [config.records.pdef];
-          config._module.args = {
+          config._module.args = let
+            inherit (config.settings) basedir;
+            basedir' = if basedir != null then { inherit basedir; } else {
+              basedir = lib.mkOverride 1500 basedir;
+            };
+          in basedir' // {
             inherit pkgs;
             inherit (config) fetchers pdefs;
-            inherit (config.settings) basedir;
             inherit (config.buildPlan) deriveTreeInfo;
           };
           # Priority prefers low numbers - "low priority" means "big number",
