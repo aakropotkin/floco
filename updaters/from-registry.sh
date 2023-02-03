@@ -15,7 +15,7 @@ set -o pipefail;
 #_as_me="floco update registry";
 _as_me='from-registry.sh';
 
-_version="0.3.0";
+_version="0.4.0";
 
 # [-c FLOCO-CONFIG-FILE]
 _usage_msg="Usage: \
@@ -29,6 +29,10 @@ _help_msg="$_usage_msg
 Dev. dependencies will be omitted from generated definitions.
 
 Options:
+  -t,--tree           Include \`treeInfo' for the root package.
+  -T,--no-tree        Omit \`treeInfo' for the root package.
+  -p,--pins           Include \`<pdef>.depInfo.*.pin' info.
+  -P,--no-pins        Omit \`<pdef>.depInfo.*.pin' info.
   -o,--out-file PATH  Path to write generated \`pdef' records.
                       Defaults to \`PWD/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
@@ -104,6 +108,10 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
+    -t|--tree)                              TREE=:; ;;
+    -T|--no-tree|--notree)                  TREE=; ;;
+    -p|--pins|--pin)                        PINS=:; ;;
+    -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
     -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
     -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
@@ -137,6 +145,8 @@ fi
 : "${JSON=}";
 : "${NO_BACKUP=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
+: "${TREE=}";
+: "${PINS=:}";
 
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
@@ -202,6 +212,17 @@ bail() {
     echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
     mv -- "$OUTFILE~" "$OUTFILE";
   fi
+  if [[ -z "${TREE:-}" ]]; then
+    echo "$_as_me: If translation failed due to infinite recursion, you may have
+dependency cycles in your lockfile.
+While we truly recommend unfucking your dependency graph, and following good
+Software Development best practices.
+We understand that you probably just want to build your project, so try
+rerunning this script using the \`--tree' flag.
+This produces a ( significantly ) slower build plan, but if you care about
+performance you should follow best practices, and refactor with sensible
+interface design to kill all cycles." >&2;
+  fi
   cleanup;
 }
 
@@ -231,7 +252,7 @@ $NPM install            \
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_CONFIG=}";
-export FLAKE_REF LOCKDIR FLOCO_CONFIG JSON OUTFILE;
+export FLAKE_REF LOCKDIR FLOCO_CONFIG JSON OUTFILE PINS TREE;
 
 if [[ -z "$JSON" ]]; then
   _NIX_FLAGS="--raw";
@@ -263,6 +284,8 @@ let
               imports = ["${floco}/modules/plockToPdefs"];
               config._module.args.basedir = /. + ( dirOf outfile );
               config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
+              config.includePins         = ( builtins.getEnv "PINS" ) != "";
+              config.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
             }];
           };
         };
