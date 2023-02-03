@@ -27,19 +27,6 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    pdef = lib.mkOption {
-      description = lib.mdDoc ''
-        Package's declared metadata normalized as `pdef` submodule.
-      '';
-      type = nt.submoduleWith {
-        shorthandOnlyDefinesConfig = true;
-        modules                    = [];
-      };
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
     checkSystemSupport = lib.mkOption {
       description = lib.mdDoc ''
         A function that checks if `stdenv.hostPlatform` or a `system` pair can

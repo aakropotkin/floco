@@ -1,6 +1,7 @@
 {
   _file   = "<floco>/plockToPdefs";
   imports = [
+    ../buildPlan
     ../topo
     ../plock
     ../records

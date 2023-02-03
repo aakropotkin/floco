@@ -5,11 +5,13 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, buildPlan, pdefs, fetchers, basedir, ... }: let
+{ lib, options, config, pkgs, floco, basedir, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
+
+  inherit (floco) fetchers;
 
 # ---------------------------------------------------------------------------- #
 
@@ -64,8 +66,21 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  _module.args.deriveTreeInfo =
-    lib.mkDefault buildPlan.deriveTreeInfo;
+    _module.args = {
+      pkgs    = lib.mkDefault pkgs;
+      floco   = lib.mkDefault floco;
+      basedir = let
+        isExt = f:
+          ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
+          ( f != "<unknown-file>" ) &&
+          ( f != "lib/modules.nix" );
+        dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
+        exts = builtins.filter isExt dls;
+        val  = if exts != [] then dirOf ( builtins.head exts ) else
+              config.fetchInfo.path or config.metaFiles.pjsDir;
+      in lib.mkDefault val;
+    };
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -99,17 +114,6 @@ in {
     # are relevant to the build plan.
     # While these abstractions may be bit of a headache, they're necessary to
     # allow the `floco' framework to be extensible.
-
-    _module.args.basedir = let
-      isExt = f:
-        ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
-        ( f != "<unknown-file>" ) &&
-        ( f != "lib/modules.nix" );
-      dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
-      exts = builtins.filter isExt dls;
-      val  = if exts != [] then dirOf ( builtins.head exts ) else
-             config.fetchInfo.path or config.metaFiles.pjsDir;
-    in lib.mkDefault val;
 
     fetchInfo = let
       default = builtins.mapAttrs ( _: lib.mkDefault ) ( {

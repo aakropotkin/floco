@@ -1,10 +1,10 @@
 # ============================================================================ #
 #
-# Expects `config.pdef' to be provided.
+# Expects `pdef' to be provided.
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, floco, options, ... }: let
+{ lib, config, pkgs, pdef, floco, options, ... }: let
 
   nt = lib.types;
 
@@ -18,38 +18,16 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  options.pdef = lib.mkOption {
-    type = nt.submoduleWith {
-      shorthandOnlyDefinesConfig = true;
-      modules = [
-        ( { ... }: {
-          imports = [floco.records.pdef];
-          config._module.args = {
-            inherit (floco) pdefs fetchers;
-            inherit (floco.buildPlan) deriveTreeInfo;
-          };
-        } )
-      ];
-    };
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
   config = {
 
 # ---------------------------------------------------------------------------- #
 
-    _module.args = { inherit (floco.buildPlan) deriveFetchInfo; };
-
-# ---------------------------------------------------------------------------- #
-
-    inherit (config.pdef) key;
+    inherit (pdef) key;
 
 # ---------------------------------------------------------------------------- #
 
     checkSystemSupport =
-      lib.mkDefault ( lib.checkSystemSupportFor config.pdef );
+      lib.mkDefault ( lib.checkSystemSupportFor pdef );
 
     systemSupported =
       lib.mkDefault ( config.checkSystemSupport { inherit (pkgs) stdenv; } );
@@ -57,28 +35,28 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    trees = lib.mkIf ( config.pdef.treeInfo != null ) {
+    trees = lib.mkIf ( pdef.treeInfo != null ) {
       supported = lib.mkDefault ( lib.filterAttrs ( k: v: let
           ident   = dirOf v.key;
           version = baseNameOf v.key;
         in ( ! v.optional ) ||
           floco.packages.${ident}.${version}.systemSupported
-        ) config.pdef.treeInfo
+        ) pdef.treeInfo
       );
     };
 
 
 # ---------------------------------------------------------------------------- #
 
-    dist = lib.mkDefault ( if config.pdef.ltype == "file" then null else
+    dist = lib.mkDefault ( if pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
         inherit lib;
         inherit (pkgs) system bash coreutils findutils;
         pkgsFor = pkgs;
         src     = config.built.package;
         pjs = {
-          inherit (config.pdef) version;
-          name = config.pdef.ident;
+          inherit (pdef) version;
+          name = pdef.ident;
         };
       } );
 
@@ -87,10 +65,10 @@ in {
 
     prepared = let
       drv = pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pdef.ident}-prepared";
-        inherit (config.pdef) version;
+        pname = "${baseNameOf pdef.ident}-prepared";
+        inherit (pdef) version;
         install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pdef.ident;
+        IDENT             = pdef.ident;
         src               = config.source;
         nativeBuildInputs = [pkgs.jq];
         buildInputs       = [pkgs.nodejs-14_x];
@@ -127,10 +105,10 @@ in {
 
     global = let
       drv = pkgs.stdenv.mkDerivation {
-        pname = baseNameOf config.pdef.ident;
-        inherit (config.pdef) version;
+        pname = baseNameOf pdef.ident;
+        inherit (pdef) version;
         install_module    = ../../setup/install-module.sh;
-        IDENT             = config.pdef.ident;
+        IDENT             = pdef.ident;
         NMTREE            = config.trees.global or config.trees.prod;
         src               = config.prepared;
         nativeBuildInputs = [pkgs.jq];

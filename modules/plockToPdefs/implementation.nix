@@ -92,13 +92,7 @@
                                   config.scopes.${plentKey}.pins;
     };
   in depInfo' // {
-    _module.args = {
-      inherit basedir;
-      deriveTreeInfo = false;
-      pdefs          = {};
-    };
     inherit ident version key ltype;
-    treeInfo          = null;  # This is required to avoid infinite recursion.
     binInfo.binPairs  = bin;
     fsInfo            = { inherit gypfile; dir = "."; };
     lifecycle.install = hasInstallScript;
@@ -127,7 +121,13 @@ in {
   options.pdefsByPath = lib.mkOption {
     type = nt.lazyAttrsOf ( nt.submodule {
       imports = [config.records.pdef];
-      config._module.args.basedir = lib.mkDefault basedir;
+      config._module.args = {
+        inherit basedir;
+        floco = config // {
+          pdefs     = {};
+          buildPlan = config.buildPlan // { deriveTreeInfo = false; };
+        };
+      };
     } );
   };
 
@@ -170,8 +170,7 @@ in {
     imports = vs;
     config._module.args = {
       inherit basedir;
-      inherit (config) pdefs;
-      inherit (config.buildPlan) deriveTreeInfo;
+      floco = config;
     };
   } ) ) ) byVersion;
 

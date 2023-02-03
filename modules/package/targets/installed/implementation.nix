@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, floco, pkgs, ... }: let
+{ lib, config, pdef, floco, pkgs, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -32,7 +32,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    installed.enable = lib.mkDefault config.pdef.lifecycle.install;
+    installed.enable = lib.mkDefault pdef.lifecycle.install;
 
     installed.scripts = lib.mkDefault ["preinstall" "install" "postinstall"];
 
@@ -42,11 +42,11 @@ in {
 
     installed.package = let
       drv = lib.makeOverridable pkgs.stdenv.mkDerivation {
-        pname = "${baseNameOf config.pdef.ident}-installed";
-        inherit (config.pdef) version;
+        pname = "${baseNameOf pdef.ident}-installed";
+        inherit (pdef) version;
         inherit (cfg) copyTree scripts;
         install_module    = ../../../../setup/install-module.sh;
-        IDENT             = config.pdef.ident;
+        IDENT             = pdef.ident;
         NMTREE            = cfg.tree;
         src               = config.built.package;
         nativeBuildInputs = let

@@ -23,6 +23,7 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
+        ../settings/interface.nix
         ../buildPlan/interface.nix
         ../topo/interface.nix
         ../records/interface.nix

@@ -1,4 +1,4 @@
-{ lib, config, pkgs, floco, ... }: {
+{ lib, config, pkgs, pdef, floco, ... }: {
 
   _file = "<floco>/package/targets/implementation.nix";
 

@@ -40,8 +40,10 @@ in {
     # An example module, but also there's basically a none percent chance that
     # a real build plan won't include this so yeah you depend on `lodash' now.
     packages = builtins.mapAttrs ( ident: builtins.mapAttrs ( version: pdef: {
-      inherit (pdef) key;
-      inherit pdef;
+      config = {
+        inherit (pdef) key;
+        _module.args = { inherit pdef; };
+      };
     } ) ) config.pdefs;
   };  # End `config'
 

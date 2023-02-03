@@ -2,7 +2,7 @@
   _file   = "<floco>/pdefs";
   imports = [
     ../fetchers
-    ../records/pdef/deferred.nix
+    ../records
     ./interface.nix ./implementation.nix
   ];
 }
