@@ -92,7 +92,11 @@
                                   config.scopes.${plentKey}.pins;
     };
   in depInfo' // {
-    _module.args = { inherit basedir; pdefs = {}; };
+    _module.args = {
+      inherit basedir;
+      deriveTreeInfo = false;
+      pdefs          = {};
+    };
     inherit ident version key ltype;
     treeInfo          = null;  # This is required to avoid infinite recursion.
     binInfo.binPairs  = bin;
@@ -167,6 +171,7 @@ in {
     config._module.args = {
       inherit basedir;
       inherit (config) pdefs;
+      inherit (config.buildPlan) deriveTreeInfo;
     };
   } ) ) ) byVersion;
 
