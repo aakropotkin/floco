@@ -23,6 +23,7 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
+        ../topo/interface.nix
         ../records/interface.nix
         ../pdefs/interface.nix
         ../packages/interface.nix
