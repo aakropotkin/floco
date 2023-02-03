@@ -5,13 +5,20 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, floco, basedir, ... }: let
+{ lib
+, options
+, config
+, pkgs
+, fetchers
+, pdefs
+, basedir
+, deriveTreeInfo
+, ...
+}: let
 
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
-
-  inherit (floco) fetchers;
 
 # ---------------------------------------------------------------------------- #
 
@@ -67,8 +74,6 @@ in {
 # ---------------------------------------------------------------------------- #
 
     _module.args = {
-      pkgs    = lib.mkDefault pkgs;
-      floco   = lib.mkDefault floco;
       basedir = let
         isExt = f:
           ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
@@ -79,6 +84,7 @@ in {
         val  = if exts != [] then dirOf ( builtins.head exts ) else
               config.fetchInfo.path or config.metaFiles.pjsDir;
       in lib.mkDefault val;
+      deriveTreeInfo = lib.mkDefault false;
     };
 
 

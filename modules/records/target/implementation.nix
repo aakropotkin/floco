@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------- #
 
   config.target = { ... }: {
-    config._module.args.pkgs = lib.mkOverride 1001 pkgs;
+    config._module.args.pkgs = lib.mkOverride 999 pkgs;
   };
 
 

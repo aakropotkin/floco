@@ -16,9 +16,9 @@ in {
 
   _file = "<floco>/buildPlan/implementation.nix";
 
-  config.buildPlan.deriveTreeInfo = lib.mkDefault (
-    config.topo.pdefsHavePins && config.topo.toposortedAll.isDAG
-  );
+  #config.buildPlan.deriveTreeInfo = lib.mkDefault (
+  #  config.topo.pdefsHavePins && config.topo.toposortedAll.isDAG
+  #);
 
 }
 

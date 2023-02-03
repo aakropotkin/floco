@@ -30,7 +30,8 @@ in {
           Directory used to form relative paths when serializing `fetchInfo`
           records to a file.
         '';
-        type = nt.path;
+        type    = nt.nullOr nt.path;
+        default = null;
       };
 
 

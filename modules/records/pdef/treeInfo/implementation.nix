@@ -4,15 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, floco, ... }: let
-
-# ---------------------------------------------------------------------------- #
-
-  inherit (floco) pdefs buildPlan;
-
-# ---------------------------------------------------------------------------- #
-
-in {
+{ lib, config, pdefs, deriveTreeInfo, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -35,7 +27,7 @@ in {
       in ( ( need.${ident}.pin or null ) != null ) &&
          ( dpdef != null ) &&
          ( ( dpdef.treeInfo or null ) != null );
-    in buildPlan.deriveTreeInfo &&
+    in deriveTreeInfo &&
        depsPinned &&
        ( builtins.all pred ( builtins.attrNames need ) );
 

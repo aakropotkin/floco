@@ -23,8 +23,9 @@ in {
       modules = [
         {
           _module.args = {
-            pkgs  = lib.mkDefault pkgs;
-            floco = config;
+            inherit pkgs;
+            inherit (config) packages pdefs;
+            inherit (config.records) target;
           };
         }
         ../package/implementation.nix
@@ -36,15 +37,16 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config = {
-
     # An example module, but also there's basically a none percent chance that
     # a real build plan won't include this so yeah you depend on `lodash' now.
-    packages = builtins.mapAttrs ( ident: builtins.mapAttrs ( version: pdef: {
-      config = {
-        inherit (pdef) key;
-        _module.args = { inherit pdef; };
-      };
-    } ) ) config.pdefs;
+    packages = builtins.mapAttrs ( ident: builtins.mapAttrs ( version: pdef:
+      { ... }: {
+        config = {
+          inherit (pdef) key;
+          _module.args = { inherit pdef; };
+        };
+      }
+    ) ) config.pdefs;
   };  # End `config'
 
 # ---------------------------------------------------------------------------- #

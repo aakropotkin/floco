@@ -27,7 +27,6 @@ in {
         These base interface must be implemented, but the implementations
         themselves may be swapped or overridden.
       '';
-
       type = nt.submoduleWith {
         modules = [
           ( { ... }: {
@@ -40,9 +39,6 @@ in {
         ];
         specialArgs = { inherit lib; };
       };
-
-      default = {};
-
     };
 
 

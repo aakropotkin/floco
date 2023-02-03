@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, pdef, floco, ... }: {
+{ lib, config, pkgs, pdef, pdefs, packages, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -29,7 +29,7 @@
       fn = import ../../../builders/treeFromInfo.nix;
       real = lib.callPackageWith {
         inherit (pkgs) system coreutils findutils jq bash;
-        inherit floco;
+        inherit packages pdefs;
       } fn args;
       ext = real // {
         overrideAttrs = ov: let
@@ -48,7 +48,7 @@
       ident   = dirOf v.key;
       version = baseNameOf v.key;
     in ( ! v.optional ) ||
-      floco.packages.${ident}.${version}.systemSupported
+      packages.${ident}.${version}.systemSupported
     ) pdef.treeInfo );
 
 

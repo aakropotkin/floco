@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, pdef, floco, options, ... }: let
+{ lib, options, config, pkgs, pdef, packages, pdefs, target, ... }: let
 
   nt = lib.types;
 
@@ -40,7 +40,7 @@ in {
           ident   = dirOf v.key;
           version = baseNameOf v.key;
         in ( ! v.optional ) ||
-          floco.packages.${ident}.${version}.systemSupported
+          packages.${ident}.${version}.systemSupported
         ) pdef.treeInfo
       );
     };

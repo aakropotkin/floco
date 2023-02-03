@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pdef, floco, pkgs, ... }: let
+{ lib, config, pdef, pkgs, target, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -22,7 +22,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.installed = lib.mkOption {
-    type = nt.submodule { imports = [floco.records.target]; };
+    type = nt.submodule { imports = [target]; };
   };
 
 

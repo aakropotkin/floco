@@ -34,13 +34,7 @@ in {
       };
     in nt.attrsOf ( nt.attrsOf pkgType );
 
-    default = {};
-
-    example = {
-      lodash."4.17.21" = {
-        key = "lodash/4.17.21";
-      };
-    };
+    example.lodash."4.17.21".key = "lodash/4.17.21";
 
   };
 

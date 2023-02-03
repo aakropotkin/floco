@@ -123,10 +123,8 @@ in {
       imports = [config.records.pdef];
       config._module.args = {
         inherit basedir;
-        floco = config // {
-          pdefs     = {};
-          buildPlan = config.buildPlan // { deriveTreeInfo = false; };
-        };
+        deriveTreeInfo = false;
+        pdefs          = {};
       };
     } );
   };
@@ -168,10 +166,7 @@ in {
   in builtins.mapAttrs ( _: builtins.mapAttrs ( _: vs: ( { ... }: {
     _file   = config.lockDir + "/package-lock.json";
     imports = vs;
-    config._module.args = {
-      inherit basedir;
-      floco = config;
-    };
+    config._module.args = { inherit basedir; };
   } ) ) ) byVersion;
 
 

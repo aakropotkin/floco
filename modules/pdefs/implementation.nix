@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, ... }: let
+{ lib, options, pkgs, config, ... }: let
 
   nt   = lib.types;
   oloc = builtins.length options.pdefs.loc;
@@ -22,13 +22,16 @@ in {
     type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
       modules = [
-        ( { options, basedir, floco, ... }: let
+        ( { options, ... }: let
           inherit (options.key) loc;
         in {
           imports = [config.records.pdef];
-          config._module.args.pkgs  = lib.mkDefault pkgs;
-          config._module.args.floco = lib.mkDefault config;
-
+          config._module.args = {
+            inherit pkgs;
+            inherit (config) fetchers pdefs;
+            inherit (config.settings) basedir;
+            inherit (config.buildPlan) deriveTreeInfo;
+          };
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".
           # The lowest priority is 1500 which is used by
