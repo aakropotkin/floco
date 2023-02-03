@@ -49,7 +49,7 @@ in {
 
       See Also: includeRootTreeInfo
     '';
-    default = true;
+    default = false;
     type    = nt.bool;
   };
 
@@ -73,7 +73,7 @@ in {
 
       See Also: includePins
     '';
-    default = false;
+    default = true;
     type    = nt.bool;
   };
 

@@ -29,7 +29,7 @@
 in {
   floco-updaters = let
     pname   = "floco-updaters";
-    version = "0.2.0";
+    version = "0.3.0";
     drv = derivation {
       name = pname + "-" + version;
       inherit

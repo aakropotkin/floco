@@ -1,6 +1,7 @@
 {
   _file   = "<floco>/plockToPdefs";
   imports = [
+    ../topo
     ../plock
     ../records
     ../fetchers

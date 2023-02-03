@@ -8,6 +8,8 @@
 
   pdl = lib.collect ( v: v ? _export ) config.pdefs;
 
+  pdefToTopoEnt = pdef: { inherit (pdef) depInfo ident version key; };
+
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -17,11 +19,11 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config.topo.toposortNoPins = pdefsL:
-    lib.toposort ( a: b: b.depInfo ? ${a.ident} ) pdefsL;
+    lib.toposort ( a: b: b.depInfo ? ${a.ident} ) ( map pdefToTopoEnt pdefsL );
 
   config.topo.toposortPins = pdefsL: lib.toposort ( a: b:
     ( b.depInfo ? ${a.ident} ) && ( b.depInfo.${a.ident}.pin == a.version )
-  ) pdefsL;
+  ) ( map pdefToTopoEnt pdefsL );
 
 
 # ---------------------------------------------------------------------------- #
