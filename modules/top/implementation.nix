@@ -22,6 +22,7 @@ in {
       modules = [
         ( { ... }: {
           imports = [
+            ../buildPlan/implementation.nix
             ../topo/implementation.nix
             ../records/implementation.nix
             ../pdefs/implementation.nix

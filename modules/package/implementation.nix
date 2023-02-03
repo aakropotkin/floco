@@ -24,7 +24,10 @@ in {
       modules = [
         ( { ... }: {
           imports = [floco.records.pdef];
-          config._module.args = { inherit (floco) pdefs fetchers; };
+          config._module.args = {
+            inherit (floco) pdefs fetchers;
+            inherit (floco.buildPlan) deriveTreeInfo;
+          };
         } )
       ];
     };
@@ -34,6 +37,10 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config = {
+
+# ---------------------------------------------------------------------------- #
+
+    _module.args = { inherit (floco.buildPlan) deriveFetchInfo; };
 
 # ---------------------------------------------------------------------------- #
 

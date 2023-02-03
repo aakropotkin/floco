@@ -5,9 +5,13 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, fetchers, ... }: let
+{ lib, options, config, pkgs, buildPlan, pdefs, fetchers, ... }: let
+
+# ---------------------------------------------------------------------------- #
 
   nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
 
 in {
 
@@ -36,8 +40,10 @@ in {
 
   config.pdef = { ... }: {
     imports = [./implementation.nix];
-    config._module.args.fetchers = lib.mkOverride 1001 fetchers;
-    config._module.args.pkgs     = lib.mkOverride 1001 pkgs;
+    config._module.args.fetchers  = lib.mkOverride 1001 fetchers;
+    config._module.args.pkgs      = lib.mkOverride 1001 pkgs;
+    config._module.args.pdefs     = lib.mkOverride 1001 pdefs;
+    config._module.args.buildPlan = lib.mkOverride 1001 buildPlan;
   };
 
 

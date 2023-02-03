@@ -25,6 +25,11 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  config.floco.buildPlan.deriveTreeInfo = true;
+
+
+# ---------------------------------------------------------------------------- #
+
   config.floco.packages.${pjs.name}.${pjs.version} = let
     arbv = baseNameOf cfg.pdef.treeInfo."node_modules/@npmcli/arborist".key;
     arbp = config.floco.packages."@npmcli/arborist".${arbv};

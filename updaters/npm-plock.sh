@@ -316,6 +316,7 @@ let
       floco.nixosModules.plockToPdefs
       { config._module.args.basedir = /. + ( dirOf outfile ); }
       {
+        config.floco.buildPlan.deriveTreeInfo = false;
         config.floco.includePins         = ( builtins.getEnv "PINS" ) != "";
         config.floco.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
       }

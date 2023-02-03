@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pdefs, ... }: {
+{ lib, config, pdefs, buildPlan, ... }: {
 
   _file = "<floco>/records/pdef/treeInfo/implementation.nix";
 
@@ -25,7 +25,9 @@
       in ( ( need.${ident}.pin or null ) != null ) &&
          ( dpdef != null ) &&
          ( ( dpdef.treeInfo or null ) != null );
-    in depsPinned && ( builtins.all pred ( builtins.attrNames need ) );
+    in buildPlan.deriveTreeInfo &&
+       depsPinned &&
+       ( builtins.all pred ( builtins.attrNames need ) );
 
     linked = let
       proc = acc: ident: acc // {

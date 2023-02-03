@@ -1,7 +1,7 @@
 {
-  _file = "<floco>/records";
+  _file   = "<floco>/buildPlan";
   imports = [
-    ../buildPlan
+    ../topo
     ./interface.nix ./implementation.nix
   ];
 }

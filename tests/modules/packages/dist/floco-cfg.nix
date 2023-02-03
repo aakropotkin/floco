@@ -1,5 +1,4 @@
 {
-  imports = [../../../../modules/top];
   config.floco.pdefs."@floco/test"."4.2.0" = {
     ident      = "@floco/test";
     version    = "4.2.0";
