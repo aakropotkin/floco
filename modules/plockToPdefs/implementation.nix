@@ -80,7 +80,7 @@
     } else if type == "git" then {
       inherit type;
       url        = resolved;
-      allRefs    = false;
+      allRefs    = true;
       submodules = false;
       shallow    = true;
       rev        = let

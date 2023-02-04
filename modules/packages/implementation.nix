@@ -20,16 +20,7 @@ in {
   options.packages = lib.mkOption {
     type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
-      modules = [
-        {
-          _module.args = {
-            inherit pkgs;
-            inherit (config) packages pdefs;
-            inherit (config.records) target;
-          };
-        }
-        ../package/implementation.nix
-      ];
+      modules = [../package/implementation.nix];
     } ) );
   };
 
@@ -43,7 +34,11 @@ in {
       { ... }: {
         config = {
           inherit (pdef) key;
-          _module.args = { inherit pdef; };
+          _module.args = {
+            inherit pkgs pdef;
+            inherit (config) packages pdefs;
+            inherit (config.records) target;
+          };
         };
       }
     ) ) config.pdefs;
