@@ -15,6 +15,7 @@
     # CHANGEME: If you depend on other `floco' projects, you can import their
     # `floco-cfg.nix' files here to make those configs available.
   ];
+
   config.floco.buildPlan.deriveTreeInfo = true;
 }
 

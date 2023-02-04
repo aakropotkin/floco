@@ -15,6 +15,7 @@
     # CHANGEME: If you depend on other `floco' projects, you can import their
     # `floco-cfg.nix' files here to make those configs available.
   ];
+
   # CHANGEME: If your project doesn't have dependency cycles, and you have
   # `<pdef>.depInfo.*.pin' records, you can enable symlinked trees with:
   ## config.floco.buildPlan.deriveTreeInfo = true;
