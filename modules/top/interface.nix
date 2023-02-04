@@ -35,6 +35,7 @@ in {
       specialArgs.lib =
         if lib ? libfloco then lib else import ../../lib { inherit lib; };
     };
+    default = {};
   };
 
 
