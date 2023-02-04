@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, pdef, packages, pdefs, target, ... }: let
+{ lib, options, config, pkgs, pdef, packages, pdefs, ... }: let
 
   nt = lib.types;
 

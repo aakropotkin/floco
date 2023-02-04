@@ -1,7 +1,4 @@
 {
   _file   = "<floco>/buildPlan";
-  imports = [
-    ../topo
-    ./interface.nix ./implementation.nix
-  ];
+  imports = [./interface.nix ./implementation.nix];
 }

@@ -23,7 +23,7 @@
   fmod = lib.evalModules {
     modules = [
       floco.nixosModules.floco
-      { config._module.args.pkgs = pkgsFor; }
+      { config.floco.settings = { inherit system; }; }
       ./floco-cfg.nix
     ];
   };
@@ -39,6 +39,18 @@
 
 in {
 
+  genPdefs = pkgsFor.writeShellApplication {
+    name          = "genPdefs";
+    runtimeInputs = [pkgsFor.floco-updaters];
+    text          = let
+      pwd = toString ./.;
+    in ''
+      export PINS=:;
+      export TREE=:;
+      exec npm-plock.sh -l ${pwd} "$@";
+    '';
+  };
+
   inherit (pkg)
     dist      # A tarball form of our built package suitable for publishing
     prepared  # The "prepared" form of our project for use by other Nix builds
@@ -49,7 +61,7 @@ in {
   # See "NOTE" below about `NMTREE' targets.
   prodNmDir = pkg.trees.prod;
 
-} // ( if ! lib.isDerivation pkg.built.package then {} else {
+} // ( if ! pkg.built.enable then {} else {
 
   # The base `node_modules/' tree used for pre-dist phases.
   # NOTE: If you explicitly modify `pkgs.*.NMTREE' options then this tree may

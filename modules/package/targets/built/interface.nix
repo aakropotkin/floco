@@ -42,6 +42,13 @@ in {
       '';
 
       type = nt.submodule {
+
+        imports = [
+          ( lib.evalModules {
+            modules = [../../../records/target/interface.nix];
+          } ).config.target
+        ];
+
         options.dependsOnLint = lib.mkOption {
           description = lib.mdDoc ''
             Causes the `built` lifecycle stage to be blocked by successful

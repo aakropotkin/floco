@@ -4,20 +4,30 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, pkgs, ... }: {
+{ lib }: let
 
 # ---------------------------------------------------------------------------- #
 
-  _file = "<floco>/records/target/implementation.nix";
+  test = p: s: ( builtins.match p s ) != null;
+
+  yank = p: s: let
+    m = builtins.match p s;
+  in if m == null then null else builtins.head m;
+
+  yankN = n: p: s: let
+    m = builtins.match p s;
+  in if m == null then null else builtins.elemAt m n;
+
 
 # ---------------------------------------------------------------------------- #
 
-  config.target = { ... }: {
-    config._module.args.pkgs = lib.mkOverride 999 pkgs;
-  };
+in {
 
-
-# ---------------------------------------------------------------------------- #
+  inherit
+    test
+    yank
+    yankN
+  ;
 
 }
 

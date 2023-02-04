@@ -26,19 +26,7 @@ in {
 
     # Removes any `*.nix' files as well as `node_modules/' and
     # `package-lock.json' from the source tree before using them in builds.
-    source = builtins.path {
-      name   = "source";
-      path   = ./.;
-      filter = name: type: let
-        bname  = baseNameOf name;
-        test   = p: s: ( builtins.match p s ) != null;
-        ignore = ["node_modules" "package-lock.json" "yarn.lock"];
-      in ( ! ( builtins.elem bname ignore ) ) &&
-         ( ! ( test ".*\\.nix" bname ) ) &&
-         ( ( type == "symlink" ) -> (
-             ( bname != "result" ) && ( ! ( test "result-.*" bname ) )
-           ) );
-    };
+    source = lib.libfloco.cleanLocalSource ./.;
 
 
 # ---------------------------------------------------------------------------- #
@@ -58,23 +46,16 @@ in {
       noTs = cfg.trees.dev.overrideAttrs ( prev: {
         treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
       } );
-    in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
+    in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) (
       lib.mkForce noTs
     );
 
-    built.overrideAttrs = let
-      ov = prev: {
-        # Add `typescript' as a globally installed package.
-        buildInputs = let
-          tsVersion =
-            baseNameOf cfg.pdef.treeInfo."node_modules/typescript".key;
-        in prev.buildInputs ++ [
-          config.floco.packages."typescript".${tsVersion}.global
-        ];
-      };
-    in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) (
-      lib.mkForce ov
-    );
+    built.extraBuildInputs = let
+      tsVersion =
+        baseNameOf cfg.pdef.trees.supported."node_modules/typescript".key;
+    in lib.mkIf ( cfg.treeInfo ? "node_modules/typescript" ) [
+      config.floco.packages.typescript.${tsVersion}.global
+    ];
 
 
 # ---------------------------------------------------------------------------- #

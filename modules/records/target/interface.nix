@@ -14,7 +14,11 @@
 
 in {
 
+# ---------------------------------------------------------------------------- #
+
   _file = "<floco>/records/target/interface.nix";
+
+# ---------------------------------------------------------------------------- #
 
   options.target = lib.mkOption {
     description = lib.mdDoc ''
@@ -33,7 +37,7 @@ in {
     '';
     type = nt.deferredModuleWith {
       staticModules = [
-        ( { config, ... }: {
+        {
 
 # ---------------------------------------------------------------------------- #
 
@@ -192,7 +196,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-        } )  # End static module
+        }  # End static module
       ];  # End `staticModules'
     };  # End `options.target.type'
 

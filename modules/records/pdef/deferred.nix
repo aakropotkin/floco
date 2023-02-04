@@ -32,7 +32,6 @@ in {
     type = nt.deferredModuleWith {
       staticModules = [./interface.nix];
     };
-    default = {};
   };
 
 
