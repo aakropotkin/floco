@@ -35,7 +35,9 @@ in {
             pkgsFor = nixpkgs.legacyPackages.${config.settings.system};
             withOv  = pkgsFor.extend ( import ../../overlay.nix );
           in lib.mkOverride 999 withOv;
-          config.settings.system = lib.mkOverride 999 pkgs.system;
+          config.settings.system = lib.mkIf (
+            ( builtins.currentSystem or null ) == null
+          ) ( lib.mkOverride 999 pkgs.system );
         } )
       ];
     };

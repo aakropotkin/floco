@@ -321,7 +321,9 @@ let
       value = np.${p};
     };
   in builtins.listToAttrs ( map remap ( builtins.attrNames np ) );
-  contents.floco.pdefs = ( removeAttrs base ["@floco/phony"] ) // {
+  contents.floco.pdefs = let
+    np = removeAttrs base ["@floco/phony"];
+  in if ( builtins.getEnv "TREE" ) == "" then np else np // {
     ${target} = base.${target} // {
       ${tver} = base.${target}.${tver} // { inherit treeInfo; };
     };

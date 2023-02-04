@@ -34,7 +34,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-    nixosModules.floco = import ./modules/top;
+    nixosModules.default = nixosModules.floco;
+    nixosModules.floco   = import ./modules/top;
 
     nixosModules.plockToPdefs = { lib, lockDir, basedir, ... }: {
       imports = [./modules/top];
