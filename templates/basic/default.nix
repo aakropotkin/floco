@@ -21,8 +21,8 @@
   fmod = lib.evalModules {
     modules = [
       floco.nixosModules.floco
-      ./floco-cfg.nix
       { config.floco.settings = { inherit system; basedir = ./.; }; }
+      ./floco-cfg.nix
     ];
   };
 
@@ -58,7 +58,7 @@ in {
   devNmDir = pkg.built.tree;
 
   # Our project in it's "built" state
-  built    = pkg.built.package;
+  built = pkg.built.package;
 
 } ) // ( if ! lib.isDerivation pkg.lint then {} else {
   inherit (pkg) lint;
