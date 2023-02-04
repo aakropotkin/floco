@@ -18,6 +18,7 @@
     modules = [
       ../../../../modules/top
       {
+        config.floco.buildPlan.deriveTreeInfo = true;
         config.floco.pdefs = {
           isexe."2.0.0" = {
             ident   = "isexe";
@@ -67,6 +68,7 @@
     modules = [
       ../../../../modules/top
       {
+        config.floco.buildPlan.deriveTreeInfo = true;
         config.floco.pdefs = {
           semver."7.3.8" = {
             ident   = "semver";

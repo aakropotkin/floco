@@ -14,11 +14,13 @@ in {
 
   _file = "<floco>/records/implementation.nix";
 
+  imports = [../fetchers];
+
 # ---------------------------------------------------------------------------- #
 
   config.records = {
-    _module.args.fetchers = lib.mkDefault config.fetchers;
-    _module.args.pkgs     = lib.mkDefault pkgs;
+    _module.args.pkgs  = lib.mkDefault pkgs;
+    _module.args.floco = lib.mkDefault config;
   };  # End `config.records'
 
 

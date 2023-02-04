@@ -12,28 +12,17 @@
 
 # ---------------------------------------------------------------------------- #
 
-  overrides = { config, ... }: {
-    config.floco.packages."@floco/test"."4.2.0" = {
-      built.overrideAttrs = prev: {
-        buildInputs = prev.buildInputs ++ [
-          config.floco.packages."typescript"."4.9.4".global
-        ];
-      };
-    };
-  };
-
-
   fmod = lib.evalModules {
     modules = [
-      "${floco}/modules/top"
-      {
-        config._module.args.pkgs =
-          floco.inputs.nixpkgs.legacyPackages.${system}.extend
-            floco.overlays.default;
-      }
+      floco.nixosModules.floco
       # Loads our generated `pdefs.nix' as a "module config".
-      ( lib.addPdefs ./pdefs.nix )
-      overrides
+      ./pdefs.nix
+      ( { config, ... }: {
+        config.floco.settings = { inherit system; basedir = ./.; };
+        config.floco.packages."@floco/test"."4.2.0".built.extraBuildInputs = [
+          config.floco.packages.typescript."4.9.5".global
+        ];
+      } )
     ];
   };
 

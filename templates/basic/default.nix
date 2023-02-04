@@ -4,11 +4,9 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ floco   ? builtins.getFlake "github:aakropotkin/floco"
-, nixpkgs ? floco.inputs.nixpkgs
-, lib     ? floco.lib
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}.extend floco.overlays.default
+{ floco  ? builtins.getFlake "github:aakropotkin/floco"
+, lib    ? floco.lib
+, system ? builtins.currentSystem
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -23,7 +21,7 @@
   fmod = lib.evalModules {
     modules = [
       floco.nixosModules.floco
-      { config._module.args.pkgs = pkgsFor; }
+      { config.floco.settings = { inherit system; basedir = ./.; }; }
       ./floco-cfg.nix
     ];
   };
@@ -34,6 +32,7 @@
   # This attrset holds a few derivations related to our package.
   # We'll expose these below to the CLI.
   pkg = fmod.config.floco.packages.${ident}.${version};
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -49,7 +48,7 @@ in {
   # See "NOTE" below about `NMTREE' targets.
   prodNmDir = pkg.trees.prod;
 
-} // ( if ! lib.isDerivation pkg.built.package then {} else {
+} // ( if ! pkg.built.enable then {} else {
 
   # The base `node_modules/' tree used for pre-dist phases.
   # NOTE: If you explicitly modify `pkgs.*.NMTREE' options then this tree may
@@ -59,7 +58,7 @@ in {
   devNmDir = pkg.built.tree;
 
   # Our project in it's "built" state
-  built    = pkg.built.package;
+  built = pkg.built.package;
 
 } ) // ( if ! lib.isDerivation pkg.lint then {} else {
   inherit (pkg) lint;

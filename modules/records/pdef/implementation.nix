@@ -5,7 +5,16 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pdefs, fetchers, basedir, ... }: let
+{ lib
+, options
+, config
+, pkgs
+, fetchers
+, pdefs
+, basedir
+, deriveTreeInfo
+, ...
+}: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -28,6 +37,9 @@ in {
     ./fsInfo/implementation.nix
     ./lifecycle/implementation.nix
   ];
+
+
+# ---------------------------------------------------------------------------- #
 
   options.fetcher = lib.mkOption {
     internal = true;
@@ -61,6 +73,23 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    _module.args = {
+      basedir = let
+        isExt = f:
+          ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
+          ( f != "<unknown-file>" ) &&
+          ( f != "lib/modules.nix" );
+        dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
+        exts = builtins.filter isExt dls;
+        val  = if exts != [] then dirOf ( builtins.head exts ) else
+              config.fetchInfo.path or config.metaFiles.pjsDir;
+      in lib.mkDefault val;
+      deriveTreeInfo = lib.mkDefault false;
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
     ident = lib.mkDefault (
       config.metaFiles.metaRaw.ident or config.metaFiles.pjs.name or
       ( dirOf config.key )
@@ -91,17 +120,6 @@ in {
     # are relevant to the build plan.
     # While these abstractions may be bit of a headache, they're necessary to
     # allow the `floco' framework to be extensible.
-
-    _module.args.basedir = let
-      isExt = f:
-        ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
-        ( f != "<unknown-file>" ) &&
-        ( f != "lib/modules.nix" );
-      dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
-      exts = builtins.filter isExt dls;
-      val  = if exts != [] then dirOf ( builtins.head exts ) else
-             config.fetchInfo.path or config.metaFiles.pjsDir;
-    in lib.mkDefault val;
 
     fetchInfo = let
       default = builtins.mapAttrs ( _: lib.mkDefault ) ( {

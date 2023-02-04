@@ -41,12 +41,32 @@ in {
       description = lib.mdDoc ''
         An exact version number or URI indicating the "resolved" form of a
         dependency descriptor.
-        
+
         This will be used for `treeInfo` formation, and is available for usage
         by extensions to `floco`.
+
+        In the case of conflicts, the "latest" version will be used.
+        The sorting algorithm prefers pre-releases over a release of the same
+        version, following the behavior of `nix-env -u`.
+        Read that again.
+
+        TODO: Write a sort that makes more sense.
+        Honestly though this is a rare edge case in properly
+        maintained software.
       '';
-      type    = nt.nullOr nt.str;
       default = null;
+      type    = let
+        base = nt.nullOr lib.libfloco.version;
+      in base // {
+        merge = loc: defs: let
+          values = lib.getValues defs;
+          nnull  = builtins.filter ( x: x != null ) values;
+          cmp    = a: b: ( builtins.compareVersions a b ) < 0;
+        in if ( builtins.length values ) == 1 then builtins.head values else
+           if ( builtins.length nnull ) == 0 then null else
+           if ( builtins.length nnull ) == 1 then builtins.head nnull else
+           builtins.head ( builtins.sort cmp nnull );
+      };
     };
 
     optional = lib.mkOption {

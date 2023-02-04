@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, floco, pkgs, ... }: let
+{ lib, config, pdef, target, pkgs, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -22,7 +22,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.built = lib.mkOption {
-    type = nt.submodule { imports = [floco.records.target]; };
+    type = nt.submodule { imports = [target]; };
   };
 
 
@@ -32,7 +32,7 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    built.enable = lib.mkDefault config.pdef.lifecycle.build;
+    built.enable = lib.mkDefault pdef.lifecycle.build;
 
     built.scripts = lib.mkDefault ["prebuild" "build" "postbuild" "prepublish"];
 
@@ -42,11 +42,11 @@ in {
 
     built.package = let
       drv = lib.makeOverridable pkgs.stdenv.mkDerivation ( {
-        pname = "${baseNameOf config.pdef.ident}-built";
-        inherit (config.pdef) version;
+        pname = "${baseNameOf pdef.ident}-built";
+        inherit (pdef) version;
         inherit (cfg) copyTree scripts;
         install_module    = ../../../../setup/install-module.sh;
-        IDENT             = config.pdef.ident;
+        IDENT             = pdef.ident;
         NMTREE            = cfg.tree;
         src               = config.source;
         nativeBuildInputs = let

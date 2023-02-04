@@ -10,7 +10,7 @@
 
   config.floco.packages."@floco/test"."4.2.0" = let
     cfg       = config.floco.packages."@floco/test"."4.2.0";
-    tsVersion = baseNameOf cfg.pdef.treeInfo."node_modules/typescript".key;
+    tsVersion = baseNameOf cfg.trees.supported."node_modules/typescript".key;
   in {
 
     source = builtins.path {

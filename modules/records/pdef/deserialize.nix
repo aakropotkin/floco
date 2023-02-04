@@ -15,6 +15,8 @@
   # we hit `lib.mkDefault'
   mkCached = lib.mkOverride 900;
 
+  mkCachedRec = lib.mapAttrsRecursive ( _: mkCached );
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -22,12 +24,12 @@ in {
 
   _file = "<floco>/records/pdef/deserialize.nix";
 
-  config.binInfo      = lib.mapAttrsRecursive ( _: mkCached ) options.binInfo.default;
+  config.binInfo      = mkCachedRec options.binInfo.default;
   config.depInfo      = mkCached {};
   config.peerInfo     = mkCached {};
-  config.sysInfo      = lib.mapAttrsRecursive ( _: mkCached ) options.sysInfo.default;
-  config.lifecycle    = lib.mapAttrsRecursive ( _: mkCached ) options.lifecycle.default;
-  config.fsInfo       = lib.mapAttrsRecursive ( _: mkCached ) options.fsInfo.default;
+  config.sysInfo      = mkCachedRec options.sysInfo.default;
+  config.lifecycle    = mkCachedRec options.lifecycle.default;
+  config.fsInfo       = mkCachedRec options.fsInfo.default;
   config.deserialized = true;
 
   # We explicitly set this to empty to prevent various routines from trying to

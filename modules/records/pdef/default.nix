@@ -26,4 +26,6 @@
     } ).config.fetchers
   );
 
+  config._module.args.deriveTreeInfo = lib.mkOverride 1400 false;
+
 }

@@ -148,7 +148,7 @@ done
 
 OUTFILE="$( mktmp_auto --suffix=.json; )";
 rm -f "$OUTFILE";
-$NIX run "$FLAKE_REF#fromRegistry" -- "$PKG" --json --out-file "$OUTFILE";
+$NIX run "$FLAKE_REF#fromRegistry" -- "$PKG" --json -t --out-file "$OUTFILE";
 
 TARGET_ENT="$( mktmp_auto; )";
 # XXX: This only works when `PKG' is a raw identifier.

@@ -34,7 +34,9 @@ in {
 
     inherit (config) pure;
 
-    function = lib.mkDefault builtins.fetchTree;
+    function = lib.mkDefault ( args: let
+      args' = lib.filterAttrs ( _: v: v != null ) args;
+    in builtins.fetchTree args' );
 
 
 # ---------------------------------------------------------------------------- #
@@ -42,9 +44,11 @@ in {
     lockFetchInfo = lib.mkDefault ( fetchInfo: let
         sourceInfo = config.fetchTree_git.function ( {
           type = "git";
-          inherit (fetchInfo) url allRefs shallow submodules ref;
+          inherit (fetchInfo) url allRefs shallow submodules;
         } // ( if ( fetchInfo.rev or null ) == null then {} else {
           inherit (fetchInfo) rev;
+        } ) // ( if ( fetchInfo.ref or null ) == null then {} else {
+          inherit (fetchInfo) ref;
         } ) );
         narHash' = if ( fetchInfo.narHash or null ) != null then {} else {
           inherit (sourceInfo) narHash;
@@ -104,7 +108,7 @@ in {
               type    = nt.nullOr ft.rev;
               default = null;
             };
-            ref     = lib.mkOption { type = nt.str; default = "HEAD"; };
+            ref     = lib.mkOption { type = nt.nullOr nt.str; default = null; };
             narHash = lib.mkOption ( {
               type = if fetchers.config.fetchTree_git.pure then ft.narHash
                      else nt.nullOr ft.narHash;

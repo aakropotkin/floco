@@ -1,10 +1,10 @@
 # ============================================================================ #
 #
-# Expects `config.pdef' to be provided.
+#
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pkgs, floco, ... }: {
+{ lib, config, pkgs, pdef, pdefs, packages, ... }: {
 
 # ---------------------------------------------------------------------------- #
 
@@ -13,9 +13,9 @@
 # ---------------------------------------------------------------------------- #
 
   config.warnings = lib.mkIf (
-    ( config.pdef.treeInfo == null )
-  ) ( if config.pdef.lifecycle.install || config.pdef.lifecycle.build then [''
-    The package `${config.pdef.key}' requires a build or install, but no
+    ( pdef.treeInfo == null )
+  ) ( if pdef.lifecycle.install || pdef.lifecycle.build then [''
+    The package `${pdef.key}' requires a build or install, but no
     `treeInfo' has been defined.
     Installations and builds will be executed without a `node_modules/' tree
     unless you explicitly define `treeInfo'.
@@ -29,7 +29,7 @@
       fn = import ../../../builders/treeFromInfo.nix;
       real = lib.callPackageWith {
         inherit (pkgs) system coreutils findutils jq bash;
-        inherit floco;
+        inherit packages pdefs;
       } fn args;
       ext = real // {
         overrideAttrs = ov: let
@@ -39,7 +39,7 @@
         in mkTree match;
       };
     in if ( args.treeInfo or {} ) == {} then null else ext;
-    cond = config.pdef.treeInfo != null;
+    cond = pdef.treeInfo != null;
   in {
 
 # ---------------------------------------------------------------------------- #
@@ -48,8 +48,8 @@
       ident   = dirOf v.key;
       version = baseNameOf v.key;
     in ( ! v.optional ) ||
-      floco.packages.${ident}.${version}.systemSupported
-    ) config.pdef.treeInfo );
+      packages.${ident}.${version}.systemSupported
+    ) pdef.treeInfo );
 
 
 # ---------------------------------------------------------------------------- #

@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, ... }: let
+{ lib, options, pkgs, config, ... }: let
 
   nt   = lib.types;
   oloc = builtins.length options.pdefs.loc;
@@ -22,14 +22,20 @@ in {
     type = nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
       modules = [
-        ( { options, fetcher, fetchers, basedir, pdefs, ... }: let
+        ( { options, ... }: let
           inherit (options.key) loc;
         in {
           imports = [config.records.pdef];
-          config._module.args.fetchers = lib.mkDefault config.fetchers;
-          config._module.args.pkgs     = lib.mkDefault pkgs;
-          config._module.args.pdefs    = lib.mkDefault config.pdefs;
-
+          config._module.args = let
+            inherit (config.settings) basedir;
+            basedir' = if basedir != null then { inherit basedir; } else {
+              basedir = lib.mkOverride 1500 basedir;
+            };
+          in basedir' // {
+            inherit pkgs;
+            inherit (config) fetchers pdefs;
+            inherit (config.buildPlan) deriveTreeInfo;
+          };
           # Priority prefers low numbers - "low priority" means "big number",
           # "high priority" means "low number".
           # The lowest priority is 1500 which is used by

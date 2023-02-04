@@ -53,10 +53,16 @@ in {
     ./modules.nix
     ./paths.nix
     ./types.nix
+    ./trivial.nix
+    ./sources.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
   inherit (final.libfloco)
+    test
+    yank
+    yankN
+
     addPdefs
     getPdef
 

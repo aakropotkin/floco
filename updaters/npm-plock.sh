@@ -18,7 +18,7 @@ set -o pipefail;
 #_as_me="floco update npm-plock";
 _as_me='npm-plock.sh';
 
-_version="0.3.0";
+_version="0.4.0";
 
 _usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
@@ -32,6 +32,11 @@ This script will trash any existing \`node_modules/' trees, and if a
 on exit to ensure that it is unmodified by this script.
 
 Options:
+  -t,--tree           Include \`treeInfo' for the root package.
+  -T,--no-tree        Omit \`treeInfo' for the root package.
+  -p,--pins           Include \`<pdef>.depInfo.*.pin' info.
+  -P,--no-pins        Omit \`<pdef>.depInfo.*.pin' info.
+  -d,--debug          Show \`nix' backtraces.
   -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
                       This directory must contain a \`package.json', but need
                       not
@@ -58,6 +63,7 @@ Environment:
   FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
   FLAKE_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
+  DEBUG         Show \`nix' backtraces.
 ";
 
 
@@ -110,6 +116,11 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
+    -t|--tree)                              TREE=:; ;;
+    -T|--no-tree|--notree)                  TREE=; ;;
+    -p|--pins|--pin)                        PINS=:; ;;
+    -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
+    -d|--debug)                             DEBUG=:; ;;
     -l|--lock-dir|--lockdir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
@@ -141,6 +152,9 @@ fi
 : "${JSON=}";
 : "${NO_BACKUP=}";
 : "${FLAKE_REF:=github:aakropotkin/floco}";
+: "${TREE=:}";
+: "${PINS=}";
+: "${DEBUG=}";
 
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
@@ -230,12 +244,32 @@ bail() {
     echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
     mv -- "$OUTFILE~" "$OUTFILE";
   fi
+  if [[ -n "${PINS:-}" ]]; then
+    echo "$_as_me: If translation failed due to infinite recursion, you may \
+have dependency cycles in your lockfile.
+  While we truly recommend unfucking your dependency graph, and following good \
+Software Development best practices.
+  We understand that you probably just want to build your project, so try \
+rerunning this script using the \`--tree --no-pins' flags.
+  This produces a ( significantly ) slower build plan, but if you care about \
+performance you should follow best practices.
+  Refactor with sensible interface design to kill cycles, or file PRs/bug \
+reports for external dependencies." >&2;
+  fi
   cleanup;
 }
 
 _es=0;
 trap '_es="$?"; bail; exit "$_es";' HUP TERM INT QUIT;
-trap '_es="$?"; cleanup; exit "$_es";' EXIT;
+trap '
+_es="$?";
+if [[ "$_es" -ne 0 ]]; then
+  bail;
+else
+  cleanup;
+fi
+exit "$_es";
+' EXIT;
 
 
 # ---------------------------------------------------------------------------- #
@@ -254,7 +288,7 @@ $NPM install            \
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_CONFIG=}";
-export FLAKE_REF FLOCO_CONFIG JSON OUTFILE LOCKDIR;
+export FLAKE_REF FLOCO_CONFIG JSON OUTFILE LOCKDIR PINS TREE;
 
 if [[ -z "$JSON" ]]; then
   _NIX_FLAGS="--raw";
@@ -262,8 +296,11 @@ else
   _NIX_FLAGS="--json";
 fi
 
+if [[ -n "$DEBUG" ]]; then
+  _NIX_FLAGS="--show-trace";
+fi
 
-$NIX --no-substitute eval --show-trace $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
+$NIX --no-substitute eval $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
 let
   floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
@@ -278,6 +315,11 @@ let
     modules = cfg ++ [
       floco.nixosModules.plockToPdefs
       { config._module.args.basedir = /. + ( dirOf outfile ); }
+      {
+        config.floco.buildPlan.deriveTreeInfo = false;
+        config.floco.includePins         = ( builtins.getEnv "PINS" ) != "";
+        config.floco.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
+      }
     ];
     specialArgs.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
   };

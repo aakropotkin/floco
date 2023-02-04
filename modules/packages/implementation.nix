@@ -20,15 +20,7 @@ in {
   options.packages = lib.mkOption {
     type = nt.attrsOf ( nt.attrsOf ( nt.submoduleWith {
       shorthandOnlyDefinesConfig = true;
-      modules = [
-        {
-          _module.args = {
-            pkgs  = lib.mkDefault pkgs;
-            floco = config;
-          };
-        }
-        ../package/implementation.nix
-      ];
+      modules = [../package/implementation.nix];
     } ) );
   };
 
@@ -36,13 +28,20 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config = {
-
     # An example module, but also there's basically a none percent chance that
     # a real build plan won't include this so yeah you depend on `lodash' now.
-    packages = builtins.mapAttrs ( ident: builtins.mapAttrs ( version: pdef: {
-      inherit (pdef) key;
-      inherit pdef;
-    } ) ) config.pdefs;
+    packages = builtins.mapAttrs ( ident: builtins.mapAttrs ( version: pdef:
+      { ... }: {
+        config = {
+          inherit (pdef) key;
+          _module.args = {
+            inherit pkgs pdef;
+            inherit (config) packages pdefs;
+            inherit (config.records) target;
+          };
+        };
+      }
+    ) ) config.pdefs;
   };  # End `config'
 
 # ---------------------------------------------------------------------------- #

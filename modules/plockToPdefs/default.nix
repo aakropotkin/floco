@@ -5,7 +5,6 @@
     ../records
     ../fetchers
     ../pdefs
-    ./interface.nix
-    ./implementation.nix
+    ./interface.nix ./implementation.nix
   ];
 }

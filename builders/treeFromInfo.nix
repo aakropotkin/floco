@@ -23,7 +23,10 @@ in {
 , treeInfo ? null
 
 # Used to pull packages
-, floco ? null
+, packages ? null
+
+# Used to pull package metadata
+, pdefs ? null
 
 , name ? "node_modules"
 } @ args: let
@@ -41,10 +44,10 @@ in {
       key     = treeInfo.${to}.key;
       ident   = dirOf key;
       version = baseNameOf key;
-      pkg     = floco.packages.${ident}.${version};
+      pkg     = packages.${ident}.${version};
       dir = if ! ( treeInfo.${to}.link or false ) then pkg.prepared.outPath else
             pkg.global.outPath + "/lib/node_modules/${ident}";
-      pdef = pkg.pdef;
+      pdef = lib.getPdef { inherit pdefs; } { inherit ident version; };
       env  = let
         binPairs' = if pdef.binInfo.binPairs == {} then {} else {
           BIN_PAIRS = let
