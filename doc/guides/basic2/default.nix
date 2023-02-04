@@ -1,10 +1,11 @@
+# default.nix
 # ============================================================================ #
 #
 # Package shim exposing installable targets from `floco' modules.
 #
 # ---------------------------------------------------------------------------- #
 
-{ floco  ? builtins.getFlake "github:aakropotkin/floco"
+{ floco  ? builtins.getFlake ( toString ../../.. )
 , lib    ? floco.lib
 , system ? builtins.currentSystem
 }: let
