@@ -21,15 +21,43 @@
 
   nodeBasicFilter = name: type:
     ! ( builtins.elem ( baseNameOf name ) [
-          "node_modules" "package-lock.json" "yarn.lock"
-          ".yarn" ".yarnrc.yml" ".npmrc"
+          "node_modules"
+          "package-lock.json" ".npmrc" "npm-debug.log"
+          "yarn.lock" ".yarn" ".yarnrc.yml" "yarn-error.log"
+          ".tsbuildinfo" ".eslintcache"
         ] );
 
 
 # ---------------------------------------------------------------------------- #
 
+  noJunkFilter = name: type: let
+    bname        = baseNameOf name;
+    ignoredNames = [
+      ".vscode"
+      "Session.vim"
+      ".Trashes"
+      "ehthumbs.db"
+      "Thumbs.db"
+      ".Spotlight-V1000"
+      ".Trash-1000"
+      ".sass-cache"
+    ];
+    ignoredPatts = [
+      "\\.DS_Store.?"
+      "\\._.*"
+      ".*~"
+      ".*\\.sw[mnop]"
+    ];
+  in ! ( ( builtins.elem bname ignoredNames ) ||
+         ( builtins.any ( p: lib.libfloco.test p bname ) ignoredPatts ) );
+
+
+# ---------------------------------------------------------------------------- #
+
   defaultFilter = name: type:
-    ( noNixFilter name type ) && ( nodeBasicFilter name type );
+    ( nodeBasicFilter name type ) &&
+    ( noJunkFilter name type ) &&
+    ( noNixFilter name type );
 
 
 # ---------------------------------------------------------------------------- #

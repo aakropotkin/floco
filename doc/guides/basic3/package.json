@@ -1,0 +1,18 @@
+{
+  "name": "@floco/test",
+  "version": "4.2.0",
+  "bin": {
+    "test": "./bin.js"
+  },
+  "scripts": {
+    "clean": "rm -rf ./node_modules ./index.js",
+    "build": "tsc ./index.ts"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.191",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
