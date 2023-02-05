@@ -4,25 +4,24 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <iostream>
 #include <regex>
-#include "nix/util.hh"
-#include "nix/primops.hh"
-#include "nix/json-to-value.hh"
+#include <nix/util.hh>
+#include <nix/primops.hh>
+#include <nix/json-to-value.hh>
+
 #include "progs.hh"
 
 using namespace nix;
 
 /* -------------------------------------------------------------------------- */
 
-  static std::string
-npmResolve( const std::string spec )
+  std::string
+nix::npmResolve( const std::string spec )
 {
-  std::string uri  = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
+  static const std::regex patt = std::regex( "^.*'(https://[^']+)'.*$" );
 
-  static const std::regex  patt = std::regex( "^.*'(https://[^']+)'.*$" );
-
-  auto lines = tokenizeString<Strings>( uri, "\n" );
+  std::string uri   = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
+  auto        lines = tokenizeString<Strings>( uri, "\n" );
 
   if ( 1 < lines.size() )
     {
@@ -39,7 +38,6 @@ npmResolve( const std::string spec )
       return uri;
     }
 }
-
 
 
 /* -------------------------------------------------------------------------- */

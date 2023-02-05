@@ -18,6 +18,11 @@ std::string runNpm(
   const Strings & args, const std::optional<std::string> & input = {}
 );
 
+std::string npmResolve( const std::string spec );
+
+
+/* -------------------------------------------------------------------------- */
+
 
 std::string runTreeFor(
   const Strings & args, const std::optional<std::string> & input = {}
