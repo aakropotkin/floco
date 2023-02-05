@@ -75,7 +75,9 @@ in {
 
     deserialized = lib.mkDefault (
       builtins.any ( v: builtins.elem ( baseNameOf v.file ) [
-        "pdefs.nix" "pdefs.json"
+        "pdefs.nix"      "pdefs.json"
+        "foverrides.nix" "foverrides.json"
+        "floco-cfg.nix"  "floco-cfg.json"
       ] ) options.ltype.definitionsWithLocations
     );
 

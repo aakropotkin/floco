@@ -8,5 +8,6 @@
       path   = ./.;
       filter = name: type: ( baseNameOf name ) == "package.json";
     };
+    lifecycle.build = true;
   };
 }
