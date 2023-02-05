@@ -15,32 +15,42 @@ using namespace nix;
 
 /* -------------------------------------------------------------------------- */
 
-  static void
-prim_npmResolve(
-  EvalState & state, const PosIdx pos, Value ** args, Value & v
-)
+  static std::string
+npmResolve( const std::string spec )
 {
-  std::string spec( state.forceStringNoCtx( * args[0], pos ) );
   std::string uri  = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
 
   static const std::regex  patt = std::regex( "^.*'(https://[^']+)'.*$" );
 
   auto lines = tokenizeString<Strings>( uri, "\n" );
-  std::smatch match;
 
   if ( 1 < lines.size() )
     {
+      std::smatch match;
       std::regex_match( lines.back(), match, patt );
-      v.mkString( match[1].str() );
+      return match[1].str();
     }
   else if ( hasPrefix( uri, "file:" ) )
     {
-      v.mkString( uri.substr( 5 ) );
+      return uri.substr( 5 );
     }
   else
     {
-      v.mkString( uri );
+      return uri;
     }
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+
+  static void
+prim_npmResolve(
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
+{
+  const std::string spec( state.forceStringNoCtx( * args[0], pos ) );
+  v.mkString( npmResolve( spec ) );
 }
 
 static RegisterPrimOp primop_npm_resolve( {
