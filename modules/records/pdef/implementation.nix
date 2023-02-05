@@ -73,6 +73,15 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    deserialized = lib.mkDefault (
+      builtins.any ( v: builtins.elem ( baseNameOf v.file ) [
+        "pdefs.nix" "pdefs.json"
+      ] ) options.ltype.definitionsWithLocations
+    );
+
+
+# ---------------------------------------------------------------------------- #
+
     _module.args = {
       basedir = let
         isExt = f:
@@ -161,6 +170,7 @@ in {
     in lib.mkDefault ( projDir + dp );
 
     metaFiles.pjs = lib.mkDefault (
+      if config.deserialized then {} else
       lib.importJSON ( config.metaFiles.pjsDir + "/package.json" )
     );
 

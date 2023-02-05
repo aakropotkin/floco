@@ -32,9 +32,14 @@ in {
 
 
   config = {
-    peerInfo = builtins.mapAttrs ( ident: _:
-      import ./single.implementation.nix ( { inherit lib ident; } // raw )
-    ) ( ( raw.peerDependencies or {} ) // ( raw.peerDependenciesMeta or {} ) );
+
+    peerInfo = let
+      base = builtins.mapAttrs ( ident: _:
+        import ./single.implementation.nix ( { inherit lib ident; } // raw )
+      ) ( ( raw.peerDependencies or {} ) //
+          ( raw.peerDependenciesMeta or {} ) );
+    in lib.mkDefault ( if config.deserialized then {} else base );
+
     _export = lib.mkIf ( config.peerInfo != {} ) {
       peerInfo = let
         iface = import ./single.interface.nix { inherit lib; };
