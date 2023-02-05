@@ -44,6 +44,22 @@ runPjsScripts() {
   done
 }
 
+npm() {
+  case "$1" in
+    run) runPjsScript "$2"; ;;
+    *)   command npm "$@"; ;;
+  esac
+}
+
+yarn() {
+  case "$1" in
+    run)   runPjsScript "$2"; ;;
+    build) runPjsScripts prebuild build postbuild prepublish; ;;
+    *)     command yarn "$@"; ;;
+  esac
+}
+
+
 
 # ---------------------------------------------------------------------------- #
 #
