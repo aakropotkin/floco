@@ -169,12 +169,21 @@ in {
         then "/" + config.fsInfo.dir
         else "";
       projDir = config.fetchInfo.path or config.sourceInfo.outPath;
-    in lib.mkDefault ( projDir + dp );
-
-    metaFiles.pjs = lib.mkDefault (
-      if config.deserialized then {} else
-      lib.importJSON ( config.metaFiles.pjsDir + "/package.json" )
+    in lib.mkDefault (
+      if ! config.deserialized then projDir + dp else
+      throw ( "floco: `${config.key}' attempting to reference " +
+              "`metaFiles.pjsDir' from deserialized form." )
     );
+
+    metaFiles.pjs = let
+      pjsPath = config.metaFiles.pjsDir + "/package.json";
+      pjs = {
+        _file = pjsPath;
+        config = builtins.fromJSON (
+          builtins.unsafeDiscardStringContext ( builtins.readFile pjsPath )
+        );
+      };
+    in lib.mkDefault ( if config.deserialized then {} else pjs );
 
 
 # ---------------------------------------------------------------------------- #
