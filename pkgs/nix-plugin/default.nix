@@ -20,7 +20,7 @@
 , boost    ? pkgsFor.boost
 , treeFor  ? import ../treeFor { inherit nixpkgs system pkgsFor; }
 , semver   ? import ../../fpkgs/semver { inherit nixpkgs system pkgsFor; }
-, nodejs   ? pkgsFor.nodejs-slim-14_x
+, nodejs   ? pkgsFor.nodejs-14_x
 , npm      ? nodejs.pkgs.npm
 , bash     ? pkgsFor.bash
 , nix      ? nix-flake.packages.${system}.nix

@@ -4,6 +4,8 @@
  *
  * -------------------------------------------------------------------------- */
 
+#include <iostream>
+#include <regex>
 #include "nix/util.hh"
 #include "nix/primops.hh"
 #include "nix/json-to-value.hh"
@@ -19,12 +21,26 @@ prim_npmResolve(
 )
 {
   std::string spec( state.forceStringNoCtx( * args[0], pos ) );
-  std::string uri = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
-  if ( hasPrefix( uri, "file:" ) )
+  std::string uri  = chomp( runNpm( { "show", spec, "dist.tarball" } ) );
+
+  static const std::regex  patt = std::regex( "^.*'(https://[^']+)'.*$" );
+
+  auto lines = tokenizeString<Strings>( uri, "\n" );
+  std::smatch match;
+
+  if ( 1 < lines.size() )
     {
-      uri = uri.substr( 5 );
+      std::regex_match( lines.back(), match, patt );
+      v.mkString( match[1].str() );
     }
-  v.mkString( uri );
+  else if ( hasPrefix( uri, "file:" ) )
+    {
+      v.mkString( uri.substr( 5 ) );
+    }
+  else
+    {
+      v.mkString( uri );
+    }
 }
 
 static RegisterPrimOp primop_npm_resolve( {
