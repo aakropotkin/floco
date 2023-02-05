@@ -44,20 +44,12 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config.depInfo = let
-    base = acc: ident: acc // {
+    proc = acc: ident: acc // {
       ${ident} = import ./single.implementation.nix ( raw // {
         inherit lib ident;
       } );
     };
-    dft = let
-      subOpts =
-        removeAttrs ( options.depInfo.type.getSubOptions [] ) ["_module"];
-    in builtins.mapAttrs ( _: o:
-      lib.mkOverride 900 o.default
-    ) ( lib.filterAttrs ( _: o: o ? default ) subOpts );
-    deserial = _: _: dft;
-    proc = if config.deserialized then deserial else base;
-  in builtins.foldl' proc {} idents;
+  in lib.mkIf ( ! config.deserialized ) ( builtins.foldl' proc {} idents );
 
   config._export = let
     depInfo = let
