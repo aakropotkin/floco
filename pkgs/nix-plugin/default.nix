@@ -24,6 +24,7 @@
 , npm      ? nodejs.pkgs.npm
 , bash     ? pkgsFor.bash
 , nix      ? nix-flake.packages.${system}.nix
+, darwin   ? pkgsFor.darwin
 }: stdenv.mkDerivation {
   inherit bash nix;
   pname   = "nix-floco-plugin";
@@ -34,8 +35,10 @@
     filter = name: type:
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
-  libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs           = [nix.dev boost.dev];
+  libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
+  buildInputs = [nix.dev boost.dev] ++ (
+    if stdenv.isDarwin then [darwin.apple_sdk.frameworks.Security] else []
+  );
   propagatedBuildInputs = [nodejs npm treeFor semver];
   buildPhase = ''
     runHook preBuild;
