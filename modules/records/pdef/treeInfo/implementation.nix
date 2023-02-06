@@ -46,11 +46,12 @@
            ( need == {} ) || canLinkDeps;
   in {
 
-    treeInfo = lib.mkIf cond ( lib.mkDefault (
+    treeInfo = lib.mkDefault (
       config.metaFiles.metaRaw.treeInfo or (
-        if need == {} then {} else linked
+        if need == {} then {} else
+        if cond then linked else null
       )
-    ) );
+    );
 
     _export = lib.mkIf ( cond || ( ( config.treeInfo or null ) != null ) ) {
       treeInfo = let
