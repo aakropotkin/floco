@@ -133,6 +133,12 @@ ParsedSpec::initIdent( const std::string & ident )
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @foo/bar/1.0.0
+ * baz/1.0.0
+ * %40foo%2Fbar/1.0.0
+ * @foo%2fbar/1.0.0
+ */
 ParsedSpec::ParsedSpec( const std::string & raw )
 {
   std::string unesc = std::regex_replace( raw, std::regex( "%40" ), "@" );
@@ -140,12 +146,6 @@ ParsedSpec::ParsedSpec( const std::string & raw )
   auto path = tokenizeString<std::vector<std::string>>( unesc, "/" );
 
   auto size = path.size();
-  /**
-   * @foo/bar/1.0.0
-   * baz/1.0.0
-   * %40foo%2Fbar/1.0.0
-   * @foo%2fbar/1.0.0
-   */
   if ( size == 3 )
     {
       if ( std::regex_match( path[0], npmUnescapedScopeRegex ) &&
@@ -157,11 +157,10 @@ ParsedSpec::ParsedSpec( const std::string & raw )
           this->locator = path[2];
         }
     }
-  else if ( size == 2 )
+  else if ( size == 2 )  /* baz/1.0.0, @foo/bar */
     {
       auto spat =
         tokenizeString<std::vector<std::string>>( path[1], "@" );
-      /* baz/1.0.0, %40foo%2Fbar/1.0.0, @foo%2fbar/1.0.0 */
       if ( std::regex_match( path[0], npmUnescapedBnameRegex ) )
         {
           this->scope   = std::nullopt;
@@ -173,8 +172,15 @@ ParsedSpec::ParsedSpec( const std::string & raw )
               )
         {
           this->scope   = path[0].substr( 1 );
-          this->bname   = path[1];
-          this->locator = path[2];
+          this->bname   = spat[0];
+          if ( spat.size() == 1 )
+            {
+              this->locator = std::nullopt;
+            }
+          else
+            {
+              this->locator = spat[1];
+            }
         }
       else
         {
@@ -189,9 +195,16 @@ ParsedSpec::ParsedSpec( const std::string & raw )
         tokenizeString<std::vector<std::string>>( path[0], "@" );
       if ( std::regex_match( spat[0], npmUnescapedBnameRegex ) )
         {
-          this->scope   = std::nullopt;
-          this->bname   = spat[0];
-          this->locator = spat[1];
+          this->scope = std::nullopt;
+          this->bname = spat[0];
+          if ( spat.size() == 1 )
+            {
+              this->locator = std::nullopt;
+            }
+          else
+            {
+              this->locator = spat[1];
+            }
         }
       else
         {
@@ -207,64 +220,20 @@ ParsedSpec::ParsedSpec( const std::string & raw )
       );
     }
 
-  if ( isExactVersion( this->locator ) )
-    {
-      this->kind = SpecKind::version;
-    }
-  else
-    {
-      if ( ( strchr( this->locator.c_str(), ':' ) != NULL ) ||
-           ( strchr( this->locator.c_str(), ':' ) != NULL )
-         )
-        {
-          this->kind = SpecKind::url;
-        }
-      else
-        {
-          this->kind = SpecKind::semver;
-        }
-    }
+  this->setKind();
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 ParsedSpec::ParsedSpec(
-  const std::string & ident,
-  const std::string & locator
+  const std::string                & ident,
+  const std::optional<std::string> & locator
 )
 {
-  if ( ident[0] == '@' )
-    {
-      int i = strcspn( ident.c_str(), "/" );
-      this->scope   = ident.substr( 1, i - 1 );
-      this->bname   = ident.substr( i + 1 );
-      this->locator = locator;
-    }
-  else
-    {
-      this->scope   = std::nullopt;
-      this->bname   = ident;
-      this->locator = locator;
-    }
-
-  if ( isExactVersion( locator ) )
-    {
-      this->kind = SpecKind::version;
-    }
-  else
-    {
-      if ( ( strchr( locator.c_str(), ':' ) != NULL ) ||
-           ( strchr( locator.c_str(), '/' ) != NULL )
-         )
-        {
-          this->kind = SpecKind::url;
-        }
-      else
-        {
-          this->kind = SpecKind::semver;
-        }
-    }
+  this->locator = locator;
+  this->setKind();
+  this->initIdent( ident );
 }
 
 
@@ -273,7 +242,7 @@ ParsedSpec::ParsedSpec(
 ParsedSpec::ParsedSpec(
   const std::optional<std::string> & scope,
   const std::string                & bname,
-  const std::string                & locator
+  const std::optional<std::string> & locator
 )
 {
   this->bname   = bname;
@@ -312,6 +281,7 @@ ParsedSpec::ParsedSpec(
       this->scope = scope;
     }
 
+  this->setKind();
 }
 
 

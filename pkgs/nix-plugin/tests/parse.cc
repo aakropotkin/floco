@@ -50,5 +50,13 @@ main( int argc, char * argv[], char ** envp )
   floco::parse::ParsedSpec( "%40foo%2flodash%404.2.17" ).show();
   std::cerr << "\n";
 
+  std::cerr << "11: ";
+  floco::parse::ParsedSpec( "lodash" ).show();
+  std::cerr << "\n";
+
+  std::cerr << "12: ";
+  floco::parse::ParsedSpec( "@foo/lodash" ).show();
+  std::cerr << "\n";
+
   return 0;
 }
