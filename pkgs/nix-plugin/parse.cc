@@ -64,7 +64,9 @@ isExactVersion( const std::string & v )
 
   ParsedSpec::ParsedSpec( const std::string & raw )
   {
-    auto path = tokenizeString<std::vector<std::string>>( raw, "/" );
+    std::string unesc = std::regex_replace( raw, std::regex( "%40" ), "@" );
+    unesc = std::regex_replace( unesc, std::regex( "\%2[fF]" ), "/" );
+    auto path = tokenizeString<std::vector<std::string>>( unesc, "/" );
 
     auto size = path.size();
     /**
@@ -81,7 +83,7 @@ isExactVersion( const std::string & v )
           {
             this->scope   = path[0].substr( 1 );
             this->bname   = path[1];
-            this->locator = path[3];
+            this->locator = path[2];
           }
       }
     else if ( size == 2 )
@@ -95,21 +97,13 @@ isExactVersion( const std::string & v )
             this->bname   = path[0];
             this->locator = path[1];
           }
-        else if ( std::regex_match( path[0], npmEscapedIdentScopedRegex ) )
-          {
-            std::string ident;
-            ident = std::regex_replace( path[0], std::regex( "%40" ), "@" );
-            ident = std::regex_replace( ident, std::regex( "\%2[fF]" ), "/" );
-            // FIXME
-            throw std::runtime_error( "TODO 0" );
-          }
         else if ( std::regex_match( path[0], npmUnescapedScopeRegex ) &&
                   std::regex_match( spat[0], npmUnescapedBnameRegex )
                 )
           {
             this->scope   = path[0].substr( 1 );
-            this->bname   = spat[0];
-            this->locator = spat[1];
+            this->bname   = path[1];
+            this->locator = path[2];
           }
         else
           {

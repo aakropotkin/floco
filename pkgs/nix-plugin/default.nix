@@ -42,8 +42,9 @@
   propagatedBuildInputs = [nodejs npm treeFor semver];
   buildPhase = ''
     runHook preBuild;
-    $CXX -shared -o libfloco$libExt -std=c++17 ./*.cc  \
-       ${if stdenv.isDarwin then "-undefined suppress -flat_namespace" else ""};
+    $CXX -shared -o libfloco$libExt -std=c++17  \
+      ${if stdenv.isDarwin then "-undefined suppress -flat_namespace" else ""} \
+      ./npm-wrap.cc ./npm-fetcher.cc ./progs.cc;
     runHook postBuild;
   '';
   installPhase = ''
