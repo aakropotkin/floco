@@ -456,3 +456,8 @@ Support Room:
 
 Development Room:
 [[https://matrix.to/#/!qDFpEnHkbpkhLSenko:matrix.org?via=matrix.org]]
+
+** Supporters
+*** [[https://tulip.co/][Tulip Interfaces]]
+=floco= was originally developed for use by Tulip Interfaces.
+Without their support this project never would have been possible.
