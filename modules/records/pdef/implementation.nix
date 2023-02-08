@@ -177,12 +177,7 @@ in {
 
     metaFiles.pjs = let
       pjsPath = config.metaFiles.pjsDir + "/package.json";
-      pjs = {
-        _file = pjsPath;
-        config = builtins.fromJSON (
-          builtins.unsafeDiscardStringContext ( builtins.readFile pjsPath )
-        );
-      };
+      pjs     = lib.importJSON pjsPath;
     in lib.mkDefault ( if config.deserialized then {} else pjs );
 
 

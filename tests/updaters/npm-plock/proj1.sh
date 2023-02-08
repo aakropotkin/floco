@@ -106,6 +106,9 @@ echo '
   },
   "devDependencies": {
     "@babel/core": "*"
+  },
+  "scripts": {
+    "build": "touch ./built"
   }
 }
 ' > ./package.json;
@@ -127,11 +130,14 @@ $JQ -e '( .treeInfo // {} ) != {}' "$TARGET_ENT" >&2;
 echo "Assert that \`fetchInfo' is defined as a path:" >&2;
 $JQ -e '( .fetchInfo // "" )|test( "^path:" )' "$TARGET_ENT" >&2;
 
+echo "Assert that \`lifecycle.build' is \`true':" >&2;
+$JQ -e '( .lifecycle // { build: false } ).build' "$TARGET_ENT" >&2;
+
 
 # ---------------------------------------------------------------------------- #
 
 export FLAKE_REF;
-$NIX build --show-trace --no-link -f - <<'EOF'
+$NIX build --show-trace -f - <<'EOF'
 let
   floco   = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   pkgsFor = floco.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.extend
@@ -140,13 +146,25 @@ let
   mod = lib.evalModules {
     modules = [
       "${floco}/modules/top"
-      ( lib.addPdefs ./pdefs.json )
+      ( lib.modules.importJSON ./pdefs.json )
       { _module.args.pkgs = pkgsFor; }
     ];
   };
   pkg = mod.config.floco.packages."@floco/phony"."4.2.0";
 in pkg.global
 EOF
+
+
+# ---------------------------------------------------------------------------- #
+
+echo "Assert that built products exist in global output:" >&2;
+if [[ ! -e ./result/lib/node_modules/@floco/phony/built ]]; then
+  echo "false" >&2;
+  echo "$_as_me: Failed to produce build products." >&2;
+  exit 1;
+else
+  echo "true" >&2;
+fi
 
 
 # ---------------------------------------------------------------------------- #
