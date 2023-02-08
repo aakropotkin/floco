@@ -22,7 +22,7 @@
 # ---------------------------------------------------------------------------- #
 
     lifecycle.build = let
-      fromLtype   = config.ltype != "file";
+      fromLtype   = ! ( builtins.elem config.ltype ["file" "link"] );
       fromScripts = let
         s = config.metaFiles.metaRaw.scripts or config.metaFiles.pjs.scripts or
             {};
