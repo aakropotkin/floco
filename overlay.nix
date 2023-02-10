@@ -35,6 +35,12 @@ final: prev: {
     pkgsFor = final;
   };
 
+  arborist = import ./fpkgs/arborist {
+    nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+    inherit (final) system lib;
+    pkgsFor = final;
+  };
+
   floco = import ./pkgs/nix-plugin {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";

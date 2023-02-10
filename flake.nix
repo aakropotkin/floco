@@ -80,6 +80,7 @@
         treeFor
         semver
         pacote
+        arborist
       ;
     } );
 
