@@ -84,17 +84,12 @@ in {
 
 
   drv = derivation {
-    inherit name system install_module cmdFile;
+    inherit name system install_module;
     builder = "${bash}/bin/bash";
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
     args = ["-eu" "-o" "pipefail" "-c" ''
       mkdir -p "$out/node_modules";
-      while read -r cmd; do
-        eval "$cmd";
-      done <"$cmdFile"
-    ''];
-    preferLocalBuild = true;
-    allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
+    '' + cmdFile.text];
   };
 
 
