@@ -41,7 +41,7 @@ in {
     );
 
     installed.package = let
-      drv = lib.makeOverridable pkgs.stdenv.mkDerivation {
+      drv = lib.makeOverridable pkgs.stdenv.mkDerivation ( {
         pname = "${baseNameOf pdef.ident}-installed";
         inherit (pdef) version;
         inherit (cfg) copyTree scripts;
@@ -115,7 +115,7 @@ in {
 
           runHook postInstall;
         '';
-      };
+      } // cfg.override );
       warn = x: let
         warns = map ( m: "WARNING: ${m}" ) cfg.warnings;
         msg   = builtins.concatStringsSep "\n" warns;
