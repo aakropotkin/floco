@@ -87,9 +87,9 @@ in {
     inherit name system install_module;
     builder = "${bash}/bin/bash";
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
-    args = ["-eu" "-o" "pipefail" "-c" ''
+    args = ["-eu" "-o" "pipefail" "-c" ( ''
       mkdir -p "$out/node_modules";
-    '' + cmdFile.text];
+    '' + cmdFile.text )];
   };
 
 
