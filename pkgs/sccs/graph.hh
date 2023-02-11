@@ -4,8 +4,9 @@
  *
  * -------------------------------------------------------------------------- */
 
+#pragma once
+
 #include <optional>
-#include <list>
 #include <string>
 #include <unordered_map>
 
@@ -16,6 +17,7 @@ namespace floco::graph {
 /* -------------------------------------------------------------------------- */
 
 class Node;
+class Edge;
 
 
 /* -------------------------------------------------------------------------- */
@@ -104,7 +106,7 @@ class Edge {
 
 
     /* Util */
-    bool satisfiedBy( Node & node ) const;
+    bool satisfiedBy( const Node * node ) const;
     void reload( bool hard = false );
     void detach();
     // ??? toJSON() const;
@@ -112,9 +114,24 @@ class Edge {
 
   private:
     EdgeError loadError() const;
-    void      setFrom( Node * n );
+    void      setFrom( const Node * node );
 
 };
+
+
+/* -------------------------------------------------------------------------- */
+
+class Node {
+
+  // package ( manifest )
+
+  public:
+    Node * parent() const;
+
+    bool isTop() const;
+};
+
+
 
 
 /* -------------------------------------------------------------------------- */
