@@ -68,7 +68,7 @@ in {
         pname = "${baseNameOf pdef.ident}-prepared";
         inherit (pdef) version;
         install_module = builtins.path {
-          path = ../../../../setup/install-module.sh;
+          path = ../../setup/install-module.sh;
           recursive = false;
         };
         IDENT             = pdef.ident;
@@ -111,7 +111,7 @@ in {
         pname = baseNameOf pdef.ident;
         inherit (pdef) version;
         install_module = builtins.path {
-          path = ../../../../setup/install-module.sh;
+          path = ../../setup/install-module.sh;
           recursive = false;
         };
         IDENT             = pdef.ident;
