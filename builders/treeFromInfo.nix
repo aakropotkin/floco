@@ -16,7 +16,7 @@ in {
 , writeText ? pkgsFor.writeText
 # TODO: make this a setup-hook or `bin/' executable.
 , install_module ? builtins.path {
-  path = ../../../../setup/install-module.sh;
+  path = ../setup/install-module.sh;
   recursive = false;
 }
 
