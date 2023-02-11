@@ -15,7 +15,10 @@ in {
 , bash      ? pkgsFor.bash
 , writeText ? pkgsFor.writeText
 # TODO: make this a setup-hook or `bin/' executable.
-, install_module ? ../setup/install-module.sh
+, install_module ? builtins.path {
+  path = ../../../../setup/install-module.sh;
+  recursive = false;
+}
 
 # NOTE: Paths are installed regardless of whether their associated
 # package/module is supported - you must filter out unsupported keys before
