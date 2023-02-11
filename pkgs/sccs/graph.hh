@@ -9,15 +9,28 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 /* -------------------------------------------------------------------------- */
 
-namespace floco::graph {
+namespace floco {
+  namespace graph {
 
 /* -------------------------------------------------------------------------- */
 
 class Node;
 class Edge;
+class Package;
+
+
+/* -------------------------------------------------------------------------- */
+
+typedef std::string  ident_t;
+typedef std::string  version_t;
+typedef std::string  spec_t;
+
+typedef std::unordered_map<ident_t, spec_t>  dep_map_t;
+typedef std::unordered_set<ident_t>          dep_set_t;
 
 
 /* -------------------------------------------------------------------------- */
@@ -46,28 +59,28 @@ class Edge {
 
   /* Data */
   EdgeType      _type;
-  std::string   _name;
-  std::string   _spec;
+  ident_t       _name;
+  spec_t        _spec;
   std::string   _accept;
-  Node        * _from;
-  Node        * _to;
+  const Node  * _from;
+  const Node  * _to;
   bool          _peerConflicted;
   bool          _overridden;
 
   std::optional<EdgeError> _error;
 
-  std::unordered_map<std::string, std::string> _overrides;
+  std::unordered_map<ident_t, std::string> _overrides;
 
 
   public:
     /* Accessors */
-    std::string   spec()    const;
+    spec_t        spec()    const;
     EdgeType      type()    const { return this->_type; }
-    std::string   name()    const { return this->_name; }
-    std::string   rawSpec() const { return this->_spec; }
+    ident_t       name()    const { return this->_name; }
+    spec_t        rawSpec() const { return this->_spec; }
     std::string   accept()  const { return this->_accept; }
-    Node        * from()    const { return this->_from; }
-    Node        * to()      const { return this->_to; }
+    const Node  * from()    const { return this->_from; }
+    const Node  * to()      const { return this->_to; }
 
 
     /* Predicates */
@@ -121,14 +134,72 @@ class Edge {
 
 /* -------------------------------------------------------------------------- */
 
-class Node {
+class Package {
 
-  // package ( manifest )
+  /* Data */
+  ident_t   _name;
+  version_t _version;
+  dep_map_t _dependencies;
+  dep_map_t _devDependencies;
+  dep_map_t _peerDependencies;
+  dep_map_t _optionalDependencies;
+  dep_set_t _bundledDependencies;
+
 
   public:
-    Node * parent() const;
+    Package(
+      ident_t   name                 = nullptr
+    , version_t version              = nullptr
+    , dep_map_t dependencies         = {}
+    , dep_map_t devDependencies      = {}
+    , dep_map_t peerDependencies     = {}
+    , dep_map_t optionalDependencies = {}
+    , dep_set_t bundledDependencies  = {}
+    ) : _name( name )
+      , _version( version )
+      , _dependencies( dependencies )
+      , _devDependencies( devDependencies )
+      , _peerDependencies( peerDependencies )
+      , _optionalDependencies( optionalDependencies )
+      , _bundledDependencies( bundledDependencies )
+    {}
 
-    bool isTop() const;
+
+    /* Accessors */
+    ident_t   name()    const { return this->_name; }
+    version_t version() const { return this->_version; }
+
+    dep_map_t dependencies()     const { return this->_dependencies; };
+    dep_map_t devDependencies()  const { return this->_devDependencies; };
+    dep_map_t peerDependencies() const { return this->_peerDependencies; };
+
+      dep_map_t
+    optionalDependencies() const {
+      return this->_optionalDependencies;
+    };
+
+      dep_set_t
+    bundledDependencies() const {
+      return this->_bundledDependencies;
+    };
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+class Node {
+
+  /* Data */
+  const Package * _package;
+  const Node    * _parent;
+
+
+  public:
+    const Package * package() const { return this->_package; }
+    const Node    * parent()  const { return this->_parent; }
+
+    bool isTop() const { return this->_parent == nullptr; }
 };
 
 
@@ -136,6 +207,7 @@ class Node {
 
 /* -------------------------------------------------------------------------- */
 
+  };
 };
 
 
