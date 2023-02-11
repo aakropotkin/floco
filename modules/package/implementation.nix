@@ -67,7 +67,10 @@ in {
       drv = pkgs.stdenv.mkDerivation {
         pname = "${baseNameOf pdef.ident}-prepared";
         inherit (pdef) version;
-        install_module    = ../../setup/install-module.sh;
+        install_module = builtins.path {
+          path = ../../setup/install-module.sh;
+          recursive = false;
+        };
         IDENT             = pdef.ident;
         src               = config.source;
         nativeBuildInputs = [pkgs.jq];
@@ -107,7 +110,10 @@ in {
       drv = pkgs.stdenv.mkDerivation {
         pname = baseNameOf pdef.ident;
         inherit (pdef) version;
-        install_module    = ../../setup/install-module.sh;
+        install_module = builtins.path {
+          path = ../../setup/install-module.sh;
+          recursive = false;
+        };
         IDENT             = pdef.ident;
         NMTREE            = config.trees.global or config.trees.prod;
         src               = config.prepared;

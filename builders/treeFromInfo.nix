@@ -15,7 +15,10 @@ in {
 , bash      ? pkgsFor.bash
 , writeText ? pkgsFor.writeText
 # TODO: make this a setup-hook or `bin/' executable.
-, install_module ? ../setup/install-module.sh
+, install_module ? builtins.path {
+  path = ../setup/install-module.sh;
+  recursive = false;
+}
 
 # NOTE: Paths are installed regardless of whether their associated
 # package/module is supported - you must filter out unsupported keys before
@@ -84,17 +87,12 @@ in {
 
 
   drv = derivation {
-    inherit name system install_module cmdFile;
+    inherit name system install_module;
     builder = "${bash}/bin/bash";
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
-    args = ["-eu" "-o" "pipefail" "-c" ''
+    args = ["-eu" "-o" "pipefail" "-c" ( ''
       mkdir -p "$out/node_modules";
-      while read -r cmd; do
-        eval "$cmd";
-      done <"$cmdFile"
-    ''];
-    preferLocalBuild = true;
-    allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
+    '' + cmdFile.text )];
   };
 
 
