@@ -45,7 +45,10 @@ in {
         pname = "${baseNameOf pdef.ident}-installed";
         inherit (pdef) version;
         inherit (cfg) copyTree scripts;
-        install_module    = ../../../../setup/install-module.sh;
+        install_module = builtins.path {
+          path = ../../../../setup/install-module.sh;
+          recursive = false;
+        };
         IDENT             = pdef.ident;
         NMTREE            = cfg.tree;
         src               = config.built.package;
