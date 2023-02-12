@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 #include "types.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -48,13 +50,28 @@ class Edge {
       , _name( name )
       , _spec( spec )
       , _accept( accept )
-      , _from( from )
       , _to( to )
       , _peerConflicted( peerConflicted )
       , _overridden( overridden )
-      , _error( error )
       , _overrides( overrides )
-    {}
+    {
+      if ( from == nullptr )
+        {
+          throw std::invalid_argument(
+            "Edge::Edge(): from must be a Node, but received nullptr"
+          );
+        }
+      this->setFrom( from );
+
+      if ( error.has_value() )
+        {
+          this->_error = error;
+        }
+      else
+        {
+          this->_error = this->loadError();
+        }
+    }
 
     /* Accessors */
     spec_t                  spec()    const;
