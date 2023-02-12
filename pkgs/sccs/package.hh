@@ -95,6 +95,11 @@ class Package {
 
 /* -------------------------------------------------------------------------- */
 
+Package loadPackage( const std::string & path );
+
+
+/* -------------------------------------------------------------------------- */
+
   };  /* End `namespace floco::graph' */
 };  /* End `namespace floco' */
 

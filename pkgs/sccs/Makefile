@@ -14,22 +14,40 @@ MAKEFILE_DIR = $(patsubst %/, %, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # ---------------------------------------------------------------------------- #
 
-export RM   ?= rm -f
-export CXX  ?= c++
-export TEST ?= test
+export RM         ?= rm -f
+export CXX        ?= c++
+export TEST       ?= test
+export MKDIR      ?= mkdir
+export MKDIR_P    ?= $(MKDIR) -p
+export PKG_CONFIG ?= pkg-config
+
+
+# ---------------------------------------------------------------------------- #
+
+PREFIX ?= /usr/local
+
+# ---------------------------------------------------------------------------- #
+
+NLOHMANN_JSON_CXXFLAGS ?= $(PKG_CONFIG) --cflags nlohmann_json
+NLOHMANN_JSON_LDFLAGS  ?= $(PKG_CONFIG) --libs nlohmann_json
+
 
 # ---------------------------------------------------------------------------- #
 
 CXXFLAGS = -std=c++17
+CXXFLAGS += $(NLOHMANN_JSON_CXXFLAGS)
+
+LDFLAGS =
+LDFLAGS += $(NLOHMANN_JSON_LDFLAGS)
 
 # ---------------------------------------------------------------------------- #
 
-.PHONY: all clean check FORCE
+.PHONY: all clean check install FORCE
 
 # ---------------------------------------------------------------------------- #
 
 HEADERS = types.hh graph.hh edge.hh
-SOURCES = edge.cc node.cc
+SOURCES = edge.cc node.cc package.cc
 OBJS    = $(SOURCES:%.cc=%.o)
 
 TEST_SOURCES = tests/test-package.cc
@@ -89,6 +107,12 @@ check: $(TESTS)
 	  echo "FAILURE" >&2;              \
 	fi;                                \
 	exit "$$_ec";
+
+
+# ---------------------------------------------------------------------------- #
+
+install: FORCE
+	$(MKDIR_P) $(PREFIX)
 
 
 # ---------------------------------------------------------------------------- #

@@ -1,1 +1,2 @@
 -std=c++17
+-I/nix/store/fcs6akpbpjs0ljzvhwsrdqj63wrfa82d-nlohmann_json-3.11.2/include

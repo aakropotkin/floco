@@ -53,6 +53,12 @@ main( int argc, char * argv[], char ** envp )
   show( p1 );
   std::cerr << "\n";
 
+  /* Assumed to be running from the project root by `make check;' */
+  Package p2 = loadPackage( "./tests/data/pjs0.json" );
+  std::cerr << R"(Package p2 = loadPackage( "./tests/data/pjs0.json" );)" << "\n";
+  show( p2 );
+  std::cerr << "\n";
+
   return 0;
 }
 

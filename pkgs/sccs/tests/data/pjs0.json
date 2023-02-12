@@ -1,0 +1,6 @@
+{
+  "name": "@floco/test",
+  "version": "4.2.0",
+  "dependencies": { "lodash": "^4.17.21" },
+  "extra": "junk"
+}
