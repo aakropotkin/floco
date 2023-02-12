@@ -22,14 +22,14 @@ class Edge {
   ident_t                 _name;
   spec_t                  _spec;
   std::optional<spec_t>   _accept;
-  const Node            * _from;
-  const Node            * _to;
+  Node                  * _from;
+  Node                  * _to;
   bool                    _peerConflicted;
   bool                    _overridden;
 
   std::optional<EdgeError> _error;
 
-  overrides_t _overrides;
+  overrides_elem_t _overrides;
 
 
   public:
@@ -38,12 +38,12 @@ class Edge {
     , ident_t                    name           = nullptr
     , spec_t                     spec           = "*"
     , std::optional<spec_t>      accept         = std::nullopt
-    , const Node               * from           = nullptr
-    , const Node               * to             = nullptr
+    , Node                     * from           = nullptr
+    , Node                     * to             = nullptr
     , bool                       peerConflicted = false
     , bool                       overridden     = false
     , std::optional<EdgeError>   error          = std::nullopt
-    , overrides_t                overrides      = std::nullopt
+    , overrides_elem_t           overrides      = std::nullopt
     ) : _type( type )
       , _name( name )
       , _spec( spec )
@@ -62,8 +62,9 @@ class Edge {
     ident_t                 name()    const { return this->_name; }
     spec_t                  rawSpec() const { return this->_spec; }
     std::optional<spec_t>   accept()  const { return this->_accept; }
-    const Node            * from()    const { return this->_from; }
-    const Node            * to()      const { return this->_to; }
+
+    Node * from() { return this->_from; }
+    Node * to()   { return this->_to; }
 
 
     /* Predicates */
@@ -178,27 +179,33 @@ class Node {
   const Node    * _root;
   edge_set_t      _edgesIn;
   edge_set_t      _edgesOut;
+  overrides_t     _overrides;
 
   public:
     Node(
-      const Package * package  = nullptr
-    , const Node    * parent   = nullptr
-    , const Node    * root     = nullptr
-    , edge_set_t      edgesIn  = {}
-    , edge_set_t      edgesOut = {}
+      const Package * package   = nullptr
+    , const Node    * parent    = nullptr
+    , const Node    * root      = nullptr
+    , edge_set_t      edgesIn   = {}
+    , edge_set_t      edgesOut  = {}
+    , overrides_t     overrides = {}
     ) : _package( package )
       , _parent( parent )
       , _root( root )
       , _edgesIn( edgesIn )
       , _edgesOut( edgesOut )
-    {}
+      , _overrides( overrides )
+    {};
 
-    const Package    * package()  const { return this->_package; }
-    const Node       * parent()   const { return this->_parent; }
-    const Node       * root()     const { return this->_root; }
-    const ident_t      name()     const { return this->_package->name(); }
-    const edge_set_t   edgesIn()  const { return this->_edgesIn; }
-    const edge_set_t   edgesOut() const { return this->_edgesOut; }
+    const Package    * package()   const { return this->_package; }
+    const Node       * parent()    const { return this->_parent; }
+    const Node       * root()      const { return this->_root; }
+    const overrides_t  overrides() const { return this->_overrides; }
+    const ident_t      name()      const { return this->_package->name(); }
+    const version_t    version()   const { return this->_package->version(); }
+
+    edge_set_t & edgesIn()  { return this->_edgesIn; }
+    edge_set_t & edgesOut() { return this->_edgesOut; }
 
     bool isTop()         const { return this->_parent == nullptr; }
     bool inBundle()      const { return false; /* FIXME */ }
@@ -209,6 +216,18 @@ class Node {
     void addEdgeOut( Edge & edge );
 
     Node & resolve( const ident_t & name ) const;
+
+      bool
+    operator==( const Node & other ) const {
+      return ( this->name() == other.name() ) &&
+             ( this->version() == other.version() );
+    }
+
+      bool
+    operator!=( const Node & other ) const {
+      return ( this->name() != other.name() ) ||
+             ( this->version() != other.version() );
+    }
 };
 
 

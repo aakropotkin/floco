@@ -122,7 +122,34 @@ Edge::satisfiedBy( const Node * node ) const
   void
 Edge::reload( bool hard )
 {
-  /* TODO */
+  auto ov = this->_from->overrides().find( this->_name );
+  if ( ov != this->_from->overrides().end() )
+    {
+      this->_overrides = std::make_pair( ov->first, ov->second );
+    }
+  else
+    {
+      this->_overrides = std::nullopt;
+    }
+
+  auto newTo = this->_from->resolve( this->_name );
+  if ( newTo != ( * this->_to ) )
+    {
+      if ( this->_to != nullptr )
+        {
+          this->_to->edgesIn().erase( this );
+        }
+      this->_to    = & newTo;
+      this->_error = this->loadError();
+      if ( this->_to != nullptr )
+        {
+          this->_to->edgesIn().insert( this );
+        }
+      else if ( hard )
+        {
+          this->_error = this->loadError();
+        }
+    }
 }
 
 

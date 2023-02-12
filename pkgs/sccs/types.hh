@@ -34,9 +34,10 @@ typedef std::string  spec_t;
 typedef std::unordered_map<ident_t, spec_t>  dep_map_t;
 typedef std::unordered_set<ident_t>          dep_set_t;
 
-typedef std::optional<std::pair<ident_t, std::string>>  overrides_t;
+typedef std::optional<std::pair<ident_t, std::string>>  overrides_elem_t;
+typedef std::unordered_map<ident_t, std::string>        overrides_t;
 
-typedef std::set<Edge>  edge_set_t;
+typedef std::set<Edge *>  edge_set_t;
 
 
 /* -------------------------------------------------------------------------- */
