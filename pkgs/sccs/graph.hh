@@ -73,12 +73,13 @@ class Edge {
         }
     }
 
+
     /* Accessors */
-    spec_t                  spec()    const;
-    EdgeType                type()    const { return this->_type; }
-    ident_t                 name()    const { return this->_name; }
-    spec_t                  rawSpec() const { return this->_spec; }
-    std::optional<spec_t>   accept()  const { return this->_accept; }
+    spec_t                spec()    const;
+    EdgeType              type()    const { return this->_type; }
+    ident_t               name()    const { return this->_name; }
+    spec_t                rawSpec() const { return this->_spec; }
+    std::optional<spec_t> accept()  const { return this->_accept; }
 
     Node * from() { return this->_from; }
     Node * to()   { return this->_to; }
@@ -214,12 +215,12 @@ class Node {
       , _overrides( overrides )
     {};
 
-    const Package    * package()   const { return this->_package; }
-    const Node       * parent()    const { return this->_parent; }
-    const Node       * root()      const { return this->_root; }
-    const overrides_t  overrides() const { return this->_overrides; }
-    const ident_t      name()      const { return this->_package->name(); }
-    const version_t    version()   const { return this->_package->version(); }
+    const Package     * package()   const { return this->_package; }
+    const Node        * parent()    const { return this->_parent; }
+    const Node        * root()      const { return this->_root; }
+    const overrides_t   overrides() const { return this->_overrides; }
+    const ident_t       name()      const { return this->_package->name(); }
+    const version_t     version()   const { return this->_package->version(); }
 
     edge_set_t & edgesIn()  { return this->_edgesIn; }
     edge_set_t & edgesOut() { return this->_edgesOut; }
