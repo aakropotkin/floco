@@ -44,7 +44,7 @@ clean: FORCE
 
 # ---------------------------------------------------------------------------- #
 
-types.hh: edge.hh
+types.hh: edge.hh package.hh node.hh
 graph.hh: types.hh
 
 edge.cc: graph.hh

@@ -19,12 +19,16 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+/* Forward Declarations */
+
 class Node;
 class Edge;
 class Package;
 
 
 /* -------------------------------------------------------------------------- */
+
+/* Typedefs */
 
 typedef std::string  ident_t;
 typedef std::string  version_t;
@@ -42,33 +46,17 @@ typedef std::unordered_map<ident_t, Edge *>  edge_map_t;
 
 /* -------------------------------------------------------------------------- */
 
-enum EdgeType {
-  prod
-, dev
-, optional
-, peer
-, peerOptional
-, workspace
-};
-
-enum EdgeError {
-  missing
-, invalid
-, peer_local
-, detached
-, ok
-};
+  };  /* End `namespace floco::graph' */
+};  /* End `namespace floco' */
 
 
 /* -------------------------------------------------------------------------- */
 
-  };
-};
+/* Class Implementations */
 
-
-/* -------------------------------------------------------------------------- */
-
+#include "package.hh"
 #include "edge.hh"
+#include "node.hh"
 
 
 /* -------------------------------------------------------------------------- *

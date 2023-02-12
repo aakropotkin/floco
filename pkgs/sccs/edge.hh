@@ -17,11 +17,35 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+enum EdgeType {
+  prod
+, dev
+, optional
+, peer
+, peerOptional
+, workspace
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+enum EdgeError {
+  missing
+, invalid
+, peer_local
+, detached
+, ok
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 class Edge {
 
 /* -------------------------------------------------------------------------- */
 
   /* Data */
+
   EdgeType                _type;
   ident_t                 _name;
   spec_t                  _spec;
@@ -41,6 +65,8 @@ class Edge {
   public:
 
 /* -------------------------------------------------------------------------- */
+
+    /* Constructors */
 
     Edge(
       EdgeType                   type           = EdgeType::prod
@@ -68,6 +94,7 @@ class Edge {
             "Edge::Edge(): from must be a Node, but received nullptr"
           );
         }
+
       this->setFrom( from );
 
       if ( error.has_value() )
@@ -84,6 +111,7 @@ class Edge {
 /* -------------------------------------------------------------------------- */
 
     /* Accessors */
+
     spec_t                spec()    const;
     EdgeType              type()    const { return this->_type; }
     ident_t               name()    const { return this->_name; }
@@ -97,6 +125,7 @@ class Edge {
 /* -------------------------------------------------------------------------- */
 
     /* Predicates */
+
     bool bundled()   const;
     bool workspace() const { return this->_type == EdgeType::workspace; }
     bool prod()      const { return this->_type == EdgeType::prod; }
@@ -118,6 +147,7 @@ class Edge {
 /* -------------------------------------------------------------------------- */
 
     /* Error Checking */
+
     bool valid()     { return this->error() == EdgeError::ok; }
     bool missing()   { return this->error() == EdgeError::missing; }
     bool invalid()   { return this->error() == EdgeError::invalid; }
@@ -136,6 +166,7 @@ class Edge {
 /* -------------------------------------------------------------------------- */
 
     /* Util */
+
     bool satisfiedBy( const Node * node ) const;
     void reload( bool hard = false );
     void detach();
