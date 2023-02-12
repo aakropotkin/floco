@@ -58,18 +58,21 @@ Edge::spec() const
         }
 
       os = pkg->optionalDependencies().find( ref );
+
       if ( os != pkg->optionalDependencies().end() )
         {
           return os->second;
         }
 
       os = pkg->dependencies().find( ref );
+
       if ( os != pkg->dependencies().end() )
         {
           return os->second;
         }
 
       os = pkg->peerDependencies().find( ref );
+
       if ( os != pkg->peerDependencies().end() )
         {
           return os->second;
@@ -114,6 +117,7 @@ Edge::satisfiedBy( const Node * node ) const
   const auto spec =
     ( node->hasShrinkwrap() || node->inShrinkwrap() || node->inBundle() ) ?
     this->_spec : this->spec();
+
   return depValid( node, spec, this->_from );
 }
 
@@ -124,6 +128,7 @@ Edge::satisfiedBy( const Node * node ) const
 Edge::reload( bool hard )
 {
   auto ov = this->_from->overrides().find( this->_name );
+
   if ( ov != this->_from->overrides().end() )
     {
       this->_overrides = std::make_pair( ov->first, ov->second );
@@ -134,14 +139,17 @@ Edge::reload( bool hard )
     }
 
   auto newTo = this->_from->resolve( this->_name );
+
   if ( newTo != ( * this->_to ) )
     {
       if ( this->_to != nullptr )
         {
           this->_to->edgesIn().erase( this );
         }
+
       this->_to    = & newTo;
       this->_error = this->loadError();
+
       if ( this->_to != nullptr )
         {
           this->_to->addEdgeIn( this );
@@ -163,7 +171,9 @@ Edge::detach()
     {
       this->_to->edgesIn().erase( this );
     }
+
   this->_from->edgesOut().erase( this->_name );
+
   this->_to    = nullptr;
   this->_error = EdgeError::detached;
   this->_from  = nullptr;
@@ -198,11 +208,13 @@ Edge::loadError() const
 Edge::setFrom( Node * node )
 {
   this->_from = node;
-  auto sref = node->edgesOut().find( this->_name );
+  auto sref   = node->edgesOut().find( this->_name );
+
   if ( sref != node->edgesOut().end() )
     {
       sref->second->detach();
     }
+
   node->addEdgeOut( this );
   this->reload();
 }
