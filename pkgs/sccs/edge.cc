@@ -17,10 +17,9 @@ namespace floco {
 
   static bool
 depValid(
-  const Node   * node
-, const spec_t & spec
-, std::string  & accept
-, const Node   * from
+  const Node   * child
+, const spec_t & requested
+, const Node   * requestor
 )
 {
   /* TODO */
@@ -106,10 +105,15 @@ Edge::satisfiedBy( const Node * node ) const
     {
       return false;
     }
+  if ( this->_accept.has_value() )
+    {
+      return depValid( node, this->_accept.value(), this->_from );
+    }
+
   const auto spec =
     ( node->hasShrinkwrap() || node->inShrinkwrap() || node->inBundle() ) ?
     this->_spec : this->spec();
-  return depValid( node, spec, this->_accept, this->_from );
+  return depValid( node, spec, this->_from );
 }
 
 

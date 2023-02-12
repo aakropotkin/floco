@@ -59,14 +59,14 @@ enum EdgeError {
 class Edge {
 
   /* Data */
-  EdgeType      _type;
-  ident_t       _name;
-  spec_t        _spec;
-  std::string   _accept;
-  const Node  * _from;
-  const Node  * _to;
-  bool          _peerConflicted;
-  bool          _overridden;
+  EdgeType                _type;
+  ident_t                 _name;
+  spec_t                  _spec;
+  std::optional<spec_t>   _accept;
+  const Node            * _from;
+  const Node            * _to;
+  bool                    _peerConflicted;
+  bool                    _overridden;
 
   std::optional<EdgeError> _error;
 
@@ -75,16 +75,17 @@ class Edge {
 
   public:
     Edge(
-      EdgeType                                         type
-    , ident_t                                          name
-    , spec_t                                           spec
-    , std::string                                      accept
-    , const Node                                     * from
-    , const Node                                     * to
-    , bool                                             peerConflicted
-    , bool                                             overridden
-    , std::optional<EdgeError>                         error
-    , std::optional<std::pair<ident_t, std::string>>   overrides
+      EdgeType                   type           = EdgeType::prod
+    , ident_t                    name           = nullptr
+    , spec_t                     spec           = "*"
+    , std::optional<spec_t>      accept         = std::nullopt
+    , const Node               * from           = nullptr
+    , const Node               * to             = nullptr
+    , bool                       peerConflicted = false
+    , bool                       overridden     = false
+    , std::optional<EdgeError>   error          = std::nullopt
+
+    , std::optional<std::pair<ident_t, std::string>> overrides = std::nullopt
     ) : _type( type )
       , _name( name )
       , _spec( spec )
@@ -98,13 +99,13 @@ class Edge {
     {}
 
     /* Accessors */
-    spec_t        spec()    const;
-    EdgeType      type()    const { return this->_type; }
-    ident_t       name()    const { return this->_name; }
-    spec_t        rawSpec() const { return this->_spec; }
-    std::string   accept()  const { return this->_accept; }
-    const Node  * from()    const { return this->_from; }
-    const Node  * to()      const { return this->_to; }
+    spec_t                  spec()    const;
+    EdgeType                type()    const { return this->_type; }
+    ident_t                 name()    const { return this->_name; }
+    spec_t                  rawSpec() const { return this->_spec; }
+    std::optional<spec_t>   accept()  const { return this->_accept; }
+    const Node            * from()    const { return this->_from; }
+    const Node            * to()      const { return this->_to; }
 
 
     /* Predicates */
