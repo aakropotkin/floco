@@ -29,6 +29,8 @@ class Node {
   edge_set_t      _edgesIn;
   edge_map_t      _edgesOut;
   overrides_t     _overrides;
+  node_map_t      _children;
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -45,12 +47,14 @@ class Node {
     , edge_set_t      edgesIn   = {}
     , edge_map_t      edgesOut  = {}
     , overrides_t     overrides = {}
+    , node_map_t      children  = {}
     ) : _package( package )
       , _parent( parent )
       , _root( root )
       , _edgesIn( edgesIn )
       , _edgesOut( edgesOut )
       , _overrides( overrides )
+      , _children( children )
     {};
 
 
@@ -67,6 +71,7 @@ class Node {
 
     edge_set_t & edgesIn()  { return this->_edgesIn; }
     edge_map_t & edgesOut() { return this->_edgesOut; }
+    node_map_t & children() { return this->_children; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -86,7 +91,7 @@ class Node {
     void addEdgeIn( Edge * edge );
     void addEdgeOut( Edge * edge );
 
-    Node & resolve( const ident_t & name ) const;
+    Node * resolve( const ident_t & name ) const;
 
 
 /* -------------------------------------------------------------------------- */

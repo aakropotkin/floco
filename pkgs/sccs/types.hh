@@ -43,6 +43,9 @@ typedef std::unordered_map<ident_t, std::string>        overrides_t;
 typedef std::unordered_set<Edge *>           edge_set_t;
 typedef std::unordered_map<ident_t, Edge *>  edge_map_t;
 
+typedef std::unordered_set<Node *>           node_set_t;
+typedef std::unordered_map<ident_t, Node *>  node_map_t;
+
 
 /* -------------------------------------------------------------------------- */
 

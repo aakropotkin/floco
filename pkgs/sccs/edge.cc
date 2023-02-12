@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <stdexcept>
 
-#include "graph.hh"
+#include "edge.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -30,7 +30,7 @@ depValid(
 
 /* -------------------------------------------------------------------------- */
 
-  spec_t
+  const spec_t
 Edge::spec() const
 {
   if ( ! this->_overrides.has_value() )
@@ -140,14 +140,14 @@ Edge::reload( bool hard )
 
   auto newTo = this->_from->resolve( this->_name );
 
-  if ( newTo != ( * this->_to ) )
+  if ( newTo != this->_to )
     {
       if ( this->_to != nullptr )
         {
           this->_to->edgesIn().erase( this );
         }
 
-      this->_to    = & newTo;
+      this->_to    = newTo;
       this->_error = this->loadError();
 
       if ( this->_to != nullptr )
@@ -222,8 +222,8 @@ Edge::setFrom( Node * node )
 
 /* -------------------------------------------------------------------------- */
 
-  };
-};
+  };  /* End `namespace floco::graph' */
+};  /* End `namespace floco' */
 
 
 /* -------------------------------------------------------------------------- *

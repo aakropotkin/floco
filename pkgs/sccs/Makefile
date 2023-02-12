@@ -28,7 +28,7 @@ CXXFLAGS = -std=c++17
 # ---------------------------------------------------------------------------- #
 
 HEADERS = types.hh graph.hh edge.hh
-SOURCES = edge.cc
+SOURCES = edge.cc node.cc
 OBJS    = $(SOURCES:%.cc=%.o)
 
 
@@ -47,7 +47,8 @@ clean: FORCE
 types.hh: edge.hh package.hh node.hh
 graph.hh: types.hh
 
-edge.cc: graph.hh
+edge.cc: types.hh
+node.cc: types.hh
 
 
 # ---------------------------------------------------------------------------- #

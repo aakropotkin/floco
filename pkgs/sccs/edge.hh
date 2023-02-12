@@ -112,14 +112,15 @@ class Edge {
 
     /* Accessors */
 
-    spec_t                spec()    const;
-    EdgeType              type()    const { return this->_type; }
-    ident_t               name()    const { return this->_name; }
-    spec_t                rawSpec() const { return this->_spec; }
-    std::optional<spec_t> accept()  const { return this->_accept; }
+    const spec_t                  spec()    const;
+    const EdgeType              & type()    const { return this->_type; }
+    const ident_t               & name()    const { return this->_name; }
+    const spec_t                & rawSpec() const { return this->_spec; }
+    const std::optional<spec_t> & accept()  const { return this->_accept; }
 
-    Node * from() { return this->_from; }
-    Node * to()   { return this->_to; }
+    overrides_elem_t & overrides() { return this->_overrides; }
+    Node             * from()      { return this->_from; }
+    Node             * to()        { return this->_to; }
 
 
 /* -------------------------------------------------------------------------- */
