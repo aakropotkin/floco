@@ -6,53 +6,12 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
+#include "types.hh"
 
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
   namespace graph {
-
-/* -------------------------------------------------------------------------- */
-
-class Node;
-class Edge;
-class Package;
-
-
-/* -------------------------------------------------------------------------- */
-
-typedef std::string  ident_t;
-typedef std::string  version_t;
-typedef std::string  spec_t;
-
-typedef std::unordered_map<ident_t, spec_t>  dep_map_t;
-typedef std::unordered_set<ident_t>          dep_set_t;
-
-
-/* -------------------------------------------------------------------------- */
-
-enum EdgeType {
-  prod,
-  dev,
-  optional,
-  peer,
-  peerOptional,
-  workspace
-};
-
-enum EdgeError {
-  missing,
-  invalid,
-  peer_local,
-  detached,
-  ok
-};
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -70,7 +29,7 @@ class Edge {
 
   std::optional<EdgeError> _error;
 
-  std::optional<std::pair<ident_t, std::string>> _overrides;
+  overrides_t _overrides;
 
 
   public:
@@ -84,8 +43,7 @@ class Edge {
     , bool                       peerConflicted = false
     , bool                       overridden     = false
     , std::optional<EdgeError>   error          = std::nullopt
-
-    , std::optional<std::pair<ident_t, std::string>> overrides = std::nullopt
+    , overrides_t                overrides      = std::nullopt
     ) : _type( type )
       , _name( name )
       , _spec( spec )
@@ -156,7 +114,6 @@ class Edge {
 
 };
 
-
 /* -------------------------------------------------------------------------- */
 
 class Package {
@@ -219,26 +176,39 @@ class Node {
   const Package * _package;
   const Node    * _parent;
   const Node    * _root;
+  edge_set_t      _edgesIn;
+  edge_set_t      _edgesOut;
 
   public:
     Node(
-        const Package * package = nullptr
-      , const Node    * parent  = nullptr
-      , const Node    * root    = nullptr
+      const Package * package  = nullptr
+    , const Node    * parent   = nullptr
+    , const Node    * root     = nullptr
+    , edge_set_t      edgesIn  = {}
+    , edge_set_t      edgesOut = {}
     ) : _package( package )
       , _parent( parent )
       , _root( root )
+      , _edgesIn( edgesIn )
+      , _edgesOut( edgesOut )
     {}
 
-    const Package * package() const { return this->_package; }
-    const Node    * parent()  const { return this->_parent; }
-    const Node    * root()    const { return this->_root; }
-    const ident_t   name()    const { return this->_package->name(); }
+    const Package    * package()  const { return this->_package; }
+    const Node       * parent()   const { return this->_parent; }
+    const Node       * root()     const { return this->_root; }
+    const ident_t      name()     const { return this->_package->name(); }
+    const edge_set_t   edgesIn()  const { return this->_edgesIn; }
+    const edge_set_t   edgesOut() const { return this->_edgesOut; }
 
     bool isTop()         const { return this->_parent == nullptr; }
     bool inBundle()      const { return false; /* FIXME */ }
     bool hasShrinkwrap() const { return false; /* FIXME */ }
     bool inShrinkwrap()  const { return false; /* FIXME */ }
+
+    void addEdgeIn( Edge & edge );
+    void addEdgeOut( Edge & edge );
+
+    Node & resolve( const ident_t & name ) const;
 };
 
 
