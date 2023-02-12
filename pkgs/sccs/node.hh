@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "types.hh"
+#include "package.hh"
 
 /* -------------------------------------------------------------------------- */
 

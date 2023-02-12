@@ -53,15 +53,6 @@ typedef std::unordered_map<ident_t, Node *>  node_map_t;
 };  /* End `namespace floco' */
 
 
-/* -------------------------------------------------------------------------- */
-
-/* Class Implementations */
-
-#include "package.hh"
-#include "edge.hh"
-#include "node.hh"
-
-
 /* -------------------------------------------------------------------------- *
  *
  *
