@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 /* -------------------------------------------------------------------------- */
 
@@ -69,10 +70,33 @@ class Edge {
 
   std::optional<EdgeError> _error;
 
-  std::unordered_map<ident_t, std::string> _overrides;
+  std::optional<std::pair<ident_t, std::string>> _overrides;
 
 
   public:
+    Edge(
+      EdgeType                                         type
+    , ident_t                                          name
+    , spec_t                                           spec
+    , std::string                                      accept
+    , const Node                                     * from
+    , const Node                                     * to
+    , bool                                             peerConflicted
+    , bool                                             overridden
+    , std::optional<EdgeError>                         error
+    , std::optional<std::pair<ident_t, std::string>>   overrides
+    ) : _type( type )
+      , _name( name )
+      , _spec( spec )
+      , _accept( accept )
+      , _from( from )
+      , _to( to )
+      , _peerConflicted( peerConflicted )
+      , _overridden( overridden )
+      , _error( error )
+      , _overrides( overrides )
+    {}
+
     /* Accessors */
     spec_t        spec()    const;
     EdgeType      type()    const { return this->_type; }
@@ -193,16 +217,28 @@ class Node {
   /* Data */
   const Package * _package;
   const Node    * _parent;
-
+  const Node    * _root;
 
   public:
+    Node(
+        const Package * package = nullptr
+      , const Node    * parent  = nullptr
+      , const Node    * root    = nullptr
+    ) : _package( package )
+      , _parent( parent )
+      , _root( root )
+    {}
+
     const Package * package() const { return this->_package; }
     const Node    * parent()  const { return this->_parent; }
+    const Node    * root()    const { return this->_root; }
+    const ident_t   name()    const { return this->_package->name(); }
 
-    bool isTop() const { return this->_parent == nullptr; }
+    bool isTop()         const { return this->_parent == nullptr; }
+    bool inBundle()      const { return false; /* FIXME */ }
+    bool hasShrinkwrap() const { return false; /* FIXME */ }
+    bool inShrinkwrap()  const { return false; /* FIXME */ }
 };
-
-
 
 
 /* -------------------------------------------------------------------------- */
