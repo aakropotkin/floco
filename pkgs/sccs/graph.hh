@@ -111,7 +111,7 @@ class Edge {
 
   private:
     EdgeError loadError() const;
-    void      setFrom( const Node * node );
+    void      setFrom( Node * node );
 
 };
 
@@ -212,8 +212,8 @@ class Node {
     bool hasShrinkwrap() const { return false; /* FIXME */ }
     bool inShrinkwrap()  const { return false; /* FIXME */ }
 
-    void addEdgeIn( Edge & edge );
-    void addEdgeOut( Edge & edge );
+    void addEdgeIn( Edge * edge );
+    void addEdgeOut( Edge * edge );
 
     Node & resolve( const ident_t & name ) const;
 

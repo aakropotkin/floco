@@ -143,7 +143,7 @@ Edge::reload( bool hard )
       this->_error = this->loadError();
       if ( this->_to != nullptr )
         {
-          this->_to->edgesIn().insert( this );
+          this->_to->addEdgeIn( this );
         }
       else if ( hard )
         {
@@ -158,7 +158,14 @@ Edge::reload( bool hard )
   void
 Edge::detach()
 {
-  /* TODO */
+  if ( this->_to != nullptr )
+    {
+      this->_to->edgesIn().erase( this );
+    }
+  this->_from->edgesOut().erase( this );
+  this->_to = nullptr;
+  this->_error = EdgeError::detached;
+  this->_from = nullptr;
 }
 
 
@@ -187,9 +194,16 @@ Edge::loadError() const
 /* -------------------------------------------------------------------------- */
 
   void
-Edge::setFrom( const Node * node )
+Edge::setFrom( Node * node )
 {
-  /* TODO */
+  this->_from = node;
+  auto sref = node->edgesOut().find( this );
+  if ( sref != node->edgesOut().end() )
+    {
+      ( * sref )->detach();
+    }
+  node->addEdgeOut( this );
+  this->reload();
 }
 
 
