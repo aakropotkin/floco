@@ -50,7 +50,7 @@ HEADERS = types.hh graph.hh edge.hh
 SOURCES = edge.cc node.cc package.cc
 OBJS    = $(SOURCES:%.cc=%.o)
 
-TEST_SOURCES = tests/test-package.cc
+TEST_SOURCES = tests/test-package.cc tests/test-trivial.cc
 TEST_OBJS    = $(TEST_SOURCES:%.cc=%.o)
 TESTS        = $(TEST_SOURCES:%.cc=%)
 
@@ -82,6 +82,7 @@ $(TESTS): %: %.o $(OBJS)
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $^
 
 tests/test-package.cc: package.hh
+tests/test-trivial.cc: package.hh edge.hh node.hh
 
 
 # ---------------------------------------------------------------------------- #
