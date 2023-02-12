@@ -37,8 +37,8 @@ Edge::spec() const
       return this->_spec;
     }
 
-  ident_t name = std::get<0>( this->_overrides.value() );
-  auto    ov   = std::get<1>( this->_overrides.value() );
+  const ident_t & name = std::get<0>( this->_overrides.value() );
+  auto            ov   = std::get<1>( this->_overrides.value() );
 
   if ( ( name != this->_name ) || ( ov == "*" ) )
     {
@@ -47,9 +47,9 @@ Edge::spec() const
 
   if ( ov.c_str()[0] == '$' )
     {
-      const auto ref = ov.substr( 1 );
-      const auto pkg = this->_from->root()->package();
-      auto       os  = pkg->devDependencies().find( ref );
+      const auto      ref = ov.substr( 1 );
+      const Package * pkg = this->_from->root()->package();
+      auto            os  = pkg->devDependencies().find( ref );
 
       if ( os != pkg->devDependencies().end() )
         {
