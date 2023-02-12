@@ -1,12 +1,13 @@
 /* ========================================================================== *
  *
- * Parse package specs, identifiers, descriptors, etc.
+ * An edge in a dependency graph.
  *
  * -------------------------------------------------------------------------- */
 
-#include "graph.hh"
 #include <cstddef>
 #include <stdexcept>
+
+#include "graph.hh"
 
 /* -------------------------------------------------------------------------- */
 
