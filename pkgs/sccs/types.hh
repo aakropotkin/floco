@@ -10,7 +10,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <set>
 #include <utility>
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +36,8 @@ typedef std::unordered_set<ident_t>          dep_set_t;
 typedef std::optional<std::pair<ident_t, std::string>>  overrides_elem_t;
 typedef std::unordered_map<ident_t, std::string>        overrides_t;
 
-typedef std::set<Edge *>  edge_set_t;
+typedef std::unordered_set<Edge *>  edge_set_t;
+typedef std::unordered_map<ident_t, Edge *>  edge_map_t;
 
 
 /* -------------------------------------------------------------------------- */

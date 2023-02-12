@@ -162,10 +162,10 @@ Edge::detach()
     {
       this->_to->edgesIn().erase( this );
     }
-  this->_from->edgesOut().erase( this );
-  this->_to = nullptr;
+  this->_from->edgesOut().erase( this->_name );
+  this->_to    = nullptr;
   this->_error = EdgeError::detached;
-  this->_from = nullptr;
+  this->_from  = nullptr;
 }
 
 
@@ -197,10 +197,10 @@ Edge::loadError() const
 Edge::setFrom( Node * node )
 {
   this->_from = node;
-  auto sref = node->edgesOut().find( this );
+  auto sref = node->edgesOut().find( this->_name );
   if ( sref != node->edgesOut().end() )
     {
-      ( * sref )->detach();
+      sref->second->detach();
     }
   node->addEdgeOut( this );
   this->reload();

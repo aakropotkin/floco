@@ -196,7 +196,7 @@ class Node {
   const Node    * _parent;
   const Node    * _root;
   edge_set_t      _edgesIn;
-  edge_set_t      _edgesOut;
+  edge_map_t      _edgesOut;
   overrides_t     _overrides;
 
   public:
@@ -205,7 +205,7 @@ class Node {
     , const Node    * parent    = nullptr
     , const Node    * root      = nullptr
     , edge_set_t      edgesIn   = {}
-    , edge_set_t      edgesOut  = {}
+    , edge_map_t      edgesOut  = {}
     , overrides_t     overrides = {}
     ) : _package( package )
       , _parent( parent )
@@ -223,7 +223,7 @@ class Node {
     const version_t     version()   const { return this->_package->version(); }
 
     edge_set_t & edgesIn()  { return this->_edgesIn; }
-    edge_set_t & edgesOut() { return this->_edgesOut; }
+    edge_map_t & edgesOut() { return this->_edgesOut; }
 
     bool isTop()         const { return this->_parent == nullptr; }
     bool inBundle()      const { return false; /* FIXME */ }
