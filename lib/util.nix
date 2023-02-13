@@ -34,7 +34,7 @@
   , version
   , ...
   } @ pdef: let
-    toDOT = k: v: ''  "${k}" -> "${v}";'';
+    toDOT = _: depKey: "  " + ''"${depKey}" -> "${key}";'';
   in builtins.attrValues ( builtins.mapAttrs toDOT ( depPinsToKeys pdef ) );
 
 
@@ -42,7 +42,8 @@
     graphName ? "flocoPackages"
   , pdefs     ? {}
   }: let
-    pdefsL = lib.collect ( v: v ? _export ) pdefs;
+    pdefsL = if builtins.isList pdefs then pdefs else
+             lib.collect ( v: v ? _export ) pdefs;
     dot    = builtins.concatMap depPinsToDOT pdefsL;
     header = ''
       digraph ${graphName} {
