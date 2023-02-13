@@ -55,6 +55,7 @@ in {
     ./types.nix
     ./trivial.nix
     ./sources.nix
+    ./util.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
