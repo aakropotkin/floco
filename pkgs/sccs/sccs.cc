@@ -2,6 +2,13 @@
 #include <iostream>
 #include <list>
 #include <stack>
+#include <fstream>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <set>
+#include <unordered_map>
+#include <vector>
 
 class Graph
 {
@@ -152,15 +159,46 @@ Graph::printSCCs()
   int
 main( int argc, char * argv[], char ** envp )
 {
-  /* Create a graph given in the above diagram. */
-  Graph g( 5 );
-  g.addEdge( 1, 0 );
-  g.addEdge( 0, 2 );
-  g.addEdge( 2, 1 );
-  g.addEdge( 0, 3 );
-  g.addEdge( 3, 4 );
+  std::istream * in;
+  if ( 1 < argc )
+    {
+      in = new std::ifstream( argv[1] );
+    }
+  else
+    {
+      in = & std::cin;
+    }
 
-  std::cout << "Following are strongly connected components in given graph \n";
+  std::string from, to;
+
+  std::unordered_set<std::string>               nodeNames;
+  std::set<std::pair<std::string, std::string>> edges;
+
+  while ( *in >> from >> to  )
+    {
+      nodeNames.insert( from );
+      nodeNames.insert( to );
+      edges.insert( std::make_pair( from, to ) );
+    }
+
+  std::unordered_map<std::string, int> nodeMap;
+  std::vector<std::string>             nodeNamesVec( nodeNames.size() );
+
+  auto it = nodeNames.begin();
+  for ( int i = 0; it != nodeNames.end(); ++i, ++it )
+    {
+      nodeNamesVec[i] = *it;
+      nodeMap[*it]    = i;
+      std::cout << i << " " << *it << std::endl;
+    }
+  std::cout << std::endl;
+
+  /* Create a graph given in the above diagram. */
+  Graph g( nodeNames.size() );
+  for ( auto edge : edges )
+    {
+      g.addEdge( nodeMap[edge.first], nodeMap[edge.second] );
+    }
   g.printSCCs();
 
   return 0;
