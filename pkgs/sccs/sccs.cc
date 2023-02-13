@@ -30,8 +30,6 @@ class Graph
   void fillOrder( int v, bool visited[], std::stack<int> & Stack );
 
   /* A recursive function to print DFS starting from v. */
-  void DFSUtil( int v, bool visited[] );
-
   void DFSUtilWith( int v, bool visited[], std::vector<std::string> & names );
 
 public:
@@ -39,7 +37,6 @@ public:
   void addEdge( int v, int w );
 
   /* The main function that finds and prints strongly connected components. */
-  void printSCCs();
   void printSCCsWith( std::vector<std::string> & names );
 
   /* Function that returns reverse ( or transpose ) of this graph. */
@@ -53,28 +50,6 @@ Graph::Graph(int V)
 {
   this->V = V;
   adj = new std::list<int>[V];
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-/* A recursive function to print DFS starting from v. */
-  void
-Graph::DFSUtil( int v, bool visited[] )
-{
-  /* Mark the current node as visited and print it. */
-  visited[v] = true;
-  std::cout << v << " ";
-
-  /* Recur for all the vertices adjacent to this vertex. */
-  std::list<int>::iterator i;
-  for ( i = adj[v].begin(); i != adj[v].end(); ++i )
-    {
-      if ( ! visited[*i] )
-        {
-          DFSUtil( *i, visited );
-        }
-    }
 }
 
 
@@ -126,56 +101,6 @@ Graph::fillOrder( int v, bool visited[], std::stack<int> & Stack )
 
   /* All vertices reachable from v are processed by now, push v. */
   Stack.push( v );
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-/* The main function that finds and prints all strongly connected components. */
-  void
-Graph::printSCCs()
-{
-  std::stack<int> Stack;
-
-  /* Mark all the vertices as not visited ( for first DFS ). */
-  bool * visited = new bool[V];
-  for( int i = 0; i < V; i++ )
-    {
-      visited[i] = false;
-    }
-
-  // Fill vertices in stack according to their finishing times
-  for( int i = 0; i < V; i++ )
-    {
-      if ( visited[i] == false )
-        {
-          fillOrder( i, visited, Stack );
-        }
-    }
-
-  /* Create a reversed graph. */
-  Graph gr = getTranspose();
-
-  /* Mark all the vertices as not visited ( for second DFS ). */
-  for( int i = 0; i < V; i++ )
-    {
-      visited[i] = false;
-    }
-
-  /* Now process all vertices in order defined by Stack. */
-  while ( Stack.empty() == false )
-    {
-      /* Pop a vertex from stack. */
-      int v = Stack.top();
-      Stack.pop();
-
-      /* Print Strongly connected component of the popped vertex. */
-      if ( visited[v] == false )
-        {
-          gr.DFSUtil( v, visited );
-          std::cout << std::endl;
-        }
-    }
 }
 
 
@@ -286,9 +211,7 @@ main( int argc, char * argv[], char ** envp )
     {
       nodeNamesVec[i] = *it;
       nodeMap[*it]    = i;
-      //std::cout << i << " " << *it << std::endl;
     }
-  //std::cout << std::endl;
 
   /* Create a graph given in the above diagram. */
   Graph g( nodeNames.size() );
