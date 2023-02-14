@@ -168,21 +168,29 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-    descriptor = runtimeDeps.${ident} or devDependencies.${ident} or
-                 optionalDependencies.${ident} or "*";
+    descriptor = lib.mkDefault (
+      runtimeDeps.${ident} or devDependencies.${ident} or
+      optionalDependencies.${ident} or "*"
+    );
 
-    runtime = ( runtimeDeps ? ${ident} ) ||
-              ( builtins.elem ident bundledDependencies );
+    runtime = lib.mkDefault (
+      ( runtimeDeps ? ${ident} ) ||
+      ( builtins.elem ident bundledDependencies )
+    );
 
-    dev = ( runtimeDeps         ? ${ident} ) ||
-          ( devDependencies     ? ${ident} ) ||
-          ( devDependenciesMeta ? ${ident} );
+    dev = lib.mkDefault (
+      ( runtimeDeps         ? ${ident} ) ||
+      ( devDependencies     ? ${ident} ) ||
+      ( devDependenciesMeta ? ${ident} )
+    );
 
-    optional = optionalDependencies ? ${ident};
+    optional = lib.mkDefault ( optionalDependencies ? ${ident} );
 
-    devOptional = devDependenciesMeta.${ident}.optional or false;
+    devOptional = lib.mkDefault (
+      devDependenciesMeta.${ident}.optional or false
+    );
 
-    bundled = builtins.elem ident bundledDependencies;
+    bundled = lib.mkDefault ( builtins.elem ident bundledDependencies );
 
 
 # ---------------------------------------------------------------------------- #
