@@ -19,7 +19,6 @@ in {
 
   imports = [
     ./binInfo/interface.nix
-    ./depInfo/interface.nix
     ./treeInfo/interface.nix
     ./peerInfo/interface.nix
     ./sysInfo/interface.nix
