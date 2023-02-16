@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------- #
 
   config._module.args.pkgs = lib.mkOptionDefault (
-    config.inputs.nixpkgs.legacyPackages.${config.settings.system}
+    config.inputs.nixpkgs.flake.legacyPackages.${config.settings.system}
   );
 
   config.env.pkgs = lib.mkOptionDefault ( pkgs.extend ../../overlay.nix );
