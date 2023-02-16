@@ -21,7 +21,7 @@
 
   fmodule = {
     options.tarballFetcher = mkFetcherOption "fetchTarball";
-    config.tarballFetcher = {
+    config.tarballFetcher  = {
 
       info = {
         name      = "fetchTarball";

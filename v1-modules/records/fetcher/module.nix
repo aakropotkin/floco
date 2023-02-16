@@ -39,7 +39,7 @@ in {
           config.mkOpt = lib.mkDerivedConfig options.module ( module: name:
             lib.mkOption {
               description = lib.mdDoc ''
-                An abstrace form of ${name} wrapped to implement the
+                An abstract form of `${name}` wrapped to implement the
                 `fetcher` interface.
               '';
               type = nt.submodule module;
