@@ -104,6 +104,13 @@
       inherit lockDir plentKey;
       plent = plock.packages.${plentKey};
     } // ( if plentKey != "" then {} else { inherit plock; } );
+    _module.args = builtins.intersectAttrs {
+      requires = true;
+      dependencies = true;
+      devDependencies = true;
+      devDependenciesMeta = true;
+      optionalDependencies = true;
+    } plent;
   };
 
 

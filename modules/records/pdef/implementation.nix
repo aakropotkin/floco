@@ -11,8 +11,19 @@
 , pkgs
 , fetchers
 , pdefs
+
 , basedir
 , deriveTreeInfo
+
+# Used by `depInfo'
+, requires
+, dependencies
+, devDependencies
+, devDependenciesMeta
+, optionalDependencies
+, bundledDependencies
+, bundleDependencies
+
 , ...
 }: let
 
@@ -30,7 +41,6 @@ in {
 
   imports = [
     ./binInfo/implementation.nix
-    ./depInfo/implementation.nix
     ./treeInfo/implementation.nix
     ./peerInfo/implementation.nix
     ./sysInfo/implementation.nix
@@ -69,7 +79,40 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config = {
+  config = let
+
+    depInfoArgs = let
+      raw  = { requires = {}; } // ( config.metaFiles.pjs or {} );
+      args = builtins.intersectAttrs {
+        dependencies         = true;
+        devDependencies      = true;
+        devDependenciesMeta  = true;
+        optionalDependencies = true;
+        bundledDependencies  = true;
+        bundleDependencies   = true;
+      } ( config.metaFiles.pjs or {} );
+    in if config.deserialized then {} else
+       builtins.mapAttrs ( _: lib.mkOverride 1100 ) args;
+
+  in {
+
+# ---------------------------------------------------------------------------- #
+
+    _module.args = depInfoArgs // {
+      basedir = let
+          isExt = f:
+            ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
+            ( f != "<unknown-file>" ) &&
+            ( f != "lib/modules.nix" );
+          dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
+          exts = builtins.filter isExt dls;
+          val  = if exts != [] then dirOf ( builtins.head exts ) else
+                config.fetchInfo.path or config.metaFiles.pjsDir;
+        in lib.mkDefault val;
+
+      deriveTreeInfo = lib.mkDefault false;
+    };
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -80,23 +123,6 @@ in {
         "floco-cfg.nix"  "floco-cfg.json"
       ] ) options.ltype.definitionsWithLocations
     );
-
-
-# ---------------------------------------------------------------------------- #
-
-    _module.args = {
-      basedir = let
-        isExt = f:
-          ( ! ( lib.hasPrefix "<floco>/" f ) ) &&
-          ( f != "<unknown-file>" ) &&
-          ( f != "lib/modules.nix" );
-        dls  = map ( v: v.file ) options.fetchInfo.definitionsWithLocations;
-        exts = builtins.filter isExt dls;
-        val  = if exts != [] then dirOf ( builtins.head exts ) else
-              config.fetchInfo.path or config.metaFiles.pjsDir;
-      in lib.mkDefault val;
-      deriveTreeInfo = lib.mkDefault false;
-    };
 
 
 # ---------------------------------------------------------------------------- #

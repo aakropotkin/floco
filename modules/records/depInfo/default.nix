@@ -57,9 +57,7 @@ in {
       config._module.args = let
         comm = removeAttrs config._module.args ["deserialized"];
         inherit (options.descriptor) loc;
-      in comm // {
-        ident = lib.mkDefault ( builtins.elemAt loc oloc );
-      };
+      in comm // { ident = lib.mkOptionDefault ( builtins.elemAt loc oloc ); };
     } ) );
     default = {};
   };
@@ -67,14 +65,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config._module.args.deserialized         = lib.mkDefault false;
-  config._module.args.requires             = lib.mkDefault {};
-  config._module.args.dependencies         = lib.mkDefault req;
-  config._module.args.devDependencies      = lib.mkDefault {};
-  config._module.args.devDependenciesMeta  = lib.mkDefault {};
-  config._module.args.optionalDependencies = lib.mkDefault {};
-  config._module.args.bundleDependencies   = lib.mkDefault false;
-  config._module.args.bundledDependencies  = lib.mkDefault (
+  config._module.args.deserialized         = lib.mkOptionDefault false;
+  config._module.args.requires             = lib.mkOptionDefault {};
+  config._module.args.dependencies         = lib.mkOptionDefault req;
+  config._module.args.devDependencies      = lib.mkOptionDefault {};
+  config._module.args.devDependenciesMeta  = lib.mkOptionDefault {};
+  config._module.args.optionalDependencies = lib.mkOptionDefault {};
+  config._module.args.bundleDependencies   = lib.mkOptionDefault false;
+  config._module.args.bundledDependencies  = lib.mkOptionDefault (
     if bundleDependencies then builtins.attrNames runtimeDeps else []
   );
 
