@@ -42,7 +42,20 @@ in {
         Often this submodule is used to fill defaults for other submodules in
         later stages.
       '';
-      type = nt.submodule { freeformType = nt.attrsOf nt.raw; };
+      type = nt.submodule {
+        freeformType   = nt.attrsOf nt.raw;
+        options.system = lib.mkOption {
+          description = lib.mdDoc ''
+            System pair used as `build` and `host` platform.
+          '';
+          type = nt.enum [
+            "x86_64-linux"  "x86_64-darwin"
+            "aarch64-linux" "aarch64-darwin"
+            "i686-linux"    "unknown"
+          ];
+          example = "x86_64-linux";
+        };
+      };
     };
 
     inputs = lib.mkOption {
@@ -68,7 +81,13 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  };
+  };  # End `options'
+
+
+# ---------------------------------------------------------------------------- #
+
+  config.settings.system =
+    lib.mkOptionDefault ( builtins.currentSystem or "unknown" );
 
 
 # ---------------------------------------------------------------------------- #
