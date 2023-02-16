@@ -1,7 +1,6 @@
 {
-  _file = "<floco>/records";
-
-  # TODO
-
-  config.records = {};
+  _file   = "<floco>/records";
+  imports = [
+    ./pjsCore
+  ];
 }
