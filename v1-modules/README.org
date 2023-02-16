@@ -22,9 +22,10 @@ first release.
   deduplicated more easily.
 
 * Records/Typedef Structure
-- =record.nix=
+- =record.nix= or =module.nix=
   + Organizes subfiles, extending the top level =floco= module.
 - =submodule.nix=
+  + For cases where "entries" or submodules need to be defined.
 - =arguments.nix=
   + Defines default args.
 - =types.nix=
