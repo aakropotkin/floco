@@ -1,0 +1,35 @@
+#+TITLE: v1 Modules
+
+Having used the v0 modules for a while, I learned a few things.
+
+It's about time to map out the module systems that we'll be using for the
+first release.
+
+* Best Practices
+- Modules systems should be split into a few parts with a "core" set.
+- Submodules should be defined in files that retain access to the top level
+  scope to avoid passing arguments recursively.
+  + An exception to this rule is submodules which must be defined as elements
+    in a container such as =lib.types.listOf= or =lib.types.[lazy]AttrsOf=.
+  + In practice this is ugly and more tedious to write, but it avoids a lot of
+    mess and makes it easier to add/remove new files/modules.
+- Serialization functions should be separated from records entirely.
+- "records" intended for reuse should be written as types so they can be
+  reused by external extensions more easily.
+  + =depInfo= in particular.
+- =treeInfo=, =depInfo.*.pin=, and other "build planning" related info should
+  be separated from =pdef= records so that =pdefs.nix= files can be
+  deduplicated more easily.
+
+* Records/Typedef Structure
+- =record.nix=
+  + Organizes subfiles, extending the top level =floco= module.
+- =submodule.nix=
+- =arguments.nix=
+  + Defines default args.
+- =types.nix=
+  + Only for static types.
+- =serialize.nix=
+  + Helper function used to serialize the record.
+- =implementation.nix= and =implementation.<name>.nix=
+  + Default implementation and alternates.
