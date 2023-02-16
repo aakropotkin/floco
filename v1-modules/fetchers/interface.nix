@@ -6,8 +6,6 @@
 
 { lib
 , config
-, options
-, specialArgs
 , ...
 }: let
 
@@ -21,50 +19,44 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  _file = "<floco>/stage1.nix";
-
-  imports = [
-    ./stage0.nix
-    ./records
-    ./fetchers
-    ./builders
-    ./utils
-  ];
+  _file = "<floco>/fetchers/interface.nix";
 
 # ---------------------------------------------------------------------------- #
 
-  options = {
+  options.fetchers = lib.mkOption {
+    type = nt.submodule {
 
-# ---------------------------------------------------------------------------- #
+      options.settings = lib.mkOption {
+        description = lib.mdDoc ''
+          Settings applied to all fetchers or used as fallbacks/defaults for
+          options applicable to individual fetchers.
+        '';
+        type = nt.submodule { freeformType = nt.attrsOf nt.raw; };
+      };
 
-    # Stage 1
+      options.tarball = lib.mkOption {
+        type = nt.deferredModule;
+      };
 
-    records = lib.mkOption {
-      type = nt.submodule {};
+      options.path = lib.mkOption {
+        type = nt.deferredModule;
+      };
+
+      options.git = lib.mkOption {
+        type = nt.deferredModule;
+      };
+
+      options.github = lib.mkOption {
+        type = nt.deferredModule;
+      };
+
+      options.file = lib.mkOption {
+        type = nt.deferredModule;
+      };
+
     };
-
-    fetchers = lib.mkOption {
-      type = nt.submodule {};
-    };
-
-    builders = lib.mkOption {
-      type = nt.submodule {};
-    };
-
-    utils = lib.mkOption {
-      type = nt.submodule {};
-    };
-
-
-# ---------------------------------------------------------------------------- #
-
   };
 
-
-# ---------------------------------------------------------------------------- #
-
-  config.env    = lib.mkForce specialArgs.env;
-  config.inputs = lib.mkForce specialArgs.inputs;
 
 # ---------------------------------------------------------------------------- #
 
