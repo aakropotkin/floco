@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, ... }: let
+{ lib, options, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -47,7 +47,8 @@ in {
           This name should be unique among all fetchers so that it may be used
           to refer to the fetcher in serialized records.
         '';
-        type = nt.str;
+        type     = nt.str;
+        readOnly = true;
       };
 
       options.pure = lib.mkOption {
@@ -69,6 +70,15 @@ in {
           builtin derivatons which can be run using `system = "unknown";`.
         '';
         type     = nt.bool;
+        readOnly = true;
+      };
+
+      options.type = lib.mkOption {
+        description = lib.mdDoc ''
+          The "generic" type of the fetcher, being one of the types recognized
+          by the `<floco>.fetchers.*` members.
+        '';
+        type     = nt.enum ["tarball" "path" "git" "github" "file"];
         readOnly = true;
       };
 
@@ -206,6 +216,57 @@ in {
       }
     '';
   };
+
+
+# ---------------------------------------------------------------------------- #
+
+  options.mkFetchInfoOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Function which creates a `fetchInfo` submodule option.
+    '';
+    type     = nt.raw;
+    readOnly = true;
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  options.mkInputOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Function which creates a `input` submodule option.
+    '';
+    type     = nt.raw;
+    readOnly = true;
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  config.mkFetchInfoOption = lib.mkDerivedConfig options.fetchInfo ( fetchInfo:
+    lib.mkOption {
+      description = lib.mdDoc ''
+        Submodule option representing arguments passed to fetch function in
+        order to produce a `sourceInfo` record.
+
+        This is used to typecheck when parsing lockfiles.
+      '';
+      type = fetchInfo;
+    }
+  );
+
+
+# ---------------------------------------------------------------------------- #
+
+  config.mkInputOption = lib.mkDerivedConfig options.input ( input:
+    lib.mkOption {
+      description = lib.mdDoc ''
+        String option representing a stringized form of `fetchInfo`.
+
+        This is used to typecheck when parsing lockfiles.
+      '';
+      type = input;
+    }
+  );
 
 
 # ---------------------------------------------------------------------------- #

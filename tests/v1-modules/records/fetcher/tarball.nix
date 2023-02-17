@@ -25,7 +25,8 @@
 
       info = {
         name      = "fetchTarball";
-        pure      = true;
+        type      = "tarball";
+        pure      = false;
         systemIFD = false;
       };
 
@@ -52,7 +53,8 @@
       } // fetchInfo;
 
       fetchInfo = nt.submodule {
-        options = {
+        freeformType = nt.attrsOf nt.raw;
+        options      = {
           url    = lib.mkOption { type = nt.str; };
           sha256 = lib.mkOption { type = nt.nullOr nt.str; default = null; };
         };
@@ -74,9 +76,7 @@
 
   umodule = { config, options, ... }: {
 
-    options.fetchInfo = lib.mkOption {
-      type = fmod.config.tarballFetcher.fetchInfo;
-    };
+    options.fetchInfo = fmod.config.tarballFetcher.mkFetchInfoOption;
 
     options.locked = lib.mkOption {
       type = fmod.config.tarballFetcher.fetchInfo;
