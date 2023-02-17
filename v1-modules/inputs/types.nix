@@ -15,7 +15,7 @@
 
 in {
 
-  input = nt.submodule {
+  lockInput = nt.submodule {
     options.id         = lib.mkOption { type = nt.str; };
     options.uri        = lib.mkOption { type = nt.str; };
     options.flake      = lib.mkOption { type = nt.raw; };

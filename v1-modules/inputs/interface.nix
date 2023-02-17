@@ -17,7 +17,7 @@ in {
 
   _file = "<floco>/inputs/interface.nix";
 
-  options.inputs = lib.mkOption { type = nt.lazyAttrsOf lt.input; };
+  options.inputs = lib.mkOption { type = nt.lazyAttrsOf lt.lockInput; };
 
 }
 
