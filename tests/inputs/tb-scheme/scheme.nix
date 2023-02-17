@@ -21,10 +21,12 @@ in {
 
     mkInput = attrs: {
       schemeName = lib.mkDerivedConfig options.tbScheme ( s: s.name );
-      scheme     = lib.mkDerivedConfig options.tbScheme lib.id;
-      attrs      = { type = "tarball"; } // attrs;
-      parent     = null;
-      functor    = { config, options, ... }: {
+      # `functor` contains all necessary functions, so there is no need to carry
+      # a reference to the scheme itself.
+      scheme  = null;
+      attrs   = { type = "tarball"; } // attrs;
+      parent  = null;
+      functor = {
         fromURL   = lib.mkDerivedConfig options.tbScheme ( s: s.inputFromURL );
         fromAttrs =
           lib.mkDerivedConfig options.tbScheme ( s: s.inputFromAttrs );
@@ -42,6 +44,13 @@ in {
         getRef         = _: null;
         applyOverrides =
           lib.mkDerivedConfig options.tbScheme ( s: s.applyOverrides );
+        fetch = lib.mkDerivedConfig options.tbScheme ( s: input: let
+          fetched = s.fetch input;
+        in {
+          tree.actualPath = s.getSourcePath input;
+          tree.storePath  = fetched.tree.outPath;
+          locked          = fetched.input;
+        } );
       };
     };
 

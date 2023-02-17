@@ -254,53 +254,209 @@
   input = nt.submodule {
     options = {
 
-      schemeName = lib.mkOption { type = nt.nullOr nt.str; };
-      #scheme     = lib.mkOption { type = nt.nullOr lib.libfloco.inputScheme; };
-      scheme     = lib.mkOption { type = nt.nullOr nt.raw; };
-      attrs      = lib.mkOption { type = nt.attrsOf nt.raw; };
-      parent     = lib.mkOption { type = nt.nullOr nt.path; };
+      schemeName = lib.mkOption {
+        description = lib.mdDoc ''
+          Name of the input scheme used to fetch this input.
+
+          This is used when deserializing an input to restore the `functor`
+          submodule values.
+          If `scheme` is set to `null`, then this attribute must be set.
+        '';
+        type = nt.nullOr nt.str;
+      };
+
+      scheme = lib.mkOption {
+        description = lib.mdDoc ''
+          The input scheme used to fetch this input.
+
+          The `scheme' attribute may be omitted if the `functor' submodule
+          carries all functions required to fetch the input.
+          This reduces overhead when the input scheme has finished processing an
+          `input` for it to be fetchable.
+          If `scheme` is set to `null`, then `schemeName` must be set.
+        '';
+        type = nt.nullOr lib.libfloco.inputScheme;
+      };
+
+      attrs = lib.mkOption {
+        description = lib.mdDoc ''
+          Attributes which are used to fetch the input.
+
+          These are conventionally arguments passed to the underlying fetcher,
+          but may also be used to store other information about the input.
+        '';
+        type = nt.attrsOf nt.raw;
+      };
+
+      parent = lib.mkOption {
+        description = lib.mdDoc ''
+          For inputs which are fetched from other inputs, this value should be
+          an absolute path to the parent input's `tree.outPath` (or equivalent).
+
+          This is used to resolve relative paths in the input.
+        '';
+        type    = nt.nullOr nt.path;
+        default = null;
+      };
 
       functor = lib.mkOption {
+        description = lib.mdDoc ''
+          Functions which operate on the input to fetch, lock, or otherwise
+          manipulate it.
+
+          This generally contains the same functions as the associated
+          `inputScheme`, but may be overridden to provide custom behavior.
+
+          This abstraction allows "composed" fetchers to attempt multiple
+          `inputSchemes` to find a suitable fetcher for a given input.
+
+          Most of these functions are intended to be called on the parent
+          `input` record, but some implementations may accept arbitrary `inputs`
+          of the same or compatible `inputScheme`.
+          Note that `fromURL` and `fromAttrs` are exceptions to this rule and
+          instead act as "constructors" for new inputs of the same scheme.
+        '';
         type = nt.submodule {
           options = {
 
-            fromURL   = lib.mkOption { type = nt.functionTo nt.raw; };
-            fromAttrs = lib.mkOption { type = nt.functionTo nt.raw; };
-            toURL     = lib.mkOption { type = nt.functionTo nt.str; };
-            toAttrs   = lib.mkOption { type = nt.functionTo nt.raw; };
-            isLocked  = lib.mkOption {
-              type = nt.functionTo nt.bool;
+            fromURL = lib.mkOption {
+              description = lib.mdDoc ''
+                Function that returns a new input of the same `inputScheme`
+                from a URL.
+
+                Takes a URL string as an argument.
+              '';
+              type = nt.functionTo nt.raw;
+            };
+
+            fromAttrs = lib.mkOption {
+              description = lib.mdDoc ''
+                Function that returns a new `input` of the same `inputScheme`
+                from an attrset.
+
+                Takes a an attrset as an argument.
+              '';
+              type = nt.functionTo nt.raw;
+            };
+
+            toURL = lib.mkOption {
+              description = lib.mdDoc ''
+                Function that returns a URL string from an `input`.
+
+                This function may return `null` if there is not a URL form of
+                the input.
+              '';
+              type = nt.functionTo nt.str;
+            };
+
+            toAttrs = lib.mkOption {
+              description = lib.mdDoc ''
+                Function that returns a serializable attrset from an `input`.
+
+                This function may return `null` if there is not a serialized
+                form of the input.
+              '';
+              type = nt.functionTo nt.raw;
+            };
+
+            isLocked = lib.mkOption {
+              description = lib.mdDoc ''
+                Predicate function which returns `true` if the input is locked.
+
+                This means that it is possible to fetch the input in `pure`
+                evaluation mode.
+              '';
+              type    = nt.functionTo nt.bool;
               default = i:
                 ( ( i.attrs.narHash or null ) != null ) ||
                 ( ( i.attrs.rev or null ) != null );
             };
 
             isDirect = lib.mkOption {
+              description = lib.mdDoc ''
+                Predicate function which return `true` if the input is directly
+                fetchable without any other inputs or indirection
+                through registries.
+              '';
               type = nt.functionTo nt.bool;
               default = _: true;
             };
 
             getType = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which returns the type of the input.
+
+                This is used to categorize generic inputs which may be
+                compatible with multiple `inputSchemes` implementations.
+                For example `type = "tarball"` may be used to fetch using
+                `fetchTarball`, `fetchzip`, or `fetchTree` schemes.
+              '';
               type    = nt.functionTo nt.str;
               default = i: i.scheme.type or i.schemeName;
             };
 
             getNarHash = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which returns the NAR hash of the input.
+                This may be used to lock the input if it is not already locked.
+
+                This function may return `null` if this information is
+                unavailable in the current evaluation mode, or not applicable
+                to a given input.
+
+                The default implementation uses `fetch` as a fallback in order
+                to reference the `locked` input returned by the fetcher.
+              '';
               type    = nt.functionTo ( nt.nullOr lib.libfloco.narHash );
-              default = i: i.attrs.narHash or null;
+              default = i: let
+                n = i.attrs.narHash or null;
+              in if n != null then n else
+                 ( i.fetch i ).locked.attrs.narHash or null;
             };
 
             getRev = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which returns a SHA-1 hex revision hash for the input.
+                This may be used to lock the input if it is not already locked.
+
+                This function may return `null` if this information is
+                unavailable in the current evaluation mode, or not applicable
+                to a given input.
+
+                The default implementation will only check the existing `attrs`
+                held by the input - if your input scheme uses `rev` you should
+                implement this function explicitly.
+              '';
               type    = nt.functionTo ( nt.nullOr lib.libfloco.rev );
               default = i: i.attrs.rev or null;
             };
 
             getRef = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which returns a "reference" identifier for the input.
+                This is a flexible field whose meaning depends on the input.
+
+                This function may return `null` if this information is
+                unavailable in the current evaluation mode, or not applicable
+                to a given input.
+
+                The default implementation will only check the existing `attrs`
+                held by the input - if your input scheme uses `ref` you should
+                implement this function explicitly.
+              '';
               type    = nt.functionTo ( nt.nullOr nt.str );
               default = i: i.attrs.ref or null;
             };
 
             fetch = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which fetches the input and returns an pair of
+                `{ tree, locked }` where `tree.storePath` holds the fetched
+                input and `locked` is a locked version of the original input.
+
+                `tree.actualPath` may be used to record the orinal path outside
+                of the nix store, if applicable.
+              '';
               type = nt.functionTo ( nt.submodule {
                 options.tree   = lib.mkOption { type = lib.libfloco.tree; };
                 options.locked = lib.mkOption { type = lib.libfloco.input; };
