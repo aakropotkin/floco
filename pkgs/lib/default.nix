@@ -15,17 +15,11 @@
 , ...
 } @ args: {
 
-  semverRangeFilt = range: versions: import ./semver.nix {
-    inherit system bash semver range versions;
+  semver = import ./semver {
+    inherit lib nixpkgs system pkgsFor semver nodejs bash;
   };
 
-  semverRangeValid = range: import ./semver/valid.nix {
-    inherit system bash semver nodejs range;
-  };
-
-  treeFor = src: import ./tree-for.nix {
-    inherit lib system bash treeFor src;
-  };
+  treeFor = src: import ./tree-for.nix { inherit lib system bash treeFor src; };
 
 }
 
