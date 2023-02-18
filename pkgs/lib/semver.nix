@@ -13,12 +13,13 @@
 
 # ---------------------------------------------------------------------------- #
 
-  drv = derivation {
-    name = "semver-range-check";
-    inherit system range versions;
-    builder = "${bash}/bin/bash";
-    PATH    = "${semver}/bin";
-    args    = ["-eu" "-o" "pipefail" "-c" ''
+  rangeFiltDrv = derivation {
+    name = "semver-range-filter";
+    inherit system range;
+    versions = builtins.sort builtins.lessThan versions;
+    builder  = "${bash}/bin/bash";
+    PATH     = "${semver}/bin";
+    args     = ["-eu" "-o" "pipefail" "-c" ''
       semver -r "$range" $versions > "$out";
     ''];
     preferLocalBuild = true;
@@ -28,7 +29,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-  s = builtins.split "\n" ( builtins.readFile drv.outPath );
+  f = builtins.readFile rangeFiltDrv.outPath;
+  s = builtins.split "\n" ( builtins.unsafeDiscardStringContext f );
 
 # ---------------------------------------------------------------------------- #
 

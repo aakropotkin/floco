@@ -14,7 +14,7 @@
 , ...
 } @ args: {
 
-  semver = range: versions: import ./semver.nix {
+  semverRangeFilt = range: versions: import ./semver.nix {
     inherit system bash semver range versions;
   };
 
