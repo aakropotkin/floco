@@ -99,15 +99,21 @@
 
 # ---------------------------------------------------------------------------- #
 
-  getPdef = {
-    config ? null
-  , floco  ? config.floco
-  , pdefs  ? floco.pdefs
-  }: {
-    key     ? ident + "/" + version
+  getPdef' = pdefs: {
+    key     ? null
   , ident   ? dirOf key
   , version ? baseNameOf key
-  }: pdefs.${ident}.${version} or null;
+  , ...
+  } @ ka: pdefs.${ident}.${version} or null;
+
+  getPdef = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: ka:
+    if builtins.isAttrs ka then getPdef' pdefs ka else
+    getPdef' pdefs { key = ka; };
 
 
 # ---------------------------------------------------------------------------- #

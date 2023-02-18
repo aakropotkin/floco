@@ -13,13 +13,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-  depPinsToKeys = {
-    depInfo ? {}
-  , key     ? ident + "/" + version
-  , ident
-  , version
-  , ...
-  } @ pdef: let
+  depPinsToKeys = x: let
+    depInfo = x.depInfo or x;
     deToKey = dIdent: { pin ? throwFrom "depPinsToKeys" "pin not found", ... }:
       "${dIdent}/${pin}";
   in builtins.mapAttrs deToKey depInfo;
