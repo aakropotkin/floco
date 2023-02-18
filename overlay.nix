@@ -50,4 +50,10 @@ final: prev: {
     nix     = final.nixVersions.nix_2_12;
   };
 
+  pkgslib = ( prev.pkgslib or {} ) // ( import ./pkgs/lib {
+    nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+    inherit (final) lib system treeFor semver bash;
+    pkgsFor = final;
+  } );
+
 }
