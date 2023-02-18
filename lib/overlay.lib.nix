@@ -93,6 +93,11 @@ in {
 
     jsonAtom
     jsonValue
+
+    show
+    showPretty
+    showPrettyCurried
+    spp
   ;
 
 }
