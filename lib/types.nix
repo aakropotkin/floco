@@ -85,6 +85,14 @@
 
 # ---------------------------------------------------------------------------- #
 
+  uniqueListOf = elemType: ( nt.listOf elemType ) // {
+    description = "A list of unique ${elemType.description}";
+    merge       = loc: defs: lib.unique ( lib.getValues defs );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -103,6 +111,8 @@ in {
 
     binPairs
     pjsBin
+
+    uniqueListOf
   ;
 
 }
