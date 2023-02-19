@@ -62,6 +62,16 @@
   #  inherit (builtins.foldl' proc { curr = []; rules = root; } path) rules;
   #in removeAttrs rules ["."];
 
+  specOverrideSetGetRuleset = root: path: let
+    proc = rules: spath: let
+      next     = builtins.head spath;
+      rest     = builtins.tail spath;
+      base     = rules.${next} or { "." = "*"; };
+      override = rules // base;
+      final    = { ${next} = override; } // base;
+    in if rest == [] then final else proc final rest;
+  in removeAttrs ( proc root path ) ["."];
+
 
 # ---------------------------------------------------------------------------- #
 
