@@ -168,7 +168,16 @@ end
 
 # ---------------------------------------------------------------------------- #
 
+# Records the running system pair as recognized by `nix CMD --system SYSTEM'.
+: "${_nix_system=}";
+export _nix_system;
 
+nixSystem() {
+  if [[ -z "$_nix_system" ]]; then
+    _nix_system="$( $NIX eval --raw --impure --expr builtins.currentSystem; )";
+  fi
+  echo "$_nix_system";
+}
 
 
 # ---------------------------------------------------------------------------- #

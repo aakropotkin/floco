@@ -15,6 +15,7 @@
 echo "SPATH: $SPATH";
 echo "SDIR: $SDIR";
 echo "_as_me: $_as_me";
+echo "system: $( nixSystem; )";
 
 
 # ---------------------------------------------------------------------------- #
