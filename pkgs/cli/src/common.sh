@@ -16,12 +16,18 @@ set -o pipefail;
 : "${JQ:=jq}";
 : "${GREP:=grep}";
 : "${HEAD:=head}";
+: "${MKTEMP:=mktemp}";
 
-export REALPATH NIX;
+export REALPATH NIX JQ GREP HEAD;
 
 # ---------------------------------------------------------------------------- #
 
-SPATH="$( $REALPATH "${BASH_SOURCE[1]}"; )";
+if [[ "${#BASH_SOURCE[@]}" -gt 1 ]]; then
+  SPATH="$( $REALPATH "${BASH_SOURCE[1]}"; )";
+else
+  SPATH="$PWD/interactive";
+fi
+
 SDIR="${SPATH%/*}";
 _as_me="${SPATH##*/}";
 
@@ -178,6 +184,87 @@ nixSystem() {
   fi
   echo "$_nix_system";
 }
+
+
+# ---------------------------------------------------------------------------- #
+
+flocoCmd() {
+  local _cmd _dir _old_l_floco_cfg;
+  _cmd="$1";
+  shift;
+
+  _old_l_floco_cfg="$( localFlocoCfg 2>/dev/null||:; )";
+  unset _l_floco_cfg;
+
+  if [[ "$#" -gt 0 ]] && [[ -d "$1" ]]; then
+    _dir="$1";
+    shift;
+  else
+    _dir="$PWD";
+  fi
+
+  $NIX "$_cmd" -f "${BASH_SOURCE[0]%/*}/common.nix"          \
+    --argstr system    "$( nixSystem; )"                     \
+    --argstr flocoRef  "$( flocoRef; )"                      \
+    --argstr globalCfg "$_g_floco_cfg"                       \
+    --argstr userCfg   "$_u_floco_cfg"                       \
+    --argstr localCfg  "$( localFlocoCfg 2>/dev/null||:; )"  \
+    "$@"                                                     \
+  ;
+
+  _l_floco_cfg="$_old_l_floco_cfg";
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+flocoEval()  { flocoCmd eval "$@"; }
+flocoBuild() { flocoCmd build "$@"; }
+
+
+# ---------------------------------------------------------------------------- #
+
+declare -a _tmp_files _tmp_dirs;
+_tmp_files=();
+_tmp_dirs=();
+export _tmp_files _tmp_dirs;
+
+mktmpAuto() {
+  local _f;
+  _f="$( $MKTEMP "$@"; )";
+  case " $* " in
+    *\ -d\ *|*\ --directory\ *) _tmp_dirs+=( "$_f" ); ;;
+    *)                          _tmp_files+=( "$_f" ); ;;
+  esac
+  echo "$_f";
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+commonCleanup() {
+  rm -f "${_tmp_files[@]}";
+  rm -rf "${_tmp_dirs[@]}";
+}
+
+declare -a cleanupHooks;
+cleanupHooks=( commonCleanup );
+export cleanupHooks;
+
+cleanup() {
+  local _hook;
+  for _hook in "${cleanupHooks[@]}"; do
+    "$_hook";
+  done
+}
+
+
+_es=0;
+trap '
+_es="$?";
+cleanup;
+exit "$_es";
+' HUP TERM INT QUIT EXIT;
 
 
 # ---------------------------------------------------------------------------- #

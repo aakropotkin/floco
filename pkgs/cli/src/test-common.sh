@@ -22,23 +22,11 @@ echo "system: $( nixSystem; )";
 
 flocoRef;
 
+
 # ---------------------------------------------------------------------------- #
 
-declare -a TEMPDIRS TEMPFILES;
-TEMPDIRS=();
-TEMPFILES=();
-
-_ec=0;
-trap '
-  _ec="$?";
-  rm -rf "${TEMPDIRS[@]}" "${TEMPFILES[@]}";
-  exit "$_ec";
-' EXIT;
-
 (
-  TDIR="$( $MKTEMP -d; )";
-  TEMPDIRS+=( "$TDIR" );
-  cd "$TDIR" >/dev/null;
+  cd "$( mktmpAuto -d; )" >/dev/null;
   echo '{
     inputs.floco.url = "github:aakropotkin/floco";
     outputs = _: {};
@@ -47,6 +35,7 @@ trap '
   unset _floco_ref;
   flocoRef;
 );
+
 
 # ---------------------------------------------------------------------------- #
 #

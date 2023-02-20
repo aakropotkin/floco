@@ -123,6 +123,20 @@
 
 # ---------------------------------------------------------------------------- #
 
+    pkgsFor = let
+      bySystem = eachSupportedSystemMap ( system:
+        nixpkgs.legacyPackages.${system}.extend overlays.default
+      );
+    in bySystem // {
+      __functor = pf: system:
+        pf.${system} or (
+          throw "floco#pkgsFor: Unsupported system: ${system}"
+        );
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `outputs'
 
 
