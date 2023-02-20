@@ -2,29 +2,34 @@
 
 _floco() {
   local line state;
-  local -a cargs subcmds;
+  local -a cargs subCmds hiddenSubCmds allSubCmds;
   cargs=(
     '1: :->cmd'
     '*::arg:->args'
   );
-  subcmds=(
+  subCmds=(
     'list:list available packages'
+    'show:show package definition'
     'build:build a package'
+  );
+  hiddenSubCmds=(
     'help:show help for subcommands'
   );
+  allSubCmds=( "${subCmds[@]}" "${hiddenSubCmds[@]}" );
 
   _arguments "${cargs[@]}";
 
   case "$state" in
     cmd)
-      _describe 'command' subcmds;
+
+      _describe 'command' allSubCmds;
     ;;
     args)
       case "${line[1]}" in
         help)
-          compadd list build;
+          compadd "${subCmds[@]%%:*}";
         ;;
       esac
     ;;
   esac
-}||compdef _floco floco;
+}
