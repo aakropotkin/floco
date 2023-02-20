@@ -12,8 +12,10 @@ set -o pipefail;
 # ---------------------------------------------------------------------------- #
 
 : "${REALPATH:=realpath}";
+: "${NIX:=nix}";
+: "${JQ:=jq}";
 
-export REALPATH;
+export REALPATH NIX;
 
 # ---------------------------------------------------------------------------- #
 
@@ -34,6 +36,7 @@ keepSearching() {
 }
 
 # searchUp FILE [DIR]
+# -------------------
 searchUp() {
   if [[ -r "${2:-$PWD}/$1" ]]; then
     echo "$( $REALPATH "${2:-$PWD}/$1"; )";
@@ -102,6 +105,51 @@ flocoCfgFiles() {
     if [[ -n "$( localFlocoCfg||:; )" ]]; then echo "$_l_floco_cfg"; fi
   } 2>/dev/null;
 }
+
+
+# ---------------------------------------------------------------------------- #
+
+: "${_floco_ref=}";
+export _floco_ref;
+flocoRef() {
+  if [[ -n "$_floco_ref" ]]; then
+    echo "$_floco_ref";
+    return 0;
+  fi
+
+  local flock;
+  if [[ -n "${flock=$( searchUp flake.lock||:; )}" ]]; then
+    if $JQ -e '.nodes|has("floco")' "$flock" >/dev/null; then
+      #shellcheck disable=SC2016
+      _floco_ref="$( $JQ -r '
+.nodes.floco.locked as $locked|
+if $locked.type == "path" then
+  "path:" + $locked.path
+else
+  if $locked.type == "github" then
+    "github:" + $locked.owner + "/" + $locked.repo + "/" + $locked.rev
+  else
+    $locked.type + $locked.url
+  end
+end
+' "$flock"; )";
+      echo "$_floco_ref";
+      return 0;
+    fi
+  fi
+  _floco_ref="$( {
+    $NIX flake prefetch floco --json 2>/dev/null  \
+      ||echo '{ "storePath": "github:aakropotkin/floco" }';
+    }|$JQ -r '.storePath';
+  )";
+
+  echo "$_floco_ref";
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+
 
 
 # ---------------------------------------------------------------------------- #
