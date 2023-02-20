@@ -11,14 +11,16 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-: "${REALPATH:=realpath}";
-: "${NIX:=nix}";
-: "${JQ:=jq}";
+# @BEGIN_INJECT_UTILS@
 : "${GREP:=grep}";
 : "${HEAD:=head}";
+: "${JQ:=jq}";
 : "${MKTEMP:=mktemp}";
+: "${NIX:=nix}";
+: "${REALPATH:=realpath}";
 
-export REALPATH NIX JQ GREP HEAD;
+export GREP HEAD JQ MKTEMP NIX REALPATH;
+
 
 # ---------------------------------------------------------------------------- #
 

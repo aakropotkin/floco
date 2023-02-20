@@ -1,0 +1,30 @@
+#compdef floco
+
+_floco() {
+  local line state;
+  local -a cargs subcmds;
+  cargs=(
+    '1: :->cmd'
+    '*::arg:->args'
+  );
+  subcmds=(
+    'list:list available packages'
+    'build:build a package'
+    'help:show help for subcommands'
+  );
+
+  _arguments "${cargs[@]}";
+
+  case "$state" in
+    cmd)
+      _describe 'command' subcmds;
+    ;;
+    args)
+      case "${line[1]}" in
+        help)
+          compadd list build;
+        ;;
+      esac
+    ;;
+  esac
+}||compdef _floco floco;

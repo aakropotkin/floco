@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-# List all known packages declared in a given directory.
+#
 #
 # ---------------------------------------------------------------------------- #
 
@@ -11,23 +11,21 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco list";
+_as_me="floco";
 
-: "${_version:=0.1.0}";
+_version="0.1.0";
 
-_usage_msg="$_as_me [OPTIONS...] [-- FLOCO-CMD-ARGS...]
+_usage_msg="USAGE: $_as_me [OPTIONS...] CMD [ARGS...];
 
-List all known packages declared in a given directory.
+COMMANDS
+  list              List available packages.
+  help CMD          Show help for \`CMD'.
 ";
 
 _help_msg="$_usage_msg
-This list will include any \"global\" or \"user\" level declarations made in
-associated \`floco-cfg.{nix,json}' files if they exis.
-With that in mind, you may wish to avoid creating such declarations in
-global/user configs, or setting the ENV vars \`_[gu]_floco_cfg=null'.
+Run \`floco help CMD' for help on a specific command.
 
 OPTIONS
-  -j,--json         Output a JSON list.
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.
   -v,--version      Print version information to STDOUT.
@@ -60,11 +58,15 @@ usage() {
 
 # @BEGIN_INJECT_UTILS@
 : "${GREP:=grep}";
-: "${REALPATH:=realpath}";
+: "${HEAD:=head}";
+: "${JQ:=jq}";
 : "${MKTEMP:=mktemp}";
 : "${NIX:=nix}";
-: "${JQ:=jq}";
-: "${HEAD:=head}";
+: "${REALPATH:=realpath}";
+
+export GREP HEAD JQ MKTEMP NIX REALPATH;
+
+. "${BASH_SOURCE[0]%/*}/common.sh";
 
 
 # ---------------------------------------------------------------------------- #
@@ -85,18 +87,17 @@ while [[ "$#" -gt 0 ]]; do
       set -- "${_args[@]}" "$@";
       unset _arg _args _i;
       continue;
-      ;;
+    ;;
     --*=*)
       _arg="$1";
       shift;
       set -- "${_arg%%=*}" "${_arg#*=}" "$@";
       unset _arg;
       continue;
-      ;;
+    ;;
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
     -v|--version)  echo "$_version"; exit 0; ;;
-    -j|--json)     _JSON=:; ;;
     --) shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
@@ -104,8 +105,33 @@ while [[ "$#" -gt 0 ]]; do
       usage -f >&2;
       exit 1;
     ;;
+
+    help)
+      if [[ "$#" -lt 2 ]]; then
+        echo "$_as_me: Missing argument for \`help'." >&2;
+        printf '\n' >&2;
+        usage >&2;
+        exit 1;
+      fi
+      case "$2" in
+        list) exec "$SDIR/list/list-pdefs.sh" --help; ;;
+        *)
+          echo "$_as_me help: Unrecognized subcommand: \`$2'." >&2;
+          printf '\n' >&2;
+          usage >&2;
+          exit 1;
+        ;;
+      esac
+      shift;
+    ;;
+
+    list)
+      shift;
+      exec "$SDIR/list/list-pdefs.sh" "$@";
+    ;;
+
     *)
-      echo "$_as_me: Unexpected argument(s) '$*'" >&2;
+      echo "$_as_me: Unexpected argument(s) '$*'." >&2;
       printf '\n' >&2;
       usage -f >&2;
       exit 1;
@@ -117,26 +143,10 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-# Load common helpers
-
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
-
-
-# ---------------------------------------------------------------------------- #
-
-declare -a _JQ_ARGS;
-_JQ_ARGS=( '-r' );
-if [[ -z "${_JSON:-}" ]]; then
-  _JQ_ARGS+=( '.[]' );
-fi
-
-flocoEval --json "$@" mod.config.floco.pdefs --apply 'pdefs:
-builtins.concatLists ( builtins.attrValues ( builtins.mapAttrs ( ident: vs:
-  builtins.attrValues (
-    builtins.mapAttrs ( version: _: ident + "/" + version ) vs
-  )
-) pdefs ) )
-'|$JQ "${_JQ_ARGS[@]}";
+echo "$_as_me: No command given." >&2;
+printf '\n' >&2;
+usage >&2;
+exit 1;
 
 
 # ---------------------------------------------------------------------------- #
