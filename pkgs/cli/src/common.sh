@@ -14,6 +14,8 @@ set -o pipefail;
 : "${REALPATH:=realpath}";
 : "${NIX:=nix}";
 : "${JQ:=jq}";
+: "${GREP:=grep}";
+: "${HEAD:=head}";
 
 export REALPATH NIX;
 
@@ -50,6 +52,7 @@ searchUp() {
 
 # ---------------------------------------------------------------------------- #
 
+# Set the var `_g_floco_cfg' to the "global" floco config file if it exists.
 if [[ -z "${_g_floco_cfg+y}" ]]; then
   if [[ -r /etc/floco/floco-cfg.nix ]]; then
     export _g_floco_cfg='/etc/floco/floco-cfg.nix';
@@ -63,6 +66,7 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
+# Set the var `_u_floco_cfg' to the "user" floco config file if it exists.
 : "${XDG_CONFIG_HOME:=${HOME:-/homeless/shelter}/.config}";
 export XDG_CONFIG_HOME;
 
@@ -98,6 +102,7 @@ localFlocoCfg() {
 
 # ---------------------------------------------------------------------------- #
 
+# Print all the floco config files that are "in scope".
 flocoCfgFiles() {
   if [[ -n "$_g_floco_cfg" ]]; then echo "$_g_floco_cfg"; fi
   if [[ -n "$_u_floco_cfg" ]]; then echo "$_u_floco_cfg"; fi
@@ -109,8 +114,11 @@ flocoCfgFiles() {
 
 # ---------------------------------------------------------------------------- #
 
+# Try to find a flake ref to `floco' by searching in `flake.lock' files, and
+# `nix registry'.
 : "${_floco_ref=}";
 export _floco_ref;
+
 flocoRef() {
   : "${_floco_ref=}";
   if [[ -n "$_floco_ref" ]]; then
@@ -146,11 +154,13 @@ end
       return 0;
     fi
   fi
-  _floco_ref="$( {
-    $NIX flake prefetch floco --json 2>/dev/null  \
-      ||echo '{ "storePath": "github:aakropotkin/floco" }';
-    }|$JQ -r '.storePath';
+  _floco_ref="$(
+    {
+      { $NIX registry list|$GREP ' flake:floco '; }               \
+        || echo 'fallback flake:floco github:aakropotkin/floco';
+    }|$HEAD -n1;
   )";
+  _floco_ref="${_floco_ref##* }";
 
   echo "$_floco_ref";
 }
