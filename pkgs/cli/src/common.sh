@@ -112,6 +112,7 @@ flocoCfgFiles() {
 : "${_floco_ref=}";
 export _floco_ref;
 flocoRef() {
+  : "${_floco_ref=}";
   if [[ -n "$_floco_ref" ]]; then
     echo "$_floco_ref";
     return 0;
@@ -129,7 +130,15 @@ else
   if $locked.type == "github" then
     "github:" + $locked.owner + "/" + $locked.repo + "/" + $locked.rev
   else
-    $locked.type + $locked.url
+    if $locked.url|test( "narHash=" ) then
+      $locked.type + $locked.url
+    else
+      if $locked.url|test( "\\?" ) then
+        $locked.type + $locked.url + "&narHash=" + $locked.narHash
+      else
+        $locked.type + $locked.url + "?narHash=" + $locked.narHash
+      end
+    end
   end
 end
 ' "$flock"; )";
