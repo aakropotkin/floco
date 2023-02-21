@@ -56,17 +56,17 @@ expected to change rapidly in the near future.
 Across the =floco= CLI a few behaviors are consistent. 
 
 The following config files are included/applied if they exist:
-- `/etc/floco/floco-cfg.{nix,json}`
-- `${XDG_CONFIG_HOME:-$HOME/.config}/floco/floco-config.{nix,json}`
-- "Local" `floco-config.{nix,json}` searched for between `PWD` and git
-  project root, or `/` if `PWD` is not a `git` repository checkout.
+- =/etc/floco/floco-cfg.{nix,json}=
+- =${XDG_CONFIG_HOME:-$HOME/.config}/floco/floco-config.{nix,json}=
+- "Local" =floco-config.{nix,json}= searched for between =PWD= and git
+  project root, or =/= if =PWD= is not a =git= repository checkout.
 
 ** =floco list=
-List all declared projects by "key", being `<IDENT>/<VERSION>`, such as
-`@foo/bar/4.2.0` or `baz/4.2.0`.
+List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
+=@foo/bar/4.2.0= or =baz/4.2.0=.
 
 *** =floco show=
-Print the `pdef` record for a given package.
+Print the =pdef= record for a given package.
 
 #+BEGIN_SRC sh
 $ floco show lodash@4.17.21 --json;
