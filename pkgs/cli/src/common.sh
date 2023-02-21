@@ -278,7 +278,9 @@ exit "$_es";
 
 # ---------------------------------------------------------------------------- #
 
-export _floco_cli_common_sourced=:;
+# XXX: You must NOT export this variable, since subcommands will
+# not be passed definitions of functions defined here.
+_floco_cli_common_sourced=:;
 
 
 # ---------------------------------------------------------------------------- #
