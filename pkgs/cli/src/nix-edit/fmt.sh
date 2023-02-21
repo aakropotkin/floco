@@ -58,6 +58,7 @@ _nix_fmt_file() {
 
 _nix_fmt_rewrite() {
   # For `mktmpAuto'.
+  # shellcheck source-path=SCRIPTDIR
   # shellcheck source=../common.sh
   . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
   local _tmpfile;

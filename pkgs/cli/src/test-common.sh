@@ -5,6 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=./common.sh
 . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/common.sh}";
 
@@ -24,7 +25,7 @@ flocoRef;
 # ---------------------------------------------------------------------------- #
 
 (
-  cd "$( mktmpAuto -d; )" >/dev/null;
+  cd "$( mktmpAuto -d; )" >/dev/null||exit;
   echo '{
     inputs.floco.url = "github:aakropotkin/floco";
     outputs = _: {};

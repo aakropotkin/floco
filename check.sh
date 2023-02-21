@@ -48,6 +48,7 @@ exit "$_es";
 
 : "${NIX:=nix}";
 : "${REALPATH:=realpath}"
+: "${SHELLCHECK:=$NIX run 'nixpkgs#shellcheck' --}";
 
 SPATH="$( $REALPATH "${BASH_SOURCE[0]}"; )";
 SDIR="${SPATH%/*}";
@@ -84,6 +85,9 @@ run_test "linkedLocks"                                                       \
 
 run_test "target override/extras"                                       \
   $NIX build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
+
+run_test "shellcheck"                                           \
+  "$SHELLCHECK" -x "$SDIR/"{updaters,pkgs/cli/src/{,*/}}/*.sh;
 
 run_test "nix flake check" $NIX flake check "$SDIR";
 
