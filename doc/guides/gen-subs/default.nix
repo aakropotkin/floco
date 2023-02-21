@@ -20,12 +20,8 @@
 
   fmod = lib.evalModules {
     modules = [
-      "${floco}/modules/top"
-      {
-        config._module.args.pkgs =
-          floco.inputs.nixpkgs.legacyPackages.${system}.extend
-            floco.overlays.default;
-      }
+      floco.nixosModules.default
+      { config.floco.settings = { inherit system; basedir = toString ./.; }; }
       ./floco-cfg.nix
     ];
   };
@@ -63,10 +59,6 @@ in {
   # Our project in it's "built" state
   built    = pkg.built.package;
 
-} ) // ( if ! lib.isDerivation pkg.lint then {} else {
-  inherit (pkg) lint;
-} ) // ( if ! lib.isDerivation pkg.test then {} else {
-  inherit (pkg) test;
 } )
 
 

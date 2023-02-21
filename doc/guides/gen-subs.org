@@ -86,13 +86,13 @@ nix-repl> base = ( lib.evalModules {
       config.floco = {
         buildPlan.deriveTreeInfo = false;
         inherit plock;
+        settings.basedir = p.sourceInfo.outPath;
         lockDir = /. + (
           builtins.unsafeDiscardStringContext p.sourceInfo.outPath
         );
       };
     }
   ];
-  specialArgs.lockDir = p.sourceInfo.outPath;
 } ).config.floco
 
 # Lets find our `pdef' records for the root project so we can extract the

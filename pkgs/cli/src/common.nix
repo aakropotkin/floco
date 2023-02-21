@@ -32,6 +32,9 @@ in {
 , localCfg  ? fromVarOr "_l_floco_cfg"
                         ( findCfg ( ( builtins.getEnv "PWD" ) + "/floco-cfg" ) )
 , extraCfg  ? {}
+, basedir   ?
+  if ! ( builtins.elem localCfg [null "" "null"] ) then dirOf localCfg else
+  builtins.getEnv "PWD"
 , pkgsFor   ? floco.lib.pkgsFor.${system}
 , ...
 }: let
@@ -48,7 +51,7 @@ in {
   mod = lib.evalModules {
     modules = modules ++ [
       floco.nixosModules.default
-      { config.floco.settings = { inherit system; }; }
+      { config.floco.settings = { inherit system basedir; }; }
       extraCfg
     ];
   };
