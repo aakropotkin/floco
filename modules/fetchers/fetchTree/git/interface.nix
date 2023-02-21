@@ -10,6 +10,7 @@
 
   options.fetchTree_git = lib.mkOption {
     description = lib.mdDoc "`builtins.fetchTree[git]` fetcher";
+    visible     = "shallow";
   };
 
 }

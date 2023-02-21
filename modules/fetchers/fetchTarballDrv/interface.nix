@@ -10,6 +10,7 @@
 
   options.fetchTarballDrv = lib.mkOption {
     description = lib.mdDoc "Derivation form of `nixpgkgs.fetchzip`.";
+    visible     = "shallow";
   };
 
 }

@@ -28,7 +28,9 @@
     rawOpts         = lib.optionAttrSetToDocList options;
     transformedOpts = map transformOptions rawOpts;
     filteredOpts    =
-      lib.filter ( opt: opt.visible && ( ! opt.internal ) ) transformedOpts;
+      lib.filter ( opt:
+        ( opt.visible != false ) && ( ! opt.internal )
+      ) transformedOpts;
   in lib.flip map filteredOpts ( opt: opt
        // ( lib.optionalAttrs ( opt ? example ) {
          example = substSpecial opt.example;
@@ -166,13 +168,14 @@
     opath = let
       base = lib.showOption loc;
     in builtins.replaceStrings ["<name>.<name>"] ["<ident>.<version>"] base;
-    desc = let
+    desc' = let
       m = builtins.match "(.*[^\n])\n?" description;
-    in builtins.head m;
+    in if description == null then null else builtins.head m;
+    desc = if desc' == null then "" else "- description :: " + desc' + "\n";
   in ''
     ${headline}
     - option :: ~${opath}~
-    - description :: ${desc}
+  '' + desc + ''
     - type :: ${t}
     - from :: ${builtins.concatStringsSep " " declPaths}
   '' + ex;

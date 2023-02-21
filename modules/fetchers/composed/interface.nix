@@ -12,6 +12,7 @@
     description = lib.mdDoc ''
       Generic fetcher comprised of multiple sub-fetchers.
     '';
+    visible = "shallow";
   };
 
 }

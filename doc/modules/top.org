@@ -6,6 +6,23 @@
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/top/implementation.nix][<floco>/top/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/top/interface.nix][<floco>/top/interface.nix]]
 
+** =buildPlan=
+- option :: ~floco.buildPlan~
+- description :: Functions and metadata associated with build planning.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/buildPlan/interface.nix][<floco>/buildPlan/interface.nix]]
+
+*** =deriveTreeInfo=
+- option :: ~floco.buildPlan.deriveTreeInfo~
+- description :: Whether =floco= should attempt to derive =<pdef>.treeInfo= records
+from pinned =<pdef>.depInfo.*.pin= fields.
+
+This option should not be enabled if the build plan contains
+dependency cycles, unless explicit =treeInfo= records have been
+provided forall cycle memebers.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/buildPlan/interface.nix][<floco>/buildPlan/interface.nix]]
+
 ** =fetcher=
 - option :: ~floco.fetcher~
 - description :: Abstract fetcher interface to be implemented by =floco.fetcher.*= members.
@@ -13,101 +30,6 @@
 The attribute name used for the fetcher may be written to lockfiles
 so choose wisely.
 - type :: module
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-*** =deserializeFetchInfo=
-- option :: ~floco.fetcher.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-*** =fetchInfo=
-- option :: ~floco.fetcher.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-*** =function=
-- option :: ~floco.fetcher.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-*** =lockFetchInfo=
-- option :: ~floco.fetcher.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-*** =pure=
-- option :: ~floco.fetcher.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-*** =serializeFetchInfo=
-- option :: ~floco.fetcher.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
 ** =fetchers=
@@ -161,6 +83,14 @@ This function must NOT return a raw string.
 }
 
 #+END_SRC
+
+*** =input=
+- option :: ~floco.fetchers.<name>.input~
+- description :: String type representing a stringized form of =fetchInfo=.
+
+This string is analogous to Nix =flakes=' =input.url= strings.
+- type :: optionType
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
 *** =lockFetchInfo=
 - option :: ~floco.fetchers.<name>.lockFetchInfo~
@@ -218,247 +148,11 @@ See Also: deserializeFetchInfo, lockFetchInfo
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/interface.nix][<floco>/fetchers/composed/interface.nix]]
 
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.composed.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.composed.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.composed.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =identifyFetcher=
-- option :: ~floco.fetchers.composed.identifyFetcher~
-- description :: Function which identifies which sub-fetcher will be used for a given
-=fetchInfo= input.
-
-This routine accepts a single argument with must be either a
-serialized string form of =fetchInfo= or an attrset form
-of =fetchInfo=.
-
-This function returns a string, being the attribute name of a
-sub-fetcher as =subs.<NAME>=.
-- type :: function that evaluates to a(n) string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.composed.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.composed.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.composed.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =subs=
-- option :: ~floco.fetchers.composed.subs~
-- description :: Inner/child fetchers which may be called to perform real operations.
-- type :: attribute set of (attribute set of anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-***** =deserializeFetchInfo=
-- option :: ~floco.fetchers.composed.subs.<name>.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-***** =fetchInfo=
-- option :: ~floco.fetchers.composed.subs.<name>.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-***** =function=
-- option :: ~floco.fetchers.composed.subs.<name>.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-***** =lockFetchInfo=
-- option :: ~floco.fetchers.composed.subs.<name>.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-***** =pure=
-- option :: ~floco.fetchers.composed.subs.<name>.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-***** =serializeFetchInfo=
-- option :: ~floco.fetchers.composed.subs.<name>.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-***** =file=
-- option :: ~floco.fetchers.composed.subs.file~
-- description :: Fetcher used for fetching files from remote URLs.
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-***** =git=
-- option :: ~floco.fetchers.composed.subs.git~
-- description :: Fetcher used to clone source trees from =git=.
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-***** =github=
-- option :: ~floco.fetchers.composed.subs.github~
-- description :: Fetcher used to clone source trees from GitHub.
-This is an optimized form of the =git= fetcher.
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-***** =path=
-- option :: ~floco.fetchers.composed.subs.path~
-- description :: Fetcher used for local filesystem paths.
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
-
-***** =tarball=
-- option :: ~floco.fetchers.composed.subs.tarball~
-- description :: Fetcher used for unpacking tarballs.
-Tarballs may be local files or remote URLs.
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/composed/implementation.nix][<floco>/fetchers/composed/implementation.nix]]
+*** =fetchTarballDrv=
+- option :: ~floco.fetchers.fetchTarballDrv~
+- description :: Derivation form of =nixpgkgs.fetchzip=.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTarballDrv/implementation.nix][<floco>/fetchers/fetcher/fetchTarballDrv/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTarballDrv/interface.nix][<floco>/fetchers/fetcher/fetchTarballDrv/interface.nix]]
 
 *** =fetchTree_file=
 - option :: ~floco.fetchers.fetchTree_file~
@@ -466,215 +160,11 @@ Tarballs may be local files or remote URLs.
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/file/implementation.nix][<floco>/fetchers/fetcher/fetchTree/file/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/file/interface.nix][<floco>/fetchers/fetcher/fetchTree/file/interface.nix]]
 
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_file.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.fetchTree_file.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.fetchTree_file.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.fetchTree_file.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.fetchTree_file.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_file.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializerStyle=
-- option :: ~floco.fetchers.fetchTree_file.serializerStyle~
-- description :: Preferred serialization style used to write lockfiles.
-- =string= writes =fetchInfo= to a URI string equivalent to the one
-  used for =flake= inputs.
-- =attrs= emits =fetchInfo= as an attribute set, dropping some fields
-  if they can be inferred by =deserializeFetchInfo=.
-
-Note that the function =deserializeFetchInfo= must be able to read
-either form regardless of how this option is set.
-- type :: one of "string", "attrs"
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/file/implementation.nix][<floco>/fetchers/fetcher/fetchTree/file/implementation.nix]]
-- example :: =string=
-
 *** =fetchTree_git=
 - option :: ~floco.fetchers.fetchTree_git~
 - description :: =builtins.fetchTree[git]= fetcher
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/git/implementation.nix][<floco>/fetchers/fetcher/fetchTree/git/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/git/interface.nix][<floco>/fetchers/fetcher/fetchTree/git/interface.nix]]
-
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_git.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.fetchTree_git.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.fetchTree_git.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.fetchTree_git.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.fetchTree_git.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_git.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
 *** =fetchTree_github=
 - option :: ~floco.fetchers.fetchTree_github~
@@ -682,316 +172,17 @@ See Also: deserializeFetchInfo, lockFetchInfo
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/github/implementation.nix][<floco>/fetchers/fetcher/fetchTree/github/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/github/interface.nix][<floco>/fetchers/fetcher/fetchTree/github/interface.nix]]
 
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_github.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.fetchTree_github.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.fetchTree_github.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.fetchTree_github.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.fetchTree_github.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_github.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
 *** =fetchTree_tarball=
 - option :: ~floco.fetchers.fetchTree_tarball~
 - description :: =builtins.fetchTree[tarball]= args
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/tarball/implementation.nix][<floco>/fetchers/fetcher/fetchTree/tarball/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/tarball/interface.nix][<floco>/fetchers/fetcher/fetchTree/tarball/interface.nix]]
 
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_tarball.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.fetchTree_tarball.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.fetchTree_tarball.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.fetchTree_tarball.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.fetchTree_tarball.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.fetchTree_tarball.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializerStyle=
-- option :: ~floco.fetchers.fetchTree_tarball.serializerStyle~
-- description :: Preferred serialization style used to write lockfiles.
-- =string= writes =fetchInfo= to a URI string equivalent to the one
-  used for =flake= inputs.
-- =attrs= emits =fetchInfo= as an attribute set, dropping some fields
-  if they can be inferred by =deserializeFetchInfo=.
-
-Note that the function =deserializeFetchInfo= must be able to read
-either form regardless of how this option is set.
-- type :: one of "string", "attrs"
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/fetcher/fetchTree/tarball/implementation.nix][<floco>/fetchers/fetcher/fetchTree/tarball/implementation.nix]]
-- example :: =string=
-
 *** =path=
 - option :: ~floco.fetchers.path~
 - description :: =builtins.path= fetcher
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/path/implementation.nix][<floco>/fetchers/path/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/path/interface.nix][<floco>/fetchers/path/interface.nix]]
-
-**** =deserializeFetchInfo=
-- option :: ~floco.fetchers.path.deserializeFetchInfo~
-- description :: Function which transforms serialized =fetchInfo= ( an attrset or
-string ) into its attrset form as specified by the
-=fetchInfo= submodule.
-
-This routine should produce an exact replica of the original
-record before it was serialized by =serializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being deserialized - this is useful for resolving relative paths.
-The second is the serialized form of =fetchInfo=.
-
-See Also: serializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.fetchers.path.fetchInfo~
-- description :: Submodule type representing arguments passed to fetch function in
-order to produce a =sourceInfo= record.
-
-This is used to typecheck when parsing lockfiles.
-- type :: optionType
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =function=
-- option :: ~floco.fetchers.path.function~
-- description :: Function which performs the fetch.
-This function will be passed a =fetchInfo= record and must return
-a =sourceInfo= record which at a minimum must contain the field
-=outPath= as a member.
-
-This function must NOT return a raw string.
-- type :: raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  function = fetchInfo: { outPath = builtins.path fetchInfo; };
-}
-
-#+END_SRC
-
-**** =lockFetchInfo=
-- option :: ~floco.fetchers.path.lockFetchInfo~
-- description :: A function which fills missing arguments from an "impure"
-=fetchInfo= record to produce a "pure" =fetchInfo= record.
-
-This routine is used to create lockfiles during discovery phases.
-- type :: function that evaluates to a(n) lazy attribute set of raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lockFetchInfo = fetchInfo: let
-    outPath = builtins.path {
-      inherit (fetchInfo) name path filter recursive;
-    };
-    sourceInfo = builtins.fetchTree {
-      type = "path";
-      path = outPath;
-    };
-  in { sha256 = sourceInfo.narHash; } // fetchInfo;
-}
-
-#+END_SRC
-
-**** =pure=
-- option :: ~floco.fetchers.path.pure~
-- description :: Whether fetcher is restricted to pure evaluations.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
-
-**** =serializeFetchInfo=
-- option :: ~floco.fetchers.path.serializeFetchInfo~
-- description :: Function which transforms =fetchInfo= into a minimal value to be
-written to a lockile.
-
-The return value may be a string or attrset of values that are
-coercible to JSON and must not contain absolute filesystem paths.
-
-This function's output should produce an exact replica of
-=fetchInfo= when passed to =deserializeFetchInfo=.
-
-This routine accepts two arguemnts.
-The first is =_file= indicating an absolute path the the file
-being serialized to - this is useful for creating relative paths.
-The second is the deserialized form of =fetchInfo=.
-
-See Also: deserializeFetchInfo, lockFetchInfo
-- type :: function that evaluates to a(n) function that evaluates to a(n) (string or attribute set of (null or string or signed integer or boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/fetcher/interface.nix][<floco>/fetcher/interface.nix]]
 
 *** =pure=
 - option :: ~floco.fetchers.pure~
@@ -1031,16 +222,17 @@ XXX: If a =build= script produces executable scripts you should NOT
 patch shebangs yet - patching should be deferred to the
 =prepared= stage.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/implementation.nix][<floco>/package/targets/built/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 
 **** =copyTree=
 - option :: ~floco.packages.<ident>.<version>.built.copyTree~
 - description :: Whether =node_modules/= tree should be copied into build area
 instead of symlinked.
-This may resolve issues with certain dependencies with non-compliant
-implementations of =resolve= such as =webpack= or =jest=.
+This may resolve issues with certain dependencies with
+non-compliant implementations of =resolve= such as =webpack=
+or =jest=.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example :: =true=
 
 **** =dependsOnLint=
@@ -1065,20 +257,69 @@ See Also: lint, install.dependsOnTest
 
 **** =enable=
 - option :: ~floco.packages.<ident>.<version>.built.enable~
-- description :: Whether to enable =built= target.
+- description :: Whether to enable the target.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example :: =true=
+
+**** =extraBuildInputs=
+- option :: ~floco.packages.<ident>.<version>.built.extraBuildInputs~
+- description :: Additional =buildInputs= passed to the builder.
+
+"Build Inputs" are packages/tools that are available at build time
+and respect cross-compilation/linking settings.
+These are conventionally libraries, headers, compilers, or
+linkers, and should not be confused with =nativeBuildInputs= which
+are better suited for utilities used only to drive builds
+( such as =make=, =coreutils=, =grep=, etc ).
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+
+See Also: extraNativeBuildInputs
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraBuildInputs = [pkgs.openssl.dev];
+}
+
+#+END_SRC
+
+**** =extraNativeBuildInputs=
+- option :: ~floco.packages.<ident>.<version>.built.extraNativeBuildInputs~
+- description :: Additional =nativeBuildInputs= passed to the builder.
+
+"Native Build Inputs" are packages/tools that are available at
+build time that are insensitive to
+cross-compilation/linking settings.
+These are conventionally CLI tools such as =make=, =coreutils=,
+=grep=, etc that are required to drive a build, but don't produce
+different outputs depending on the =build=, =host=, or
+=target= platform.
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraNativeBuildInputs = [pkgs.typescript];
+}
+
+#+END_SRC
 
 **** =override=
 - option :: ~floco.packages.<ident>.<version>.built.override~
 - description :: Overrides applied to =stdenv.mkDerivation= invocation.
-This option is a shorthand form of =overrideAttrs= and it is an
-error to set both options.
+This option is processed after =extra*= options, and
+before =overrideAttrs=.
 
-See Also: *.overrideAttrs
-- type :: null or (attribute set of anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+See Also: overrideAttrs
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 {
@@ -1093,18 +334,18 @@ See Also: *.overrideAttrs
 - description :: Override function applied to =stdenv.mkDerivation= invocation.
 This option is an advanced form of =override= which allows =prev=
 arguments to be referenced.
-It is an error to set both options.
+The function is evaluated after =extra*= options, and after
+applying =override= to the orginal argument set.
 
-See Also: *.override
+See Also: override
 - type :: null or (function that evaluates to a(n) anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, config, ... }: {
   config.built.overrideAttrs = prev: {
-    nativeBuildInputs = prev.nativeBuildInputs ++ [
-      pkgs.typescript
-    ];
+    # Append pre-release tag to version.
+    version = prev.version + "-pre";
   };
 }
 
@@ -1112,9 +353,9 @@ See Also: *.override
 
 **** =package=
 - option :: ~floco.packages.<ident>.<version>.built.package~
-- description :: Derivation which produces the =built= form of the package/module.
+- description :: Derivation which produces the target.
 - type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 
 **** =scripts=
 - option :: ~floco.packages.<ident>.<version>.built.scripts~
@@ -1122,7 +363,7 @@ See Also: *.override
 These scripts are run in the order listed, and if a script is
 undefined in =package.json= it is skipped.
 - type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 [
@@ -1135,7 +376,7 @@ undefined in =package.json= it is skipped.
 - option :: ~floco.packages.<ident>.<version>.built.tree~
 - description :: =node_modules/= tree used for building.
 - type :: null or package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 
 *** =checkSystemSupport=
 - option :: ~floco.packages.<ident>.<version>.checkSystemSupport~
@@ -1223,20 +464,21 @@ XXX: If an =install= script produces executable scripts you should NOT
 patch shebangs yet - patching should be deferred to the
 =prepared= stage.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/implementation.nix][<floco>/package/targets/installed/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 
 **** =copyTree=
 - option :: ~floco.packages.<ident>.<version>.installed.copyTree~
-- description :: Whether =node_modules/= tree should be copied into install area
+- description :: Whether =node_modules/= tree should be copied into build area
 instead of symlinked.
-This may resolve issues with certain dependencies with non-compliant
-implementations of =resolve= such as =webpack= or =jest=.
+This may resolve issues with certain dependencies with
+non-compliant implementations of =resolve= such as =webpack=
+or =jest=.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example :: =true=
 
-**** =dependsOnLint=
-- option :: ~floco.packages.<ident>.<version>.installed.dependsOnLint~
+**** =dependsOnTest=
+- option :: ~floco.packages.<ident>.<version>.installed.dependsOnTest~
 - description :: Causes the =installed= lifecycle stage to be blocked by successful
 =test= checking ( requires =test= to be non-null ).
 
@@ -1258,24 +500,73 @@ See Also: lint, built.dependsOnLint
 
 **** =enable=
 - option :: ~floco.packages.<ident>.<version>.installed.enable~
-- description :: Whether to enable =installed= target.
+- description :: Whether to enable the target.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example :: =true=
+
+**** =extraBuildInputs=
+- option :: ~floco.packages.<ident>.<version>.installed.extraBuildInputs~
+- description :: Additional =buildInputs= passed to the builder.
+
+"Build Inputs" are packages/tools that are available at build time
+and respect cross-compilation/linking settings.
+These are conventionally libraries, headers, compilers, or
+linkers, and should not be confused with =nativeBuildInputs= which
+are better suited for utilities used only to drive builds
+( such as =make=, =coreutils=, =grep=, etc ).
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+
+See Also: extraNativeBuildInputs
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraBuildInputs = [pkgs.openssl.dev];
+}
+
+#+END_SRC
+
+**** =extraNativeBuildInputs=
+- option :: ~floco.packages.<ident>.<version>.installed.extraNativeBuildInputs~
+- description :: Additional =nativeBuildInputs= passed to the builder.
+
+"Native Build Inputs" are packages/tools that are available at
+build time that are insensitive to
+cross-compilation/linking settings.
+These are conventionally CLI tools such as =make=, =coreutils=,
+=grep=, etc that are required to drive a build, but don't produce
+different outputs depending on the =build=, =host=, or
+=target= platform.
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraNativeBuildInputs = [pkgs.typescript];
+}
+
+#+END_SRC
 
 **** =override=
 - option :: ~floco.packages.<ident>.<version>.installed.override~
 - description :: Overrides applied to =stdenv.mkDerivation= invocation.
-This option is a shorthand form of =overrideAttrs= and it is an
-error to set both options.
+This option is processed after =extra*= options, and
+before =overrideAttrs=.
 
-See Also: *.overrideAttrs
-- type :: null or (attribute set of anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+See Also: overrideAttrs
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 {
-  preinstall = ''
+  preBuild = ''
     echo "Howdy" >&2;
   '';
 }
@@ -1286,18 +577,18 @@ See Also: *.overrideAttrs
 - description :: Override function applied to =stdenv.mkDerivation= invocation.
 This option is an advanced form of =override= which allows =prev=
 arguments to be referenced.
-It is an error to set both options.
+The function is evaluated after =extra*= options, and after
+applying =override= to the orginal argument set.
 
-See Also: *.override
+See Also: override
 - type :: null or (function that evaluates to a(n) anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, config, ... }: {
-  config.installed.overrideAttrs = prev: {
-    nativeinstallInputs = prev.nativeinstallInputs ++ [
-      pkgs.typescript
-    ];
+  config.built.overrideAttrs = prev: {
+    # Append pre-release tag to version.
+    version = prev.version + "-pre";
   };
 }
 
@@ -1305,31 +596,30 @@ See Also: *.override
 
 **** =package=
 - option :: ~floco.packages.<ident>.<version>.installed.package~
-- description :: Derivation which produces the =installed= form of the
-package/module.
+- description :: Derivation which produces the target.
 - type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 
 **** =scripts=
 - option :: ~floco.packages.<ident>.<version>.installed.scripts~
-- description :: Scripts that should be run during "install" process.
+- description :: Scripts that should be run during "build" process.
 These scripts are run in the order listed, and if a script is
 undefined in =package.json= it is skipped.
 - type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 [
-  "install:part1"
-  "install:part2"
+  "build:part1"
+  "build:part2"
 ]
 #+END_SRC
 
 **** =tree=
 - option :: ~floco.packages.<ident>.<version>.installed.tree~
-- description :: =node_modules/= tree used for installing.
+- description :: =node_modules/= tree used for building.
 - type :: null or package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 
 *** =key=
 - option :: ~floco.packages.<ident>.<version>.key~
@@ -1362,446 +652,10 @@ See Also: test
 - type :: null or package
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/package/interface.nix]]
 
-*** =pdef=
-- option :: ~floco.packages.<ident>.<version>.pdef~
-- description :: Package's declared metadata normalized as =pdef= submodule.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/implementation.nix][<floco>/package/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/package/interface.nix]]
-
-**** =binInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.binInfo~
-- description :: Indicates files or directories which should be prepared for use as
-executable scripts.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-***** =binDir=
-- option :: ~floco.packages.<ident>.<version>.pdef.binInfo.binDir~
-- description :: Relative path to a subdir from which all files should be prepared
-as executables.
-Executable names will be defined as the basename of each file with
-any extensions stripped.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-***** =binPairs=
-- option :: ~floco.packages.<ident>.<version>.pdef.binInfo.binPairs~
-- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping
-exposed executables scripts to their associated sources.
-- type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-**** =depInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo~
-- description :: Information regarding dependency modules/packages.
-This record is analogous to the various
-=package.json:.[dev|peer|optional|bundled]Dependencies[Meta]= fields.
-
-These config settings do note necessarily dictate the contents of the
-=treeInfo= configs, which are used by builders, but may be used to provide
-information needed to generate trees if they are not defined.
-- type :: attribute set of (attribute set of boolean)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/interface.nix][<floco>/pdef/depInfo/interface.nix]]
-
-***** =bundled=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.bundled~
-- description :: Whether the dependency is distributed in registry tarballs alongside
-the consumer.
-
-This is sometimes used to include patched modules, but whenver possible
-bundling should be avoided in favor of tooling like =esbuild=
-or =webpack= because the effect bundled dependencies have on resolution
-is fraught.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-***** =descriptor=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a dependency.
-
-The value ="*"= allows any version or source to be used, as long as it
-has the same identifier ( name ).
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-***** =dev=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.dev~
-- description :: Whether the dependency is required during pre-distribution phases.
-This includes common tasks such as building, testing, and linting.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-***** =optional=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.optional~
-- description :: Whether the dependency may be omitted from the =node_modules/= tree.
-
-Conventionally this is used to mark dependencies which are only required
-under certain conditions such as platform, architecture, or engines.
-Generally optional dependencies carry =sysInfo= conditionals, or
-=postinstall= scripts which must be allowed to fail without blocking
-the build of the consumer.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-***** =pin=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.pin~
-- description :: An exact version number or URI indicating the "resolved" form of a
-dependency descriptor.
-
-This will be used for =treeInfo= formation, and is available for usage
-by extensions to =floco=.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-***** =runtime=
-- option :: ~floco.packages.<ident>.<version>.pdef.depInfo.<name>.runtime~
-- description :: Whether the dependency is required at runtime.
-Other package management tools often refer to these as
-"production mode" dependencies.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =fetchInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.fetchInfo~
-- description :: Arguments passed to fetchers to produce a package/module's source tree.
-
-This field may be explicitly set to =null= if =sourceInfo= is
-set instead.
-
-The =sourceInfo= produced by these arguments is primarily used for
-"discovery" and "translation" of project metadata to create a build
-plan, while =floco.packages.*.*.source= is what is used by builds.
-The default/fallback for =floco.packages.*.*.source= bottoms out here
-at =fetchInfo=, but you may find that it is more convenient/optimal to
-perform filtering of a source tree directly on
-=floco.packages.*.*.source= records rather than here to avoid
-prematurely copying trees to the Nix store in the event that they aren't
-needed for the eventual build plan.
-- type :: Arguments passed underlying fetchers, and optionally the field
-`type` used to manually indicate which sub-fetcher should be used.
-
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/implementation.nix][<floco>/pdef/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-**** =fsInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.fsInfo~
-- description :: Indicates information about a package that must be scraped from its
-source tree, rather than a conventional config file.
-
-It is not recommended for users to manually fill these fields; rather
-we expect these to be informed by a cache or lockfile.
-You're welcome to explicitly define them, but I don't want to see anyone
-griping about these options in bug reports.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-***** =dir=
-- option :: ~floco.packages.<ident>.<version>.pdef.fsInfo.dir~
-- description :: Relative path from =sourceInfo.outPath= to the package's root.
-This field is analogous to a flake input's =dir= field, and is
-used in combination with =fetchInfo= in exactly the same way as
-a flake input.
-
-You should almost never need to set this field for distributed
-tarballs ( only if it contains bundled dependencies ).
-
-While this field is useful for working with monorepos I strongly
-recommend that you avoid abusing it.
-Its use inherently causes rebuilds of all projects in associated
-with a single =sourceInfo= record for any change in the subtree.
-It is much more efficient to split a subtree into multiple sources,
-but I've left you enough rope to learn things the hard way if you
-insist on doing so.
-Consider yourself warned.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-***** =gypfile=
-- option :: ~floco.packages.<ident>.<version>.pdef.fsInfo.gypfile~
-- description :: Whether =binding.gyp= exists in the project root.
-May be explicitly overridden by declarations in =package.json=.
-
-WARNING: You must not set this field based on ANY metadata pulled
-from a registry.
-There is a bug in NPM v8 that caused thousands of registry
-packuments and vinfo records to be poisoned, and in addition to that
-there is conflicting reporting rules for this field in POST requests
-by various package managers such that you should effectively
-disregard the value entirely.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-***** =shrinkwrap=
-- option :: ~floco.packages.<ident>.<version>.pdef.fsInfo.shrinkwrap~
-- description :: Whether =npm-shrinkwrap.json= exists in the project root.
-This is distributed form of =package-lock.json= which may be used to
-install exact dependencies during global installation of packages.
-For module/workspace installation this file takes precedence over
-=package-lock.json= if it exists.
-
-The use of =npm-shrinkwrap.json= is only recommended for executables.
-
-NOTE: =floco= does not use =npm-shrinkwrap.json= at this time, so this
-field exists as a stub.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-**** =ident=
-- option :: ~floco.packages.<ident>.<version>.pdef.ident~
-- description :: Package identifier/name as found in =package.json:.name=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =@floco/foo=
-
-**** =key=
-- option :: ~floco.packages.<ident>.<version>.pdef.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =@floco/foo/4.2.0=
-
-**** =lifecycle=
-- option :: ~floco.packages.<ident>.<version>.pdef.lifecycle~
-- description :: Enables/disables phases executed when preparing a package/module for
-consumption or installation.
-
-Executing a phase when no associated script is defined is not
-necessarily harmful, but has a drastic impact on performance and may
-cause infinite recursion if dependency cycles exist among packages.
-
-See Also: ltype
-- type :: attribute set of boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-***** =build=
-- option :: ~floco.packages.<ident>.<version>.pdef.lifecycle.build~
-- description :: Whether a package or module requires build scripts to be run before
-it is prepared for consumption.
-
-This field should never be set to true when consuming registry
-tarballs even if they define build scripts, since they are
-distributed after being built by authors and maintainers.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-***** =install=
-- option :: ~floco.packages.<ident>.<version>.pdef.lifecycle.install~
-- description :: Whether a package or module requires =[pre|post]install= scripts or
-=node-gyp= compilation to be performed before a distributed tarball
-is prepared for consumption.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-**** =ltype=
-- option :: ~floco.packages.<ident>.<version>.pdef.ltype~
-- description :: Package "lifecycle type"/"pacote source type".
-This option effects which lifecycle events may run when preparing a
-package/module for consumption or installation.
-
-For example, the =file= ( distributed tarball ) lifecycle does not run
-any =scripts.[pre|post]build= phases or result in any =devDependencies=
-being added to the build plan - since these packages will have been
-"built" before distribution.
-However, =scripts.[pre|post]install= scripts ( generally =node-gyp=
-compilation ) does run for the =file= lifecycle.
-
-This option is effectively a shorthand for setting =lifecycle= defaults,
-but may also used by some fetchers and scrapers.
-
-See Also: lifecycle, fetchInfo
-- type :: one of "file", "link", "dir", "git"
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-**** =peerInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.peerInfo~
-- description :: Set of propagated dependencies that consumers of this package/module
-must provide at runtime.
-
-Often peer dependencies are used to enforce interface alignment across
-a set of modules but do not necessarily imply that the requestor depends
-on the declared peer at build time or runtime - rather it states
-"my consumers depend on the declared peer as a side effect of their
-dependence on me".
-
-NOTE: For the purposes of =treeInfo= and the construction of a
-=node_modules/= tree, if a module declares a peer then that peer must
-be placed in a "sibling" or parent =node_modules/= directory, and never
-as a subdirectory of the requestor!
-The "sibling" case is why the term "peer" is used, indicating that these
-modules must be "peers" living in the same =node_modules/= directory;
-in practice a parent directory also works, but you get the idea.
-- type :: attribute set of (submodule)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/interface.nix][<floco>/pdef/peerInfo/interface.nix]]
-
-***** =descriptor=
-- option :: ~floco.packages.<ident>.<version>.pdef.peerInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a peer dependency.
-
-The value ="*"= allows any version or source to be used, as long as it
-has the same identifier ( name ).
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
-
-***** =optional=
-- option :: ~floco.packages.<ident>.<version>.pdef.peerInfo.<name>.optional~
-- description :: Whether consumers are required to provide the declared peer.
-
-Optional peer declarations are conventionally used to handle platform
-or architecture dependant modules which are only required for certain
-systems - in general this field should be interpreted as "this
-peer dependency is required under certain conditions".
-Often these conditions are audited using =postinstall= scripts, and as
-an optimization it may be worthwhile to ignore those audits if their
-conditions can be asserted in Nix ( for example if you know =system=,
-there's no reason to use a derivation to run some JavaScript that probes
-and audits =cpu= and =os= ).
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
-
-**** =sourceInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.sourceInfo~
-- description :: Information about the source tree a package resides in.
-This record is analogous to that returned by =builtins.fetchTree= for
-flake inputs.
-
-Used in combination with =fetchInfo= and =fsInfo.dir=, these three
-nuggets of metadata are isomorphic with a flake input.
-
-However, unlike flake inputs, =sourceInfo.outPath= may set to a derived
-store path if and only if =fetchInfo= is explicitly set to =null=.
-In this case =fsInfo.dir= is still used to identify a pacakage/module's
-root directory where we will attempt to read =package.json=
-( must exist ) and similar metadata files will be read from
-( if they exist ).
-
-In this case you may avoid =IFD= by explicitly setting top level fields,
-specifically =lifecycle=, =sysInfo=, =binInfo=, and =treeInfo= or
-=depInfo= which are required by builders.
-
-Alternatively you may explicitly set =metaFiles.{pjs,plock,plent,trees}=
-fields directly - but keep in mind that these fields are never
-guaranteed to be stable and their schema may change at any time
-( so set the top level ones unless you
-- type :: attribute set of (boolean or signed integer or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-***** =outPath=
-- option :: ~floco.packages.<ident>.<version>.pdef.sourceInfo.outPath~
-- description :: A Nix Store path containing the unpacked source tree in which this
-package/module resides.
-The package need not be at the root this path; but when the project
-root is a subdir the option `fsInfo.dir` must be set in order for
-`package.json` and other metadata to be translated.
-- type :: path
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-**** =sysInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.sysInfo~
-- description :: Indicates platform, arch, and Node.js version support.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-***** =cpu=
-- option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.cpu~
-- description :: List of supported CPU architectures.
-The string ="*"= indicates that all CPUs are supported.
-- type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-***** =engines=
-- option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.engines~
-- description :: Indicates supported tooling versions.
-- type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-****** =node=
-- option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.engines.node~
-- description :: Supported Node.js versions.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-- example :: =>=14=
-
-***** =os=
-- option :: ~floco.packages.<ident>.<version>.pdef.sysInfo.os~
-- description :: List of supported operating systems.
-The string ="*"= indicates that all operating systems
-are supported.
-- type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-**** =treeInfo=
-- option :: ~floco.packages.<ident>.<version>.pdef.treeInfo~
-- description :: =node_modules/= trees used for various lifecycle events.
-These declarations are analogous to the =package.*= field found in
-=package-lock.json(v2/3)= files.
-This means that these fields should describe both direct and indirect
-dependencies for the full dependency graph.
-
-Tree declarations are expected to be pairs of =node_modules/= paths to
-"keys" ( matching the =key= field in its Nix declaration ).
-
-In practice we expect users to explicitly define this field only for
-targets which they actually intend to create installables from, and we
-recommend using a =package-lock.json(v2/3)= to fill these values.
-- type :: null or (attribute set of (attribute set of boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/interface.nix][<floco>/pdef/treeInfo/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  "node_modules/@foo/bar" = {
-    key = "@foo/bar/1.0.0";
-    dev = true;
-    # ...
-  };
-  "node_modules/@foo/bar/node_modules/baz" = {
-    key = "baz/4.2.0";
-    dev = false;
-    # ...
-  };
-  # ...
-}
-
-#+END_SRC
-
-***** =dev=
-- option :: ~floco.packages.<ident>.<version>.pdef.treeInfo.<name>.dev~
-- description :: Whether the dependency is required ONLY during pre-distribution phases.
-This includes common tasks such as building, testing, and linting.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-***** =key=
-- option :: ~floco.packages.<ident>.<version>.pdef.treeInfo.<name>.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-***** =optional=
-- option :: ~floco.packages.<ident>.<version>.pdef.treeInfo.<name>.optional~
-- description :: Whether the dependency may be omitted from the =node_modules/= tree.
-
-Conventionally this is used to mark dependencies which are only required
-under certain conditions such as platform, architecture, or engines.
-Generally optional dependencies carry =sysInfo= conditionals, or
-=postinstall= scripts which must be allowed to fail without blocking
-the build of the consumer.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-**** =version=
-- option :: ~floco.packages.<ident>.<version>.pdef.version~
-- description :: Package version as found in =package.json:.version=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =4.2.0=
-
 *** =preferMultipleOutputDerivations=
 - option :: ~floco.packages.<ident>.<version>.preferMultipleOutputDerivations~
-- description :: Whether builders should prefer preparing sources with a single multiple
-output derivation vs. multiple single output derivations.
+- description :: Whether builders should prefer preparing sources with a single "multiple
+output derivation" vs. multiple single output derivations.
 
 Setting this to =false= is sometimes useful for breaking dependency
 cycles for =global= packages or to intentionally introduce additional
@@ -1871,7 +725,7 @@ See Also: lint
 - description :: Stashes =node_modules/= trees used for lifecycle events.
 These are used to populate defaults for =lint.tree=, =built.tree=,
 =install.tree=, =test.tree=, etc.
-- type :: attribute set of package
+- type :: attribute set of (null or package)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/package/trees/interface.nix]]
 
 **** =dev=
@@ -1912,453 +766,23 @@ and linting.
 
 ***** =key=
 - option :: ~floco.packages.<ident>.<version>.trees.supported.<name>.key~
-- description :: Unique key used to refer to this package in =tree= submodules
-and other =floco= configs, metadata, and structures.
+- description :: Unique key used to refer to this package in =tree= submodules and other
+=floco= configs, metadata, and structures.
 - type :: string
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/package/trees/interface.nix]]
-
-** =pdef=
-- option :: ~floco.pdef~
-- description :: Abstract record used to declare a package/module at a specific version.
-This is a "deferred" module making it extensible.
-Its base interface must be implemented, but the implementations themselves
-may be swapped or overridden.
-- type :: module
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/deferred.nix][<floco>/pdef/deferred.nix]]
-
-*** =binInfo=
-- option :: ~floco.pdef.binInfo~
-- description :: Indicates files or directories which should be prepared for use as
-executable scripts.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-**** =binDir=
-- option :: ~floco.pdef.binInfo.binDir~
-- description :: Relative path to a subdir from which all files should be prepared
-as executables.
-Executable names will be defined as the basename of each file with
-any extensions stripped.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-**** =binPairs=
-- option :: ~floco.pdef.binInfo.binPairs~
-- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping
-exposed executables scripts to their associated sources.
-- type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
-
-*** =depInfo=
-- option :: ~floco.pdef.depInfo~
-- description :: Information regarding dependency modules/packages.
-This record is analogous to the various
-=package.json:.[dev|peer|optional|bundled]Dependencies[Meta]= fields.
-
-These config settings do note necessarily dictate the contents of the
-=treeInfo= configs, which are used by builders, but may be used to provide
-information needed to generate trees if they are not defined.
-- type :: attribute set of (attribute set of boolean)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/interface.nix][<floco>/pdef/depInfo/interface.nix]]
-
-**** =bundled=
-- option :: ~floco.pdef.depInfo.<name>.bundled~
-- description :: Whether the dependency is distributed in registry tarballs alongside
-the consumer.
-
-This is sometimes used to include patched modules, but whenver possible
-bundling should be avoided in favor of tooling like =esbuild=
-or =webpack= because the effect bundled dependencies have on resolution
-is fraught.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =descriptor=
-- option :: ~floco.pdef.depInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a dependency.
-
-The value ="*"= allows any version or source to be used, as long as it
-has the same identifier ( name ).
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =dev=
-- option :: ~floco.pdef.depInfo.<name>.dev~
-- description :: Whether the dependency is required during pre-distribution phases.
-This includes common tasks such as building, testing, and linting.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =optional=
-- option :: ~floco.pdef.depInfo.<name>.optional~
-- description :: Whether the dependency may be omitted from the =node_modules/= tree.
-
-Conventionally this is used to mark dependencies which are only required
-under certain conditions such as platform, architecture, or engines.
-Generally optional dependencies carry =sysInfo= conditionals, or
-=postinstall= scripts which must be allowed to fail without blocking
-the build of the consumer.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =pin=
-- option :: ~floco.pdef.depInfo.<name>.pin~
-- description :: An exact version number or URI indicating the "resolved" form of a
-dependency descriptor.
-
-This will be used for =treeInfo= formation, and is available for usage
-by extensions to =floco=.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-**** =runtime=
-- option :: ~floco.pdef.depInfo.<name>.runtime~
-- description :: Whether the dependency is required at runtime.
-Other package management tools often refer to these as
-"production mode" dependencies.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
-
-*** =fetchInfo=
-- option :: ~floco.pdef.fetchInfo~
-- description :: Arguments passed to fetchers to produce a package/module's source tree.
-
-This field may be explicitly set to =null= if =sourceInfo= is
-set instead.
-
-The =sourceInfo= produced by these arguments is primarily used for
-"discovery" and "translation" of project metadata to create a build
-plan, while =floco.packages.*.*.source= is what is used by builds.
-The default/fallback for =floco.packages.*.*.source= bottoms out here
-at =fetchInfo=, but you may find that it is more convenient/optimal to
-perform filtering of a source tree directly on
-=floco.packages.*.*.source= records rather than here to avoid
-prematurely copying trees to the Nix store in the event that they aren't
-needed for the eventual build plan.
-- type :: unspecified value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-*** =fsInfo=
-- option :: ~floco.pdef.fsInfo~
-- description :: Indicates information about a package that must be scraped from its
-source tree, rather than a conventional config file.
-
-It is not recommended for users to manually fill these fields; rather
-we expect these to be informed by a cache or lockfile.
-You're welcome to explicitly define them, but I don't want to see anyone
-griping about these options in bug reports.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-**** =dir=
-- option :: ~floco.pdef.fsInfo.dir~
-- description :: Relative path from =sourceInfo.outPath= to the package's root.
-This field is analogous to a flake input's =dir= field, and is
-used in combination with =fetchInfo= in exactly the same way as
-a flake input.
-
-You should almost never need to set this field for distributed
-tarballs ( only if it contains bundled dependencies ).
-
-While this field is useful for working with monorepos I strongly
-recommend that you avoid abusing it.
-Its use inherently causes rebuilds of all projects in associated
-with a single =sourceInfo= record for any change in the subtree.
-It is much more efficient to split a subtree into multiple sources,
-but I've left you enough rope to learn things the hard way if you
-insist on doing so.
-Consider yourself warned.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-**** =gypfile=
-- option :: ~floco.pdef.fsInfo.gypfile~
-- description :: Whether =binding.gyp= exists in the project root.
-May be explicitly overridden by declarations in =package.json=.
-
-WARNING: You must not set this field based on ANY metadata pulled
-from a registry.
-There is a bug in NPM v8 that caused thousands of registry
-packuments and vinfo records to be poisoned, and in addition to that
-there is conflicting reporting rules for this field in POST requests
-by various package managers such that you should effectively
-disregard the value entirely.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-**** =shrinkwrap=
-- option :: ~floco.pdef.fsInfo.shrinkwrap~
-- description :: Whether =npm-shrinkwrap.json= exists in the project root.
-This is distributed form of =package-lock.json= which may be used to
-install exact dependencies during global installation of packages.
-For module/workspace installation this file takes precedence over
-=package-lock.json= if it exists.
-
-The use of =npm-shrinkwrap.json= is only recommended for executables.
-
-NOTE: =floco= does not use =npm-shrinkwrap.json= at this time, so this
-field exists as a stub.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
-
-*** =ident=
-- option :: ~floco.pdef.ident~
-- description :: Package identifier/name as found in =package.json:.name=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =@floco/foo=
-
-*** =key=
-- option :: ~floco.pdef.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =@floco/foo/4.2.0=
-
-*** =lifecycle=
-- option :: ~floco.pdef.lifecycle~
-- description :: Enables/disables phases executed when preparing a package/module for
-consumption or installation.
-
-Executing a phase when no associated script is defined is not
-necessarily harmful, but has a drastic impact on performance and may
-cause infinite recursion if dependency cycles exist among packages.
-
-See Also: ltype
-- type :: attribute set of boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-**** =build=
-- option :: ~floco.pdef.lifecycle.build~
-- description :: Whether a package or module requires build scripts to be run before
-it is prepared for consumption.
-
-This field should never be set to true when consuming registry
-tarballs even if they define build scripts, since they are
-distributed after being built by authors and maintainers.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-**** =install=
-- option :: ~floco.pdef.lifecycle.install~
-- description :: Whether a package or module requires =[pre|post]install= scripts or
-=node-gyp= compilation to be performed before a distributed tarball
-is prepared for consumption.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
-
-*** =ltype=
-- option :: ~floco.pdef.ltype~
-- description :: Package "lifecycle type"/"pacote source type".
-This option effects which lifecycle events may run when preparing a
-package/module for consumption or installation.
-
-For example, the =file= ( distributed tarball ) lifecycle does not run
-any =scripts.[pre|post]build= phases or result in any =devDependencies=
-being added to the build plan - since these packages will have been
-"built" before distribution.
-However, =scripts.[pre|post]install= scripts ( generally =node-gyp=
-compilation ) does run for the =file= lifecycle.
-
-This option is effectively a shorthand for setting =lifecycle= defaults,
-but may also used by some fetchers and scrapers.
-
-See Also: lifecycle, fetchInfo
-- type :: one of "file", "link", "dir", "git"
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-*** =peerInfo=
-- option :: ~floco.pdef.peerInfo~
-- description :: Set of propagated dependencies that consumers of this package/module
-must provide at runtime.
-
-Often peer dependencies are used to enforce interface alignment across
-a set of modules but do not necessarily imply that the requestor depends
-on the declared peer at build time or runtime - rather it states
-"my consumers depend on the declared peer as a side effect of their
-dependence on me".
-
-NOTE: For the purposes of =treeInfo= and the construction of a
-=node_modules/= tree, if a module declares a peer then that peer must
-be placed in a "sibling" or parent =node_modules/= directory, and never
-as a subdirectory of the requestor!
-The "sibling" case is why the term "peer" is used, indicating that these
-modules must be "peers" living in the same =node_modules/= directory;
-in practice a parent directory also works, but you get the idea.
-- type :: attribute set of (submodule)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/interface.nix][<floco>/pdef/peerInfo/interface.nix]]
-
-**** =descriptor=
-- option :: ~floco.pdef.peerInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a peer dependency.
-
-The value ="*"= allows any version or source to be used, as long as it
-has the same identifier ( name ).
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
-
-**** =optional=
-- option :: ~floco.pdef.peerInfo.<name>.optional~
-- description :: Whether consumers are required to provide the declared peer.
-
-Optional peer declarations are conventionally used to handle platform
-or architecture dependant modules which are only required for certain
-systems - in general this field should be interpreted as "this
-peer dependency is required under certain conditions".
-Often these conditions are audited using =postinstall= scripts, and as
-an optimization it may be worthwhile to ignore those audits if their
-conditions can be asserted in Nix ( for example if you know =system=,
-there's no reason to use a derivation to run some JavaScript that probes
-and audits =cpu= and =os= ).
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
-
-*** =sourceInfo=
-- option :: ~floco.pdef.sourceInfo~
-- description :: Information about the source tree a package resides in.
-This record is analogous to that returned by =builtins.fetchTree= for
-flake inputs.
-
-Used in combination with =fetchInfo= and =fsInfo.dir=, these three
-nuggets of metadata are isomorphic with a flake input.
-
-However, unlike flake inputs, =sourceInfo.outPath= may set to a derived
-store path if and only if =fetchInfo= is explicitly set to =null=.
-In this case =fsInfo.dir= is still used to identify a pacakage/module's
-root directory where we will attempt to read =package.json=
-( must exist ) and similar metadata files will be read from
-( if they exist ).
-
-In this case you may avoid =IFD= by explicitly setting top level fields,
-specifically =lifecycle=, =sysInfo=, =binInfo=, and =treeInfo= or
-=depInfo= which are required by builders.
-
-Alternatively you may explicitly set =metaFiles.{pjs,plock,plent,trees}=
-fields directly - but keep in mind that these fields are never
-guaranteed to be stable and their schema may change at any time
-( so set the top level ones unless you
-- type :: attribute set of (boolean or signed integer or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-**** =outPath=
-- option :: ~floco.pdef.sourceInfo.outPath~
-- description :: A Nix Store path containing the unpacked source tree in which this
-package/module resides.
-The package need not be at the root this path; but when the project
-root is a subdir the option `fsInfo.dir` must be set in order for
-`package.json` and other metadata to be translated.
-- type :: path
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-*** =sysInfo=
-- option :: ~floco.pdef.sysInfo~
-- description :: Indicates platform, arch, and Node.js version support.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-**** =cpu=
-- option :: ~floco.pdef.sysInfo.cpu~
-- description :: List of supported CPU architectures.
-The string ="*"= indicates that all CPUs are supported.
-- type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-**** =engines=
-- option :: ~floco.pdef.sysInfo.engines~
-- description :: Indicates supported tooling versions.
-- type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-***** =node=
-- option :: ~floco.pdef.sysInfo.engines.node~
-- description :: Supported Node.js versions.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-- example :: =>=14=
-
-**** =os=
-- option :: ~floco.pdef.sysInfo.os~
-- description :: List of supported operating systems.
-The string ="*"= indicates that all operating systems
-are supported.
-- type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
-
-*** =treeInfo=
-- option :: ~floco.pdef.treeInfo~
-- description :: =node_modules/= trees used for various lifecycle events.
-These declarations are analogous to the =package.*= field found in
-=package-lock.json(v2/3)= files.
-This means that these fields should describe both direct and indirect
-dependencies for the full dependency graph.
-
-Tree declarations are expected to be pairs of =node_modules/= paths to
-"keys" ( matching the =key= field in its Nix declaration ).
-
-In practice we expect users to explicitly define this field only for
-targets which they actually intend to create installables from, and we
-recommend using a =package-lock.json(v2/3)= to fill these values.
-- type :: null or (attribute set of (attribute set of boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/interface.nix][<floco>/pdef/treeInfo/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  "node_modules/@foo/bar" = {
-    key = "@foo/bar/1.0.0";
-    dev = true;
-    # ...
-  };
-  "node_modules/@foo/bar/node_modules/baz" = {
-    key = "baz/4.2.0";
-    dev = false;
-    # ...
-  };
-  # ...
-}
-
-#+END_SRC
-
-**** =dev=
-- option :: ~floco.pdef.treeInfo.<name>.dev~
-- description :: Whether the dependency is required ONLY during pre-distribution phases.
-This includes common tasks such as building, testing, and linting.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-**** =key=
-- option :: ~floco.pdef.treeInfo.<name>.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-**** =optional=
-- option :: ~floco.pdef.treeInfo.<name>.optional~
-- description :: Whether the dependency may be omitted from the =node_modules/= tree.
-
-Conventionally this is used to mark dependencies which are only required
-under certain conditions such as platform, architecture, or engines.
-Generally optional dependencies carry =sysInfo= conditionals, or
-=postinstall= scripts which must be allowed to fail without blocking
-the build of the consumer.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
-
-*** =version=
-- option :: ~floco.pdef.version~
-- description :: Package version as found in =package.json:.version=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =4.2.0=
+- example :: =@floco/test/4.2.0=
 
 ** =pdefs=
 - option :: ~floco.pdefs~
-- description :: List of =pdef= metadata records for all known pacakges
+- description :: Collection of =pdef= metadata records for all known pacakges
 and modules.
+
 These records are used to generate build recipes and build plans.
+
+Members are structured as a hierarchy of attrsets keyed by =ident=, with
+children keyed by =version=.
+
+See Also: records.pdef, packages
 - type :: lazy attribute set of lazy attribute set of (submodule)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdefs/implementation.nix][<floco>/pdefs/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdefs/interface.nix][<floco>/pdefs/interface.nix]]
 - example ::
@@ -2397,31 +821,59 @@ These records are used to generate build recipes and build plans.
 }
 #+END_SRC
 
-*** =binInfo=
-- option :: ~floco.pdefs.<ident>.<version>.binInfo~
+** =records=
+- option :: ~floco.records~
+- description :: Abstract records used to construct instances of common submodule types.
+
+These base interface must be implemented, but the implementations
+themselves may be swapped or overridden.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
+
+*** =pdef=
+- option :: ~floco.records.pdef~
+- description :: Abstract record used to declare a package/module at a specific version.
+
+This is a "deferred" module making it extensible.
+Its base interface must be implemented, but the implementations themselves
+may be swapped or overridden.
+- type :: module
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/deferred.nix][<floco>/records/pdef/deferred.nix]]
+
+**** =binInfo=
+- option :: ~floco.records.pdef.binInfo~
 - description :: Indicates files or directories which should be prepared for use as
 executable scripts.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/binInfo/interface.nix][<floco>/records/pdef/binInfo/interface.nix]]
 
-**** =binDir=
-- option :: ~floco.pdefs.<ident>.<version>.binInfo.binDir~
+***** =binDir=
+- option :: ~floco.records.pdef.binInfo.binDir~
 - description :: Relative path to a subdir from which all files should be prepared
 as executables.
+
 Executable names will be defined as the basename of each file with
 any extensions stripped.
 - type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/binInfo/interface.nix][<floco>/records/pdef/binInfo/interface.nix]]
 
-**** =binPairs=
-- option :: ~floco.pdefs.<ident>.<version>.binInfo.binPairs~
-- description :: Pairs of ={ <EXE-NAME> = <REL-PATH>; ... }= declarations mapping
-exposed executables scripts to their associated sources.
+***** =binPairs=
+- option :: ~floco.records.pdef.binInfo.binPairs~
+- description :: Pairs of ={ <NAME> = <REL-PATH>; ... }= indicating executables that
+will installed, and their associated source code to be symlinked.
+
+These can be used "as is" to set =<PKG-ENT>.binInfo.binPairs=.
 - type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/binInfo/interface.nix][<floco>/pdef/binInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/binInfo/interface.nix][<floco>/records/pdef/binInfo/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  semver = "bin/semver.js";
+}
+#+END_SRC
 
-*** =depInfo=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo~
+**** =depInfo=
+- option :: ~floco.records.pdef.depInfo~
 - description :: Information regarding dependency modules/packages.
 This record is analogous to the various
 =package.json:.[dev|peer|optional|bundled]Dependencies[Meta]= fields.
@@ -2430,10 +882,10 @@ These config settings do note necessarily dictate the contents of the
 =treeInfo= configs, which are used by builders, but may be used to provide
 information needed to generate trees if they are not defined.
 - type :: attribute set of (attribute set of boolean)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/interface.nix][<floco>/pdef/depInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/interface.nix][<floco>/records/pdef/depInfo/interface.nix]]
 
-**** =bundled=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.bundled~
+***** =bundled=
+- option :: ~floco.records.pdef.depInfo.<name>.bundled~
 - description :: Whether the dependency is distributed in registry tarballs alongside
 the consumer.
 
@@ -2442,27 +894,27 @@ bundling should be avoided in favor of tooling like =esbuild=
 or =webpack= because the effect bundled dependencies have on resolution
 is fraught.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
-**** =descriptor=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.descriptor~
+***** =descriptor=
+- option :: ~floco.records.pdef.depInfo.<name>.descriptor~
 - description :: Descriptor indicating version range or exact source required to satisfy
 a dependency.
 
 The value ="*"= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
-**** =dev=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.dev~
+***** =dev=
+- option :: ~floco.records.pdef.depInfo.<name>.dev~
 - description :: Whether the dependency is required during pre-distribution phases.
 This includes common tasks such as building, testing, and linting.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
-**** =optional=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.optional~
+***** =optional=
+- option :: ~floco.records.pdef.depInfo.<name>.optional~
 - description :: Whether the dependency may be omitted from the =node_modules/= tree.
 
 Conventionally this is used to mark dependencies which are only required
@@ -2471,28 +923,37 @@ Generally optional dependencies carry =sysInfo= conditionals, or
 =postinstall= scripts which must be allowed to fail without blocking
 the build of the consumer.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
-**** =pin=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.pin~
+***** =pin=
+- option :: ~floco.records.pdef.depInfo.<name>.pin~
 - description :: An exact version number or URI indicating the "resolved" form of a
 dependency descriptor.
 
 This will be used for =treeInfo= formation, and is available for usage
 by extensions to =floco=.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
 
-**** =runtime=
-- option :: ~floco.pdefs.<ident>.<version>.depInfo.<name>.runtime~
+In the case of conflicts, the "latest" version will be used.
+The sorting algorithm prefers pre-releases over a release of the same
+version, following the behavior of =nix-env -u=.
+Read that again.
+
+TODO: Write a sort that makes more sense.
+Honestly though this is a rare edge case in properly
+maintained software.
+- type :: null or semantic version string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
+
+***** =runtime=
+- option :: ~floco.records.pdef.depInfo.<name>.runtime~
 - description :: Whether the dependency is required at runtime.
 Other package management tools often refer to these as
 "production mode" dependencies.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/depInfo/single.interface.nix][<floco>/pdef/depInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
-*** =fetchInfo=
-- option :: ~floco.pdefs.<ident>.<version>.fetchInfo~
+**** =fetchInfo=
+- option :: ~floco.records.pdef.fetchInfo~
 - description :: Arguments passed to fetchers to produce a package/module's source tree.
 
 This field may be explicitly set to =null= if =sourceInfo= is
@@ -2507,13 +968,11 @@ perform filtering of a source tree directly on
 =floco.packages.*.*.source= records rather than here to avoid
 prematurely copying trees to the Nix store in the event that they aren't
 needed for the eventual build plan.
-- type :: Arguments passed underlying fetchers, and optionally the field
-`type` used to manually indicate which sub-fetcher should be used.
+- type :: unspecified value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/implementation.nix][<floco>/pdef/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-
-*** =fsInfo=
-- option :: ~floco.pdefs.<ident>.<version>.fsInfo~
+**** =fsInfo=
+- option :: ~floco.records.pdef.fsInfo~
 - description :: Indicates information about a package that must be scraped from its
 source tree, rather than a conventional config file.
 
@@ -2522,10 +981,10 @@ we expect these to be informed by a cache or lockfile.
 You're welcome to explicitly define them, but I don't want to see anyone
 griping about these options in bug reports.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/fsInfo/interface.nix][<floco>/records/pdef/fsInfo/interface.nix]]
 
-**** =dir=
-- option :: ~floco.pdefs.<ident>.<version>.fsInfo.dir~
+***** =dir=
+- option :: ~floco.records.pdef.fsInfo.dir~
 - description :: Relative path from =sourceInfo.outPath= to the package's root.
 This field is analogous to a flake input's =dir= field, and is
 used in combination with =fetchInfo= in exactly the same way as
@@ -2543,10 +1002,10 @@ but I've left you enough rope to learn things the hard way if you
 insist on doing so.
 Consider yourself warned.
 - type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/fsInfo/interface.nix][<floco>/records/pdef/fsInfo/interface.nix]]
 
-**** =gypfile=
-- option :: ~floco.pdefs.<ident>.<version>.fsInfo.gypfile~
+***** =gypfile=
+- option :: ~floco.records.pdef.fsInfo.gypfile~
 - description :: Whether =binding.gyp= exists in the project root.
 May be explicitly overridden by declarations in =package.json=.
 
@@ -2558,10 +1017,10 @@ there is conflicting reporting rules for this field in POST requests
 by various package managers such that you should effectively
 disregard the value entirely.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/fsInfo/interface.nix][<floco>/records/pdef/fsInfo/interface.nix]]
 
-**** =shrinkwrap=
-- option :: ~floco.pdefs.<ident>.<version>.fsInfo.shrinkwrap~
+***** =shrinkwrap=
+- option :: ~floco.records.pdef.fsInfo.shrinkwrap~
 - description :: Whether =npm-shrinkwrap.json= exists in the project root.
 This is distributed form of =package-lock.json= which may be used to
 install exact dependencies during global installation of packages.
@@ -2573,25 +1032,25 @@ The use of =npm-shrinkwrap.json= is only recommended for executables.
 NOTE: =floco= does not use =npm-shrinkwrap.json= at this time, so this
 field exists as a stub.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/fsInfo/interface.nix][<floco>/pdef/fsInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/fsInfo/interface.nix][<floco>/records/pdef/fsInfo/interface.nix]]
 
-*** =ident=
-- option :: ~floco.pdefs.<ident>.<version>.ident~
+**** =ident=
+- option :: ~floco.records.pdef.ident~
 - description :: Package identifier/name as found in =package.json:.name=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
+- type :: package identifier/name
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 - example :: =@floco/foo=
 
-*** =key=
-- option :: ~floco.pdefs.<ident>.<version>.key~
+**** =key=
+- option :: ~floco.records.pdef.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
 - type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
-- example :: =@floco/foo/4.2.0=
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
+- example :: =@floco/test/4.2.0=
 
-*** =lifecycle=
-- option :: ~floco.pdefs.<ident>.<version>.lifecycle~
+**** =lifecycle=
+- option :: ~floco.records.pdef.lifecycle~
 - description :: Enables/disables phases executed when preparing a package/module for
 consumption or installation.
 
@@ -2601,10 +1060,10 @@ cause infinite recursion if dependency cycles exist among packages.
 
 See Also: ltype
 - type :: attribute set of boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/lifecycle/interface.nix][<floco>/records/pdef/lifecycle/interface.nix]]
 
-**** =build=
-- option :: ~floco.pdefs.<ident>.<version>.lifecycle.build~
+***** =build=
+- option :: ~floco.records.pdef.lifecycle.build~
 - description :: Whether a package or module requires build scripts to be run before
 it is prepared for consumption.
 
@@ -2612,18 +1071,18 @@ This field should never be set to true when consuming registry
 tarballs even if they define build scripts, since they are
 distributed after being built by authors and maintainers.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/lifecycle/interface.nix][<floco>/records/pdef/lifecycle/interface.nix]]
 
-**** =install=
-- option :: ~floco.pdefs.<ident>.<version>.lifecycle.install~
+***** =install=
+- option :: ~floco.records.pdef.lifecycle.install~
 - description :: Whether a package or module requires =[pre|post]install= scripts or
 =node-gyp= compilation to be performed before a distributed tarball
 is prepared for consumption.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/lifecycle/interface.nix][<floco>/pdef/lifecycle/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/lifecycle/interface.nix][<floco>/records/pdef/lifecycle/interface.nix]]
 
-*** =ltype=
-- option :: ~floco.pdefs.<ident>.<version>.ltype~
+**** =ltype=
+- option :: ~floco.records.pdef.ltype~
 - description :: Package "lifecycle type"/"pacote source type".
 This option effects which lifecycle events may run when preparing a
 package/module for consumption or installation.
@@ -2640,10 +1099,10 @@ but may also used by some fetchers and scrapers.
 
 See Also: lifecycle, fetchInfo
 - type :: one of "file", "link", "dir", "git"
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 
-*** =peerInfo=
-- option :: ~floco.pdefs.<ident>.<version>.peerInfo~
+**** =peerInfo=
+- option :: ~floco.records.pdef.peerInfo~
 - description :: Set of propagated dependencies that consumers of this package/module
 must provide at runtime.
 
@@ -2661,20 +1120,20 @@ The "sibling" case is why the term "peer" is used, indicating that these
 modules must be "peers" living in the same =node_modules/= directory;
 in practice a parent directory also works, but you get the idea.
 - type :: attribute set of (submodule)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/interface.nix][<floco>/pdef/peerInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/peerInfo/interface.nix][<floco>/records/pdef/peerInfo/interface.nix]]
 
-**** =descriptor=
-- option :: ~floco.pdefs.<ident>.<version>.peerInfo.<name>.descriptor~
+***** =descriptor=
+- option :: ~floco.records.pdef.peerInfo.<name>.descriptor~
 - description :: Descriptor indicating version range or exact source required to satisfy
 a peer dependency.
 
 The value ="*"= allows any version or source to be used, as long as it
 has the same identifier ( name ).
 - type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/peerInfo/single.interface.nix][<floco>/records/pdef/peerInfo/single.interface.nix]]
 
-**** =optional=
-- option :: ~floco.pdefs.<ident>.<version>.peerInfo.<name>.optional~
+***** =optional=
+- option :: ~floco.records.pdef.peerInfo.<name>.optional~
 - description :: Whether consumers are required to provide the declared peer.
 
 Optional peer declarations are conventionally used to handle platform
@@ -2687,10 +1146,10 @@ conditions can be asserted in Nix ( for example if you know =system=,
 there's no reason to use a derivation to run some JavaScript that probes
 and audits =cpu= and =os= ).
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/peerInfo/single.interface.nix][<floco>/pdef/peerInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/peerInfo/single.interface.nix][<floco>/records/pdef/peerInfo/single.interface.nix]]
 
-*** =sourceInfo=
-- option :: ~floco.pdefs.<ident>.<version>.sourceInfo~
+**** =sourceInfo=
+- option :: ~floco.records.pdef.sourceInfo~
 - description :: Information about the source tree a package resides in.
 This record is analogous to that returned by =builtins.fetchTree= for
 flake inputs.
@@ -2714,54 +1173,54 @@ fields directly - but keep in mind that these fields are never
 guaranteed to be stable and their schema may change at any time
 ( so set the top level ones unless you
 - type :: attribute set of (boolean or signed integer or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 
-**** =outPath=
-- option :: ~floco.pdefs.<ident>.<version>.sourceInfo.outPath~
+***** =outPath=
+- option :: ~floco.records.pdef.sourceInfo.outPath~
 - description :: A Nix Store path containing the unpacked source tree in which this
 package/module resides.
 The package need not be at the root this path; but when the project
 root is a subdir the option `fsInfo.dir` must be set in order for
 `package.json` and other metadata to be translated.
 - type :: path
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 
-*** =sysInfo=
-- option :: ~floco.pdefs.<ident>.<version>.sysInfo~
+**** =sysInfo=
+- option :: ~floco.records.pdef.sysInfo~
 - description :: Indicates platform, arch, and Node.js version support.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
-**** =cpu=
-- option :: ~floco.pdefs.<ident>.<version>.sysInfo.cpu~
+***** =cpu=
+- option :: ~floco.records.pdef.sysInfo.cpu~
 - description :: List of supported CPU architectures.
 The string ="*"= indicates that all CPUs are supported.
 - type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
-**** =engines=
-- option :: ~floco.pdefs.<ident>.<version>.sysInfo.engines~
+***** =engines=
+- option :: ~floco.records.pdef.sysInfo.engines~
 - description :: Indicates supported tooling versions.
 - type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
-***** =node=
-- option :: ~floco.pdefs.<ident>.<version>.sysInfo.engines.node~
+****** =node=
+- option :: ~floco.records.pdef.sysInfo.engines.node~
 - description :: Supported Node.js versions.
 - type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 - example :: =>=14=
 
-**** =os=
-- option :: ~floco.pdefs.<ident>.<version>.sysInfo.os~
+***** =os=
+- option :: ~floco.records.pdef.sysInfo.os~
 - description :: List of supported operating systems.
 The string ="*"= indicates that all operating systems
 are supported.
 - type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/sysInfo/interface.nix][<floco>/pdef/sysInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
-*** =treeInfo=
-- option :: ~floco.pdefs.<ident>.<version>.treeInfo~
+**** =treeInfo=
+- option :: ~floco.records.pdef.treeInfo~
 - description :: =node_modules/= trees used for various lifecycle events.
 These declarations are analogous to the =package.*= field found in
 =package-lock.json(v2/3)= files.
@@ -2775,7 +1234,7 @@ In practice we expect users to explicitly define this field only for
 targets which they actually intend to create installables from, and we
 recommend using a =package-lock.json(v2/3)= to fill these values.
 - type :: null or (attribute set of (attribute set of boolean))
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/interface.nix][<floco>/pdef/treeInfo/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/interface.nix][<floco>/records/pdef/treeInfo/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 {
@@ -2794,22 +1253,36 @@ recommend using a =package-lock.json(v2/3)= to fill these values.
 
 #+END_SRC
 
-**** =dev=
-- option :: ~floco.pdefs.<ident>.<version>.treeInfo.<name>.dev~
+***** =dev=
+- option :: ~floco.records.pdef.treeInfo.<name>.dev~
 - description :: Whether the dependency is required ONLY during pre-distribution phases.
 This includes common tasks such as building, testing, and linting.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/single.interface.nix][<floco>/records/pdef/treeInfo/single.interface.nix]]
 
-**** =key=
-- option :: ~floco.pdefs.<ident>.<version>.treeInfo.<name>.key~
+***** =key=
+- option :: ~floco.records.pdef.treeInfo.<name>.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
-- type :: null or string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
+- type :: string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/single.interface.nix][<floco>/records/pdef/treeInfo/single.interface.nix]]
+- example :: =@floco/test/4.2.0=
 
-**** =optional=
-- option :: ~floco.pdefs.<ident>.<version>.treeInfo.<name>.optional~
+***** =link=
+- option :: ~floco.records.pdef.treeInfo.<name>.link~
+- description :: Whether the dependency can by symlinked into =node_modules/=.
+
+When symlinks are enabled the =global= target for a package must be
+defined, and its =<global>/lib/node_modules= directory contents will
+be symlinked into the consumer's =node_modules/= directory.
+
+When symlinks are enabled it is an error to declare any subpaths in
+=treeInfo= under a "linked" dependency.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/single.interface.nix][<floco>/records/pdef/treeInfo/single.interface.nix]]
+
+***** =optional=
+- option :: ~floco.records.pdef.treeInfo.<name>.optional~
 - description :: Whether the dependency may be omitted from the =node_modules/= tree.
 
 Conventionally this is used to mark dependencies which are only required
@@ -2818,11 +1291,431 @@ Generally optional dependencies carry =sysInfo= conditionals, or
 =postinstall= scripts which must be allowed to fail without blocking
 the build of the consumer.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/treeInfo/single.interface.nix][<floco>/pdef/treeInfo/single.interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/single.interface.nix][<floco>/records/pdef/treeInfo/single.interface.nix]]
 
-*** =version=
-- option :: ~floco.pdefs.<ident>.<version>.version~
+**** =version=
+- option :: ~floco.records.pdef.version~
 - description :: Package version as found in =package.json:.version=.
-- type :: string matching a regex pattern
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/pdef/interface.nix][<floco>/pdef/interface.nix]]
+- type :: semantic version string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 - example :: =4.2.0=
+
+*** =pjsCore=
+- option :: ~floco.records.pjsCore~
+- type :: module
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+
+**** =cpu=
+- option :: ~floco.records.pjsCore.cpu~
+- type :: list of string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+
+**** =dependencies=
+- option :: ~floco.records.pjsCore.dependencies~
+- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
+describing the required version ranges or location of a given dependency.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = "^4.17.21";
+}
+#+END_SRC
+
+**** =devDependencies=
+- option :: ~floco.records.pjsCore.devDependencies~
+- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
+describing the required version ranges or location of a given dependency.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = "^4.17.21";
+}
+#+END_SRC
+
+**** =devDependenciesMeta=
+- option :: ~floco.records.pjsCore.devDependenciesMeta~
+- description :: Dependency metadata/options declarations.
+Represented as attrs of ={ <NAME> = { <OPTION> = <BOOL>; }; }= indicating
+additional metadata about dependencies that cannot be inferred from
+their category.
+
+Conventionally this is used to indicate whether dependencies are optional,
+but additional =boolean= toggles may be used.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = {
+    optional = true;
+  };
+}
+#+END_SRC
+
+**** =engines=
+- option :: ~floco.records.pjsCore.engines~
+- type :: attribute set of string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  node = ">=8.0.0";
+}
+#+END_SRC
+
+**** =ident=
+- option :: ~floco.records.pjsCore.ident~
+- description :: Package identifier/name as found in =package.json:.name=.
+- type :: package identifier/name
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example :: =@floco/foo=
+
+**** =key=
+- option :: ~floco.records.pjsCore.key~
+- description :: Unique key used to refer to this package in =tree= submodules and other
+=floco= configs, metadata, and structures.
+- type :: string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example :: =@floco/test/4.2.0=
+
+**** =name=
+- option :: ~floco.records.pjsCore.name~
+- description :: Alias of <option>ident</option>.
+- type :: package identifier/name
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+
+**** =optionalDependencies=
+- option :: ~floco.records.pjsCore.optionalDependencies~
+- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
+describing the required version ranges or location of a given dependency.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = "^4.17.21";
+}
+#+END_SRC
+
+**** =os=
+- option :: ~floco.records.pjsCore.os~
+- type :: list of string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+
+**** =peerDependencies=
+- option :: ~floco.records.pjsCore.peerDependencies~
+- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
+describing the required version ranges or location of a given dependency.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = "^4.17.21";
+}
+#+END_SRC
+
+**** =peerDependenciesMeta=
+- option :: ~floco.records.pjsCore.peerDependenciesMeta~
+- description :: Dependency metadata/options declarations.
+Represented as attrs of ={ <NAME> = { <OPTION> = <BOOL>; }; }= indicating
+additional metadata about dependencies that cannot be inferred from
+their category.
+
+Conventionally this is used to indicate whether dependencies are optional,
+but additional =boolean= toggles may be used.
+- type :: attribute set of (semantic version string or string)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  lodash = {
+    optional = true;
+  };
+}
+#+END_SRC
+
+**** =version=
+- option :: ~floco.records.pjsCore.version~
+- description :: Package version as found in =package.json:.version=.
+- type :: semantic version string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- example :: =4.2.0=
+
+*** =target=
+- option :: ~floco.records.target~
+- description :: Abstract record used to declare a package/module build "target".
+A target is analogous to a "lifecycle stage" or "event" which transforms
+a package towards its "prepared" state.
+
+Targets are designed to run in individual derivations in order to improve
+caching and avoid issues with cyclical dependencies; but users are free
+to optimize their pipelines by combining multiple targets ( an exercise
+for the reader ).
+
+This is a "deferred" module making it extensible.
+Its base interface must be implemented, but the implementations themselves
+may be swapped or overridden.
+- type :: module
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+
+**** =copyTree=
+- option :: ~floco.records.target.copyTree~
+- description :: Whether =node_modules/= tree should be copied into build area
+instead of symlinked.
+This may resolve issues with certain dependencies with
+non-compliant implementations of =resolve= such as =webpack=
+or =jest=.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example :: =true=
+
+**** =enable=
+- option :: ~floco.records.target.enable~
+- description :: Whether to enable the target.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example :: =true=
+
+**** =extraBuildInputs=
+- option :: ~floco.records.target.extraBuildInputs~
+- description :: Additional =buildInputs= passed to the builder.
+
+"Build Inputs" are packages/tools that are available at build time
+and respect cross-compilation/linking settings.
+These are conventionally libraries, headers, compilers, or
+linkers, and should not be confused with =nativeBuildInputs= which
+are better suited for utilities used only to drive builds
+( such as =make=, =coreutils=, =grep=, etc ).
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+
+See Also: extraNativeBuildInputs
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraBuildInputs = [pkgs.openssl.dev];
+}
+
+#+END_SRC
+
+**** =extraNativeBuildInputs=
+- option :: ~floco.records.target.extraNativeBuildInputs~
+- description :: Additional =nativeBuildInputs= passed to the builder.
+
+"Native Build Inputs" are packages/tools that are available at
+build time that are insensitive to
+cross-compilation/linking settings.
+These are conventionally CLI tools such as =make=, =coreutils=,
+=grep=, etc that are required to drive a build, but don't produce
+different outputs depending on the =build=, =host=, or
+=target= platform.
+
+This is processed before overrides, and may be set multiple times
+across modules to create a concatenated list.
+- type :: list of package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, ... }: {
+  config.extraNativeBuildInputs = [pkgs.typescript];
+}
+
+#+END_SRC
+
+**** =override=
+- option :: ~floco.records.target.override~
+- description :: Overrides applied to =stdenv.mkDerivation= invocation.
+This option is processed after =extra*= options, and
+before =overrideAttrs=.
+
+See Also: overrideAttrs
+- type :: attribute set of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{
+  preBuild = ''
+    echo "Howdy" >&2;
+  '';
+}
+#+END_SRC
+
+**** =overrideAttrs=
+- option :: ~floco.records.target.overrideAttrs~
+- description :: Override function applied to =stdenv.mkDerivation= invocation.
+This option is an advanced form of =override= which allows =prev=
+arguments to be referenced.
+The function is evaluated after =extra*= options, and after
+applying =override= to the orginal argument set.
+
+See Also: override
+- type :: null or (function that evaluates to a(n) anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+{ pkgs, config, ... }: {
+  config.built.overrideAttrs = prev: {
+    # Append pre-release tag to version.
+    version = prev.version + "-pre";
+  };
+}
+
+#+END_SRC
+
+**** =package=
+- option :: ~floco.records.target.package~
+- description :: Derivation which produces the target.
+- type :: package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+
+**** =scripts=
+- option :: ~floco.records.target.scripts~
+- description :: Scripts that should be run during "build" process.
+These scripts are run in the order listed, and if a script is
+undefined in =package.json= it is skipped.
+- type :: list of string
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- example ::
+#+BEGIN_SRC nix
+[
+  "build:part1"
+  "build:part2"
+]
+#+END_SRC
+
+**** =tree=
+- option :: ~floco.records.target.tree~
+- description :: =node_modules/= tree used for building.
+- type :: null or package
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+
+** =settings=
+- option :: ~floco.settings~
+- description :: Global settings used by various submodules.
+These are organized at the top level for the convenience of the user.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/settings/interface.nix][<floco>/settings/interface.nix]]
+
+*** =basedir=
+- option :: ~floco.settings.basedir~
+- description :: Directory used to form relative paths when serializing =fetchInfo=
+records to a file.
+- type :: null or path
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/settings/interface.nix][<floco>/settings/interface.nix]]
+
+*** =system=
+- option :: ~floco.settings.system~
+- description :: System pair used as =build= and =host= platform.
+- type :: one of "x86_64-linux", "x86_64-darwin", "aarch64-linux", "aarch64-darwin", "i686-linux", "unknown"
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/settings/interface.nix][<floco>/settings/interface.nix]]
+- example :: =x86_64-linux=
+
+** =topo=
+- option :: ~floco.topo~
+- description :: Functions and metadata associated with topologically sorting build plans.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+*** =toposortNoPins=
+- option :: ~floco.topo.toposortNoPins~
+- description :: A function which topologically sorts a list of =pdef= records.
+
+Package versions are ignored entirely - dependency relationships are
+established strictly by matching =name= values to =dependencies=,
+=optionalDependencies=, and =devDependencies= keys.
+- type :: function that evaluates to a(n) (submodule)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =cycle=
+- option :: ~floco.topo.toposortNoPins.<function body>.cycle~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =isDAG=
+- option :: ~floco.topo.toposortNoPins.<function body>.isDAG~
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =loops=
+- option :: ~floco.topo.toposortNoPins.<function body>.loops~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =result=
+- option :: ~floco.topo.toposortNoPins.<function body>.result~
+- type :: null or (list of anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+*** =toposortPins=
+- option :: ~floco.topo.toposortPins~
+- description :: A function which topologically sorts a list of =pdef= records.
+
+Package versions are matched using =<pdef>.depInfo.*.pin= fields.
+It is an error to call this function with missing =pin= values on
+ANY =pdef= records.
+- type :: function that evaluates to a(n) (submodule)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =cycle=
+- option :: ~floco.topo.toposortPins.<function body>.cycle~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =isDAG=
+- option :: ~floco.topo.toposortPins.<function body>.isDAG~
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =loops=
+- option :: ~floco.topo.toposortPins.<function body>.loops~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+***** =result=
+- option :: ~floco.topo.toposortPins.<function body>.result~
+- type :: null or (list of anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+*** =toposortedAll=
+- option :: ~floco.topo.toposortedAll~
+- description :: A toposorted form of all =floco.pdefs= records.
+
+This routine is expected to run slowly and should be
+referenced sparingly.
+Ideally you should only refer to this when optimizing build plans to
+be rewritten to disk.
+
+This routine uses =toposortNoPins= if all =pdef= records have a single
+version, or =toposortPins= if multiple versions exist.
+It is an error to reference this value if these restrictions are
+not met.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+**** =cycle=
+- option :: ~floco.topo.toposortedAll.cycle~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+**** =isDAG=
+- option :: ~floco.topo.toposortedAll.isDAG~
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+**** =loops=
+- option :: ~floco.topo.toposortedAll.loops~
+- type :: list of anything
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
+
+**** =result=
+- option :: ~floco.topo.toposortedAll.result~
+- type :: null or (list of anything)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]

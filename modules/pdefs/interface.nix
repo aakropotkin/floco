@@ -20,9 +20,15 @@ in {
   options.pdefs = lib.mkOption {
 
     description = lib.mdDoc ''
-      List of `pdef` metadata records for all known pacakges
+      Collection of `pdef` metadata records for all known pacakges
       and modules.
+
       These records are used to generate build recipes and build plans.
+
+      Members are structured as a hierarchy of attrsets keyed by `ident`, with
+      children keyed by `version`.
+
+      See Also: records.pdef, packages
     '';
 
     example = {
@@ -49,6 +55,8 @@ in {
         treeInfo = {};
       };
     };
+
+    visible = "shallow";
 
   };  # End `options.pdefs'
 

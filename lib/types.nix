@@ -19,7 +19,7 @@
     ( nt.listOf jsonValue )
     ( nt.attrsOf jsonValue )
   ] ) // {
-    description = "A JSON compliant value";
+    description = "JSON compliant value";
   };
 
 
@@ -34,7 +34,10 @@
     tag_p     = "${part_p}(\\.${part_p})*";
     build_p   = "${dan_c}+(\\.[[:alnum:]]+)*";
     version_p = "${core_p}(-${tag_p})?(\\+${build_p})?";
-  in nt.strMatching version_p;
+  in ( nt.strMatching version_p ) // {
+    name        = "version";
+    description = "semantic version string";
+  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -49,7 +52,10 @@
 
 # ---------------------------------------------------------------------------- #
 
-  ident = nt.strMatching "(@[^@/]+/)?[^@/]+";
+  ident = ( nt.strMatching "(@[^@/]+/)?[^@/]+" ) // {
+    name        = "ident";
+    description = "package identifier/name";
+  };
 
 
 # ---------------------------------------------------------------------------- #

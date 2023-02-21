@@ -10,6 +10,7 @@
 
   options.fetchTree_tarball = lib.mkOption {
     description = lib.mdDoc "`builtins.fetchTree[tarball]` args";
+    visible     = "shallow";
   };
 
 }
