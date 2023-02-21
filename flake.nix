@@ -74,6 +74,7 @@
     in {
       inherit (pkgsFor)
         floco
+        floco-plugin
         floco-utils
         floco-hooks
         floco-updaters

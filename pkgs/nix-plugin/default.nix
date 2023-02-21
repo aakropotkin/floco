@@ -51,7 +51,7 @@
     runHook preInstall;
     mkdir -p "$out/libexec" "$out/bin";
     mv -- "./libfloco$libExt" "$out/libexec/libfloco$libExt";
-    cat <<EOF >"$out/bin/floco"
+    cat <<EOF >"$out/bin/floco-nix"
     #! $bash/bin/bash
     # A wrapper around Nix that includes the \`libfloco' plugin.
     # First we add runtime executables to \`PATH', then pass off to Nix.
@@ -66,10 +66,10 @@
     export PATH NODE_PATH;
     exec "$nix/bin/nix" --plugin-files "$out/libexec/libfloco$libExt" "\$@";
     EOF
-    chmod +x "$out/bin/floco";
+    chmod +x "$out/bin/floco-nix";
     runHook postInstall;
   '';
-  meta.mainProgram = "floco";
+  meta.mainProgram = "floco-nix";
 }
 
 

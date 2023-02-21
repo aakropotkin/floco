@@ -1,4 +1,5 @@
-#! /usr/bin/env bash
+#! /Users/alexameen/.nix-profile/bin/bash
+# -*- mode: shell; sh-shell: bash; -*-
 # ============================================================================ #
 #
 # List all known packages declared in a given directory.

@@ -69,11 +69,11 @@ This routine is used internally by ~<floco>/builders/tree.nix~ but may also
 be used as a regular executable for scripting outside of derivations.
 
 #+BEGIN_SRC shell :exports both :results output
-nix shell github:aakropotkin/floco#floco{,-utils};
+nix shell github:aakropotkin/floco#floco{-plugin,-utils};
 # Downloads and unpacks a module from an identifier/descriptor.
 dlmod() {
   export PKG="$1";
-  floco eval --impure --raw --expr '( builtins.fetchTree {
+  floco-nix eval --impure --raw --expr '( builtins.fetchTree {
     type = "tarball";
     url  = let
       res = builtins.npmResolve ( builtins.getEnv "PKG" );
@@ -262,7 +262,7 @@ top-level flake.
 
 ** Nix Plugin
 A =nix= plugin for use with ~nix --plugin-files ...~ is available in the
-top level flake, along with a wrapper executable, =floco=, which
+top level flake, along with a wrapper executable, =floco-nix=, which
 automatically loads this plugin.
 
 In the future this plugin is expected to grow into a full executable that
@@ -286,7 +286,7 @@ package registries and inheriting authorization settings with
 minimal setup.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco -- eval --json --expr '
+nix run github:aakropotkin/floco#floco-plugin -- eval --json --expr '
 builtins.attrNames ( builtins.npmShow "lodash" )
 '|jq;
 #+END_SRC
@@ -338,7 +338,7 @@ NOTE: if you use ranges such as =lodash@2.x= you will want to use
 =builtins.split= to parse the output.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco -- eval --expr '
+nix run github:aakropotkin/floco#floco-plugin -- eval --expr '
 builtins.npmResolve "lodash@latest"
 ';
 #+END_SRC
@@ -359,11 +359,12 @@ I currently use it for this purpose out in the field; but have avoided
 using it in the default modules so that they are usable without plugins.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco -- eval --impure --expr 'let
-  url   = builtins.npmResolve "pacote@latest";
-  src   = builtins.fetchTree { type = "tarball"; inherit url; };
-  plock = builtins.npmLock src;
-in builtins.attrNames plock
+nix run github:aakropotkin/floco#floco-plugin -- eval --impure  \
+  --expr 'let
+    url   = builtins.npmResolve "pacote@latest";
+    src   = builtins.fetchTree { type = "tarball"; inherit url; };
+    plock = builtins.npmLock src;
+  in builtins.attrNames plock
 ';
 #+END_SRC
 
@@ -380,7 +381,7 @@ This largely exists as a stop-gap until the pure =nix= implementation
 from the alpha repository is polished and/or =semi= is completed.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco -- eval --expr '[
+nix run github:aakropotkin/floco#floco-plugin -- eval --expr '[
   ( builtins.semverSat "^4.2.0" "4.0.0" )
   ( builtins.semverSat "^4.2.0" "4.2.0" )
   ( builtins.semverSat "^4.2.0" "4.2.1" )

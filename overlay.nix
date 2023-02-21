@@ -41,13 +41,18 @@ final: prev: {
     pkgsFor = final;
   };
 
-  floco = import ./pkgs/nix-plugin {
+  floco-plugin = import ./pkgs/nix-plugin {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
     inherit (final) system boost treeFor semver bash;
     pkgsFor = final;
     npm     = final.nodejs-14_x.pkgs.npm;
     nix     = final.nixVersions.nix_2_12;
+  };
+
+  floco = import ./pkgs/cli/pkg-fun.nix {
+    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper;
+    nix = final.nixVersions.nix_2_12;
   };
 
   pkgslib = ( prev.pkgslib or {} ) // ( import ./pkgs/lib {
