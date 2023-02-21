@@ -5,7 +5,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, system, floco, ... }: let
+{ lib, options, config, pkgs, system, floco, ... } @ top: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -30,7 +30,9 @@ in {
       may be swapped or overridden.
     '';
     type = nt.deferredModuleWith {
-      staticModules = [./interface.nix];
+      staticModules = [
+        ./interface.nix
+      ];
     };
     default = {};
   };
@@ -59,8 +61,13 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config.pdef = { ... }: {
-    imports = [./implementation.nix];
+  config.pdef = { config, options, ... }: {
+    imports = [
+      top.config.depInfo.deferred
+      ./implementation.nix
+    ];
+    config._export =
+      lib.mkDerivedConfig options.depInfo top.config.depInfo.serialize;
     config._module.args.pkgs     = lib.mkOverride 999  pkgs;
     config._module.args.fetchers = lib.mkOverride 999  floco.fetchers;
     config._module.args.pdefs    = lib.mkOverride 1001 floco.pdefs;

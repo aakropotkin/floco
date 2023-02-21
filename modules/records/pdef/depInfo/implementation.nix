@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, options, ... }: let
+{ lib, config, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -25,13 +25,6 @@
       take config.metaFiles.${f};
   in ( get "pjs" ) // ( get "plent" ) // ( get "ylent" ) // ( get "metaRaw" );
 
-  idents = let
-    # `requires' may be a boolen if it appears at the top level, so we want
-    # to type check these fields first.
-    attrs  = builtins.filter builtins.isAttrs ( builtins.attrValues raw );
-    merged = builtins.foldl' ( a: b: a // b ) {} attrs;
-  in ( builtins.attrNames merged ) ++ ( raw.bundledDependencies or [] );
-
 
 # ---------------------------------------------------------------------------- #
 
@@ -43,22 +36,15 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-  config.depInfo = let
-    proc = acc: ident: acc // {
-      ${ident} = import ./single.implementation.nix ( raw // {
-        inherit lib ident;
-      } );
-    };
-  in lib.mkIf ( ! config.deserialized ) ( builtins.foldl' proc {} idents );
-
-  config._export = let
-    depInfo = let
-      iface = import ./single.interface.nix { inherit lib; };
-      proc  = ident: dent: let
-        nonDefault = f: v: v != ( iface.options.${f}.default or false );
-      in builtins.mapAttrs ( f: v: lib.mkIf ( nonDefault f v ) v ) dent;
-    in builtins.mapAttrs proc config.depInfo;
-  in lib.mkIf ( config.depInfo != {} ) { inherit depInfo; };
+  config._module.args = {
+    requires             = raw.requires or {};
+    dependencies         = raw.dependencies or {};
+    devDependencies      = raw.devDependencies or {};
+    devDependenciesMeta  = raw.devDependenciesMeta or {};
+    optionalDependencies = raw.optionalDependencies or {};
+    bundledDependencies  = raw.bundledDependencies or [];
+    bundleDependencies   = raw.bundleDependencies or false;
+  };
 
 }
 

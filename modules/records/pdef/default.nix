@@ -4,7 +4,7 @@
 
   imports = [
     ./binInfo
-    ./depInfo
+    ../depInfo ./depInfo/implementation.nix
     ./treeInfo
     ./peerInfo
     ./sysInfo
