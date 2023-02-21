@@ -65,9 +65,6 @@ The following config files are included/applied if they exist:
 List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
 =@foo/bar/4.2.0= or =baz/4.2.0=.
 
-** =floco show=
-Print the =pdef= record for a given package.
-
 #+BEGIN_SRC shell :exports both :results output
 nix run github:aakropotkin/floco -- list;
 #+END_SRC
@@ -88,6 +85,9 @@ acorn/8.8.2
 acorn-globals/4.3.4
 acorn-jsx/5.3.2
 #+end_example
+
+** =floco show=
+Print the =pdef= record for a given package.
 
 #+BEGIN_SRC shell :exports both :results output
 nix run github:aakropotkin/floco -- show lodash@4.17.21 --json;
