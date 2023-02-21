@@ -31,7 +31,7 @@ jobs:
       SYSTEM: x86_64-linux
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@11f4ad19be46fd34c005a2864996d8f197fb51c6
         with:
           nix_path: nixpkgs=channel:nixpkgs-22.05
