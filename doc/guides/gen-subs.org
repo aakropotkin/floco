@@ -63,7 +63,10 @@ nix-repl> :lf github:aakropotkin/floco
 nix-repl> mod = lib.evalModules {
   modules = [
     nixosModules.default
-    { config.floco.settings.system = builtins.currentSystem; }
+    {
+      config.floco.settings.system  = builtins.currentSystem;
+      config.floco.settings.basedir = toString ./.;
+    }
     ./floco-cfg.nix
   ];
 }
@@ -84,9 +87,10 @@ nix-repl> base = ( lib.evalModules {
     nixosModules.plockToPdefs
     {
       config.floco = {
+        settings.basedir         = p.sourceInfo.outPath;
         buildPlan.deriveTreeInfo = false;
+        # Fields related to `plockToPdefs'
         inherit plock;
-        settings.basedir = p.sourceInfo.outPath;
         lockDir = /. + (
           builtins.unsafeDiscardStringContext p.sourceInfo.outPath
         );
