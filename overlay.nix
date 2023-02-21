@@ -11,9 +11,9 @@ final: prev: {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
     inherit (final) system bash coreutils jq gnused;
-    nodejs = final.nodejs-slim-14_x;
-    npm    = final.nodejs-14_x.pkgs.npm;
-    nix    = final.nixVersions.nix_2_12;
+    nodejs   = final.nodejs-slim-14_x;
+    npm      = final.nodejs-14_x.pkgs.npm;
+    nix      = final.nixVersions.nix_2_12;
     flakeRef = ./.;
   }) floco-updaters;
 
@@ -41,13 +41,23 @@ final: prev: {
     pkgsFor = final;
   };
 
-  floco = import ./pkgs/nix-plugin {
-    nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
-    nix-flake = throw "floco: Nix should not be referenced from flake";
-    inherit (final) system boost treeFor semver bash;
-    pkgsFor = final;
-    npm     = final.nodejs-14_x.pkgs.npm;
-    nix     = final.nixVersions.nix_2_12;
+  floco-nix =
+    prev.lib.makeOverridable ( import ./pkgs/nix-plugin/pkg-fun.nix ) {
+      inherit (final) stdenv boost treeFor semver bash darwin;
+      nodejs = final.nodejs-14_x;
+      npm    = final.nodejs-14_x.pkgs.npm;
+      nix    = final.nixVersions.nix_2_12;
+    };
+
+  floco = prev.lib.makeOverridable ( import ./pkgs/cli/pkg-fun.nix ) {
+    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper;
+    nix = final.nixVersions.nix_2_12;
   };
+
+  pkgslib = ( prev.pkgslib or {} ) // ( import ./pkgs/lib {
+    nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
+    inherit (final) lib system treeFor semver bash;
+    pkgsFor = final;
+  } );
 
 }

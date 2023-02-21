@@ -1,7 +1,7 @@
 #+TITLE: Generate Subtrees
 
 This guide provides an example of using the experimental features in the
-[[file:../../pkgs/nix-plugin/default.nix][nix-plugin]] to generate =treeInfo=
+[[https://github.com/aakropotkin/floco/blob/main/pkgs/nix-plugin/default.nix][nix-plugin]] to generate =treeInfo=
 records for transitive dependencies.
 
 Here we cover generating a single tree for a single dependency; but the example
@@ -12,7 +12,7 @@ actually read this guide rather than copy/paste its snippets.
 
 * Setup
 You'll find a directory ready to use with this example
-[[file:./gen-subs][here]], but the setup is simple enough for us to inline
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/gen-subs][here]], but the setup is simple enough for us to inline
 here the reader.
 
 #+BEGIN_SRC shell
@@ -45,33 +45,31 @@ to produce the required =node_modules/= tree.
 We have two tools in our toolkit for handling these situations, one is the
 =fromRegistry= updater script which is currently the recommended approach; but
 if we wanted to perform this operation virtually we can do so using
-=builtins.npmLock= from the =nix-plugin=.
+=builtins.npmLock= from the =floco-nix= plugin.
 In the field you may find that this approach helps reduce headaches when
 composing multiple projects, and is a good way to avoid writing redundant
 metadata to multiple =pdefs.nix= files.
 
 * Enter the =floco= REPL
-You can spin up a REPL with the =nix-plugin= with the following invocation,
+You can spin up a REPL with =floco-nix= with the following invocation,
 the code example below assumes that you have loaded the plugin.
 
-~nix run github:aakropotkin/floco#floco -- repl;~
+~nix run github:aakropotkin/floco#floco-nix -- repl;~
 
 #+BEGIN_SRC nix
 nix-repl> :lf github:aakropotkin/floco
 
 # Load our existing config
 nix-repl> mod = lib.evalModules {
-            modules = [
-              "${sourceInfo}/modules/top"
-              {
-                config._module.args.pkgs = let
-                  inherit (inputs) nixpkgs;
-                  npkgs = nixpkgs.legacyPackages.${builtins.currentSystem};
-                in npkgs.extend overlays.default;
-              }
-              ./floco-cfg.nix
-            ];
-          }
+  modules = [
+    nixosModules.default
+    {
+      config.floco.settings.system  = builtins.currentSystem;
+      config.floco.settings.basedir = toString ./.;
+    }
+    ./floco-cfg.nix
+  ];
+}
 
 # Collect `pdefs' that are missing `fetchInfo' records.
 nix-repl> pdl = lib.collect ( v: v ? _export ) mod.config.floco.pdefs
@@ -84,17 +82,29 @@ nix-repl> p = builtins.head mts
 nix-repl> plock = builtins.npmLock p.sourceInfo
 
 # Feed this to the `package-lock.json' -> `pdefs' translator
-nix-repl> base = import "${sourceInfo}/modules/plockToPdefs/implementation.nix" {
-            inherit lib plock;
-            lockDir = p.sourceInfo.outPath;
-          }
+nix-repl> base = ( lib.evalModules {
+  modules = [
+    nixosModules.plockToPdefs
+    {
+      config.floco = {
+        settings.basedir         = p.sourceInfo.outPath;
+        buildPlan.deriveTreeInfo = false;
+        # Fields related to `plockToPdefs'
+        inherit plock;
+        lockDir = /. + (
+          builtins.unsafeDiscardStringContext p.sourceInfo.outPath
+        );
+      };
+    }
+  ];
+} ).config.floco
 
 # Lets find our `pdef' records for the root project so we can extract the
 # `treeInfo' record.
 # Note that there may be multiple records so we use `builtins.filter'.
 nix-repl> target = builtins.filter ( v:
-            ( v.ident == p.ident ) && ( v.version == p.version )
-          ) base.exports
+  ( v.ident == p.ident ) && ( v.version == p.version )
+) base.exports
 
 # If we peek at the first one we'll see the `fetchInfo' and `ltype' are
 # problematic, but we've got our `treeInfo' here!
@@ -120,9 +130,8 @@ nix-repl> t = ( builtins.head target ) // ( builtins.elemAt target 1 )
 # Leaving them is harmless, but if you want to write this info to a file these
 # can consume a lot of space unnecessarily.
 nix-repl> pt = t // {
-            treeInfo = lib.filterAttrs ( _: v: ! ( v.dev or false ) )
-                                       t.treeInfo;
-          }
+  treeInfo = lib.filterAttrs ( _: v: ! ( v.dev or false ) ) t.treeInfo;
+}
 
 # Lets take a look at our tree:
 nix-repl> pt.treeInfo

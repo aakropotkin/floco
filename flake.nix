@@ -74,6 +74,7 @@
     in {
       inherit (pkgsFor)
         floco
+        floco-nix
         floco-utils
         floco-hooks
         floco-updaters
@@ -82,6 +83,7 @@
         pacote
         arborist
       ;
+      default = pkgsFor.floco;
     } );
 
 
@@ -118,6 +120,20 @@
         description = "Expression for filling missing `pin's in `pdefs.nix'.";
         path        = ./templates/fill-pins;
       };
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
+    pkgsFor = let
+      bySystem = eachSupportedSystemMap ( system:
+        nixpkgs.legacyPackages.${system}.extend overlays.default
+      );
+    in bySystem // {
+      __functor = pf: system:
+        pf.${system} or (
+          throw "floco#pkgsFor: Unsupported system: ${system}"
+        );
     };
 
 

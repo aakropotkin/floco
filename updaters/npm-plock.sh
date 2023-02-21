@@ -319,9 +319,9 @@ let
         config.floco.buildPlan.deriveTreeInfo = false;
         config.floco.includePins         = ( builtins.getEnv "PINS" ) != "";
         config.floco.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
+        config.floco.lockDir             = /. + ( builtins.getEnv "LOCKDIR" );
       }
     ];
-    specialArgs.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
   };
   contents.floco.pdefs = mod.config.floco.exports;
 in if asJSON then contents else lib.generators.toPretty {} contents

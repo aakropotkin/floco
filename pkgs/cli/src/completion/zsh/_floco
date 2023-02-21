@@ -1,0 +1,82 @@
+#compdef floco
+# -*- mode: shell; sh-shell: zsh; -*-
+# ============================================================================ #
+#
+#
+#
+# ---------------------------------------------------------------------------- #
+
+__floco_exe() {
+  local _SPATH _SDIR;
+  if [[ -z "$_FLOCO_EXE" ]]; then
+    _SPATH="${(%):-%x}";
+    _SDIR="${_SPATH%/*}";
+    # When run from source tree:
+    #   pkgs/cli/src/main.sh
+    #   pkgs/cli/src/completion/zsh/_floco
+    # When run from installation prefix:
+    #   bin/floco
+    #   share/zsh/site-functions/_floco
+    if [[ -x "$_SDIR/../../main.sh" ]]; then
+      _FLOCO_EXE="$_SDIR/../../main.sh";
+    elif [[ -x "$_SDIR/../../../bin/floco" ]]; then
+      _FLOCO_EXE="$_SDIR/../../../bin/floco";
+    else
+      _FLOCO_EXE="floco";
+    fi
+  fi
+}
+
+__floco_exe;
+export _FLOCO_EXE;
+
+
+_floco_key() {
+  _values $( "$_FLOCO_EXE" list 2>/dev/null; );
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+_floco() {
+  local line state;
+  local -a cargs subCmds hiddenSubCmds allSubCmds;
+  cargs=(
+    '1: :->cmd'
+    '*::arg:->args'
+  );
+  subCmds=(
+    'list:list available packages'
+    'show:show package definition'
+    'build:build a package'
+  );
+  hiddenSubCmds=(
+    'help:show help for subcommands'
+  );
+  allSubCmds=( "${subCmds[@]}" "${hiddenSubCmds[@]}" );
+
+  _arguments "${cargs[@]}";
+
+  case "$state" in
+    cmd)
+      _describe 'command' allSubCmds;
+    ;;
+    args)
+      case "${line[1]}" in
+        help)
+          compadd "${subCmds[@]%%:*}";
+        ;;
+        show)
+          _floco_key;
+        ;;
+      esac
+    ;;
+  esac
+}
+
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #
