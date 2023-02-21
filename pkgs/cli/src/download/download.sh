@@ -74,7 +74,7 @@ esac
 
 # @BEGIN_INJECT_UTILS@
 : "${NIX:=nix}";
-: "${FLOCO:=$NIX run "$FLAKE_REF#floco --"}";
+: "${FLOCO:=$NIX run "$FLAKE_REF#floco-plugin --"}";
 : "${JQ:=jq}";
 : "${REALPATH:=realpath}";
 : "${MKDIR:=mkdir}";
