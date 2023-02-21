@@ -48,6 +48,41 @@ is available through ~nix flake init -t github:aakropotkin/floco~.
 
 More templates are on the way.
 
+* CLI
+The =floco= CLI interface is currently under active development and is
+expected to change rapidly in the near future.
+
+** Common Behaviors
+Across the =floco= CLI a few behaviors are consistent. 
+
+The following config files are included/applied if they exist:
+- `/etc/floco/floco-cfg.{nix,json}`
+- `${XDG_CONFIG_HOME:-$HOME/.config}/floco/floco-config.{nix,json}`
+- "Local" `floco-config.{nix,json}` searched for between `PWD` and git
+  project root, or `/` if `PWD` is not a `git` repository checkout.
+
+** =floco list=
+List all declared projects by "key", being `<IDENT>/<VERSION>`, such as
+`@foo/bar/4.2.0` or `baz/4.2.0`.
+
+*** =floco show=
+Print the `pdef` record for a given package.
+
+#+BEGIN_SRC sh
+$ floco show lodash@4.17.21 --json;
+{
+  "ident" : "lodash", 
+  "version": "4.17.21",
+  "treeInfo" : {},
+  "fetchInfo": {
+    "type": "tarball", 
+    "url": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+    "narHash": "sha256-fn2qMkL7ePPYQyW..."
+  }
+}
+#+END_SRC
+
+
 * Core Scripts
 =floco= uses a small collection of =bash= scripts to perform install tasks
 and drive builds.
