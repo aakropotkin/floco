@@ -68,19 +68,45 @@ List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
 ** =floco show=
 Print the =pdef= record for a given package.
 
-#+BEGIN_SRC sh
-$ floco show lodash@4.17.21 --json;
-{
-  "ident" : "lodash", 
-  "version": "4.17.21",
-  "treeInfo" : {},
-  "fetchInfo": {
-    "type": "tarball", 
-    "url": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
-    "narHash": "sha256-fn2qMkL7ePPYQyW..."
-  }
-}
+#+BEGIN_SRC shell :exports both :results output
+nix run github:aakropotkin/floco -- list;
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+@webassemblyjs/wast-printer/1.9.0
+@xtuc/ieee754/1.2.0
+@xtuc/long/4.2.2
+abab/2.0.6
+abbrev/1.1.1
+abbrev/2.0.0
+abort-controller/3.0.0
+accepts/1.3.8
+acorn/6.4.2
+acorn/7.4.1
+acorn/8.8.2
+acorn-globals/4.3.4
+acorn-jsx/5.3.2
+#+end_example
+
+#+BEGIN_SRC shell :exports both :results output
+nix run github:aakropotkin/floco -- show lodash@4.17.21 --json;
+#+END_SRC
+
+#+RESULTS:
+#+begin_example json
+{
+  "ident": "lodash",
+  "version": "4.17.21",
+  "ltype": "file",
+  "fetchInfo": {
+    "narHash": "sha256-amyN064Yh6psvOfLgcpktd5dRNQStUYHHoIqiI6DMek=",
+    "type": "tarball",
+    "url": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+  },
+  "treeInfo": {}
+}
+#+end_example
 
 
 * Core Scripts
@@ -104,7 +130,7 @@ This routine is used internally by ~<floco>/builders/tree.nix~ but may also
 be used as a regular executable for scripting outside of derivations.
 
 #+BEGIN_SRC shell :exports both :results output
-nix shell github:aakropotkin/floco#floco{-plugin,-utils};
+nix shell github:aakropotkin/floco#floco{-nix,-utils};
 # Downloads and unpacks a module from an identifier/descriptor.
 dlmod() {
   export PKG="$1";
@@ -321,13 +347,13 @@ package registries and inheriting authorization settings with
 minimal setup.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco-plugin -- eval --json --expr '
+nix run github:aakropotkin/floco#floco-nix -- eval --json --expr '
 builtins.attrNames ( builtins.npmShow "lodash" )
 '|jq;
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
+#+begin_example json
 [
   "_cached",
   "_contentLength",
@@ -373,7 +399,7 @@ NOTE: if you use ranges such as =lodash@2.x= you will want to use
 =builtins.split= to parse the output.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco-plugin -- eval --expr '
+nix run github:aakropotkin/floco#floco-nix -- eval --expr '
 builtins.npmResolve "lodash@latest"
 ';
 #+END_SRC
@@ -394,7 +420,7 @@ I currently use it for this purpose out in the field; but have avoided
 using it in the default modules so that they are usable without plugins.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco-plugin -- eval --impure  \
+nix run github:aakropotkin/floco#floco-nix -- eval --impure  \
   --expr 'let
     url   = builtins.npmResolve "pacote@latest";
     src   = builtins.fetchTree { type = "tarball"; inherit url; };
@@ -416,7 +442,7 @@ This largely exists as a stop-gap until the pure =nix= implementation
 from the alpha repository is polished and/or =semi= is completed.
 
 #+BEGIN_SRC shell :results output :exports both
-nix run github:aakropotkin/floco#floco-plugin -- eval --expr '[
+nix run github:aakropotkin/floco#floco-nix -- eval --expr '[
   ( builtins.semverSat "^4.2.0" "4.0.0" )
   ( builtins.semverSat "^4.2.0" "4.2.0" )
   ( builtins.semverSat "^4.2.0" "4.2.1" )
@@ -469,7 +495,7 @@ use in production code-bases as pieces of reliable infrastructure.
     - For now we have provided
       [[https://github.com/npm/node-semver.git][node-semver]] as an
       installable in the top-level flake for use in scripts and our
-      [[https://github.com/aakropotkin/floco/blob/main/pkgs/nix-plugin][nix-plugin]]
+      [[https://github.com/aakropotkin/floco/blob/main/pkgs/nix-plugin][floco-nix]]
       through =builtins.semverSat=.
   + Construction of ideal tree from semver SAT is a project in and of itself
     in order to support things like =optionDependencies=, =peerDependencies=,
@@ -478,8 +504,8 @@ use in production code-bases as pieces of reliable infrastructure.
 
 * Community
 ** Matrix
-Sadly IRC is dead. IRC remains dead. And [[https://en.wikipedia.org/wiki/Andrew_Lee_(entrepreneur)][Andrew "Fuck-Stick" Lee]] has
-killed him. So like most folks these days we use Matrix Chat.
+Sadly IRC is dead. IRC remains dead.
+So like most folks these days we use Matrix Chat.
 
 Space: [[https://matrix.to/#/#floco:matrix.org][#floco:matrix.org]]
 

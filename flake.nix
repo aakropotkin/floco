@@ -74,7 +74,7 @@
     in {
       inherit (pkgsFor)
         floco
-        floco-plugin
+        floco-nix
         floco-utils
         floco-hooks
         floco-updaters
@@ -83,6 +83,7 @@
         pacote
         arborist
       ;
+      default = pkgsFor.floco;
     } );
 
 

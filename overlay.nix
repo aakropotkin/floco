@@ -11,9 +11,9 @@ final: prev: {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
     inherit (final) system bash coreutils jq gnused;
-    nodejs = final.nodejs-slim-14_x;
-    npm    = final.nodejs-14_x.pkgs.npm;
-    nix    = final.nixVersions.nix_2_12;
+    nodejs   = final.nodejs-slim-14_x;
+    npm      = final.nodejs-14_x.pkgs.npm;
+    nix      = final.nixVersions.nix_2_12;
     flakeRef = ./.;
   }) floco-updaters;
 
@@ -41,10 +41,10 @@ final: prev: {
     pkgsFor = final;
   };
 
-  floco-plugin = import ./pkgs/nix-plugin {
+  floco-nix = import ./pkgs/nix-plugin {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
-    inherit (final) system boost treeFor semver bash;
+    inherit (final) stdenv system boost treeFor semver bash darwin;
     pkgsFor = final;
     npm     = final.nodejs-14_x.pkgs.npm;
     nix     = final.nixVersions.nix_2_12;

@@ -32,7 +32,7 @@ Options:
 
 Environment:
   NIX           Command used as \`nix' executable.
-  FLOCO         Command used as \`floco' executable.
+  FLOCO_NIX     Command used as \`floco-nix' executable.
   JQ            Command used as \`jq' executable.
   REALPATH      Command used as \`realpath' executable.
   MKDIR         Command used as \`mkdir' executable.
@@ -74,7 +74,7 @@ esac
 
 # @BEGIN_INJECT_UTILS@
 : "${NIX:=nix}";
-: "${FLOCO:=$NIX run "$FLAKE_REF#floco-plugin --"}";
+: "${FLOCO_NIX:=$NIX run "$FLAKE_REF#floco-nix --"}";
 : "${JQ:=jq}";
 : "${REALPATH:=realpath}";
 : "${MKDIR:=mkdir}";
@@ -152,7 +152,7 @@ fi
 export PKG;
 
 dlmod() {
-  $FLOCO eval --impure --raw --expr '( builtins.fetchTree {
+  $FLOCO_NIX eval --impure --raw --expr '( builtins.fetchTree {
     type = "tarball";
     url  = let
       res = builtins.npmResolve ( builtins.getEnv "PKG" );
