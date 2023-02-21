@@ -13,13 +13,8 @@
 
 # ---------------------------------------------------------------------------- #
 
-  depPinsToKeys = {
-    depInfo ? {}
-  , key     ? ident + "/" + version
-  , ident
-  , version
-  , ...
-  } @ pdef: let
+  depPinsToKeys = x: let
+    depInfo = x.depInfo or x;
     deToKey = dIdent: { pin ? throwFrom "depPinsToKeys" "pin not found", ... }:
       "${dIdent}/${pin}";
   in builtins.mapAttrs deToKey depInfo;
@@ -53,13 +48,27 @@
 
 # ---------------------------------------------------------------------------- #
 
+  show       = s: builtins.trace ( "\n" + s + "\n" ) null;
+  showPretty = x: show ( lib.generators.toPretty {} x );
+
+  showPrettyCurried = x:
+    if ! ( builtins.isFunction x ) then showPretty x else
+    y: showPrettyCurried ( x y );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
     depPinsToKeys
     depPinsToDOT
     pdefsToDOT
+
+    show showPretty showPrettyCurried
   ;
+
+  spp = showPrettyCurried;
 
 }
 

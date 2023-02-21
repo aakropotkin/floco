@@ -56,6 +56,7 @@ in {
     ./trivial.nix
     ./sources.nix
     ./util.nix
+    ./closures.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
@@ -92,6 +93,11 @@ in {
 
     jsonAtom
     jsonValue
+
+    show
+    showPretty
+    showPrettyCurried
+    spp
   ;
 
 }
