@@ -49,7 +49,7 @@ jobs:
             stalled-download-timeout = 90
             timeout = 0
 
-      - uses: cachix/cachix-action@d035f0e386f7e6337c647d9bf46dad8e13274eb9
+      - uses: cachix/cachix-action@a6bd2b4fa77b6b4f54db0408709594595e803747
         with:
           name: floco
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
