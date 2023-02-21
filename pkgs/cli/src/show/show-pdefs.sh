@@ -11,11 +11,13 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco show";
+: "${_as_main=floco}";
+_as_sub='show';
+_as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="$_as_me [OPTIONS...] IDENT[@|/]VERSION [-- FLOCO-CMD-ARGS...]
+_usage_msg="Usage: $_as_me [OPTIONS...] IDENT[@|/]VERSION [-- FLOCO-CMD-ARGS...]
 
 Show a package definition ( \`pdef' record ).
 ";
@@ -143,7 +145,7 @@ done
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
-
+# shellcheck source=../common.sh
 . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
 
 

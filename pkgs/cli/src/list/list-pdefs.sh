@@ -1,5 +1,5 @@
-#! /Users/alexameen/.nix-profile/bin/bash
-# -*- mode: shell; sh-shell: bash; -*-
+#! /usr/bin/env bash
+# -*- mode: sh; sh-shell: bash; -*-
 # ============================================================================ #
 #
 # List all known packages declared in a given directory.
@@ -12,11 +12,13 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="floco list";
+: "${_as_main=floco}";
+_as_sub='list';
+_as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="$_as_me [OPTIONS...] [-- FLOCO-CMD-ARGS...]
+_usage_msg="Usage: $_as_me [OPTIONS...] [-- FLOCO-CMD-ARGS...]
 
 List all known packages declared in a given directory.
 ";
@@ -119,7 +121,7 @@ done
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
-
+# shellcheck source=../common.sh
 . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
 
 

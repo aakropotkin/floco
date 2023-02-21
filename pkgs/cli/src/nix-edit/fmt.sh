@@ -29,6 +29,7 @@ _nix_edit_escape_keywords=(
 
 # ---------------------------------------------------------------------------- #
 
+#shellcheck disable=SC2120
 _nix_keyword_escape() {
   local _patt_from _npatts;
   _npatts="${#_nix_edit_escape_keywords[@]}";
@@ -44,6 +45,7 @@ _nix_keyword_escape() {
 # ---------------------------------------------------------------------------- #
 
 _nix_fmt_file() {
+  #shellcheck disable=SC2119
   $NIX eval --raw -f "${1:-/dev/stdin}" --apply 'e: let
     nixpkgs = builtins.getFlake "nixpkgs";
     inherit (nixpkgs) lib;
@@ -56,8 +58,10 @@ _nix_fmt_file() {
 
 _nix_fmt_rewrite() {
   # For `mktmpAuto'.
-  . "${BASH_SOURCE%/*}/../common.sh";
+  # shellcheck source=../common.sh
+  . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
   local _tmpfile;
+  #shellcheck disable=SC2119
   _tmpfile="$( mktmpAuto; )";
   for f in "$@"; do
     _nix_fmt_file "$f" > "$_tmpfile";

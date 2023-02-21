@@ -8,11 +8,14 @@
 set -eu;
 set -o pipefail;
 
+
 # ---------------------------------------------------------------------------- #
 
-_as_main='floco';
+: "${_as_main=floco}";
 _as_sub='download';
 _as_me="$_as_main $_as_sub";
+
+: "${_version:=0.1.0}";
 
 _version='0.1.0';
 

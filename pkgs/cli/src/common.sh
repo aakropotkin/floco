@@ -56,7 +56,7 @@ keepSearching() {
 # -------------------
 searchUp() {
   if [[ -r "${2:-$PWD}/$1" ]]; then
-    echo "$( $REALPATH "${2:-$PWD}/$1"; )";
+    $REALPATH "${2:-$PWD}/$1";
   elif keepSearching "${2:-$PWD}"; then
     searchUp "$1" "${2:-$PWD}/..";
   else

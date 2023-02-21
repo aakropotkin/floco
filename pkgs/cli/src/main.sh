@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-# -*- mode: shell; sh-shell: bash; -*-
+# -*- mode: sh; sh-shell: bash; -*-
 # ============================================================================ #
 #
 #
@@ -16,7 +16,7 @@ _as_me="floco";
 
 _version="0.1.0";
 
-_usage_msg="USAGE: $_as_me [OPTIONS...] CMD [ARGS...];
+_usage_msg="Usage: $_as_me [OPTIONS...] CMD [ARGS...];
 
 COMMANDS
   list              List available packages.
