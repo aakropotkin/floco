@@ -299,7 +299,7 @@ let
               imports = ["${floco}/modules/plockToPdefs"];
               config._module.args.basedir = /. + ( dirOf outfile );
               config.buildPlan.deriveTreeInfo = false;
-              config.lockDir = /. + ( builtins.getEnv "LOCKDIR" );
+              config.lockDir             = /. + ( builtins.getEnv "LOCKDIR" );
               config.includePins         = ( builtins.getEnv "PINS" ) != "";
               config.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
             }];
