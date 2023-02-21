@@ -29,6 +29,8 @@ in {
       so choose wisely.
     '';
 
+    visible = "shallow";
+
     type = nt.deferredModuleWith {
       staticModules = [
         ( { ... }: {

@@ -32,6 +32,18 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    _module.args.target = lib.mkOptionDefault (
+      ( lib.evalModules {
+        modules = [
+          ../../../records/target
+          { config._module.args = { inherit pkgs; }; }
+        ];
+      } ).config.target
+    );
+
+
+# ---------------------------------------------------------------------------- #
+
     built.enable = lib.mkDefault pdef.lifecycle.build;
 
     built.scripts = lib.mkDefault ["prebuild" "build" "postbuild" "prepublish"];

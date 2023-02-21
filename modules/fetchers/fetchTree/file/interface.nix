@@ -10,6 +10,7 @@
 
   options.fetchTree_file = lib.mkOption {
     description = lib.mdDoc "`builtins.fetchTree[file]` args";
+    visible     = "shallow";
   };
 
 }

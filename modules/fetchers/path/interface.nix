@@ -10,6 +10,7 @@
 
   options.path = lib.mkOption {
     description = lib.mdDoc "`builtins.path` fetcher";
+    visible     = "shallow";
   };
 
 }
