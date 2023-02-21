@@ -150,18 +150,22 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config = let
-    runtimeDeps = requires // optionalDependencies // dependencies;
+    req         = if builtins.isAttrs requires then requires else {};
+    runtimeDeps = req // optionalDependencies // dependencies;
+    # Needs to be lower-priority than top level `depInfo' usage of
+    # `lib.mkDefault' to avoid clashing.
+    mkDefault' = lib.mkOverride 1001;
   in {
 
 # ---------------------------------------------------------------------------- #
 
-    _module.args.requires             = lib.mkDefault {};
-    _module.args.dependencies         = lib.mkDefault requires;
-    _module.args.devDependencies      = lib.mkDefault {};
-    _module.args.devDependenciesMeta  = lib.mkDefault {};
-    _module.args.optionalDependencies = lib.mkDefault {};
-    _module.args.bundleDependencies   = lib.mkDefault false;
-    _module.args.bundledDependencies  = lib.mkDefault (
+    _module.args.requires             = mkDefault' {};
+    _module.args.dependencies         = mkDefault' req;
+    _module.args.devDependencies      = mkDefault' {};
+    _module.args.devDependenciesMeta  = mkDefault' {};
+    _module.args.optionalDependencies = mkDefault' {};
+    _module.args.bundleDependencies   = mkDefault' false;
+    _module.args.bundledDependencies  = mkDefault' (
       if bundleDependencies then builtins.attrNames runtimeDeps else []
     );
 
