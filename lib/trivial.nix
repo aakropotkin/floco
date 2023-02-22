@@ -21,12 +21,23 @@
 
 # ---------------------------------------------------------------------------- #
 
+  size = x: let
+    t = builtins.typeOf x;
+  in if t == "string" then builtins.stringLength x else
+     if t == "list" then builtins.length x else
+     if t == "set" then builtins.length ( builtins.attrNames x ) else
+     throw "floco#lib.libfloco.size: Cannot get size of type '${t}'";
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
     test
     yank
     yankN
+    size
   ;
 
 }

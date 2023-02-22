@@ -64,6 +64,7 @@ in {
     test
     yank
     yankN
+    size
 
     addPdefs
     getPdef
