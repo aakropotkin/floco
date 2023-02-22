@@ -166,9 +166,16 @@ fi
 
 _NIX_APPLY=;
 if [[ -n "${_MORE:-}" ]]; then
-  _NIX_APPLY='pdef: removeAttrs pdef [
-    "sourceInfo" "_export" "metaFiles" "deserialized"
-  ]';
+  _NIX_APPLY='pdef: let
+    r = removeAttrs pdef [
+      "sourceInfo" "_export" "metaFiles" "deserialized"
+    ];
+    noFilter = r // {
+      fetchInfo = removeAttrs r.fetchInfo ["filter"];
+    };
+  in if ! ( r ? fetchInfo.filter ) then r else
+     builtins.trace "WARNING: Omitting `fetchInfo.filter'"'"'." noFilter
+  ';
 else
   _NIX_APPLY='pdef: pdef._export';
 fi
