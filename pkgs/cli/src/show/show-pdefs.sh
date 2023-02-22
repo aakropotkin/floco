@@ -141,6 +141,18 @@ while [[ "$#" -gt 0 ]]; do
   shift;
 done
 
+if [[ -z "${_IDENT:-}" ]]; then
+  if [[ -r ./package.json ]]; then
+    _IDENT="$( $JQ -r '.name' ./package.json; )";
+    _VERSION="$( $JQ -r '.version // "0.0.0-0"' ./package.json; )";
+  else
+    echo "$_as_me: Missing argument \`IDENT'." >&2;
+    printf '\n' >&2;
+    usage >&2;
+    exit 1;
+  fi
+fi
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -175,7 +187,11 @@ runShow() {
 if [[ -n "${_JSON:-}" ]]; then
   runShow --json "$@"|$JQ;
 else
-  runShow "$@";
+  _rdir="${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+  _rdir="${_rdir%/*}";
+  # shellcheck source=../nix-edit/fmt.sh
+  . "$_rdir/nix-edit/fmt.sh";
+  runShow "$@"|_nix_fmt;
 fi
 
 

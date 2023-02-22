@@ -49,7 +49,7 @@ _nix_keyword_escape() {
 
 # ---------------------------------------------------------------------------- #
 
-_nix_fmt_file() {
+_nix_fmt() {
   #shellcheck disable=SC2119
   $NIX eval --raw -f "${1:-/dev/stdin}" --apply 'e: let
     nixpkgs = builtins.getFlake "nixpkgs";
@@ -70,7 +70,7 @@ _nix_fmt_rewrite() {
   #shellcheck disable=SC2119
   _tmpfile="$( mktmpAuto; )";
   for f in "$@"; do
-    _nix_fmt_file "$f" > "$_tmpfile";
+    _nix_fmt "$f" > "$_tmpfile";
     mv "$_tmpfile" "$f";
   done
 }
