@@ -12,13 +12,17 @@
 
 # ---------------------------------------------------------------------------- #
 
-  jsonAtom = nt.nullOr ( nt.oneOf [nt.str nt.bool nt.int nt.float] );
+  jsonAtom = ( nt.nullOr ( nt.oneOf [nt.str nt.bool nt.int nt.float] ) ) // {
+    name        = "JSON atom";
+    description = "JSON `null`, `string`, `bool`, or `number` value";
+  };
 
   jsonValue = ( nt.oneOf [
     lib.libfloco.jsonAtom
     ( nt.listOf jsonValue )
     ( nt.attrsOf jsonValue )
   ] ) // {
+    name        = "JSON value";
     description = "JSON compliant value";
   };
 
@@ -36,37 +40,48 @@
     version_p = "${core_p}(-${tag_p})?(\\+${build_p})?";
   in ( nt.strMatching version_p ) // {
     name        = "version";
-    description = "semantic version string";
+    description = "semantic version number";
   };
 
 
 # ---------------------------------------------------------------------------- #
 
-  uri = nt.str;
+  uri = nt.str // {
+    name        = "URI";
+    description = "uniform resource identifier";
+  };
 
 
 # ---------------------------------------------------------------------------- #
 
-  descriptor = nt.either lib.libfloco.version lib.libfloco.uri;
+  descriptor = ( nt.either lib.libfloco.version lib.libfloco.uri ) // {
+    name        = "package descriptor";
+    description = "version or URI";
+  };
 
 
 # ---------------------------------------------------------------------------- #
 
   ident = ( nt.strMatching "(@[^@/]+/)?[^@/]+" ) // {
-    name        = "ident";
+    name        = "package identifier";
     description = "package identifier/name";
   };
 
 
 # ---------------------------------------------------------------------------- #
 
-  key = nt.str;
+  key = nt.str // {
+    name        = "package key";
+    description = "unique package identifier";
+  };
 
 
 # ---------------------------------------------------------------------------- #
 
   ltype = ( nt.enum ["file" "link" "dir" "git"] ) // {
-    merge = lib.libfloco.mergePreferredOption {
+    name        = "lifecycle type";
+    description = "lifecycle type as recognized by `npm`";
+    merge       = lib.libfloco.mergePreferredOption {
       compare = a: b:
         if a == "file" then true else if b == "file" then false else
         if a == "dir"  then true else if b == "dir"  then false else
@@ -85,8 +100,49 @@
 
 # ---------------------------------------------------------------------------- #
 
+  relpath = ( nt.strMatching "[^/[:space:]].*" ) // {
+    name        = "relative path";
+    description = "relative path without leading slash";
+  };
+
+  storePath = ( nt.strMatching ( builtins.storeDir + "/.*" ) ) // {
+    name        = "nix store path";
+    description = "path to a file/directory in the nix store";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   binPairs = nt.attrsOf nt.str;
   pjsBin   = nt.either nt.str lib.libfloco.binPairs;
+
+
+# ---------------------------------------------------------------------------- #
+
+  sha256_hash = ( nt.strMatching "[[:xdigit:]]{64}" ) // {
+    name        = "SHA-256 hex";
+    description = "SHA-256 hash (hexadecimal)";
+  };
+  sha256_sri = ( nt.strMatching "sha256-[a-zA-Z0-9+/]{42,44}={0,2}" ) // {
+    name        = "SHA-256 SRI";
+    description = "SHA-256 hash (SRI)";
+  };
+  narHash = lib.libfloco.sha256_sri // {
+    name        = "narHash";
+    description = "NAR hash (SHA256 SRI)";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  rev = ( nt.strMatching "[[:xdigit:]]{40}" ) // {
+    name        = "rev";
+    description = "SHA-1 revision (hexadecimal)";
+  };
+  short_rev = ( nt.strMatching "[[:xdigit:]]{7}" ) // {
+    name        = "short rev";
+    description = "first 7 characters of SHA-1 revision (hexadecimal)";
+  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -94,24 +150,24 @@
 in {
 
   inherit
-    jsonAtom
-    jsonValue
+    jsonAtom jsonValue
 
-    version
     uri
-    descriptor
-    ident
-    key
+
+    version descriptor
+    ident key
     ltype
+    depAttrs depMetas
+    binPairs pjsBin
 
-    depAttrs
-    depMetas
+    relpath storePath
 
-    binPairs
-    pjsBin
+    sha256_hash sha256_sri narHash
+    rev short_rev
   ;
 
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

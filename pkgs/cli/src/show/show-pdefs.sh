@@ -196,6 +196,7 @@ if [[ -n "${_JSON:-}" ]]; then
 else
   _rdir="${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
   _rdir="${_rdir%/*}";
+  # shellcheck source-path=SCRIPTDIR
   # shellcheck source=../nix-edit/fmt.sh
   . "$_rdir/nix-edit/fmt.sh";
   runShow "$@"|_nix_fmt;
