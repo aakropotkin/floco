@@ -118,10 +118,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  mapPdefs = pdefs: fn:
-    builtins.mapAttrs ( _: builtins.mapAttrs ( _: fn ) ) pdefs;
+  mapPdefs = fn: builtins.mapAttrs ( _: builtins.mapAttrs ( _: fn ) );
 
-  filterPdefs = pdefs: pred: let
+  filterPdefs = pred: pdefs: let
     vf = builtins.mapAttrs ( _: lib.filterAttrs ( _: pred ) ) pdefs;
   in lib.filterAttrs ( _: vs: vs != {} ) vf;
 
