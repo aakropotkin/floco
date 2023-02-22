@@ -168,9 +168,13 @@ esac
 
 runEval() {
   $NIX eval --raw -f "$_FILE" --apply "f: let
-    flib = ( builtins.getFlake \"$( flocoRef; )\" ).lib;
-    r    = ( $_EXPR ) f;
-    p    = flib.libfloco.prettyPrintEscaped r;
+    inherit (builtins.getFlake \"$( flocoRef; )\") lib;
+    blib = if lib ? prettyPrintEscaped then lib else lib // {
+      libfloco = lib.libfloco //
+        ( import ${BASH_SOURCE[0]%/*}/../util.nix { inherit lib; } );
+    };
+    r = ( $_EXPR ) f;
+    p = blib.libfloco.prettyPrintEscaped r;
   in assert ! ( builtins.isFunction r ); p";
 }
 

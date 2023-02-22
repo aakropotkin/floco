@@ -32,6 +32,7 @@
       "$out/bin/floco"                                                      \
       --prefix PATH : "${lib.makeBinPath [bash coreutils gnugrep jq nix]}"  \
     ;
+    cat ${../../lib/util.nix} > "$out/libexec/util.nix";
    '';
 }
 
