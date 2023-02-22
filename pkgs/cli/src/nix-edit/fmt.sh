@@ -3,6 +3,11 @@
 #
 # Helper function to escape reserved keys in a Nix attribute set.
 #
+# This overlaps with the functionality of `lib.libfloco.prettyPrintEscaped'
+# without depending on the `floco' repository.
+# In practice this is useful to avoid resolving a locked reference to `floco'
+# in cases where we really just want to pretty print a Nix attribute set.
+#
 # ---------------------------------------------------------------------------- #
 
 : "${NIX:=nix}";
