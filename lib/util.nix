@@ -58,6 +58,27 @@
 
 # ---------------------------------------------------------------------------- #
 
+  prettyPrintEscaped = let
+    escapeKeywords = let
+      keywords = [
+        "assert"
+        "throw"
+        "with"
+        "let"
+        "in"
+        "or"
+        "inherit"
+        "rec"
+        "import"
+      ];
+      froms = map ( k: " ${k} = " ) keywords;
+      tos   = map ( k: " \"${k}\" = " ) keywords;
+    in builtins.replaceStrings froms tos;
+  in e: ( escapeKeywords ( lib.generators.toPretty {} e ) ) + "\n";
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -66,6 +87,8 @@ in {
     pdefsToDOT
 
     show showPretty showPrettyCurried
+
+    prettyPrintEscaped
   ;
 
   spp = showPrettyCurried;
