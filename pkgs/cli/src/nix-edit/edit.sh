@@ -19,7 +19,7 @@ _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] FILE
+_usage_msg="Usage: $_as_me [OPTIONS...] [-i|--in-place] [(-a|--apply) EXPR] FILE
 
 Modify and rewrite a trivial Nix file.
 ";
@@ -130,6 +130,18 @@ done
 : "${_EXPR:=x: x}";
 : "${_IN_PLACE=}";
 
+if [[ -z "${_FILE:-}" ]]; then
+  echo "$_as_me: Missing argument \`FILE'." >&2;
+  printf '\n' >&2;
+  usage >&2;
+  exit 1;
+fi
+
+if ! [[ -r "$_FILE" ]]; then
+  echo "$_as_me: Cannot read file \`$_FILE'." >&2;
+  exit 1;
+fi
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -158,7 +170,7 @@ runEval() {
   $NIX eval --raw -f "$_FILE" --apply "f: let
     flib = ( builtins.getFlake \"$( flocoRef; )\" ).lib;
     r    = ( $_EXPR ) f;
-    p    = flib.libfloco.prettyPrintEscaped r
+    p    = flib.libfloco.prettyPrintEscaped r;
   in assert ! ( builtins.isFunction r ); p";
 }
 
@@ -169,7 +181,7 @@ if [[ -n "$_IN_PLACE" ]]; then
   runEval > "$_TFILE";
   mv "$_FILE" "$_FILE~";
   mv "$_TFILE" "$_FILE";
-  echo "$_as_me: rewrote file \`$_FILE' with backup \`$_FILE~'." >&2;
+  echo "$_as_me: Rewrote file \`$_FILE' with backup \`$_FILE~'." >&2;
 else
   runEval;
 fi

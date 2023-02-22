@@ -48,6 +48,7 @@ _floco() {
   subCmds=(
     'list:list available packages'
     'show:show package definition'
+    'edit:modify trivial nix files'
     'build:build a package'
   );
   hiddenSubCmds=(
@@ -63,12 +64,20 @@ _floco() {
     ;;
     args)
       case "${line[1]}" in
+
         help)
           compadd "${subCmds[@]%%:*}";
         ;;
+
         show)
           _floco_key;
         ;;
+
+        # TODO
+        edit)
+          _files;
+        ;;
+
       esac
     ;;
   esac
