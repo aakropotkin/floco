@@ -30,7 +30,8 @@ There's a dedicated
 [[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]]
 that is the best place to dive in.
 
-For projects that depend only on registry packages without =install= scripts,
+For projects that depend only on registry packages without =install= scripts that require
+native dependencies or cycle breaking,
 the following process will have you up and running:
 #+BEGIN_SRC shell
 set -euo pipefail;
@@ -60,6 +61,9 @@ The following config files are included/applied if they exist:
 - =${XDG_CONFIG_HOME:-$HOME/.config}/floco/floco-config.{nix,json}=
 - "Local" =floco-config.{nix,json}= searched for between =PWD= and git
   project root, or =/= if =PWD= is not a =git= repository checkout.
+
+References to =floco= will be pulled from the nearest =flake.lock=, or
+=nix registry list=, using =github:aakropotkin/floco/main= as a fallback.
 
 ** =floco list=
 List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
