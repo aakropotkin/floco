@@ -118,6 +118,33 @@
 
 # ---------------------------------------------------------------------------- #
 
+  killPdef' = pdefs: {
+    key     ? null
+  , ident   ? dirOf key
+  , version ? baseNameOf key
+  , ...
+  } @ ka: let
+    ident' = removeAttrs pdefs.${ident} [version];
+  in if ( pdefs.${ident}.${version} or null ) == null then pdefs else
+     if ident' != {} then pdefs // { ${ident} = ident'; } else
+     removeAttrs pdefs [ident];
+
+  killPdef = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: ka: let
+    pdefs' = if builtins.isAttrs ka then killPdef' pdefs ka else
+             killPdef' pdefs { key = ka; };
+  in if pa ? config then { config.floco.pdefs = pdefs'; } else
+     if pa ? floco  then { floco.pdefs = pdefs'; } else
+     if pa ? pdefs  then { pdefs = pdefs'; } else
+     pdefs';
+
+
+# ---------------------------------------------------------------------------- #
+
   mapPdefs = fn: builtins.mapAttrs ( _: builtins.mapAttrs ( _: fn ) );
 
   filterPdefs = pred: pdefs: let
@@ -143,6 +170,8 @@
 in {
   inherit
     getPdef
+    killPdef
+
     addPdefs
     addFetcher
 

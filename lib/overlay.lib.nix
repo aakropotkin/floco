@@ -68,6 +68,7 @@ in {
 
     addPdefs
     getPdef
+    killPdef
     mapPdefs
     filterPdefs
     pdefsToList
