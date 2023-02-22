@@ -118,11 +118,40 @@
 
 # ---------------------------------------------------------------------------- #
 
+  mapPdefs = pdefs: fn:
+    builtins.mapAttrs ( _: builtins.mapAttrs ( _: fn ) ) pdefs;
+
+  filterPdefs = pdefs: pred: let
+    vf = builtins.mapAttrs ( _: lib.filterAttrs ( _: pred ) ) pdefs;
+  in lib.filterAttrs ( _: vs: vs != {} ) vf;
+
+  pdefsToList = pdefs:
+    builtins.concatMap builtins.attrValues ( builtins.attrValues pdefs );
+
+  pdefsFromList = pdefsL: let
+    mkV  = p: { name = p.version; value = p; };
+    proc = ident: versions: builtins.listToAttrs ( map mkV versions );
+    g    = builtins.groupBy ( p: p.ident ) pdefsL;
+  in builtins.mapAttrs proc g;
+
+  pdefsKeyed = pdefs: let
+    pdefsL = if builtins.isList pdefs then pdefs else pdefsToList pdefs;
+  in builtins.listToAttrs ( map ( v: { name = v.key; value = v; } ) pdefsL );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
   inherit
     getPdef
     addPdefs
     addFetcher
+
+    mapPdefs
+    filterPdefs
+    pdefsToList
+    pdefsFromList
+    pdefsKeyed
   ;
 }
 

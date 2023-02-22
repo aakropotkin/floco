@@ -67,6 +67,11 @@ in {
 
     addPdefs
     getPdef
+    mapPdefs
+    filterPdefs
+    pdefsToList
+    pdefsFromList
+    pdefsKeyed
 
     checkSystemSupportFor
 
