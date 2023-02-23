@@ -1,0 +1,61 @@
+#+TITLE: Native Dependencies and Packages with Installs
+
+While the vast majority of JavaScript projects "just work" out of the box when
+you unpack them from a registry tarball, a few require =[pre|post]install=
+scripts to be run to make themselves ready for use.
+
+By default =floco= will run this /install phase/ in an isolated sandbox,
+providing only declared =dependencies= and =optionalDependencies=, and a few
+common tools such as =node=, =python3=, =jq=, =node-gyp=, and =stdenv=
+( providing a C/C++ compiler, =make=, and other common utilities ).
+This is often sufficient for most installs but some may also require "native"
+libraries that aren't declared in manifests in a standard way, and instead get
+mentioned in a =README=.
+
+Unlike other JavaScript package managers - =floco= has a way to declare these
+dependencies so that these builds can be run in a reproducible manner across
+platforms; all we need to do is add a few fields to our config files.
+
+* Packaging =zeromq@5.3.1=
+For our example we're going to package =zeromq@5.3.1= which runs a =node-gyp=
+compilation stage to complete its install.
+
+We've chosen this package in particular because its =binding.gyp=
+( build recipe ) is written in a way that we can configure to build
+=libzmq= "from scratch", or link against a shared =libzmq= from the
+host system.
+We'll cover both cases, but begin with the "from scratch" approach.
+
+** Preparing a Workspace
+For both of the approaches below we'll use a common base project.
+You can initialize a workspace by running the following.
+Note that this initialization process can be used for any registry package.
+
+#+BEGIN_SRC shell :exports both :results output
+mkdir -p ./zeromq-5.3.1;
+cd ./zeromq-5.3.1;
+nix run floco#fromRegistry -- -tp zeromq@5.3.1;
+# Aggregates `floco' configuration modules.
+echo '{ imports = [./pdefs.nix ./foverrides.nix]; }' > floco-cfg.nix;
+# We'll define a real `foverrides.nix' in later sections, this is a stub.
+echo '{}' > foverrides.nix;
+# Provides a CLI frontend to module system.
+echo '{
+  floco     ? builtins.getFlake "github:aakropotkin/floco";
+, lib       ? floco.lib
+, system    ? builtins.currentSystem
+, floco-cfg ? ./floco-cfg.nix
+, ...
+}: let
+  mod = lib.evalModules {
+    modules = [
+      floco.nixosModules.default
+      floco-cfg
+      { floco.settings = { inherit system; }; }
+    ];
+  };
+in mod.config.floco.packages.zeromq."5.3.1".global
+' > ./default.nix;
+#+END_SRC
+
+** Compiling a Static =libzmq=
