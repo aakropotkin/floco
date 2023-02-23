@@ -9,7 +9,6 @@
 # ---------------------------------------------------------------------------- #
 
   nt = lib.types;
-  tt = import ./types.nix { inherit lib; };
 
 # ---------------------------------------------------------------------------- #
 
@@ -35,7 +34,8 @@ in {
           established strictly by matching `name` values to `dependencies`,
           `optionalDependencies`, and `devDependencies` keys.
         '';
-        type = nt.functionTo tt.toposorted;
+        type    = nt.functionTo lib.libfloco.toposorted;
+        visible = "shallow";
       };
 
       options.toposortPins = lib.mkOption {
@@ -46,7 +46,8 @@ in {
           It is an error to call this function with missing `pin` values on
           ANY `pdef` records.
         '';
-        type = nt.functionTo tt.toposorted;
+        type   = nt.functionTo lib.libfloco.toposorted;
+       visible = "shallow";
       };
 
       options.toposortedAll = lib.mkOption {
@@ -63,7 +64,8 @@ in {
           It is an error to reference this value if these restrictions are
           not met.
         '';
-       type = tt.toposorted;
+       type    = lib.libfloco.toposorted;
+       visible = "shallow";
       };
 
       options.pdefsHaveSingleVersion = lib.mkOption {
