@@ -136,11 +136,11 @@ the =patchelf= derivation defined by =nixpkgs=.
 #+END_SRC
 
 That's all we have to do.
-=floco= provides the options =extra[Native]BuildInputs=, =overrides=, and
+=floco= provides the options =extra[Native]BuildInputs=, =override=, and
 =overrideAttrs= for both the =installed= and =built= targets for handling
 common tasks like this.
 
-A notable behavior of =extra[Native]BuildInputs= and =overrides= is that
+A notable behavior of =extra[Native]BuildInputs= and =override= is that
 they may be defined multiple times in multiple files/modules.
 These definitions will be merged together so that definitions with the
 same priority are joined using =++= for lists, and =//= for attrsets.
@@ -149,3 +149,12 @@ overrides and extensions in large codebases.
 See the
 [[https://nixos.org/manual/nixos/stable/index.html#sec-option-definitions][NixOS Manual]]
 for more details on merging behaviors.
+
+** Providing a Shared Library for =libzmq=
+
+While this portion of the guide is completely optional, it gives use the
+opportunity to talk about a few other common modifications to build recipes
+that you may need to use in your own projects.
+
+In this example we'll use =override= to set some extra environment
+variables, and we'll use =extraBuildInputs= again to add a shared =libzmq=.
