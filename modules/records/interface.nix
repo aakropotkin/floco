@@ -6,7 +6,11 @@
 
 { lib, ... }: let
 
+# ---------------------------------------------------------------------------- #
+
   nt = lib.types;
+
+# ---------------------------------------------------------------------------- #
 
 in {
 
@@ -27,52 +31,38 @@ in {
         These base interface must be implemented, but the implementations
         themselves may be swapped or overridden.
       '';
-      type = nt.submoduleWith {
-        modules = [
-          ( { ... }: {
+      type = nt.submodule {
 
-# ---------------------------------------------------------------------------- #
-
-            imports = [
-              ./pdef/deferred.nix
-              ./pjsCore
-              ./target
-            ];
-
-
-# ---------------------------------------------------------------------------- #
-
-            options.depInfo = lib.mkOption {
-              description = lib.mdDoc ''
-                Abstract record used to represent dependency information.
-              '';
-              type = nt.submodule {
-                options.deferred = lib.mkOption {
-                  description = lib.mdDoc ''
-                    Deferred module which adds `depInfo` to a submodule.
-                  '';
-                  type    = nt.deferredModule;
-                  default = ./depInfo;
-                };
-                options.serialize = lib.mkOption {
-                  description = lib.mdDoc ''
-                    Function which serializes a `depInfo` record.
-                  '';
-                  type    = nt.functionTo nt.raw;
-                  default = depInfo: import ./depInfo/serialize.nix {
-                    inherit lib depInfo;
-                  };
-                };
-              };
-              default = {};
-            };  # End `options.depInfo'
-
-
-# ---------------------------------------------------------------------------- #
-
-          } )
+        imports = [
+          ./pdef/deferred.nix
+          ./target
         ];
-        specialArgs = { inherit lib; };
+
+        options.depInfo = lib.mkOption {
+          description = lib.mdDoc ''
+            Abstract record used to represent dependency information.
+          '';
+          type = nt.submodule {
+            options.deferred = lib.mkOption {
+              description = lib.mdDoc ''
+                Deferred module which adds `depInfo` to a submodule.
+              '';
+              type    = nt.deferredModule;
+              default = ./depInfo;
+            };
+            options.serialize = lib.mkOption {
+              description = lib.mdDoc ''
+                Function which serializes a `depInfo` record.
+              '';
+              type    = nt.functionTo nt.raw;
+              default = depInfo: import ./depInfo/serialize.nix {
+                inherit lib depInfo;
+              };
+            };
+          };
+          default = {};
+        };  # End `options.depInfo'
+
       };
     };  # End `options.records'
 

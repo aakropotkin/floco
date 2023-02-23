@@ -1,4 +1,7 @@
 {
   _file = "<floco>/records";
-  imports = [./interface.nix ./implementation.nix];
+  imports = [
+    ./interface.nix ./implementation.nix
+    ./pjsCore
+  ];
 }

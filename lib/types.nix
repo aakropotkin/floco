@@ -167,6 +167,7 @@ in {
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )
+  // ( import ./types/pjsCore { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #
