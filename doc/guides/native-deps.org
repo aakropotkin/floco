@@ -31,7 +31,7 @@ For both of the approaches below we'll use a common base project.
 You can initialize a workspace by running the following.
 Note that this initialization process can be used for any registry package.
 
-#+BEGIN_SRC shell :exports both :results output
+#+BEGIN_SRC shell
 mkdir -p ./zeromq-5.3.1;
 cd ./zeromq-5.3.1;
 nix run floco#fromRegistry -- -tp zeromq@5.3.1;
@@ -40,8 +40,8 @@ echo '{ imports = [./pdefs.nix ./foverrides.nix]; }' > floco-cfg.nix;
 # We'll define a real `foverrides.nix' in later sections, this is a stub.
 echo '{}' > foverrides.nix;
 # Provides a CLI frontend to module system.
-echo '{
-  floco     ? builtins.getFlake "github:aakropotkin/floco";
+echo '
+{ floco     ? builtins.getFlake "github:aakropotkin/floco"
 , lib       ? floco.lib
 , system    ? builtins.currentSystem
 , floco-cfg ? ./floco-cfg.nix
@@ -58,4 +58,94 @@ in mod.config.floco.packages.zeromq."5.3.1".global
 ' > ./default.nix;
 #+END_SRC
 
-** Compiling a Static =libzmq=
+** Naviely Compiling a Static =libzmq=
+
+The default behavior defined by this projects' =node-gyp= builder is to
+build from source to create a static library unless the user has set some
+special environment flags to indicate that a shared library should be used.
+
+Like I said before, the process given above will work for the vast majority
+of packages, so we'll just give this a shot as is.
+
+#+BEGIN_SRC shell :exports both :results output
+nix build -f ./. -L --no-link 2>&1;
+#+END_SRC
+
+#+begin_src shell
+...SNIP...
+zeromq-installed> make: Leaving directory '/private/tmp/nix-build-zeromq-installed-5.3.1.drv-0/source/build'
+zeromq-installed> gyp info ok
+zeromq-installed> buildPhase completed in 30 seconds
+zeromq-installed> installing
+zeromq-installed> post-installation fixup
+zeromq-installed> checking for references to /private/tmp/nix-build-zeromq-installed-5.3.1.drv-0/ in /nix/store/wrzjzdm0sq3kfq0bddc2w9f680ydkcs4-zeromq-installed-5.3.1...
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> patching script interpreter paths in /nix/store/wrzjzdm0sq3kfq0bddc2w9f680ydkcs4-zeromq-installed-5.3.1
+zeromq-installed> strip is /nix/store/8sigdq7hayfxqkxahjs70s6ny42wfwgh-Toolchains/XcodeDefault.xctoolchain/bin/strip
+zeromq-installed> stripping (with command strip and flags -S) in  /nix/store/wrzjzdm0sq3kfq0bddc2w9f680ydkcs4-zeromq-installed-5.3.1/lib
+#+end_src
+
+/And would ya look at that - it worked right out of the box!/
+
+Well, sort of...
+If we take a loook at the end of our log there you'll notice a few warnings
+that say ~patchelf: command not found~.
+For context this is log was created by a =aarch64-darwin= machine, and will
+not produce this error for =linux= boxes.
+
+While this isn't technically an error ( and in this specific instance the
+warnings are completely benign ), in general it leaves the door open for
+potentially hard to debug issues for consumers of the library.
+Luckily there's an easy fix.
+
+** Static =libzmq= with =patchelf=
+The utility =patchelf= won't be covered in length here, but suffice to say
+that it fixes up binaries so that they can link dynamic libraries without
+=LD_LIBRARY_PATH=, helping to purify them.
+This tool is only used to patch =ELF= binary formats and in general isn't
+needed on Darwin; but in this case the =zeromq= package ships out with
+some pre-compiled =ELF= artifacts that Nix has detected and is trying
+to patch.
+
+The problem here is that on Darwin =stdenv= doesn't provide =patchelf=, so
+we'll need to add it to the build sandbox explicitly.
+
+We'll do this using the =foverrides.nix= file I mentioned before to add
+some extra config to this build recipe.
+This file is a module just like any other, in this case we'll want to make
+it a function which takes =pkgs= as an argument so that we can reference
+the =patchelf= derivation defined by =nixpkgs=.
+
+#+BEGIN_SRC nix
+# foverrides.nix
+{ pkgs, ... }: {
+  # The `packages' records are created automatically from `pdefs' and
+  # hold `derivations' associated with the package, representing stages of
+  # its preparation.
+  # In this case we'll configure the `installed' "target" to add a
+  # native dependency.
+  config.packages.zeromq."5.3.1".installed.extraBuildInputs = [
+    pkgs.patchelf
+  ];
+}
+#+END_SRC
+
+That's all we have to do.
+=floco= provides the options =extra[Native]BuildInputs=, =overrides=, and
+=overrideAttrs= for both the =installed= and =built= targets for handling
+common tasks like this.
+
+A notable behavior of =extra[Native]BuildInputs= and =overrides= is that
+they may be defined multiple times in multiple files/modules.
+These definitions will be merged together so that definitions with the
+same priority are joined using =++= for lists, and =//= for attrsets.
+This merging behavior can be leveraged to a great degree when organizing
+overrides and extensions in large codebases.
+See the
+[[https://nixos.org/manual/nixos/stable/index.html#sec-option-definitions][NixOS Manual]]
+for more details on merging behaviors.
