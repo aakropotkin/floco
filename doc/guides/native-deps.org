@@ -17,22 +17,29 @@ dependencies so that these builds can be run in a reproducible manner across
 platforms; all we need to do is add a few fields to our config files.
 
 * Packaging =zeromq@5.3.1=
-For our example we're going to package =zeromq@5.3.1= which runs a =node-gyp=
-compilation stage to complete its install.
 
-We've chosen this package in particular because its =binding.gyp=
-( build recipe ) is written in a way that we can configure to build
-=libzmq= "from scratch", or link against a shared =libzmq= from the
+For our example we're going to package =zeromq@5.3.1= and
+=zeromq@6.0.0-beta.16= which run  =node-gyp= compilation stages to complete
+their installs.
+
+I've chosen =5.3.1= because it's relatively straightforward with a small snag
+that we can deal with easily - a great intro.
+
+Next I've chosen =6.0.0-beta.16= to cover some practical techniques of
+locating native deps in =nixpkgs=.
+Its =binding.gyp= ( build recipe ) is written in a way that we can configure
+to build =libzmq= "from scratch", or link against a shared =libzmq= from the
 host system.
-We'll cover both cases, but begin with the "from scratch" approach.
+We'll cover both cases.
 
 ** Preparing a Workspace
+
 For both of the approaches below we'll use a common base project.
 You can initialize a workspace by running the following.
 Note that this initialization process can be used for any registry package.
 
 #+BEGIN_SRC shell
-mkdir -p ./zeromq-5.3.1;
+mkdir -p ./zeromq-5.3.1 ./zeromq-6.0.0-beta.16;
 cd ./zeromq-5.3.1;
 nix run floco#fromRegistry -- -tp zeromq@5.3.1;
 # Aggregates `floco' configuration modules.
@@ -56,9 +63,18 @@ echo '
   };
 in mod.config.floco.packages.zeromq."5.3.1".global
 ' > ./default.nix;
+
+# Onto the next workspace
+cd ../zeromq-6.0.0-beta.16;
+nix run floco#fromRegistry -- -tp zeromq@6.0.0-beta.16;
+cp ../zeromq-5.3.1/{default,floco-cfg}.nix .;
+sed -i 's/5\.3\.1/6.0.0-beta.16/' ./default.nix;
+echo '{}' > foverrides.nix;
+
+cd ..;
 #+END_SRC
 
-** Naviely Compiling a Static =libzmq=
+** Naviely Compiling a Static =libzmq= ( 5.3.1 )
 
 The default behavior defined by this projects' =node-gyp= builder is to
 build from source to create a static library unless the user has set some
@@ -68,7 +84,7 @@ Like I said before, the process given above will work for the vast majority
 of packages, so we'll just give this a shot as is.
 
 #+BEGIN_SRC shell :exports both :results output
-nix build -f ./. -L --no-link 2>&1;
+nix build -f ./zeromq-5.3.1 -L --no-link 2>&1;
 #+END_SRC
 
 #+begin_src shell
@@ -103,7 +119,8 @@ warnings are completely benign ), in general it leaves the door open for
 potentially hard to debug issues for consumers of the library.
 Luckily there's an easy fix.
 
-** Static =libzmq= with =patchelf=
+** Static =libzmq= with =patchelf= ( 5.3.1 )
+
 The utility =patchelf= won't be covered in length here, but suffice to say
 that it fixes up binaries so that they can link dynamic libraries without
 =LD_LIBRARY_PATH=, helping to purify them.
@@ -122,7 +139,7 @@ it a function which takes =pkgs= as an argument so that we can reference
 the =patchelf= derivation defined by =nixpkgs=.
 
 #+BEGIN_SRC nix
-# foverrides.nix
+# zeromq-5.3.1/foverrides.nix
 { pkgs, ... }: {
   # The `packages' records are created automatically from `pdefs' and
   # hold `derivations' associated with the package, representing stages of
@@ -150,11 +167,362 @@ See the
 [[https://nixos.org/manual/nixos/stable/index.html#sec-option-definitions][NixOS Manual]]
 for more details on merging behaviors.
 
-** Providing a Shared Library for =libzmq=
+** Providing a Shared Library for =libzmq= ( 6.0.0-beta.16 )
 
-While this portion of the guide is completely optional, it gives use the
-opportunity to talk about a few other common modifications to build recipes
-that you may need to use in your own projects.
+Now we'll ramp up the difficulty by trying to build a later releas of
+=zeromq@6.0.0-beta.16= with a shared library pulled from =nixpkgs=.
+
+I am writing this guide without having packaged this before so for all we
+know this might not work because this project is a beta release or a
+compatability issue with the =nixpkgs= libs; but this is probably a good
+thing since it'll allow me to cover some practical debugging techniques.
 
 In this example we'll use =override= to set some extra environment
 variables, and we'll use =extraBuildInputs= again to add a shared =libzmq=.
+We'll also conditionally add =libsodium= if the package is being built
+for Darwin.
+
+*** A Naive Attempt
+
+Just like before lets just give the naive recipe a shot.
+As a reminder this build is run on =aarch64-darwin=, and this backtrace
+will not appear on =linux= ( more on that caveat later ).
+
+#+BEGIN_SRC shell
+nix build -f ./zeromq-6.0.0-beta.16 -L --no-link;
+#+END_SRC
+
+#+RESULT:
+#+begin_example shell
+zeromq-installed> /nix/store/n0k8njvgg6yjapkl81rm821s9vx0qrwb-bash-5.2-p15/bin/sh: line 1: pkg-config: command not found
+zeromq-installed> gyp: Call to 'pkg-config libsodium --libs' returned exit status 127 while in binding.gyp. while trying to load binding.gyp
+zeromq-installed> gyp ERR! configure error
+zeromq-installed> gyp ERR! stack Error: `gyp` failed with exit code: 1
+zeromq-installed> gyp ERR! stack     at ChildProcess.onCpExit (/nix/store/pjrp2b9c0kj2v98nn8fmmnq5gxp38aq1-node-gyp-9.3.1/lib/node_modules/node-gyp/lib/configure.js:325:16)
+zeromq-installed> gyp ERR! stack     at ChildProcess.emit (events.js:400:28)
+zeromq-installed> gyp ERR! stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:285:12)
+zeromq-installed> gyp ERR! System Darwin 21.4.0
+zeromq-installed> gyp ERR! command "/nix/store/7fs3x8nji7msymvlw1dxs1bf34d6hwc7-nodejs-14.21.2/bin/node" "/nix/store/pjrp2b9c0kj2v98nn8fmmnq5gxp38aq1-node-gyp-9.3.1/bin/.node-gyp-wrapped" "rebuild"
+zeromq-installed> gyp ERR! cwd /private/tmp/nix-build-zeromq-installed-6.0.0-beta.16.drv-0/source
+zeromq-installed> gyp ERR! node -v v14.21.2
+zeromq-installed> gyp ERR! node-gyp -v v9.3.1
+zeromq-installed> gyp ERR! not ok
+zeromq-installed> /nix/store/w2krpzg514ffrpsk2flf8bbkw7dy463c-floco-hooks/nix-support/setup-hook: line 43: pop_var_context: head of shell_variables not a function context
+zeromq-installed> /nix/store/11kqdpgbaj7d3vp6kn5d35jspg5isjzv-stdenv-darwin/setup: line 1594: pop_var_context: head of shell_variables not a function context
+error: builder for '/nix/store/kf6p1wv3v78ff0p9nj9wf0xjn1i7x0ar-zeromq-installed-6.0.0-beta.16.drv' failed with exit code 1;
+#+end_example
+
+Alright lets dive into the backtrace.
+Looks like =pkg-config= is missing, and line two also shows us what it was
+searching for; this tells us we'll need a =libsodium.pc= file.
+
+First lets do some homework and read the =binding.gyp= file so we can look
+for any platform dependenant quirks to watch out for.
+We'd like to avoid accidentally adding/missing native deps or
+configuration options that are only applicable to some systems.
+
+*** Context From =zeromq= Tree
+
+For a bit of context I'll include a snippet from a few files in the
+distributed tarball for the package:
+
+**** [[https://github.com/zeromq/zeromq.js/blob/master/package.json][package.json]]
+
+We can get a look at the =install= they've defined.
+
+This script does not need to be defined when =binding.gyp= is present;
+but if it is the =package.json= script is what gets run, otherwise
+projects just run ~node-gyp rebuild~.
+
+#+BEGIN_EXAMPLE
+    "install": "(shx test -f ./script/build.js || run-s build.js) && cross-env npm_config_build_from_source=true node-gyp-build",
+#+END_EXAMPLE
+
+I haven't got a clue what =shx= is, but I recon it's some sort of
+portability wrapper used to run the script ~./script/build.js~.
+
+It's very common for projects to execute something like =postinstall.js=
+in their =install= script; in this case it looks like the authors
+decided to go with the name =build.js= which is somewhat misleading if
+you subscribe the the conventional =npm= and =yarn= terminology for
+"builds" and "installs"; but I digress.
+
+**** [[https://github.com/zeromq/zeromq.js/blob/master/binding.gyp][binding.gyp]]
+
+This is the build recipe run by =node-gyp=.
+The format is some bastard child born of JSON + Python3 object syntax.
+These are declarative wrappers around an underlying =Makefile=, often
+produced by =CMake= which adds yet another layer of indirection between
+the developer and =CC=/=LD=.
+
+The declared =variables= are effectively arguments, and you can set them
+using environment variables by adding the prefix =npm_config_<NAME>=.
+Don't forget the prefix.
+While writing this guide I forgot the prefix and spent like 30 minutes
+accidentally debugging the static build because =node-gyp= ignored my
+environment variables that lacked the prefix.
+
+#+BEGIN_EXAMPLE
+{
+  'variables': {
+    'zmq_shared%': 'false',
+    'zmq_draft%': 'false',
+    'zmq_no_sync_resolve%': 'false',
+    'sanitizers%': 'false',
+    'openssl_fips': '',
+    'runtime%': 'node',
+  },
+
+# ...<SNIP>...
+
+        ["zmq_shared == 'true'", {
+          'link_settings': {
+            'libraries': ['-lzmq'],
+          },
+        }, {
+          'conditions': [
+            ['OS == "mac"', {
+              'libraries': [
+                '<(module_root_dir)/build/libzmq/lib/libzmq.a',
+                "<!@(pkg-config libsodium --libs)",
+              ],
+            }],
+
+# ...<SNIP>...
+
+}
+#+END_EXAMPLE
+
+This snippet indicates that the builder is sensitive to an environment
+varialbe =zmq_shared= ( among others ) which has a default value of
+=false=, and that when building on Darwin with ~zmq_shared = true~, it
+will use =pkg-config= to locate =libsodium=.
+
+It's a good thing we checked the =binding.gyp= because if I hadn't I'd
+have assumed =libsodium= was required for all platforms.
+The research paid off.
+
+**** [[https://github.com/zeromq/zeromq.js/blob/master/script/build.ts][scripts/build.js]]
+
+Next lets take a look at the script they call from their
+=install= routine.
+
+It's just a JS file, but at the bottom I noticed they have a block that
+seems to add some addition =CMake= flags for certain platforms, and
+they do so by checking the =ARCH= environment variable.
+
+I'm pointing this out now because we have to set this ourselves because
+( spoiler alert ) an issue we run into later requires us to set
+this manually.
+
+#+BEGIN_SRC javascript
+
+// ...<SNIP>...
+
+function archCMakeOptions() {
+  const arch = (process.env.ARCH || process.arch).toLowerCase()
+  // ...<SNIP>...
+  if (process.platform === "darwin") {
+    // handle MacOS Arm
+    switch (arch) {
+      case "x64":
+      case "x86_64": {
+        return ""
+      }
+      case "arm64": {
+        return ` -DCMAKE_OSX_ARCHITECTURES=${arch}`
+      }
+      default: {
+        return ""
+      }
+    }
+  }
+}
+#+END_SRC
+
+*** Finding =libsodium= in Nixpkgs
+
+Since we know that the build is going to look for =libsodium= on Darwin,
+we need to make sure that we have =pkg-config= AND that =libsodium.pc=
+is available in the build sandbox.
+To provide these lets search in Nixpkgs a bit:
+
+#+BEGIN_SRC shell :exports both :results output
+nix search nixpkgs '\.libsodium';
+#+END_SRC
+
+#+RESULTS:
+: * legacyPackages.aarch64-darwin.libsodium (1.0.18)
+:   A modern and easy-to-use crypto library
+
+Easy enough.
+Now lets make see if =libsodium.pc= is provided in the default =output=,
+or if we need to use a secondary output such as =lib= or =dev= to get the
+=pkg-config= metadata.
+
+#+BEGIN_SRC shell :exports both :results output
+# Lets try the default output ( comes back empty )
+find "$( nix build nixpkgs#libsodium --no-link --print-out-paths; )"  \
+     -name '*.pc'|grep .||echo NONE;
+
+# Lets look for alternative outputs.
+nix eval nixpkgs#libsodium.outputs;
+
+# Lets try `dev' ( BINGO! )
+find "$( nix build nixpkgs#libsodium.dev --no-link --print-out-paths; )" \
+     -name '*.pc'|grep .||echo NONE;
+#+END_SRC
+
+#+RESULTS:
+: NONE
+: [ "out" "dev" ]
+: /nix/store/820s23l9i9lqksg1dsxyxjgcsi2q3gp0-libsodium-1.0.18-dev/lib/pkgconfig/libsodium.pc
+
+This tells us we need to add =pkgs.libsodium.dev= for =pkg-config=
+to resolve our library.
+
+
+Next lets look for a shared library form of =libzmq=, being =libzmq.so=
+on linux, or =libzmq.dyllib= on Darwin.
+
+#+BEGIN_SRC shell :exports both :results output
+nix search nixpkgs '\.(libzmq|zeromq)';
+#+END_SRC
+
+#+RESULTS:
+: * legacyPackages.aarch64-darwin.lispPackages_new.sbclPackages.zeromq (20160318-git)
+:
+: * legacyPackages.aarch64-darwin.lispPackages_new.sbclPackages.zeromq_dot_tests (20160318-git)
+:
+: * legacyPackages.aarch64-darwin.octavePackages.zeromq (7.3.0-zeromq-1.5.3)
+:   ZeroMQ bindings for GNU Octave
+:
+: * legacyPackages.aarch64-darwin.zeromq (4.3.4)
+:   The Intelligent Transport Layer
+:
+: * legacyPackages.aarch64-darwin.zeromq4 (4.3.4)
+:   The Intelligent Transport Layer
+#+end_example
+
+The last two look right to me, since the earlier results appear to be
+modules/packages for =octave= and =LISP=.
+Because both of the last two results have the same version number and
+description, my bet is that they're aliases of one another.
+
+I have some concerns about the 4.x major version number though.
+I'll cross my fingers and hope that the version number used by the JS
+module doesn't necessarily correspond to the C library.
+Like I said, I haven't packaged this before so this type of hiccup was
+always a risk.
+
+*** Writing the Recipe
+
+We'll extend our =foverrides.nix= file from before:
+
+Lets start with these additions based on what learned in our
+research above.
+
+#+BEGIN_SRC nix
+# zeromq-6.0.0-beta.16/foverrides.nix
+{
+  config.floco.packages.zeromq."6.0.0-beta.16".installed = { pkgs, ... }: {
+
+    config.extraBuildInputs = let
+    in [
+      # Always add these.
+      pkgs.zeromq
+    ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
+      # Only add these for when the host system is `darwin'.
+      pkgs.pkgconfig
+      pkgs.libsodium.dev
+    ] );
+
+    # Setting `override' attrs causes them to be set on the underlying
+    # derivation, which then get set as environment variables in the
+    # sandbox where we run out install.
+    # We want to tell `node-gyp' to look for the shared `libzmq', so we'll
+    # set the variable we found in their `binding.gyp' file.
+    # XXX: You must quote "true" because `binding.gyp' expects a string,
+    # and a Nix boolean of `false' gets stringized as the empty string.
+    config.override.npm_config_zmq_shared = "true";
+
+  };
+}
+#+END_SRC
+
+And if we run another build, we survive past our previous crash, but
+we've got a new one.
+
+#+BEGIN_EXAMPLE shell
+zeromq-installed> gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+zeromq-installed> make: Entering directory '/private/tmp/nix-build-zeromq-installed-6.0.0-beta.16.drv-0/source/build'
+zeromq-installed>   TOUCH Release/obj.target/libzmq.stamp
+zeromq-installed>   CXX(target) Release/obj.target/zeromq/src/context.o
+zeromq-installed> error: unknown target CPU 'armv8.3-a+crypto+sha2+aes+crc+fp16+lse+simd+ras+rdm+rcpc'
+zeromq-installed> note: valid target CPU values are: nocona, core2, penryn, bonnell, atom, silvermont, slm, goldmont, goldmont-plus, tremont, nehalem, corei7, westmere, sandybridge, corei7-avx, ivybridge, core-avx-i, haswell, core-avx2, broadwell, skylake, skylake-avx512, skx, cascadelake, cooperlake, cannonlake, icelake-client, icelake-server, tigerlake, knl, knm, k8, athlon64, athlon-fx, opteron, k8-sse3, athlon64-sse3, opteron-sse3, amdfam10, barcelona, btver1, btver2, bdver1, bdver2, bdver3, bdver4, znver1, znver2, x86-64
+#+END_EXAMPLE
+
+This backtrace looks like a failure to detect the system's architecture.
+I can't say why it failed, but experience tells me that the conflicting
+output people get from =arch= and =uname= CLI commands between various
+implementations is usaully the root cause.
+In any case, we noticed before that the =build.js= script checks an
+environment variable =ARCH=, so we might try setting that.
+In that file we'll find the exact patterns they expect which are "x86_64",
+and "arm64", which we can set based on info pulled out of =stdenv=.
+
+Here's another draft of =foverrides.nix=:
+
+#+BEGIN_SRC nix
+# zeromq-6.0.0-beta.16/foverrides.nix
+{
+  config.floco.packages.zeromq."6.0.0-beta.16".installed = { pkgs, ... }: {
+
+    config.extraBuildInputs = let
+    in [
+      # Always add this one.
+      pkgs.zeromq
+    ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
+      # Only add these for when the host system is `darwin'.
+      pkgs.pkgconfig
+      pkgs.libsodium.dev
+    ] );
+
+    # Setting `override' attrs causes them to be set on the underlying
+    # derivation, which then get set as environment variables in the
+    # sandbox where we run out install.
+    # We want to tell `node-gyp' to look for the shared `libzmq', so we'll
+    # set the variable we found in their `binding.gyp' file.
+    # XXX: You must quote "true" because `binding.gyp' expects a string,
+    # and a Nix boolean of `false' gets stringized as the empty string.
+    config.override.npm_config_zmq_shared = "true";
+    config.override.ARCH                  =
+      if pkgs.stdenv.hostPlatform.isx86_64 then "x86_64" else "arm64";
+
+  };
+}
+#+END_SRC
+
+Lets see how we did:
+
+#+BEGIN_SRC shell
+nix build -f ./zeromq-6.0.0-beta.16 -L --no-link;
+#+END_SRC
+
+#+RESULT:
+#+BEGIN_EXAMPLE
+...<SNIP>...
+zeromq-installed> make: Leaving directory '/private/tmp/nix-build-zeromq-installed-6.0.0-beta.16.drv-0/source/build'
+zeromq-installed> gyp info ok
+zeromq-installed> @nix { "action": "setPhase", "phase": "installPhase" }
+zeromq-installed> installing
+zeromq-installed> post-installation fixup
+zeromq-installed> checking for references to /private/tmp/nix-build-zeromq-installed-6.0.0-beta.16.drv-0/ in /nix/store/2ra6949ynpbs3y3l57y0wa69mhdyr7il-zeromq-installed-6.0.0-beta.16...
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> /nix/store/g0bmb8iq70gf1yk6pr50i2bp7gxfz77i-audit-tmpdir.sh: line 23: patchelf: command not found
+zeromq-installed> patching script interpreter paths in /nix/store/2ra6949ynpbs3y3l57y0wa69mhdyr7il-zeromq-installed-6.0.0-beta.16
+zeromq-installed> strip is /nix/store/8sigdq7hayfxqkxahjs70s6ny42wfwgh-Toolchains/XcodeDefault.xctoolchain/bin/strip
+zeromq-installed> stripping (with command strip and flags -S) in  /nix/store/2ra6949ynpbs3y3l57y0wa69mhdyr7il-zeromq-installed-6.0.0-beta.16/lib
+#+END_EXAMPLE
+
+And we have a winner!
