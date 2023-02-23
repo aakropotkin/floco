@@ -1,0 +1,94 @@
+#+TITLE: Package Definition Submodule Imports and Extension
+
+This guide covers a few fundamentals for modifying and extending =pdef= records.
+The contents of this guide are essentially a domain specific form of the
+[[https://nixos.org/manual/nixos/stable/#sec-writing-modules][NixOS Manual: Writing Modules]]
+guide which is great read; but hopefully you'll learn everything you need here.
+
+* Changing a Single =pdef=
+
+Modifying a single record is relatively simple, and we have two syntaxes
+for declaring them ( shown below with two big comment blocks preceding them ).
+
+For the vast majority of cases you'll use "shorthand" submodule configs
+simply because they're less verbose.
+"Shorthand" module declarations are plain attribute sets ( not functions )
+that run through a quick fixup routine that allows us to shorten
+~{ config.<NAME> = ...; }~ to ~{ <NAME> = ...; }~.
+Shorthands can still declare =imports= and =options=, but if they do =config=
+may NOT be omitted - with this in mind I recommend the next option if you
+want =imports= and =options=.
+
+"Function" module declarations are the standard form that don't use any fixup.
+These are slightly more verbose, but we reduce the risk that readers or the
+module system will misinterpret our declarations.
+I recommend using this form for nested submodules in particular, since a
+=freeformType= declaration in a parent could cause =options= and =imports=
+to be misinterpreted as values.
+
+
+#+BEGIN_SRC nix :exports both :results output
+let
+  floco = builtins.getFlake "github:aakropotkin/floco";
+  inherit (floco) lib;
+  mod = lib.evalModules {
+    modules = [
+
+      floco.nixosModules.floco
+
+      # Boilerplate module that adds `lodash' with a "shorthand" submodule
+      # config to defined `lodash'.
+      # The "shorthand" style allows us to omit a `config.{ident,version}'
+      # prefix when creating defintions; but lacks the ability to define imports
+      # or new options.
+      {
+        config.floco.pdefs.lodash."4.17.21" = {
+          ident = "lodash"; version = "4.17.21";
+        };
+      }
+
+      # Second module that uses a "function" submodule config, allowing us to
+      # use `imports' and even new `options'.
+      # We'll inject a bogus `treeInfo' definition to prove it works. {
+        config.floco.pdefs.lodash."4.17.21" = { ... }: {
+          imports = [
+            # An inline "shorthand" module definition.
+            {
+              treeInfo."node_modules/phony".key = "phony/4.2.0";
+            }
+          ];
+          options.foo = lib.mkOption {
+            description = "A bogus option.";
+            type        = lib.types.str;
+            default     = "bar";
+          };
+        };
+      }
+
+    ];
+  };
+
+  result = builtins.intersectAttrs {
+    key = true; foo = true; treeInfo = true;
+  } mod.config.floco.pdefs.lodash."4.17.21";
+
+  # We pretty print the result, for this guide, but there's nothing signifant
+  # happening below.
+in lib.generators.toPretty {} result
+#+END_SRC
+
+#+RESULTS:
+#+begin_example nix
+{
+  foo = "bar";
+  key = "lodash/4.17.21";
+  treeInfo = {
+    "node_modules/phony" = {
+      dev = false;
+      key = "phony/4.2.0";
+      link = false;
+      optional = false;
+    };
+  };
+}
+#+end_example
