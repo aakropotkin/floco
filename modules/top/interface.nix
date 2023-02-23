@@ -26,7 +26,6 @@ in {
         ../settings/interface.nix
         ../buildPlan/interface.nix
         ../topo/interface.nix
-        ../records/interface.nix
         ../pdefs/interface.nix
         ../packages/interface.nix
         ../fetcher/interface.nix

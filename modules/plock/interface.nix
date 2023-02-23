@@ -53,11 +53,6 @@ in {
         NOTE: At this time only `package-lock.json` version 2 and 3 are
         supported because version 1 locks lack a `packages.*` field.
       '';
-      type = nt.lazyAttrsOf ( nt.submoduleWith {
-        specialArgs = { inherit lib; };
-        modules = [./plent/interface.nix];
-      } );
-      default = {};
     };
 
     linkedLocks = lib.mkOption {

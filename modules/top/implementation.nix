@@ -20,12 +20,12 @@ in {
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
+        ../records
         ( { config, ... }: {
           imports = [
             ../settings/implementation.nix
             ../buildPlan/implementation.nix
             ../topo/implementation.nix
-            ../records/implementation.nix
             ../pdefs/implementation.nix
             ../packages/implementation.nix
             ../fetchers/implementation.nix

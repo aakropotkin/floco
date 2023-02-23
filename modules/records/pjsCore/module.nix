@@ -31,7 +31,7 @@ in {
       options.pjsCore = lib.mkOption {
         type = nt.submodule ( { options, ... }: {
 
-          options.module = lib.mkOption {
+          options.deferred = lib.mkOption {
             description = lib.mdDoc ''
               The deferred form of a `pjsCore` record.
             '';
@@ -46,18 +46,20 @@ in {
             type = nt.raw;
           };
 
-          config.mkOpt = lib.mkDerivedConfig options.module ( module:
+          config.mkOpt = lib.mkDerivedConfig options.deferred ( deferred:
             lib.mkOption {
               description = lib.mdDoc ''
                 Project "manifest" information like those found in
                 `package.json` and similar files, extended with `floco` specific
                 "core" information such as `key` and `ident`.
               '';
-              type = nt.submodule module;
+              type = nt.submodule deferred;
             }
           );
 
         } );
+
+        default = {};
       };
     };
   };

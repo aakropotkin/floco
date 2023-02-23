@@ -14,7 +14,6 @@
 
   inherit (config) plock;
 
-
 # ---------------------------------------------------------------------------- #
 
   plentKeyName = s: let
@@ -43,9 +42,10 @@ in {
 # ---------------------------------------------------------------------------- #
 
   options.plents = lib.mkOption {
-    type = nt.lazyAttrsOf ( nt.submoduleWith {
-      modules = [config.records.pjsCore];
+    type = nt.lazyAttrsOf ( nt.submodule {
+      imports = [config.records.pjsCore.deferred ./plent/interface.nix];
     } );
+    default = {};
   };
 
   options.scopes = lib.mkOption {

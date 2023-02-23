@@ -181,15 +181,12 @@ TARGET_VERSION="$( $JQ -r '.version' "$TARGET_ENT"; )";
 export OUTFILE TARGET_NAME TARGET_VERSION FLAKE_REF;
 $NIX build --show-trace --no-link -f - <<'EOF'
 let
-  floco   = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
-  pkgsFor = floco.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.extend
-              floco.overlays.default;
+  floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
   inherit (floco) lib;
   mod = lib.evalModules {
     modules = [
-      "${floco}/modules/top"
-      ( lib.addPdefs ( builtins.getEnv "OUTFILE" ) )
-      { _module.args.pkgs = pkgsFor; }
+      floco.nixosModules.default
+      ( lib.modules.importJSON ( builtins.getEnv "OUTFILE" ) )
     ];
   };
   ident   = builtins.getEnv "TARGET_NAME";
