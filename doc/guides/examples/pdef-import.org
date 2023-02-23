@@ -5,6 +5,9 @@ The contents of this guide are essentially a domain specific form of the
 [[https://nixos.org/manual/nixos/stable/#sec-writing-modules][NixOS Manual: Writing Modules]]
 guide which is great read; but hopefully you'll learn everything you need here.
 
+While this guide focuses on modify =pdef= records, this same approach can be
+used for other modules such as =package= or =fetcher=.
+
 * Changing a Single =pdef=
 
 Modifying a single record is relatively simple, and we have two syntaxes
@@ -23,8 +26,9 @@ want =imports= and =options=.
 These are slightly more verbose, but we reduce the risk that readers or the
 module system will misinterpret our declarations.
 I recommend using this form for nested submodules in particular, since a
-=freeformType= declaration in a parent could cause =options= and =imports=
-to be misinterpreted as values.
+[[https://nixos.org/manual/nixos/stable/index.html#sec-freeform-modules][freeformType]]
+declaration in a parent could cause =options= and =imports= to be
+misinterpreted as values.
 
 
 #+BEGIN_SRC nix :exports both :results output
@@ -89,6 +93,116 @@ in lib.generators.toPretty {} result
       key = "phony/4.2.0";
       link = false;
       optional = false;
+    };
+  };
+}
+#+end_example
+
+* Modifying All =pdef= Records
+
+If we want to extend or override the way that all =pdef= records are processed
+we can do so by changing the "base" module definition that they all share.
+
+This base module is a bit like a =class= definition in an object oriented
+language such as C++ or JavaScript, so by modifying its behavior we'll be
+able to modify every "instance" of a =pdef= across all =floco= modules.
+
+"Base" module definitions are generally in
+[[https://github.com/aakropotkin/floco/blob/main/modules/records][floco.records.<NAME>]]
+options ( =floco.fetcher= is an exception ).
+
+For this example lets add a new =<pdef>.lifecycle.test= field that will
+indicate if a package defines a =package.json:.scripts.test= routine.
+
+#+BEGIN_SRC nix :exports both :results output
+let
+  floco = builtins.getFlake "github:aakropotkin/floco";
+  inherit (floco) lib;
+
+  # Base declarations that get filled out by the registry.
+  pdefsModule.config.floco.pdefs = {
+    which."3.0.0"    = { ident = "which"; version = "3.0.0"; };
+    yargs."17.6.2"   = { ident = "yargs"; version = "17.6.2"; };
+    prettier."2.8.3" = { ident = "prettier"; version = "2.8.3"; };
+  };
+
+  # Module that extends `floco.records.pdef' with our new fields.
+  # By dropping this module into calls to `evalModules' you can use this
+  # extension across multiple projects.
+  pdefsMarkTests = {
+    # Extend the definition of a `pdef' module.
+    floco.records.pdef = { config, ... }: {
+      # Extend the definition of `lifecycle'
+      options.lifecycle = lib.mkOption {
+        type = lib.types.submodule {
+
+          # Declare a new field
+          options.test = lib.mkOption {
+            description = lib.mdDoc ''
+              Whether a package has a `test` script defined in `package.json`.
+            '';
+            type    = lib.types.bool;
+            default = false;
+          };
+
+          # Define the field based on other `pdef' fields.
+          # We use `lib.mkDefault' to allow a user to explicitly override/set
+          # this value for a particular `pdef'.
+          #
+          # For the purposes of this extension we refer to an "internal" field
+          # `metaFiles.pjs' that is not a part of the official `floco' API
+          # just to keep things short.
+          config.test = lib.mkDefault ( config ? metaFiles.pjs.scripts.test );
+
+        };
+      };
+    };
+  };
+
+  mod = lib.evalModules {
+    modules = [
+      floco.nixosModules.floco
+      pdefsModule
+      pdefsMarkTests
+    ];
+  };
+
+  result = lib.mapPdefs ( v: { inherit (v) lifecycle; } )
+                        mod.config.floco.pdefs;
+
+  # We pretty print the result, for this guide, but there's nothing signifant
+  # happening below.
+in lib.generators.toPretty {} result
+#+END_SRC
+
+#+RESULTS:
+#+begin_example nix
+{
+  prettier = {
+    "2.8.3" = {
+      lifecycle = {
+        build = false;
+        install = false;
+        test = false;
+      };
+    };
+  };
+  which = {
+    "3.0.0" = {
+      lifecycle = {
+        build = false;
+        install = false;
+        test = true;
+      };
+    };
+  };
+  yargs = {
+    "17.6.2" = {
+      lifecycle = {
+        build = false;
+        install = false;
+        test = true;
+      };
     };
   };
 }
