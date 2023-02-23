@@ -49,7 +49,8 @@ let
 
       # Second module that uses a "function" submodule config, allowing us to
       # use `imports' and even new `options'.
-      # We'll inject a bogus `treeInfo' definition to prove it works. {
+      # We'll inject a bogus `treeInfo' definition to prove it works.
+      {
         config.floco.pdefs.lodash."4.17.21" = { ... }: {
           imports = [
             # An inline "shorthand" module definition.
