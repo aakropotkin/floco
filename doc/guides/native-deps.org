@@ -391,15 +391,11 @@ nix search nixpkgs '\.(libzmq|zeromq)';
 
 #+RESULTS:
 : * legacyPackages.aarch64-darwin.lispPackages_new.sbclPackages.zeromq (20160318-git)
-:
 : * legacyPackages.aarch64-darwin.lispPackages_new.sbclPackages.zeromq_dot_tests (20160318-git)
-:
 : * legacyPackages.aarch64-darwin.octavePackages.zeromq (7.3.0-zeromq-1.5.3)
 :   ZeroMQ bindings for GNU Octave
-:
 : * legacyPackages.aarch64-darwin.zeromq (4.3.4)
 :   The Intelligent Transport Layer
-:
 : * legacyPackages.aarch64-darwin.zeromq4 (4.3.4)
 :   The Intelligent Transport Layer
 #+end_example
