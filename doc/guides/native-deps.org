@@ -109,7 +109,7 @@ zeromq-installed> stripping (with command strip and flags -S) in  /nix/store/wrz
 /And would ya look at that - it worked right out of the box!/
 
 Well, sort of...
-If we take a loook at the end of our log there you'll notice a few warnings
+If we take a look at the end of our log there you'll notice a few warnings
 that say ~patchelf: command not found~.
 For context this is log was created by a =aarch64-darwin= machine, and will
 not produce this error for =linux= boxes.
