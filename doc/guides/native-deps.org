@@ -30,11 +30,15 @@ locating native deps in =nixpkgs=.
 Its =binding.gyp= ( build recipe ) is written in a way that we can configure
 to build =libzmq= "from scratch", or link against a shared =libzmq= from the
 host system.
-We'll cover both cases.
+It's possible to package the static build for this module, and I did
+get it to work with some effort; but because it attempts to use =curl= inside
+of its =Makefile= it required a heavy handed approach that is "out of scope"
+for this guide.
+We'll just cover the shared library case here.
 
 ** Preparing a Workspace
 
-For both of the approaches below we'll use a common base project.
+For both of the versions we'll use a common base project.
 You can initialize a workspace by running the following.
 Note that this initialization process can be used for any registry package.
 
@@ -401,7 +405,7 @@ nix search nixpkgs '\.(libzmq|zeromq)';
 
 The last two look right to me, since the earlier results appear to be
 modules/packages for =octave= and =LISP=.
-Because both of the last two results have the same version number and
+Because both of the final results have the same version number and
 description, my bet is that they're aliases of one another.
 
 I have some concerns about the 4.x major version number though.
