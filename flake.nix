@@ -110,8 +110,18 @@
 
     templates = let
       basic = {
-        description = "a legacy style `default.nix' project.";
+        description = "a legacy style `default.nix' for a local project.";
         path        = ./templates/basic;
+        welcomeText = ''
+          Initialize your project by running:
+
+          nix run floco#fromPlock -- -pt;
+
+
+          Build with:
+
+          nix build -f ./. -L global;
+        '';
       };
     in {
       inherit basic;
@@ -119,6 +129,22 @@
       fillPins = {
         description = "Expression for filling missing `pin's in `pdefs.nix'.";
         path        = ./templates/fill-pins;
+      };
+      registry = {
+        description = "a legacy style `default.nix' for a registry package.";
+        path        = ./templates/registry;
+        welcomeText = ''
+          Initialize your project by running:
+
+          nix run floco#fromRegistry -- -pt <IDENT>@<VERSION>;
+
+          echo '{ ident = "<IDENT>"; version = "<VERSION>"; }' > info.nix;
+
+
+         Build with:
+
+         nix build -f ./. -L;
+        '';
       };
     };
 
