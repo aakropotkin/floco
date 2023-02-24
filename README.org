@@ -121,75 +121,12 @@ These scripts do not depend on Nix, and are suitable for standalone use
 as replacements for ~pacote extract~ ( =install-module.sh= ) and
 ~(npm|yarn) run~ ( =run-script.sh= ).
 
-These routines can be found in the ~<floco>/setup/~ subdir, named after the
-=setup-hooks= pattern found in [[https://github.com/NixOS/nixpkgs][nixpkgs]].
-
 You can install these as standalone executables using the =floco-utils=
 installable in the top-level flake.
 
-** =install-module.sh=
-This is used to install modules into a =node_modules/= directory or a
-/FHS prefix/.
-This routine is used internally by ~<floco>/builders/tree.nix~ but may also
-be used as a regular executable for scripting outside of derivations.
+For example usage and more details please see
+[[file:doc/scripts/README.org::*Core Scripts][Core Scripts]].
 
-#+BEGIN_SRC shell :exports both :results output
-nix shell github:aakropotkin/floco#floco{-nix,-utils};
-# Downloads and unpacks a module from an identifier/descriptor.
-dlmod() {
-  export PKG="$1";
-  floco-nix eval --impure --raw --expr '( builtins.fetchTree {
-    type = "tarball";
-    url  = let
-      res = builtins.npmResolve ( builtins.getEnv "PKG" );
-      m   = builtins.match ".*\n([^\n]+)\n?" res;
-    in if m == null then res else builtins.head m;
-  } ).outPath';
-}
-# Hop into a temp area and install `semver' and its dependencies.
-pushd "$( mktemp -d; )";
-install-module.sh "$( dlmod "semver@7.3.8"; )" ./node_modules;
-install-module.sh "$( dlmod "lru-cache@^6.0.0"; )" ./node_modules;
-install-module.sh "$( dlmod "yallist@^4.0.0"; )" ./node_modules;
-./node_modules/.bin/semver --help|head -n1;
-TDIR="$PWD";
-popd;
-rm -rf "$TDIR";
-#+END_SRC
-
-#+RESULTS:
-: SemVer 7.3.8
-
-** =run-script.sh=
-This is used to run a =package.json:.scripts.*= routine in the runtime
-environment of ~node_modules/~.
-This routine is equivalent to ~npm run~ or ~yarn run~.
-
-Continuing the example above for =install-module.sh= ( before ~popd~ ),
-we can replace ~./node_modules/.bin/semver --help|head -n1;~ with a script:
-#+BEGIN_SRC shell :exports both :results output
-# ...<SNIP>...
-install-module.sh "$( dlmod "yallist@^4.0.0"; )" ./node_modules;
-
-# Define and run a script.
-echo '{
-  "scripts": {
-    "print-semver-version": "semver --help|head -n1",
-    "print-node-version": "node --version"
-  }
-}' > ./package.json;
-run-script.sh print-semver-version print-node-version;
-
-TDIR="$PWD";
-popd;
-rm -rf "$TDIR";
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-SemVer 7.3.8
-v18.12.1
-#+end_example
 
 * Updaters/Generators
 The top level flake provides an installable =floco-updaters= as well as
@@ -204,8 +141,8 @@ dependencies and build requirements change.
 This generator is intended for use with local projects.
 It is essentially a wrapper around =npm i --package-lock-only=.
 
-For example usage please see
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]].
+For example usage please see the
+[[file:doc/guides/basics.org][Getting Started guide]].
 
 ** =fromRegistry=
 This generator is intended for use with published registry packages that
@@ -215,12 +152,13 @@ This script behaves almost identically to =fromPlock=, except that it
 ignores =devDependencies= entirely, and accepts package descriptors as an
 argument ( as =npm= or =yarn= would ).
 
-For example usage please see
-[[https://github.com/aakropotkin/floco/blob/main/tests/updaters/from-registry/proj1.sh][proj1.sh test]].
+For example usage please see the
+[[file:doc/guides/native-deps.org::*Preparing a Workspace][Native Dependencies guide]].
 
 This script most useful for packaging executables and generating =treeInfo=
 information for packages that have =install= scripts ( such as =node-gyp=
 compilation ).
+
 
 * Modules
 Package metadata collection, also called /translation/, and project
