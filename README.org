@@ -125,7 +125,7 @@ You can install these as standalone executables using the =floco-utils=
 installable in the top-level flake.
 
 For example usage and more details please see
-[[file:doc/scripts/README.org::*Core Scripts][Core Scripts]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/scripts/README.org#core-scripts][Core Scripts]].
 
 
 * Updaters/Generators
@@ -142,7 +142,7 @@ This generator is intended for use with local projects.
 It is essentially a wrapper around =npm i --package-lock-only=.
 
 For example usage please see the
-[[file:doc/guides/basics.org][Getting Started guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started guide]].
 
 ** =fromRegistry=
 This generator is intended for use with published registry packages that
@@ -153,7 +153,7 @@ ignores =devDependencies= entirely, and accepts package descriptors as an
 argument ( as =npm= or =yarn= would ).
 
 For example usage please see the
-[[file:doc/guides/native-deps.org::*Preparing a Workspace][Native Dependencies guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/native-deps.org#preparing-a-workspace][Native Dependencies guide]].
 
 This script most useful for packaging executables and generating =treeInfo=
 information for packages that have =install= scripts ( such as =node-gyp=
