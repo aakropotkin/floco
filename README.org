@@ -26,9 +26,10 @@ Writing a JavaScript package management framework in =bash= and =nix= was
 done /not because it is easy/ - on the contrary it was fucking hard.
 
 * Getting Started
+
 There's a dedicated
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][getting started guide]]
-that is the best place to dive in.
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started]]
+guide that is the best place to dive in.
 
 For projects that depend only on registry packages without =install= scripts that require
 native dependencies or cycle breaking,
@@ -43,6 +44,17 @@ nix build -f ./. global;
 ls -R ./result;
 #+END_SRC
 
+** Documentation
+A collection of documentation is hosted on GitHub on the project's
+[[https://github.com/aakropotkin/floco/wiki][wiki]] tab, and is also
+available under
+[[https://github.com/aakropotkin/floco/blob/main/doc][<floco>/doc]]
+alongside many of the workspace directories used in examples.
+
+Additionally all CLI tooling and scripts support the =--help= option.
+The =floco help CMD= sub-command may also be used to view "help" messages
+for a given =CMD=.
+
 ** Templates
 A simple template with the boilerplate needed for use with our /updaters/
 is available through ~nix flake init -t github:aakropotkin/floco~.
@@ -50,6 +62,7 @@ is available through ~nix flake init -t github:aakropotkin/floco~.
 More templates are on the way.
 
 * CLI
+
 The =floco= CLI interface is currently under active development and is
 expected to change rapidly in the near future.
 
@@ -114,6 +127,7 @@ nix run github:aakropotkin/floco -- show lodash@4.17.21 --json;
 
 
 * Core Scripts
+
 =floco= uses a small collection of =bash= scripts to perform install tasks
 and drive builds.
 
@@ -142,7 +156,8 @@ This generator is intended for use with local projects.
 It is essentially a wrapper around =npm i --package-lock-only=.
 
 For example usage please see the
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started]]
+guide.
 
 ** =fromRegistry=
 This generator is intended for use with published registry packages that
@@ -153,7 +168,8 @@ ignores =devDependencies= entirely, and accepts package descriptors as an
 argument ( as =npm= or =yarn= would ).
 
 For example usage please see the
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/native-deps.org#preparing-a-workspace][Native Dependencies guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/native-deps.org#preparing-a-workspace][Native Dependencies]]
+guide.
 
 This script most useful for packaging executables and generating =treeInfo=
 information for packages that have =install= scripts ( such as =node-gyp=

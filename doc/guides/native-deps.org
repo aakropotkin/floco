@@ -255,7 +255,7 @@ This is the build recipe run by =node-gyp=.
 The format is some bastard child born of JSON + Python3 object syntax.
 These are declarative wrappers around an underlying =Makefile=, often
 produced by =CMake= which adds yet another layer of indirection between
-the developer and =CC=/=LD=.
+the developer and =CC= / =LD=.
 
 The declared =variables= are effectively arguments, and you can set them
 using environment variables by adding the prefix =npm_config_<NAME>=.

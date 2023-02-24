@@ -101,7 +101,8 @@ This generator is intended for use with local projects.
 It is essentially a wrapper around =npm i --package-lock-only=.
 
 For example usage please see the
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started]]
+guide.
 
 ** =fromRegistry=
 This generator is intended for use with published registry packages that
@@ -112,7 +113,8 @@ ignores =devDependencies= entirely, and accepts package descriptors as an
 argument ( as =npm= or =yarn= would ).
 
 For example usage please see the
-[[https://github.com/aakropotkin/floco/blob/main/doc/guides/native-deps.org#preparing-a-workspace][Native Dependencies guide]].
+[[https://github.com/aakropotkin/floco/blob/main/doc/guides/native-deps.org#preparing-a-workspace][Native Dependencies]]
+guide.
 
 This script most useful for packaging executables and generating =treeInfo=
 information for packages that have =install= scripts ( such as =node-gyp=
