@@ -148,7 +148,7 @@ the =patchelf= derivation defined by =nixpkgs=.
   # its preparation.
   # In this case we'll configure the `installed' "target" to add a
   # native dependency.
-  config.packages.zeromq."5.3.1".installed = { pkgs, ... }: {
+  config.floco.packages.zeromq."5.3.1".installed = { pkgs, ... }: {
     config.extraBuildInputs = [pkgs.patchelf];
   };
 }
