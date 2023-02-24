@@ -16,7 +16,7 @@ Unlike other JavaScript package managers - =floco= has a way to declare these
 dependencies so that these builds can be run in a reproducible manner across
 platforms; all we need to do is add a few fields to our config files.
 
-* Packaging =zeromq@5.3.1=
+* Packaging =zeromq@5.3.1= and =zeromq@6.0.0.0-beta.16=
 
 For our example we're going to package =zeromq@5.3.1= and
 =zeromq@6.0.0-beta.16= which run  =node-gyp= compilation stages to complete
