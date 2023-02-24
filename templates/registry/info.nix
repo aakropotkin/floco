@@ -1,0 +1,4 @@
+{
+  ident   = "CHANGEME";
+  version = "CHANGEME";
+}

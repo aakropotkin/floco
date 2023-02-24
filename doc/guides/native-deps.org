@@ -67,10 +67,8 @@ in mod.config.floco.packages.zeromq."5.3.1".global
 # Onto the next workspace
 cd ../zeromq-6.0.0-beta.16;
 nix run floco#fromRegistry -- -tp zeromq@6.0.0-beta.16;
-cp ../zeromq-5.3.1/{default,floco-cfg}.nix .;
+cp ../zeromq-5.3.1/{default,floco-cfg,foverrides}.nix .;
 sed -i 's/5\.3\.1/6.0.0-beta.16/' ./default.nix;
-echo '{}' > foverrides.nix;
-
 cd ..;
 #+END_SRC
 

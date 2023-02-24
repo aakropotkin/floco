@@ -31,7 +31,7 @@ declaration in a parent could cause =options= and =imports= to be
 misinterpreted as values.
 
 
-#+BEGIN_SRC nix :exports both :results output
+#+begin_src nix :exports both :results output
 let
   floco = builtins.getFlake "github:aakropotkin/floco";
   inherit (floco) lib;
@@ -80,23 +80,7 @@ let
   # We pretty print the result, for this guide, but there's nothing signifant
   # happening below.
 in lib.generators.toPretty {} result
-#+END_SRC
-
-#+RESULTS:
-#+begin_example nix
-{
-  foo = "bar";
-  key = "lodash/4.17.21";
-  treeInfo = {
-    "node_modules/phony" = {
-      dev = false;
-      key = "phony/4.2.0";
-      link = false;
-      optional = false;
-    };
-  };
-}
-#+end_example
+#+end_src
 
 * Modifying All =pdef= Records
 
@@ -114,7 +98,7 @@ options ( =floco.fetcher= is an exception ).
 For this example lets add a new =<pdef>.lifecycle.test= field that will
 indicate if a package defines a =package.json:.scripts.test= routine.
 
-#+BEGIN_SRC nix :exports both :results output
+#+begin_src nix :exports both :results output
 let
   floco = builtins.getFlake "github:aakropotkin/floco";
   inherit (floco) lib;
@@ -173,37 +157,4 @@ let
   # We pretty print the result, for this guide, but there's nothing signifant
   # happening below.
 in lib.generators.toPretty {} result
-#+END_SRC
-
-#+RESULTS:
-#+begin_example nix
-{
-  prettier = {
-    "2.8.3" = {
-      lifecycle = {
-        build = false;
-        install = false;
-        test = false;
-      };
-    };
-  };
-  which = {
-    "3.0.0" = {
-      lifecycle = {
-        build = false;
-        install = false;
-        test = true;
-      };
-    };
-  };
-  yargs = {
-    "17.6.2" = {
-      lifecycle = {
-        build = false;
-        install = false;
-        test = true;
-      };
-    };
-  };
-}
-#+end_example
+#+end_src
