@@ -140,15 +140,15 @@ the =patchelf= derivation defined by =nixpkgs=.
 
 #+BEGIN_SRC nix
 # zeromq-5.3.1/foverrides.nix
-{ pkgs, ... }: {
+{
   # The `packages' records are created automatically from `pdefs' and
   # hold `derivations' associated with the package, representing stages of
   # its preparation.
   # In this case we'll configure the `installed' "target" to add a
   # native dependency.
-  config.packages.zeromq."5.3.1".installed.extraBuildInputs = [
-    pkgs.patchelf
-  ];
+  config.packages.zeromq."5.3.1".installed = { pkgs, ... }: {
+    config.extraBuildInputs = [pkgs.patchelf];
+  };
 }
 #+END_SRC
 
@@ -169,12 +169,12 @@ for more details on merging behaviors.
 
 ** Providing a Shared Library for =libzmq= ( 6.0.0-beta.16 )
 
-Now we'll ramp up the difficulty by trying to build a later releas of
+Now we'll ramp up the difficulty by trying to build a later release of
 =zeromq@6.0.0-beta.16= with a shared library pulled from =nixpkgs=.
 
-I am writing this guide without having packaged this before so for all we
+I'm writing this guide without having packaged this before so for all we
 know this might not work because this project is a beta release or a
-compatability issue with the =nixpkgs= libs; but this is probably a good
+compatibility issue with the =nixpkgs= libs; but this is probably a good
 thing since it'll allow me to cover some practical debugging techniques.
 
 In this example we'll use =override= to set some extra environment
@@ -294,9 +294,10 @@ environment variables that lacked the prefix.
 #+END_EXAMPLE
 
 This snippet indicates that the builder is sensitive to an environment
-varialbe =zmq_shared= ( among others ) which has a default value of
-=false=, and that when building on Darwin with ~zmq_shared = true~, it
-will use =pkg-config= to locate =libsodium=.
+variable =npm_config_zmq_shared= ( among others ) which has a default
+value of =false=, and that when building on Darwin
+with ~zmq_shared = true~, it will use =pkg-config= to
+locate =libsodium=.
 
 It's a good thing we checked the =binding.gyp= because if I hadn't I'd
 have assumed =libsodium= was required for all platforms.
@@ -421,27 +422,29 @@ research above.
 #+BEGIN_SRC nix
 # zeromq-6.0.0-beta.16/foverrides.nix
 {
-  config.floco.packages.zeromq."6.0.0-beta.16".installed = { pkgs, ... }: {
+  config.floco.packages.zeromq."6.0.0-beta.16" = {
+    installed = { pkgs, ... }: {
 
-    config.extraBuildInputs = let
-    in [
-      # Always add these.
-      pkgs.zeromq
-    ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
-      # Only add these for when the host system is `darwin'.
-      pkgs.pkgconfig
-      pkgs.libsodium.dev
-    ] );
+      config.extraBuildInputs = [
+        # Always add these.
+        pkgs.zeromq
+      ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
+        # Only add these for when the host system is `darwin'.
+        pkgs.pkgconfig
+        pkgs.libsodium.dev
+      ] );
 
-    # Setting `override' attrs causes them to be set on the underlying
-    # derivation, which then get set as environment variables in the
-    # sandbox where we run out install.
-    # We want to tell `node-gyp' to look for the shared `libzmq', so we'll
-    # set the variable we found in their `binding.gyp' file.
-    # XXX: You must quote "true" because `binding.gyp' expects a string,
-    # and a Nix boolean of `false' gets stringized as the empty string.
-    config.override.npm_config_zmq_shared = "true";
+      # Setting `override' attrs causes them to be set on the underlying
+      # derivation, which then get set as environment variables in the
+      # sandbox where we run out install.
+      # We want to tell `node-gyp' to look for the shared `libzmq', so
+      # we'll set the variable we found in their `binding.gyp' file.
+      # XXX: You must quote "true" because `binding.gyp' expects a
+      # string, and a Nix boolean of `false' gets stringized as the
+      # empty string.
+      config.override.npm_config_zmq_shared = "true";
 
+    };
   };
 }
 #+END_SRC
@@ -472,29 +475,30 @@ Here's another draft of =foverrides.nix=:
 #+BEGIN_SRC nix
 # zeromq-6.0.0-beta.16/foverrides.nix
 {
-  config.floco.packages.zeromq."6.0.0-beta.16".installed = { pkgs, ... }: {
+  config.floco.packages.zeromq."6.0.0-beta.16" = {
+    installed = { pkgs, ... }: {
 
-    config.extraBuildInputs = let
-    in [
-      # Always add this one.
-      pkgs.zeromq
-    ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
-      # Only add these for when the host system is `darwin'.
-      pkgs.pkgconfig
-      pkgs.libsodium.dev
-    ] );
+      config.extraBuildInputs = [
+        # Always add this one.
+        pkgs.zeromq
+      ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
+        # Only add these for when the host system is `darwin'.
+        pkgs.pkgconfig
+        pkgs.libsodium.dev
+      ] );
 
-    # Setting `override' attrs causes them to be set on the underlying
-    # derivation, which then get set as environment variables in the
-    # sandbox where we run out install.
-    # We want to tell `node-gyp' to look for the shared `libzmq', so we'll
-    # set the variable we found in their `binding.gyp' file.
-    # XXX: You must quote "true" because `binding.gyp' expects a string,
-    # and a Nix boolean of `false' gets stringized as the empty string.
-    config.override.npm_config_zmq_shared = "true";
-    config.override.ARCH                  =
-      if pkgs.stdenv.hostPlatform.isx86_64 then "x86_64" else "arm64";
+      # Setting `override' attrs causes them to be set on the underlying
+      # derivation, which then get set as environment variables in the
+      # sandbox where we run out install.
+      # We want to tell `node-gyp' to look for the shared `libzmq', so
+      # we'll set the variable we found in their `binding.gyp' file.
+      # XXX: You must quote "true" because `binding.gyp' expects a string,
+      # and a Nix boolean of `false' gets stringized as the empty string.
+      config.override.npm_config_zmq_shared = "true";
+      config.override.ARCH                  =
+        if pkgs.stdenv.hostPlatform.isx86_64 then "x86_64" else "arm64";
 
+    };
   };
 }
 #+END_SRC
