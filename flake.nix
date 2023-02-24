@@ -113,7 +113,7 @@
         description = "a legacy style `default.nix' for a local project.";
         path        = ./templates/basic;
         welcomeText = ''
-          Initialize your project by running:
+          Initialize/update your project by running:
 
           nix run floco#fromPlock -- -pt;
 
@@ -121,6 +121,10 @@
           Build with:
 
           nix build -f ./. -L global;
+
+
+          Be sure to read `foverrides.nix' to customize your build.
+          If you do not require this file feel free to delete it.
         '';
       };
     in {
@@ -134,16 +138,19 @@
         description = "a legacy style `default.nix' for a registry package.";
         path        = ./templates/registry;
         welcomeText = ''
-          Initialize your project by running:
+          Initialize/update your package by running:
 
           nix run floco#fromRegistry -- -pt <IDENT>@<VERSION>;
 
           echo '{ ident = "<IDENT>"; version = "<VERSION>"; }' > info.nix;
 
 
-         Build with:
+          Build with:
 
-         nix build -f ./. -L;
+          nix build -f ./. -L;
+
+
+          If you don't require `foverrides.nix', feel free to remove it.
         '';
       };
     };
