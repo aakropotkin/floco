@@ -142,7 +142,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ -z "${_IDENT:-}" ]]; then
-  if [[ -r ./package.json ]]; then
+  if [[ -r ./info.nix ]]; then
+    _IDENT="$( $NIX eval --raw -f ./info.nix ident; )";
+    _VERSION="$( $NIX eval --raw -f ./info.nix version; )";
+  elif [[ -r ./info.json ]]; then
+    _IDENT="$( $JQ -r '.ident' ./info.json; )";
+    _VERSION="$( $JQ -r '.version"' ./version.json; )";
+  elif [[ -r ./package.json ]]; then
     _IDENT="$( $JQ -r '.name' ./package.json; )";
     _VERSION="$( $JQ -r '.version // "0.0.0-0"' ./package.json; )";
   else
