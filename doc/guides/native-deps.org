@@ -386,7 +386,7 @@ to resolve our library.
 
 
 Next lets look for a shared library form of =libzmq=, being =libzmq.so=
-on linux, or =libzmq.dyllib= on Darwin.
+on linux, or =libzmq.dylib= on Darwin.
 
 #+BEGIN_SRC shell :exports both :results output
 nix search nixpkgs '\.(libzmq|zeromq)';
