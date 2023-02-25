@@ -15,7 +15,6 @@ unpatchShebang() {
   isScript "$1"||return 0;
   read -r oldInterpreterLine < "$1";
   read -r oldPath arg0 args <<< "${oldInterpreterLine:2}";
-  # Only modify `node' shebangs.
   case "$oldPath" in
     "${NIX_STORE:-/nix/store}/"*) :; ;;
     *) return 0; ;;
