@@ -1,0 +1,46 @@
+# -*- mode: sh; sh-shell: bash; -*-
+# ============================================================================ #
+#
+# Replace "patched" shebangs pointing to `/nix/store' paths with a regular
+# shebang using `/usr/bin/env'.
+#
+# ---------------------------------------------------------------------------- #
+
+#require isScript
+
+# ---------------------------------------------------------------------------- #
+
+unpatchShebang() {
+  local timestamp oldInterpreterLine newInterpreterLine oldPath arg0 args;
+  isScript "$1"||return 0;
+  read -r oldInterpreterLine < "$1";
+  read -r oldPath arg0 args <<< "${oldInterpreterLine:2}";
+  # Only modify `node' shebangs.
+  case "$oldPath" in
+    "${NIX_STORE:-/nix/store}/"*) :; ;;
+    *) return 0; ;;
+  esac
+  newInterpreterLine="#! /usr/bin/env ${oldPath##*/}";
+  newInterpreterLine="$newInterpreterLine${arg0:+ $arg0}${args:+ $args}";
+  timestamp="$( stat --printf '%y' "$1"; )";
+  printf '%s'                                                         \
+    "$1: interpreter directive changed from \"$oldInterpreterLine\""  \
+    " to \"${newInterpreterLine:?}\"" >&2;
+  echo '' >&2;
+  {
+    echo "$newInterpreterLine";
+    ${TAIL:-tail} -n +2 "$1";
+  } > "$1~";
+  ${CHMOD:-chmod} 0755 "$1~";
+  mv -- "$1~" "$1";
+  touch --date "$timestamp" "$1";
+}
+
+declare -fx unpatchShebang;
+
+
+# ---------------------------------------------------------------------------- #
+#
+#
+#
+# ============================================================================ #

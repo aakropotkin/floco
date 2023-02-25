@@ -56,6 +56,10 @@ usage() {
 # @BEGIN_INJECT_UTILS@
 : "${TAIL:=tail}";
 : "${CHMOD:=chmod}";
+: "${FLOCO_FPATH:=${BASH_SOURCE[0]%/*}/functions}";
+
+
+# ---------------------------------------------------------------------------- #
 
 declare -a SCRIPTS;
 SCRIPTS=();
@@ -102,52 +106,16 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-# Identical to `<nixpkgs>/pkgs/stdenv/generic/setup.sh'
-pjsIsScript() {
-  local fn="$1";
-  local fd;
-  local magic;
-  exec {fd}< "$fn";
-  read -r -n 2 -u "$fd" magic;
-  exec {fd}<&-
-  if [[ "$magic" =~ \#! ]]; then
-    return 0;
-  else
-    return 1;
-  fi
-}
-
-
-unpatchShebang() {
-  local timestamp oldInterpreterLine newInterpreterLine oldPath arg0 args;
-  pjsIsScript "$1"||return 0;
-  read -r oldInterpreterLine < "$1";
-  read -r oldPath arg0 args <<< "${oldInterpreterLine:2}";
-  # Only modify `node' shebangs.
-  case "$oldPath" in
-    $NIX_STORE/*) :; ;;
-    *) return 0; ;;
-  esac
-  newInterpreterLine="#! /usr/bin/env ${oldPath##*/}";
-  newInterpreterLine="$newInterpreterLine${arg0:+ $arg0}${args:+ $args}";
-  timestamp="$( stat --printf '%y' "$1"; )";
-  printf '%s'                                                         \
-    "$1: interpreter directive changed from \"$oldInterpreterLine\""  \
-    " to \"${newInterpreterLine:?}\"" >&2;
-  echo '' >&2;
-  {
-    echo "$newInterpreterLine";
-    $TAIL -n +2 "$1";
-  } > "$1~";
-  $CHMOD 0755 "$1~";
-  mv -- "$1~" "$1";
-  touch --date "$timestamp" "$1";
-}
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=./functions/isScript
+source "$FLOCO_FPATH/isScript";
+# shellcheck source=./functions/unpatchShebang
+source "$FLOCO_FPATH/unpatchShebang";
 
 
 # ---------------------------------------------------------------------------- #
 
-for bp in $SCRIPTS; do
+for bp in "${SCRIPTS[@]}"; do
   unpatchShebang "${bp#*,}";
 done
 

@@ -30,13 +30,14 @@ in {
   in derivation {
     name = pname + "-" + version;
     inherit system pname version scripts bash coreutils findutils jq nodejs;
+    functions        = builtins.path { path = ./functions; };
     preferLocalBuild = true;
     allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
     PATH    = "${coreutils}/bin:${gnused}/bin";
     builder = "${bash}/bin/bash";
     args    = ["-eu" "-o" "pipefail" "-c" ''
       common_path="$bash/bin:$jq/bin";
-      mkdir -p "$out/bin";
+      mkdir -p "$out/bin" "$out/libexec";
       for script in $scripts; do
         bname="''${script##*/}";
         bname="''${bname:33}";
@@ -52,13 +53,15 @@ in {
           ;;
           *) spath="$common_path"; ;;
         esac
+        inject="export PATH=\\\"\\\$PATH:$spath\\\";";
+        inject+=" export FLOCO_FPATH=\\\"$out/libexec/functions\\\";";
         {
           echo "#! $bash/bin/bash";
           tail -n +2 "$script";
-        }|sed "s,^# @BEGIN_INJECT_UTILS@\$,PATH=\\\"\\\$PATH:$spath\\\";,"  \
-              >"$out/bin/$bname";
+        }|sed "s,^# @BEGIN_INJECT_UTILS@\$,$inject," >"$out/bin/$bname";
         chmod +x "$out/bin/$bname";
       done
+      cp -r "$functions" "$out/libexec/functions";
     ''];
   };
 

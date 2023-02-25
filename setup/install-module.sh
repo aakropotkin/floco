@@ -195,29 +195,29 @@ fi
 
 # Copy package/module
 do_copy() {
-  $MKDIR -p "$TO";
-  $CHMOD 0755 "$TO";
+  ${MKDIR:-mkdir} -p "$TO";
+  ${CHMOD:-chmod} 0755 "$TO";
   if [[ -z "$NO_PERMS" ]]; then
-    $CP                             \
+    ${CP:-cp}                       \
       -r                            \
       --no-preserve=mode,ownership  \
       --preserve=timestamp          \
       --reflink=auto -T             \
       -- "$FROM" "$TO"              \
     ;
-    $CHOWN -R "$OWNER:$GROUP" "$TO";
+    ${CHOWN:-chown} -R "$OWNER:$GROUP" "$TO";
     pushd "$FROM" >/dev/null;
-    $FIND . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
+    ${FIND:-find} . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
     popd >/dev/null;
   else
-    $CP -r --reflink=auto -T -- "$FROM" "$TO";
+    ${CP:-cp} -r --reflink=auto -T -- "$FROM" "$TO";
   fi
 }
 
 do_link() {
-  $MKDIR -p "${TO%/*}";
-  $CHMOD 0755 "${TO%/*}";
-  $LN -sfT -- "$FROM" "$TO";
+  ${MKDIR:-mkdir} -p "${TO%/*}";
+  ${CHMOD:-chmod} 0755 "${TO%/*}";
+  ${LN:-ln} -sfT -- "$FROM" "$TO";
 }
 
 
@@ -233,23 +233,23 @@ fi
 # ---------------------------------------------------------------------------- #
 
 pjsHasBin() {
-  $JQ -e 'has( "bin" )' "$TO/package.json" >/dev/null;
+  ${JQ:-jq} -e 'has( "bin" )' "$TO/package.json" >/dev/null;
 }
 
 pjsHasBindir() {
-  $JQ -e 'has( "directories" ) and ( .directories|has( "bin" ) )'  \
-      "$TO/package.json" >/dev/null;
+  ${JQ:-jq} -e 'has( "directories" ) and ( .directories|has( "bin" ) )'  \
+               "$TO/package.json" >/dev/null;
 }
 
 pjsHasBinString() {
-  $JQ -e 'has( "bin" ) and ( ( .bin|type ) == "string" )'  \
-      "$TO/package.json" >/dev/null;
+  ${JQ:-jq} -e 'has( "bin" ) and ( ( .bin|type ) == "string" )'  \
+               "$TO/package.json" >/dev/null;
 }
 
 pjsHasAnyBin() {
-  $JQ -e 'has( "bin" ) or ( has( "directories" ) and
-          ( .directories|has( "bin" ) ) )'  \
-      "$TO/package.json" >/dev/null;
+  ${JQ:-jq} -e 'has( "bin" ) or ( has( "directories" ) and
+                ( .directories|has( "bin" ) ) )'  \
+               "$TO/package.json" >/dev/null;
 }
 
 
@@ -260,7 +260,7 @@ pjsHasAnyBin() {
 if [[ -z "$NO_BINS" ]]; then
   if [[ -z "${BIN_DIR:-}${BIN_PAIRS:-}" ]]; then
     if pjsHasBindir; then
-      BIN_DIR="$( $JQ -r '.directories.bin' "$TO/package.json"; )";
+      BIN_DIR="$( ${JQ:-jq} -r '.directories.bin' "$TO/package.json"; )";
       BIN_PAIRS="$(
         for f in "$TO/$BIN_DIR/"*; do
           [[ -d "$f" ]] && continue;
@@ -271,10 +271,10 @@ if [[ -z "$NO_BINS" ]]; then
       BIN_PAIRS="${BIN_PAIRS% }";
     elif pjsHasBinString; then
       unset BIN_DIR;
-      BIN_PAIRS="${IDENT#@*/},$( $JQ -r '.bin' "$TO/package.json"; )";
+      BIN_PAIRS="${IDENT#@*/},$( ${JQ:-jq} -r '.bin' "$TO/package.json"; )";
     else
       unset BIN_DIR;
-      BIN_PAIRS="$( $JQ -r '
+      BIN_PAIRS="$( ${JQ:-jq} -r '
         .bin|to_entries|map( .key + "," + .value )|join( " " )
       ' "$TO/package.json"; )";
     fi
@@ -310,7 +310,7 @@ pjsPatchNodeShebang() {
     */bin/env\ *node) :; ;;
     */node\ |node\ )
       case "$oldPath" in
-        $NIX_STORE/*) return 0; ;;
+        "${NIX_STORE:-/nix/store}/"*) return 0; ;;
         *) :; ;;
       esac
       :;
@@ -329,9 +329,9 @@ pjsPatchNodeShebang() {
   echo '' >&2;
   {
     echo "#!$NODEJS";
-    $TAIL -n +2 "$1";
+    ${TAIL:-tail} -n +2 "$1";
   } > "$1~";
-  $CHMOD 0755 "$1~";
+  ${CHMOD:-chmod} 0755 "$1~";
   mv -- "$1~" "$1";
   touch --date "$timestamp" "$1";
 }
@@ -348,7 +348,7 @@ if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
 elif [[ -z "$NO_BINS$NO_PERMS" ]]; then
   pushd "$TO" >/dev/null;
   # shellcheck disable=SC2046
-  $CHMOD +wx $( for bp in $BIN_PAIRS; do
+  ${CHMOD:-chmod} +wx $( for bp in $BIN_PAIRS; do
     _bin="${bp#*,}";
     _bin="${_bin#/}";
     _bin="./${_bin#./}";
@@ -366,7 +366,7 @@ fi
 # do the exact same thing.
 
 if [[ -z "$NO_BINS$NO_BIN_LINKS" ]]; then
-  $MKDIR -p "$NMDIR/.bin";
+  ${MKDIR:-mkdir} -p "$NMDIR/.bin";
   for bp in $BIN_PAIRS; do
     if [[ -L "$NMDIR/.bin/${bp%,*}" ]]; then
       echo "$_as_me: WARNING: creation of '$NMDIR/.bin/${bp%,*}' skipped - \
@@ -375,7 +375,7 @@ file already exists." >&2;
       _bin="${bp#*,}";
       _bin="${_bin#/}";
       _bin="${_bin#./}";
-      $LN -sr -- "$TO/$_bin" "$NMDIR/.bin/${bp%,*}";
+      ${LN:-ln} -sr -- "$TO/$_bin" "$NMDIR/.bin/${bp%,*}";
     fi
   done
 fi
