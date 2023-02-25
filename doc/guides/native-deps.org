@@ -403,7 +403,7 @@ nix search nixpkgs '\.(libzmq|zeromq)';
 :   The Intelligent Transport Layer
 #+end_example
 
-The last two look right to me, since the earlier results appear to be
+The last two look right to me since the earlier results appear to be
 modules/packages for =octave= and =LISP=.
 Because both of the final results have the same version number and
 description, my bet is that they're aliases of one another.

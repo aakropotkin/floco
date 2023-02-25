@@ -45,8 +45,12 @@ in {
         pname = "${baseNameOf pdef.ident}-installed";
         inherit (pdef) version;
         inherit (cfg) copyTree scripts;
+        builder = builtins.path {
+          path      = ../../../../builders/floco-builder.sh;
+          recursive = false;
+        };
         install_module = builtins.path {
-          path = ../../../../setup/install-module.sh;
+          path      = ../../../../setup/install-module.sh;
           recursive = false;
         };
         IDENT             = pdef.ident;
@@ -70,8 +74,6 @@ in {
         configurePhase = ''
           runHook preConfigure;
 
-          set -eu;
-          set -o pipefail;
           export JQ="$( command -v jq; )";
           export NODEJS="$( command -v node; )";
 
@@ -80,8 +82,6 @@ in {
         buildPhase = ''
           runHook preBuild;
 
-          set -eu;
-          set -o pipefail;
           if [[ -r ./binding.gyp ]]; then
             runPjsScript -i preinstall;
             case "$( jq -r '.scripts.install // null' ./package.json; )" in
@@ -106,12 +106,7 @@ in {
         installPhase = ''
           runHook preInstall;
 
-          rm -f ./package-lock.json;
-          if [[ -L ./node_modules ]]; then
-            rm ./node_modules;
-          elif [[ -d ./node_modules ]]; then
-            rm -rf ./node_modules;
-          fi
+          cleanupNmDir;
 
           export HOST_PATH;
           bash -eu "$install_module" -SLt . "$out";
@@ -139,6 +134,7 @@ in {
 
 
 }
+
 
 # ---------------------------------------------------------------------------- #
 #
