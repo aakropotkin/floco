@@ -51,7 +51,8 @@ in {
     dist = lib.mkDefault ( if pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
         inherit lib;
-        inherit (pkgs) system bash coreutils findutils;
+        inherit (pkgs) system bash coreutils jq findutils gnused;
+        nodejs = pkgs.nodejs-slim-14_x;
         pkgsFor = pkgs;
         src     = config.built.package;
         pjs = {

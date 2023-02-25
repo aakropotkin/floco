@@ -17,10 +17,15 @@ in {
 , pacote    ? import ../fpkgs/pacote { inherit lib system pkgsFor; }
 , bash      ? pkgsFor.bash
 , coreutils ? pkgsFor.coreutils
+, jq        ? pkgsFor.jq
 , findutils ? pkgsFor.findutils
+, nodejs    ? pkgsFor.nodejs-slim-14_x
+, gnused    ? pkgsFor.gnused
 
-, doUnpatch        ? true
-, unpatch_shebangs ? ../setup/unpatch-shebangs.sh
+, doUnpatch   ? true
+, floco-utils ? ( import ../setup {
+    inherit system bash coreutils jq findutils nodejs gnused;
+  } ).floco-utils
 
 }: let
 
@@ -38,13 +43,14 @@ in {
 # ---------------------------------------------------------------------------- #
 
   drvUnpatch = derivation {
-    inherit name system src unpatch_shebangs;
+    inherit name system src;
     builder = "${bash}/bin/bash";
-    PATH    = "${coreutils}/bin:${pacote}/bin:${findutils}/bin:${bash}/bin";
+    PATH    = "${coreutils}/bin:${pacote}/bin:${findutils}/bin:${bash}/bin" +
+              ":${floco-utils}/bin";
     args    = ["-eu" "-o" "pipefail" "-c" ''
       pacote --cache=./.cache extract "$src" ./package;
-      find ./package -type f -perm -0100                        \
-                     -exec bash -eu "$unpatch_shebangs" {} \+;
+      find ./package -type f -perm -0100               \
+                     -exec unpatch-shebangs.sh {} \+;
       pacote --cache=./.cache tarball ./package "$out";
     ''];
     preferLocalBuild = true;
