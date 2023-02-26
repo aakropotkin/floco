@@ -8,6 +8,31 @@
 
 # ---------------------------------------------------------------------------- #
 
+  getDepsWith = pred: pdef: lib.filterAttrs ( _: pred ) pdef.depInfo;
+
+  getRuntimeDeps = {
+    includeOptional ? true
+  , includeBundled  ? false
+  }: let
+    pred = de:
+      de.runtime &&
+      ( includeOptional || ( ! de.optional ) ) &&
+      ( includeBundled || ( ! de.bundled ) );
+  in getDepsWith pred;
+
+  getDevDeps = {
+    includeOptional ? true
+  , includeBundled  ? false
+  }: let
+    pred = de:
+      de.dev &&
+      ( includeOptional || ( ! de.devOptional ) ) &&
+      ( includeBundled || ( ! de.bundled ) );
+  in getDepsWith pred;
+
+
+# ---------------------------------------------------------------------------- #
+
   pdefClosure' = pdefs: keylike: let
     mkNode = builtins.intersectAttrs {
       key     = true; ident    = true; version  = true;
@@ -30,6 +55,26 @@
   , pdefs  ? floco.pdefs
   , ...
   } @ pa: keylike: pdefClosure' pdefs keylike;
+
+
+# ---------------------------------------------------------------------------- #
+
+  pdefClosureWith' = rootPred: pred: pdefs: keylike: let
+    rootPdef = lib.libfloco.getPdef pdefs keylike;
+    filterDeps = pdef: pdef // {
+      depInfo = if rootPdef.key == pdef.key then getDepsWith rootPred pdef else
+                getDepsWith pred pdef;
+    };
+    filtered = map filterDeps ( pdefClosure' pdefs keylike );
+    pdefs'   = lib.libfloco.pdefsFromList filtered;
+  in pdefClosure' pdefs' keylike;
+
+  pdefClosureWith = rootPred: pred: {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: keylike: pdefClosureWith' rootPred pred pdefs keylike;
 
 
 # ---------------------------------------------------------------------------- #
@@ -141,7 +186,11 @@
 in {
 
   inherit
+    getDepsWith
+    getRuntimeDeps
+    getDevDeps
     pdefClosure
+    pdefClosureWith
     __mkTBNode
     __mkSubtree
     __topScope

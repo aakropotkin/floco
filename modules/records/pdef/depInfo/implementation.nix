@@ -9,7 +9,8 @@
 # ---------------------------------------------------------------------------- #
 
   raw = let
-    dev' = if ! config.lifecycle.build then {} else {
+    # Ignore `devDependencies*' for distributed tarballs.
+    dev' = if config.ltype == "file" then {} else {
       devDependencies      = true;
       devDependenciesMeta  = true;
     };

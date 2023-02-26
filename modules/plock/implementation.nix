@@ -101,6 +101,8 @@ in {
           peerDependencies     = true;
           peerDependenciesMeta = true;
           optionalDependencies = true;
+          bundledDependencies  = true;
+          bundleDependencies   = true;
           dev                  = true;
           peer                 = true;
           optional             = true;

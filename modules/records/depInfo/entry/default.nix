@@ -179,6 +179,7 @@ in {
 
     runtime = lib.mkDefault (
       ( runtimeDeps ? ${ident} ) ||
+      ( optionalDependencies ? ${ident} ) ||
       ( builtins.elem ident bundledDependencies )
     );
 
