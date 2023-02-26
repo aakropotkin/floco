@@ -65,7 +65,7 @@
       depInfo = if rootPdef.key == pdef.key then getDepsWith rootPred pdef else
                 getDepsWith pred pdef;
     };
-    filtered = map filterDeps ( pdefClosure' pdefs keylike );
+    filtered = map filterDeps ( ( pdefClosure' pdefs keylike ) ++ [rootPdef] );
     pdefs'   = lib.libfloco.pdefsFromList filtered;
   in pdefClosure' pdefs' keylike;
 
@@ -169,7 +169,7 @@
 # ---------------------------------------------------------------------------- #
 
   __treeInfoFromPdefs' = pdefs: keylike: let
-    closure  = pdefClosure' pdefs keylike;
+    closure  = pdefClosureWith' ( _: true ) ( de: de.runtime ) pdefs keylike;
     rootPdef = lib.libfloco.getPdef { inherit pdefs; } keylike;
   in __treeInfoFromClosure closure rootPdef;
 
