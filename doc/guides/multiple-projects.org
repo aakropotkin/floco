@@ -103,11 +103,79 @@ run into conflicting metadata is in =depInfo.<IDENT>.pin= fields.
 Other fields to watch out for are =fetchInfo.path=, =treeInfo=, =ltype=,
 and =depInfo=.
 
-*** Merging =depInfo.<IDENT>.pin= fields
+*** Merging =depInfo.<IDENT>.pin= Definitions
 
 This type has a custom =merge= function which breaks conflicts by
 preferring the "highest" semantic version number.
 
 These pins may be used by submodules that attempt to generate =treeInfo=
 records when they are undefined, but remember that they will NOT have any
-effect on configurations which explicitly define =treeInfo= records.
+effect on configurations which explicitly define =treeInfo= records since
+the generated fallbacks carry a low priority.
+
+These conflicts are the most common because =pdefs.nix= files generated
+from =package-lock.json= files are going to "pin" whatever =npm install=
+resolves on a particular day.
+Notably, the updater =fromPlock= will use an existing =package-lock.json=
+if it exists, only adding missing lockfile entries, so one strategy for
+avoiding conflicting pins is to check your =package-lock.json= into
+version control, allowing it to be reprocessed by =fromPlock= when you
+make changes to your dependency graph.
+
+
+*** Merging =fetchInfo.path= Definitions
+
+Because =fetchInfo.path= needs to resolve relative paths from the file
+they are declared in, it uses a custom type which merges defintions with
+the routine
+[[https://github.com/aakropotkin/floco/blob/main/lib/options.nix#L23][mergeRelativePathOption]],
+resolving relative paths to be absolute first, then asserts that all
+definitions are equal ( using =mergeEqualOptions= ).
+
+You can use this =merge= implementation, and refer its usage in
+[[https://github.com/aakropotkin/floco/blob/main/modules/fetchers/path/implementation.nix#L101][<floco>/modules/fetchers/path/implementation.nix]]
+if you need to use a similar relative path type in an extension
+to =floco=.
+
+
+*** Merging =ltype= Definitions
+
+=ltype= is short for "Lifecycle Type", and is used to identify the
+state of project in the preparation process based on the type of source
+it is consumed from.
+
+For example, when we consume a dependency as a tarball
+( ~ltype = "file"~ ), we know that the project has already run any =build=
+phases, and there is no need to rerun them.
+This also means we do not care about the =devDependencies= for this
+pacakge, and can ignore them; in fact, you may notice that =npm= and
+=yarn= completely omit information related to =devDependencies= from
+their lockfiles.
+
+In cases where multiple =ltype= definitions are found, =floco= will choose
+the "most prepared" definition so that other derived config values can
+skip generating =treeInfo= records with =devDependencies=, and =package=
+targets related to pre-distribution phases
+( =built=, =lint=, and =test= ).
+
+The priority is:
+- =file= :: a distributed tarball.
+- =dir= :: a local directory.
+- =link= :: a symlink to a local directory, for =floco= this is effectively equivalent to =dir=.
+- =git= :: a git checkout.
+
+
+*** Merging =treeInfo= Definitions
+
+=treeInfo= uses a regular =lib.types.lazyAttrsOf= type for its members,
+and you should remember this when making these declarations.
+
+It is strongly recommended that you only create a single =treeInfo=
+definition for each project across all configs.
+Using =lib.mkForce= in =foverrides.nix= can be a good way deal to with
+any problematic =treeInfo= defintions in generated files or projects
+that you import.
+
+Note that the fallback trees used if no =treeInfo= record is defined are
+produced from =depInfo.<IDENT>.pin= definitions.
+See the section above that focuses on how these are merged.
