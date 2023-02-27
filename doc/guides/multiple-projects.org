@@ -4,3 +4,21 @@
 easy, in fact it was originally designed to allow "recursive
 local builds" in a way that =yarn= and =npm= really struggle
 to provide.
+
+The summary of this article for a `project-a` that depends on
+`project-b`is basically:
+#+BEGIN_SRC nix
+{
+  _file   = "project-a/floco-cfg.nix";
+  imports = [
+    ./pdefs.nix
+    ./foverrides.nix
+    ../project-b/floco-cfg.nix
+  ];
+}
+#+END_SRC
+
+The convention of organizating generated configs in
+`pdefs.{json,nix}`, manual configuration in `foverrides.nix`,
+and project/file organization in `floco-cfg.nix`
+is recommended.
