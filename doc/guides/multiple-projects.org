@@ -120,6 +120,56 @@ priority values to be ignored entirely.
 The =mergeEqualOptions= routine will only process the
 highest priority definitions.
 
+*** Priorities
+
+Priorities are processed before any type =merge= functions, and cause only
+the "top priority" definitions to be merged.
+
+Priority properties are stored in a meta attribute =override=
+( and can be manually ) encoded, or you can use some convenience functions
+in =lib= to set them.
+
+Definitions with the lowest integer are consider "top priority" or
+"high priority", which can be confusing because of the inverse
+relationship between the integer and the terms "high"/"low".
+These generally range from 0-1500, where 0 where 1500 is "low priority"
+and 0 is "top/high priority".
+
+**** Priority of Helpers
+
+| Function            | Priority | Notes                                                                     |
+|---------------------+----------+---------------------------------------------------------------------------|
+| lib.mkOverride P    |        P | Sets priority to integer P.                                               |
+| lib.mkOptionDefault |     1500 | Same priority as an option's default value.                               |
+| lib.mkDefault       |     1000 | Commonly used to set defaults based on config.                            |
+| NONE                |      100 | Priority for regular config fields when no priority was explicitly given. |
+| lib.mkForce         |       50 | Used to override "regular" configs. Conventionally reserved for users.    |
+
+For clarity: a plain ~{ config.foo = 1; }~ has priority of 100.
+
+**** Encode Priority Manually
+In cases where you may want to manually encode priority without
+referring to lib, for example in a JSON file or a "trivial" Nix file.
+
+The following two declarations are equivalent:
+
+#+BEGIN_SRC nix
+{ lib, ... }: { config.foo = lib.mkOverride 200 "bar"; };
+#+END_SRC
+
+#+BEGIN_SRC nix
+{
+  config.foo = {
+    _type    = "override";
+    content  = "bar";
+    priority = 200;
+  };
+}
+#+END_SRC
+
+This can be used to optimize caching of large =foverrides.nix= files,
+or define priorities in non-Nix files where =lib= is unavailable.
+
 *** Merging Attrsets
 
 The merge routines for =attrsOf= and =lazyAttrsOf=
@@ -134,35 +184,80 @@ with =floco= because of how commonly we use it.
 
 To keep things brief we'll use the following example to
 show the merge behaviors with different priority settings.
+
 #+BEGIN_SRC nix
-{ lib, ... }: {
-
-  options.foo = lib.mkOption {
-    type = lib.types.lazyAttrsOf lib.types.anything;
+let
+  inherit (builtins.getFlake "floco") lib;
+  interface = { lib, ... }: {
+    options.bar = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
+    options.foo = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
+    options.quux = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
   };
-  options.bar = lib.mkOption {
-    type = lib.types.lazyAttrsOf lib.types.anything;
+
+  c0 = {
+    config.bar = {
+      a = 0;
+      b = lib.mkForce 1;
+    };
+
+    config.foo.a = 0;
+    config.foo.b = lib.mkForce 1;
+
+    config.quux = lib.mkDefault {
+      a = 0;
+      b = lib.mkForce 1;
+    };
   };
-  options.quux = lib.mkOption {
-    type = lib.types.lazyAttrsOf lib.types.anything;
+
+  c1 = {
+    config.bar = lib.mkForce {
+      b = 2;
+      c = 3;
+    };
+
+    config.foo.b = lib.mkDefault 2;
+    config.foo.c = 3;
+
+    config.quux = lib.mkDefault {
+      b = 2;
+      c = 3;
+    };
   };
 
-  imports = [
-    {
-      config.foo.a = 0;
-      config.foo.b = lib.mkForce 1;
+  mod = lib.evalModules { modules = [interface c0 c1]; };
 
-      config.bar = {
-        c = 2;
-        d = 3;
-      };
-
-      config.quux = lib.mkDefault {
-        e = 4;
-        f = lib.mkForce 5;
-      };
-    } 
-  ];
-
-} 
+in lib.generators.toPretty {} mod.config
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+{
+  bar = {
+    b = 2;
+    c = 3;
+  };
+  foo = {
+    a = 0;
+    b = 1;
+    c = 3;
+  };
+  quux = {
+    a = 0;
+    b = 1;
+    c = 3;
+  };
+}
+#+end_example
+
+So things to pay attention to here:
+- You can set priority on the outer attrset, or individual values.
+- Priority of the attrset are processed "first", then priority is
+  processed for individual fields.
+  + See =quux.b= vs =bar.b=.
+  + Consider how =builtins.mapAttrs= might be used in this context.
