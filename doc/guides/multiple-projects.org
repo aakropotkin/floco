@@ -18,7 +18,19 @@ The summary of this article for a =project-a= that depends on
 }
 #+END_SRC
 
+* Files
+
 The convention of organizating generated configs in
 =pdefs.{json,nix}=, manual configuration in =foverrides.nix=,
 and project/file organization in =floco-cfg.nix=
 is recommended.
+
+* =_file= Fields
+
+While the =_file= field is optional, it is strongly 
+recommended and the modules for certain records are sensitive
+to filenames.
+By setting =_file= explicitly you'll ensure that backtraces
+and deserialization of configs use the given name regardless
+of the "real" filename which can help avoid pitfalls.
+ 
