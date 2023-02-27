@@ -185,7 +185,7 @@ with =floco= because of how commonly we use it.
 To keep things brief we'll use the following example to
 show the merge behaviors with different priority settings.
 
-#+BEGIN_SRC nix
+#+BEGIN_SRC nix :exports both :results output
 let
   inherit (builtins.getFlake "floco") lib;
   interface = { lib, ... }: {
