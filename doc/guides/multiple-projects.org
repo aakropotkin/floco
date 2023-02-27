@@ -231,8 +231,8 @@ handles rebuilds for other local projects quickly.
 With a bit of pre-processing you can sometimes even avoid regenerating
 metadata for local projects.
 
-
 *** Overview
+
 - Use ~fromPlock -- -pt -- --install-strategy=shallow~.
 - Extract subtrees to define =treeInfo= of direct dependencies.
 - Redefine root =treeInfo= as symlinks to direct deps.
@@ -245,3 +245,38 @@ metadata for local projects.
     you can.
   + Only worthwhile for excessively large subtrees such as =@babel/*=,
     =webpack=, etc.
+- If you need a copied form of a local project you need to add the flag
+  =--install-links=, or post-process =treeInfo= to add dependencies and
+  remove the ~link = true;~ declaration from the effected projects.
+  + If you have a mix of "I want some copies and some links for local
+    projects" you could use shadow trees or a Nix expression to hack
+    together the desired =treeInfo= record.
+    This sounds like a pain in the ass though.
+
+
+*** Optimizations
+
+As an optimization you can "hide" local deps during the generation of
+=treeInfo= to just create trees for external projects, then with a bit of
+fixup you can just refer to locals using symlinked =treeInfo= entries
+( only works withouth =peerDependencies= ).
+This allows you avoid regenrating =pdefs.nix= in the consuming project if
+the dependency graph of your other local projects change.
+
+This process isn't painful to automate, but may be prone to errors if
+manually filled entries aren't created properly.
+Nonetheless, it may be worthwhile for large dependency graphs.
+
+Its main advantage is that you could avoid regenerating =pdefs.nix= files,
+which is a significant UX improvement for large workspaces.
+
+- Delete local dependencies from =package.json= in shadow tree before
+  running =fromPlock= to avoid redundant definitions of transitive deps.
+- Manually add symlinks to =treeInfo= record for these, and manually fill
+  =depInfo= record to account for its removal.
+  + Splicing with an ad-hoc translation of your =package.json= could avoid
+    having to implement a routine to fill these fields.
+  + You should be able to create the =treeInfo= entry for your local
+    dependency just by knowing its =key= ( =ident= + =version= ).
+- Don't forget to add the other projects' =floco-cfg.nix= file to your
+  =includes= field in your own =floco-cfg.nix=.
