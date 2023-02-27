@@ -25,7 +25,7 @@ The convention of organizating generated configs in
 and project/file organization in =floco-cfg.nix=
 is recommended.
 
-** =_file= Fields
+** =_file= Field
 
 While the =_file= field is optional, it is strongly 
 recommended and the modules for certain records are sensitive
@@ -49,7 +49,7 @@ but the following two includes are equivalent:
 {
   _file = "foo/floco-cfg.nix";
   imports = [
-    ( { _file = "foo/pdefs.json"; } //
+    ( { _file = ./foo/pdefs.json; } //
       ( lib.importJSON ./pdefs.json ) )
       
     ( lib.modules.importJSON ./foverrides.json )
@@ -61,3 +61,30 @@ When including JSON and other formats you should remember
 the way "shorthand" configs get processed and you make
 sure that you don't accidentally define
 ~config.config.foo = 1;~.
+
+** =imports= Field
+
+Imports are a module field containing paths to or inline
+definitions of modules that will be merged with the
+current module.
+
+This field is special in the module system because it must
+be processed before =config= and generally cannot refer
+to any arguments other than =lib=.
+=deferredModule= is an exception to this rule, and is
+used to define configurable records.
+
+=imports= may be defined for submodules as well, not just
+the top level module.
+This can be useful for recycling common code to be applied
+to =pdef= or =package= records.
+
+* Merged Build Plan
+
+When multiple files or projects are combined with =imports=
+the module system merges definitions of attrsets and types
+recursively using rules defined in options' type definitions.
+
+The NixOS manual is the best resource for learning about
+merges, but I'll cover some fundamentals and notable types
+in =floco= that use custom merge routines.
