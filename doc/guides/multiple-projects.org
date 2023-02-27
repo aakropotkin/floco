@@ -25,7 +25,7 @@ The convention of organizating generated configs in
 and project/file organization in =floco-cfg.nix=
 is recommended.
 
-* =_file= Fields
+** =_file= Fields
 
 While the =_file= field is optional, it is strongly 
 recommended and the modules for certain records are sensitive
