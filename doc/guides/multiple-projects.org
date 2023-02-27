@@ -179,3 +179,92 @@ that you import.
 Note that the fallback trees used if no =treeInfo= record is defined are
 produced from =depInfo.<IDENT>.pin= definitions.
 See the section above that focuses on how these are merged.
+
+A dedicated section below covers strategies for generating =treeInfo=
+definitions with multiple projects.
+
+
+* =treeInfo= Generation Strategies
+
+The =treeInfo= record is used to define the filesystem hierarchy of the
+=node_modules/= tree used for various preparation stages.
+This is practically the most important part of =pdef= record, and
+understanding the various strategies used to generate them can have a large
+impact on build performance.
+
+We'll start with a short summary of "install strategies" used by =npm= and
+=yarn= to provide context for the strategies used in =floco=.
+
+
+** Install Strategies in Other Tools
+
+=npm= and =yarn= install strategies are a useful foundation to understand.
+We'll start by describing non-workspace strategies first ignoring symlinks.
+
+*** Nested
+
+- Description :: Every direct dependency is placed in then =node_modules/= subdir of every consumer.
+
+- Cycle Breaking :: A symlink to a parent may be added to =node_modules/<IDENT>= to break cycles.
+
+- Pros
+  + Easy to move modules around safely.
+
+- Cons
+  + Large number of redundant modules.
+  + Breaks some bundlers and "source maps".
+
+
+*** Hoisted
+
+- Description :: Places transitive dependencies in root =node_modules/= directory if possible. Otherwise adds dependencies to subdirs of consumers.
+
+- Cycle Breaking :: Hoisting largely eliminates the need to break cycles by relying on the Node.js resolution system. A cycle with the root package may cause a =node_modules/<IDENT>= symlink to be created - this requires cycle members to be copies.
+
+- Pros
+  + Significantly reduces redundant modules. Strongly preferred if modules are copied.
+  + Reduces the risk of resolving different but compatible versions of a module in disparate parts of the =node_modules/= tree.
+  + Source maps and bundlers "just work".
+
+- Cons
+  + Incredibly difficult to move modules.
+  + Projects often forget to declare direct dependencies but avoid crashing because a sibling in the tree requested it.
+    - This largely effects local projects; but it indirectly aggravates attempts by =floco= to run builds in isolation.
+  + Large projects struggle to manage conflicting =peerDependency= requests properly.
+    - This is completely manageable by folks with experience; but for beginners it's easy to make mistakes.
+
+
+*** Shallow ( "Global" )
+
+- Description :: A hybrid between "nested" and "hoisted" which only places direct dependencies in the root =node_modules/= directory, but uses the "hoisted" install strategy for subdirs. This strategy is equivalent to globally installing a module and copying/symlinking it into your =node_modules/= directory.
+
+- Cycle Breaking :: Same idea as "hoisted".
+
+- Pros
+  + Easy to move trees.
+  + Preserves some of the deduplication benefits seen in "hoisted".
+  + When direct dependencies lack =peerDependencies=, symlinks to shared global installs are possible.
+
+- Cons
+  + Some modules are still duplicated, which may effect bundlers and "source maps".
+  + Will not work if the root package fails to handle =peerDependencies= correctly.
+  + If direct dependencies have =peerDependencies= they must be copied, not symlinked in order to resolve properly.
+  + If tools literally copy/symlink from globally installed directories, compatibility between transitive dependencies can become an issue.
+
+
+*** Plug and Play ( PnP )
+
+- Description :: Essentially bundles dependencies into a single file, or uses source maps to refer to shared installs.
+
+- Cycle Breaking :: Graph nodes are merged ( bundled ) into a common namespace, dissolving the issue of cycles altogether.
+
+- Pros
+  + Fixes a large number of issues with the fundamental design of the =node_modules/= approach to dependency management.
+  + Source maps generally work ( PnP is basically a giant source map ).
+  + Can deduplicate dependencies system/workspace wide by sharing a single copy. In this sense its very similar to the nested symlink strategy used by =floco=.
+
+- Cons
+  + Experimental, may not be ready for use in production code and not standardized.
+  + Requires patching core parts of =node=. It's a wide sweeping change that may misbehave in unexpected ways.
+  + Not supported or problematic with many common tools and libraries.
+  + Struggles with sanitation of =*.node= bindings and platform portability ( =yarn= specifically ).
