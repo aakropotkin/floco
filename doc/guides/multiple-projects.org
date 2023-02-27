@@ -150,7 +150,7 @@ show the merge behaviors with different priority settings.
   imports = [
     {
       config.foo.a = 0;
-      config.foo.b = lib.mkOverride 1;
+      config.foo.b = lib.mkForce 1;
 
       config.bar = {
         c = 2;
@@ -159,7 +159,7 @@ show the merge behaviors with different priority settings.
 
       config.quux = lib.mkDefault {
         e = 4;
-        f = lib.mkOverride 5;
+        f = lib.mkForce 5;
       };
     } 
   ];
