@@ -99,5 +99,30 @@ For =config.foo= you'll look for the type in
 The definition of the types themselves can usually be found in
 Nixpkgs' lib/types.nix, or floco's lib/types.nix.
 For most work though you'll only need to understand the bread and
-butter: =listOf=, =lazyAttrsOf=, =submodule=, =deferredModule=,
-and the =floco= extensions =relpath= and =uniqueListOf=.
+butter: =listOf=, =attrsOf=, =lazyAttrsOf=, =submodule=,
+=deferredModule=, and the =floco= extensions =relpath=
+and =uniqueListOf=.
+
+In addition to type definitions, merging is also influenced by
+definition =priority= and =order=.
+
+*** Primitive Values
+
+Primitive values are generally merged using a function called
+=mergeEqualOptions=, which asserts that if multiple definitions
+of a value are given, that they must be equal.
+This essentially makes it "okay" to make redundant definitions
+of an option.
+
+The only time it's okay for different definitions to exist is
+if they set different =priority= which will cause low
+priority values to be ignored entirely.
+The =mergeEqualOptions= routine will only process the
+highest priority definitions.
+
+*** Merging Attrsets
+
+The merge routines for =attrsOf= and =lazyAttrsOf=
+use the =//= operator to join definitons, and the way that
+it treats =priority= for the attrsets and its members is
+worth exploring. 
