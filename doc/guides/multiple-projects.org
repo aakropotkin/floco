@@ -128,7 +128,7 @@ it treats =priority= for the attrsets and its members is
 worth exploring.
 
 We won't get into the differences between =lazyAttrsOf= and
-=attrsOf= ( covered in NixOS manual ), except yo say that we
+=attrsOf= ( covered in NixOS manual ), except to say that we
 prefer =lazyAttrsOf= and that you should avoid =lib.mkIf=
 with =floco= because of how commonly we use it.
 
