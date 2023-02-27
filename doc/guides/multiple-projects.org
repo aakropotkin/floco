@@ -1,0 +1,6 @@
+#+TITLE: Multiple Projects
+
+=floco= was designed to make managing multiple local projects
+easy, in fact it was originally designed to allow "recursive
+local builds" in a way that =yarn= and =npm= really struggle
+to provide.
