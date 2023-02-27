@@ -79,6 +79,7 @@ the top level module.
 This can be useful for recycling common code to be applied
 to =pdef= or =package= records.
 
+
 * Merged Build Plan
 
 When multiple files or projects are combined with =imports=
@@ -88,3 +89,15 @@ recursively using rules defined in options' type definitions.
 The NixOS manual is the best resource for learning about
 merges, but I'll cover some fundamentals and notable types
 in =floco= that use custom merge routines.
+
+
+** Fundamentals
+
+Merge rules for a value are defined by their type declaration.
+For =config.foo= you'll look for the type in
+=options.foo.type=.
+The definition of the types themselves can usually be found in
+Nixpkgs' lib/types.nix, or floco's lib/types.nix.
+For most work though you'll only need to understand the bread and
+butter: =listOf=, =lazyAttrsOf=, =submodule=, =deferredModule=,
+and the =floco= extensions =relpath= and =uniqueListOf=.
