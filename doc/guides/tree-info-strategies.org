@@ -1,0 +1,219 @@
+#+TITLE: Tree Info
+
+The =treeInfo= record is used to define the filesystem hierarchy of the
+=node_modules/= tree used for various preparation stages.
+This is practically the most important part of =pdef= record, and
+understanding the various strategies used to generate them can have a large
+impact on build performance.
+
+We'll start with a short summary of "install strategies" used by =npm= and
+=yarn= to provide context for the strategies used in =floco=.
+
+
+* Install Strategies in Other Tools
+
+=npm= and =yarn= install strategies are a useful foundation to understand.
+
+
+** Nested
+
+- Description :: Every direct dependency is placed in then =node_modules/= subdir of every consumer.
+
+- Cycle Breaking :: A symlink to a parent may be added to =node_modules/<IDENT>= to break cycles.
+
+- Pros
+  + Easy to move modules around safely.
+
+- Cons
+  + Large number of redundant modules.
+  + Breaks some bundlers and "source maps".
+
+
+** Hoisted
+
+- Description :: Places transitive dependencies in root =node_modules/= directory if possible. Otherwise adds dependencies to subdirs of consumers.
+
+- Cycle Breaking :: Hoisting largely eliminates the need to break cycles by relying on the Node.js resolution system. A cycle with the root package may cause a =node_modules/<IDENT>= symlink to be created - this requires cycle members to be copies.
+
+- Pros
+  + Significantly reduces redundant modules. Strongly preferred if modules
+    are copied.
+  + Reduces the risk of resolving different but compatible versions of a
+    module in disparate parts of the =node_modules/= tree.
+  + Source maps and bundlers "just work".
+
+- Cons
+  + Incredibly difficult to move modules.
+  + Projects often forget to declare direct dependencies but avoid
+    crashing because a sibling in the tree requested it.
+    - This largely effects local projects; but it indirectly aggravates
+      attempts by =floco= to run builds in isolation.
+  + Large projects struggle to manage conflicting =peerDependency=
+    requests properly.
+    - This is completely manageable by folks with experience; but for
+      beginners it's easy to make mistakes.
+
+
+** Shallow ( "Global" )
+
+- Description :: A hybrid between "nested" and "hoisted" which only places direct dependencies in the root =node_modules/= directory, but uses the "hoisted" install strategy for subdirs. This strategy is equivalent to globally installing a module and copying/symlinking it into your =node_modules/= directory.
+
+- Cycle Breaking :: Same idea as "hoisted".
+
+- Pros
+  + Easy to move trees.
+  + Preserves some of the deduplication benefits seen in "hoisted".
+  + When direct dependencies lack =peerDependencies=, symlinks to shared
+    global installs are possible.
+
+- Cons
+  + Some modules are still duplicated, which may effect bundlers and
+    "source maps".
+  + Will not work if the root package fails to handle
+    =peerDependencies= correctly.
+  + If direct dependencies have =peerDependencies= they must be copied,
+    not symlinked in order to resolve properly.
+  + If tools literally copy/symlink from globally installed directories,
+    compatibility between transitive dependencies can become an issue.
+
+
+** Plug and Play ( PnP )
+
+- Description :: Essentially bundles dependencies into a single file, or uses source maps to refer to shared installs.
+
+- Cycle Breaking :: Graph nodes are merged ( bundled ) into a common namespace, dissolving the issue of cycles altogether.
+
+- Pros
+  + Fixes a large number of issues with the fundamental design of the
+    =node_modules/= approach to dependency management.
+  + Source maps generally work ( PnP is basically a giant source map ).
+  + Can deduplicate dependencies system/workspace wide by sharing a
+    single copy.
+    - Very similar to the nested symlink strategy used by =floco=.
+
+- Cons
+  + Experimental, may not be ready for use in production code and
+    not standardized.
+  + Requires patching core parts of =node=. It's a wide sweeping change
+    that may misbehave in unexpected ways.
+  + Not supported or problematic with many common tools and libraries.
+  + Struggles with sanitation of =*.node= bindings and platform
+    portability ( =yarn= specifically ).
+
+
+** Workspaces
+
+- Description :: Groups of projects share =node_modules/= directories placed in parent directories. Similar to "hoisted" strategy, except =devDependencies= of workspace members can be installed. Symlinks are used to resolve.
+
+- Cycle Breaking :: Same idea as "hoisted".
+
+- Pros
+  + Improves on the deduplication benefits of "hoisted".
+  + Further reduces the risk of "compatible but different version"
+    resolution for workspace members.
+
+- Cons
+  + Implementations by =yarn= and =npm= feel experimental in quality.
+    - Difficult to debug.
+    - Conflicting lockfiles and unexpected effects of an existing
+      =node_modules/= tree on the filesystem make it easy to shoot your
+      foot off.
+  + Further aggravates issues related to =peerDependencies= that effect
+    "hoisted" strategy, especially concerning =devDependencies=.
+  + No standardized way to drive/order builds among workspace members.
+    - =npm= doesn't support his at all, and =yarn= attempts to support
+      this are fraught.
+  + Installing closures and subtrees is difficult and buggy.
+    - Running builds in isolation is aggravated.
+
+
+* =treeInfo= Requirements
+
+The =treeInfo= scheme strictly works with subtrees placed in the
+=node_modules/= directory of "the project being built", so "workspaces"
+with dependencies placed in parent directories must be moved into subdirs,
+and pruned to contain only the closure of packages required for a particular
+preparation stage.
+
+Symlinks to other projects point to the globally installed form of a package
+so any projects with =peerDependencies= are not suitable candidates for
+symlinking unless they also directly depend on the same version of a
+dependency marked as a peer.
+=treeInfo= paths marked for symlinking must not declare any subpaths.
+If dependency cycles exist between packages it is necessary to break these
+cycles by explicitly declaring at least one =treeInfo= member in such a way
+that copies are used to avoid two global installs from depending on
+one another.
+
+The =optional= and =devOptional= fields are interpreted as applying only to
+the path that sets them.
+Subpaths do not automatically inherit these settings.
+( TODO: Fix this ).
+
+
+* Scraping =treeInfo= from =package-lock.json= (v2/3)
+
+This is currently the recommended method of creating =treeInfo= records for
+a project and is the process used by both the =fromPlock= and =fromRegistry=
+"updaters" to produce =pdefs.{nix,json}= files.
+
+Inclusion of the root project's =treeInfo=, as well as =depInfo.<IDENT>.pin=
+fields can be enabled/disabled using the flags =--[no-]tree=
+and =--[no-]pins=.
+We'll cover when you might prefer each combination of flags in the sections
+below.
+
+** =npm= Install Strategy Flags
+In the case of =fromPlock= it's possible to pass additional flags to =npm=
+such as ~--install-strategy=(nested|hoisted|shallow)~
+( defaults to =hoisted= ), as well as
+~--workspaces=(true|false)~ ( defaults to =true= ), and
+=--legacy-peer-deps= ( not recommended ) if it is necessary.
+
+Folks working with multiple local projects may find the argument
+=--install-links= useful to force references to local paths to be treated
+as tarballs ( ~ltype = "file";~ ).
+This will ensure that you get the runtime dependencies of those projects
+in your =treeInfo= record without a ~link = true;~ field.
+
+For =fromRegistry= we use ~--install-strategy=shallow~ with
+=--legacy-peer-deps= on a dummy project, and extract the subtree placed
+under =node_modules/<IDENT>=.
+While you can manually set ~--install-strategy=nested~ if desired, you
+shouldn't use "hoisted" because you'll end up with an empty subtree.
+
+Note that we do not recommend using =fromPlock= with workspaces for
+generating =treeInfo= records unless you understand that they require
+post-processing to "focus" them into subtrees.
+
+
+* Scraping =depInfo.<IDENT>.pin= from =yarn.lock= (v5)
+
+There is a functional, but experimental =yarn.lock= translator that can
+provide pins and =pdefs= ( but not =treeInfo= ).
+
+We won't cover it's usage in detail here because it is going to be
+refactored soon; but for those who want to use it now it is located under
+[[https://github.com/aakropotkin/floco/modules/ylockToPdefs/implementation.nix][<floco>/modules/ylockToPdefs/implementation.nix]].
+This file is a regular function ( which is why it needs a rewrite ) which
+takes =lockDir=, =pkgs= ( for =yq= ), and =lib= as arguments.
+
+You'll be relying on the global symlink strategy ( described in the next
+section ) to produce trees unless you provide explicit definitions, so
+you'll need to deal with cycles in transitive dependencies by using
+=fromRegistry= to generate those =treeInfo= records
+( which can be imported or copy/pasted ).
+
+
+* Deriving =treeInfo= from Pins
+
+I'll preface this section by saying that a routine which produces hoisted
+=treeInfo= records from pins is currently being written ( currently works
+but doesn't mark =optional=, =dev=, or =devOptional= fields ).
+Until this routine is complete the only trees we can derive from pins are
+"shallow" trees using symlinks to globally installed forms of depdencies.
+
+This "shallow links" strategy is great for local development, but will not
+behave correctly for =peerDependencies= declared in your direct depencies,
+so you'll need to use =fromRegistry -- --tree= or =fromPlock -- --tree= in
+those cases.
