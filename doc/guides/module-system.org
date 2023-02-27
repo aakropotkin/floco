@@ -1,0 +1,193 @@
+#+TITLE: Module System
+
+=floco= uses a framework in Nixpkgs called "modules" as its interface for users
+to declare project recipes and settings.
+The module framework is used by several Nix utilities, most popular among them
+being NixOS.
+
+We strongly recommend reading the
+[[https://nixos.org/manual/nixos/stable/#sec-writing-modules][NixOS manual]]
+for in depth coverage of the module system, as well as the inline docs found in
+[[https://github.com/NixOS/nixpkgs/blob/master/lib/modules.nix][<nixpkgs>/lib/modules.nix]],
+[[https://github.com/NixOS/nixpkgs/blob/master/lib/options.nix][<nixpkgs>/lib/options.nix]],
+and
+[[https://github.com/NixOS/nixpkgs/blob/master/lib/types.nix][<nixpkgs>/lib/types.nix]]
+for advanced usage; but this guide will cover a few fundamentals and gaps.
+
+
+* Merging Configs
+
+The Nixpkgs' module system's ability to organize large collecitons of
+configuration files was the primary reason it was used in =floco=.
+With that in mind this is largely what we'll focus on.
+
+** Fundamentals
+
+Merge rules for a value are defined by their type declaration.
+For =config.foo= you'll look for the type in
+=options.foo.type=.
+The definition of the types themselves can usually be found in
+Nixpkgs' lib/types.nix, or floco's lib/types.nix.
+For most work though you'll only need to understand the bread and
+butter: =listOf=, =attrsOf=, =lazyAttrsOf=, =submodule=,
+=deferredModule=, and the =floco= extensions =relpath=
+and =uniqueListOf=.
+
+In addition to type definitions, merging is also influenced by
+definition =priority= and =order=.
+
+*** Primitive Values
+
+Primitive values are generally merged using a function called
+=mergeEqualOptions=, which asserts that if multiple definitions
+of a value are given, that they must be equal.
+This essentially makes it "okay" to make redundant definitions
+of an option.
+
+The only time it's okay for different definitions to exist is
+if they set different =priority= which will cause low
+priority values to be ignored entirely.
+The =mergeEqualOptions= routine will only process the
+highest priority definitions.
+
+*** Priorities
+
+Priorities are processed before any type =merge= functions, and cause only
+the "top priority" definitions to be merged.
+
+Priority properties are stored in a meta attribute =override=
+( and can be manually ) encoded, or you can use some convenience functions
+in =lib= to set them.
+
+Definitions with the lowest integer are consider "top priority" or
+"high priority", which can be confusing because of the inverse
+relationship between the integer and the terms "high"/"low".
+These generally range from 0-1500, where 0 where 1500 is "low priority"
+and 0 is "top/high priority".
+
+**** Priority of Helpers
+
+| Function            | Priority | Notes                                                                     |
+|---------------------+----------+---------------------------------------------------------------------------|
+| lib.mkOverride P    |        P | Sets priority to integer P.                                               |
+| lib.mkOptionDefault |     1500 | Same priority as an option's default value.                               |
+| lib.mkDefault       |     1000 | Commonly used to set defaults based on config.                            |
+| NONE                |      100 | Priority for regular config fields when no priority was explicitly given. |
+| lib.mkForce         |       50 | Used to override "regular" configs. Conventionally reserved for users.    |
+
+For clarity: a plain ~{ config.foo = 1; }~ has priority of 100.
+
+**** Encode Priority Manually
+In cases where you may want to manually encode priority without
+referring to lib, for example in a JSON file or a "trivial" Nix file.
+
+The following two declarations are equivalent:
+
+#+BEGIN_SRC nix
+{ lib, ... }: { config.foo = lib.mkOverride 200 "bar"; }
+#+END_SRC
+
+#+BEGIN_SRC nix
+{
+  config.foo = {
+    _type    = "override";
+    content  = "bar";
+    priority = 200;
+  };
+}
+#+END_SRC
+
+This can be used to optimize caching of large =foverrides.nix= files,
+or define priorities in non-Nix files where =lib= is unavailable.
+
+*** Merging Attrsets
+
+The merge routines for =attrsOf= and =lazyAttrsOf=
+use the =//= operator to join definitons, and the way that
+it treats =priority= for the attrsets and its members is
+worth exploring.
+
+We won't get into the differences between =lazyAttrsOf= and
+=attrsOf= ( covered in NixOS manual ), except to say that we
+prefer =lazyAttrsOf= and that you should avoid =lib.mkIf=
+with =floco= because of how commonly we use it.
+
+To keep things brief we'll use the following example to
+show the merge behaviors with different priority settings.
+
+#+BEGIN_SRC nix :exports both :results output
+let
+  inherit (builtins.getFlake "floco") lib;
+  interface = { lib, ... }: {
+    options.bar = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
+    options.foo = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
+    options.quux = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.anything;
+    };
+  };
+
+  c0 = {
+    config.bar = {
+      a = 0;
+      b = lib.mkForce 1;
+    };
+
+    config.foo.a = 0;
+    config.foo.b = lib.mkForce 1;
+
+    config.quux = lib.mkDefault {
+      a = 0;
+      b = lib.mkForce 1;
+    };
+  };
+
+  c1 = {
+    config.bar = lib.mkForce {
+      b = 2;
+      c = 3;
+    };
+
+    config.foo.b = lib.mkDefault 2;
+    config.foo.c = 3;
+
+    config.quux = lib.mkDefault {
+      b = 2;
+      c = 3;
+    };
+  };
+
+  mod = lib.evalModules { modules = [interface c0 c1]; };
+
+in lib.generators.toPretty {} mod.config
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+{
+  bar = {
+    b = 2;
+    c = 3;
+  };
+  foo = {
+    a = 0;
+    b = 1;
+    c = 3;
+  };
+  quux = {
+    a = 0;
+    b = 1;
+    c = 3;
+  };
+}
+#+end_example
+
+So things to pay attention to here:
+- You can set priority on the outer attrset, or individual values.
+- Priority of the attrset are processed "first", then priority is
+  processed for individual fields.
+  + See =quux.b= vs =bar.b=.
+  + Consider how =builtins.mapAttrs= might be used in this context.
