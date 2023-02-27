@@ -34,3 +34,30 @@ By setting =_file= explicitly you'll ensure that backtraces
 and deserialization of configs use the given name regardless
 of the "real" filename which can help avoid pitfalls.
  
+The files =floco-cfg.{nix,json}=, =pdefs.{nix,json}=, and
+=foverrides.{nix,json}= specifically are treated specifically.
+At time of writing only the =pdef= record is sensitive to
+filenames, but more
+[[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/implementation.nix#L76][deserialized]]
+sensitive records may be added in the future.
+
+For JSON files or other non-nix formats you must explicitly
+set =_file= in an inline module.
+The routine =lib.modules.importJSON= is a shorthand for this,
+but the following two includes are equivalent:
+#+BEGIN_SRC nix
+{
+  _file = "foo/floco-cfg.nix";
+  imports = [
+    ( { _file = "foo/pdefs.json"; } //
+      ( lib.importJSON ./pdefs.json ) )
+      
+    ( lib.modules.importJSON ./foverrides.json )
+  ];
+}
+#+END_SRC
+
+When including JSON and other formats you should remember
+the way "shorthand" configs get processed and you make
+sure that you don't accidentally define
+~config.config.foo = 1;~.
