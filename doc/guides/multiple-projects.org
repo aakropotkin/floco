@@ -1,0 +1,168 @@
+#+TITLE: Multiple Projects
+
+=floco= was designed to make managing multiple local projects
+easy, in fact it was originally designed to allow "recursive
+local builds" in a way that =yarn= and =npm= really struggle
+to provide.
+
+The summary of this article for a =project-a= that depends on
+=project-b= is basically:
+#+BEGIN_SRC nix
+{
+  _file   = "project-a/floco-cfg.nix";
+  imports = [
+    ./pdefs.nix
+    ./foverrides.nix
+    ../project-b/floco-cfg.nix
+  ];
+}
+#+END_SRC
+
+* Files
+
+The convention of organizating generated configs in
+=pdefs.{json,nix}=, manual configuration in =foverrides.nix=,
+and project/file organization in =floco-cfg.nix=
+is recommended.
+
+** =_file= Field
+
+While the =_file= field is optional, it is strongly 
+recommended and the modules for certain records are sensitive
+to filenames.
+By setting =_file= explicitly you'll ensure that backtraces
+and deserialization of configs use the given name regardless
+of the "real" filename which can help avoid pitfalls.
+ 
+The files =floco-cfg.{nix,json}=, =pdefs.{nix,json}=, and
+=foverrides.{nix,json}= specifically are treated specifically.
+At time of writing only the =pdef= record is sensitive to
+filenames, but more
+[[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/implementation.nix#L76][deserialized]]
+sensitive records may be added in the future.
+
+For JSON files or other non-nix formats you must explicitly
+set =_file= in an inline module.
+The routine =lib.modules.importJSON= is a shorthand for this,
+but the following two includes are equivalent:
+#+BEGIN_SRC nix
+{
+  _file = "foo/floco-cfg.nix";
+  imports = [
+    ( { _file = ./foo/pdefs.json; } //
+      ( lib.importJSON ./pdefs.json ) )
+      
+    ( lib.modules.importJSON ./foverrides.json )
+  ];
+}
+#+END_SRC
+
+When including JSON and other formats you should remember
+the way "shorthand" configs get processed and you make
+sure that you don't accidentally define
+~config.config.foo = 1;~.
+
+** =imports= Field
+
+Imports are a module field containing paths to or inline
+definitions of modules that will be merged with the
+current module.
+
+This field is special in the module system because it must
+be processed before =config= and generally cannot refer
+to any arguments other than =lib=.
+=deferredModule= is an exception to this rule, and is
+used to define configurable records.
+
+=imports= may be defined for submodules as well, not just
+the top level module.
+This can be useful for recycling common code to be applied
+to =pdef= or =package= records.
+
+
+* Merged Build Plan
+
+When multiple files or projects are combined with =imports=
+the module system merges definitions of attrsets and types
+recursively using rules defined in options' type definitions.
+
+The NixOS manual is the best resource for learning about
+merges, but I'll cover some fundamentals and notable types
+in =floco= that use custom merge routines.
+
+
+** Fundamentals
+
+Merge rules for a value are defined by their type declaration.
+For =config.foo= you'll look for the type in
+=options.foo.type=.
+The definition of the types themselves can usually be found in
+Nixpkgs' lib/types.nix, or floco's lib/types.nix.
+For most work though you'll only need to understand the bread and
+butter: =listOf=, =attrsOf=, =lazyAttrsOf=, =submodule=,
+=deferredModule=, and the =floco= extensions =relpath=
+and =uniqueListOf=.
+
+In addition to type definitions, merging is also influenced by
+definition =priority= and =order=.
+
+*** Primitive Values
+
+Primitive values are generally merged using a function called
+=mergeEqualOptions=, which asserts that if multiple definitions
+of a value are given, that they must be equal.
+This essentially makes it "okay" to make redundant definitions
+of an option.
+
+The only time it's okay for different definitions to exist is
+if they set different =priority= which will cause low
+priority values to be ignored entirely.
+The =mergeEqualOptions= routine will only process the
+highest priority definitions.
+
+*** Merging Attrsets
+
+The merge routines for =attrsOf= and =lazyAttrsOf=
+use the =//= operator to join definitons, and the way that
+it treats =priority= for the attrsets and its members is
+worth exploring.
+
+We won't get into the differences between =lazyAttrsOf= and
+=attrsOf= ( covered in NixOS manual ), except to say that we
+prefer =lazyAttrsOf= and that you should avoid =lib.mkIf=
+with =floco= because of how commonly we use it.
+
+To keep things brief we'll use the following example to
+show the merge behaviors with different priority settings.
+#+BEGIN_SRC nix
+{ lib, ... }: {
+
+  options.foo = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.anything;
+  };
+  options.bar = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.anything;
+  };
+  options.quux = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.anything;
+  };
+
+  imports = [
+    {
+      config.foo.a = 0;
+      config.foo.b = lib.mkForce 1;
+
+      config.bar = {
+        c = 2;
+        d = 3;
+      };
+
+      config.quux = lib.mkDefault {
+        e = 4;
+        f = lib.mkForce 5;
+      };
+    } 
+  ];
+
+} 
+#+END_SRC
