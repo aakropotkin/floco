@@ -15,7 +15,15 @@
   , ...
   } @ ka: pdefs.${ident}.${version} or null;
 
-  getPdef = lib.libfloco.runNVFunction { modify = false; fn = getPdef'; };
+  #getPdef = lib.libfloco.runNVFunction { modify = false; fn = getPdef'; };
+  getPdef = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: ka:
+    if builtins.isAttrs ka then getPdef' pdefs ka else
+    getPdef' pdefs { key = ka; };
 
 
 # ---------------------------------------------------------------------------- #

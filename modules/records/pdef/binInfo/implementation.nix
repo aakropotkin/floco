@@ -32,7 +32,7 @@
   in lib.mkDefault ( config.metaFiles.metaRaw.binInfo or {
     inherit binDir;
     binPairs = lib.mkDefault (
-      if bin == null then null else
+      if bin == null then {} else
       if builtins.isAttrs bin then bin else
       { ${baseNameOf config.ident} = bin; }
     );

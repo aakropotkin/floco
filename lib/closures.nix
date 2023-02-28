@@ -243,12 +243,13 @@
                builtins.attrValues ( builtins.mapAttrs descMove moves );
     missMsgs = builtins.attrValues ( builtins.mapAttrs descMiss missing );
     msgs     = builtins.concatStringsSep "\n" ( missMsgs ++ moveMsgs );
-    okMsg    = "- `${ident}' (${when}) is okay";
-    badMsg   = "- `${ident}' (${when}) may have `peer' issues:\n${msgs}";
+    opt      = if optional then "" else " optional";
+    okMsg    = "- `${ident}' (${when}${opt}) is okay";
+    badMsg   = "- `${ident}' (${when}${opt}) may have `peer' issues:\n${msgs}";
   in if ( missing == {} ) && ( moves == {} ) then okMsg else badMsg;
 
   describeCheckPeersPresent = checked:
-    builtins.concatStringsSep "\n" ( builtins.attrValues (
+    builtins.concatStringsSep "\n\n" ( builtins.attrValues (
       builtins.mapAttrs lib.libfloco.describeCheckPeersPresentEnt checked
     ) );
 
