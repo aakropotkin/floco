@@ -58,7 +58,12 @@
 
 # ---------------------------------------------------------------------------- #
 
-  #listKnownVersions' = pdefs:
+  listPdefVersions = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: ident: builtins.attrNames ( pdefs.${ident} or {} );
 
 
 # ---------------------------------------------------------------------------- #
@@ -73,6 +78,8 @@ in {
     pdefsToList
     pdefsFromList
     pdefsKeyed
+
+    listPdefVersions
   ;
 }
 
