@@ -97,7 +97,7 @@
     __functor = _: args: let
       config = args.config or { floco.${field} = args; };
       floco  = args.floco or config.floco;
-      value  = floco.${field};
+      value  = args.${field} or floco.${field};
     in ka: let
       k = if builtins.isAttrs ka then ka else
           assert builtins.isString ka;

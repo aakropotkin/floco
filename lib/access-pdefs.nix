@@ -9,13 +9,15 @@
 # ---------------------------------------------------------------------------- #
 
   getPdef' = pdefs: {
-    key     ? null
+    key     ? ident + "/" + version
   , ident   ? dirOf key
   , version ? baseNameOf key
   , ...
   } @ ka: pdefs.${ident}.${version} or null;
 
+  # This works but because this routine is hot we'll use a "more inlined" form.
   #getPdef = lib.libfloco.runNVFunction { modify = false; fn = getPdef'; };
+
   getPdef = {
     config ? { floco.pdefs = pa; }
   , floco  ? config.floco
@@ -26,10 +28,11 @@
     getPdef' pdefs { key = ka; };
 
 
+
 # ---------------------------------------------------------------------------- #
 
   killPdef' = pdefs: {
-    key     ? null
+    key     ? ident + "/" + version
   , ident   ? dirOf key
   , version ? baseNameOf key
   , ...
