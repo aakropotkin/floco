@@ -103,7 +103,7 @@ in {
 
               See Also: extraNativeBuildInputs
             '';
-            type    = nt.listOf nt.package;
+            type    = nt.listOf ( nt.either nt.package nt.path );
             default = [];
             example = lib.literalExpression ''
               { pkgs, ... }: {
@@ -127,7 +127,7 @@ in {
               This is processed before overrides, and may be set multiple times
               across modules to create a concatenated list.
             '';
-            type    = nt.listOf nt.package;
+            type    = nt.listOf ( nt.either nt.package nt.path );
             default = [];
             example = lib.literalExpression ''
               { pkgs, ... }: {
