@@ -195,26 +195,26 @@
     pdef  = lib.libfloco.getPdef pdefs { inherit ident version; };
     rtDIs = getRuntimeDeps { includeBundled = true; } pdef;
     deps = let
-      get = ident: {
-        pin
-      , runtime  ? false
-      , optional ? false
-      , ...
-      }: ( lib.libfloco.getPdef pdefs {
-        inherit ident;
-        version = pin;
-      } ) // { _runtime = runtime; _optional = optional; };
+      get = ident: { pin, runtime ? false, optional ? false, ... }:
+        ( lib.libfloco.getPdef pdefs { inherit ident; version = pin; } ) // {
+          inherit runtime optional;
+        };
     in builtins.attrValues ( builtins.mapAttrs get pdef.depInfo );
     checkOne = dp: {
       name  = dp.ident;
       value = let
-        haves = if dp._runtime then rtDIs else pdef.depInfo;
+        haves = if dp.runtime then rtDIs else pdef.depInfo;
+        bads  = removeAttrs dp.peerInfo ( builtins.attrNames haves );
+        part  = builtins.partition ( i: pdef.depInfo ? ${i} )
+                                   ( builtins.attrNames bads );
       in {
-        inherit (dp) _runtime _optional;
-      } // ( removeAttrs dp.peerInfo ( builtins.attrNames haves ) );
+        inherit (dp) runtime optional;
+        missing = if dp.runtime then removeAttrs bads part.right else bads;
+        moves   = if dp.runtime then removeAttrs bads part.wrong else {};
+      };
     };
     checkAll = let
-      pred = v: ( removeAttrs v.value ["_runtime" "_optional"] ) != {};
+      pred = v: ( v.value.missing != {} ) || ( v.value.moves != {} );
     in builtins.filter pred ( map checkOne deps );
   in builtins.listToAttrs checkAll;
 
@@ -222,6 +222,35 @@
     modify = false;
     fn     = checkPeersPresent';
   };
+
+
+# ---------------------------------------------------------------------------- #
+
+  describeCheckPeersPresentEnt = ident: {
+    runtime  ? false
+  , optional ? false
+  , missing  ? {}
+  , moves    ? {}
+  , ...
+  }: let
+    need     = o: if optional || o then "may be required" else "is required";
+    when     = if runtime then "runtime" else "dev";
+    descMove = di: { descriptor ? "*", optional ? false, ... }:
+      "  + `${di}' is marked `dev', but ${need optional} in `runtime'";
+    descMiss = di: { descriptor ? "*", optional ? false, ... }:
+      "  + `${di}@${descriptor}' ${need optional} in `${when}'";
+    moveMsgs = if ! runtime then [] else
+               builtins.attrValues ( builtins.mapAttrs descMove moves );
+    missMsgs = builtins.attrValues ( builtins.mapAttrs descMiss missing );
+    msgs     = builtins.concatStringsSep "\n" ( missMsgs ++ moveMsgs );
+    okMsg    = "- `${ident}' (${when}) is okay";
+    badMsg   = "- `${ident}' (${when}) may have `peer' issues:\n${msgs}";
+  in if ( missing == {} ) && ( moves == {} ) then okMsg else badMsg;
+
+  describeCheckPeersPresent = checked:
+    builtins.concatStringsSep "\n" ( builtins.attrValues (
+      builtins.mapAttrs lib.libfloco.describeCheckPeersPresentEnt checked
+    ) );
 
 
 # ---------------------------------------------------------------------------- #
@@ -241,6 +270,8 @@ in {
     __treeInfoFromClosure
     __treeInfoFromPdefs
     checkPeersPresent
+    describeCheckPeersPresentEnt
+    describeCheckPeersPresent
   ;
 
 }
