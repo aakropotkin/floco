@@ -183,6 +183,49 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Check that `peerDependencies' declared by direct dependencies are listed as
+  # direct dependencies.
+  # Do not audit versions/semver ranges, just check to see if they are present.`
+  # Requires pins for all dependencies.
+  checkPeersPresent' = pdefs: {
+    key     ? ident + "/" + version
+  , ident   ? dirOf key
+  , version ? baseNameOf key
+  }: let
+    pdef  = lib.libfloco.getPdef pdefs { inherit ident version; };
+    rtDIs = getRuntimeDeps { includeBundled = true; } pdef;
+    deps = let
+      get = ident: {
+        pin
+      , runtime  ? false
+      , optional ? false
+      , ...
+      }: ( lib.libfloco.getPdef pdefs {
+        inherit ident;
+        version = pin;
+      } ) // { _runtime = runtime; _optional = optional; };
+    in builtins.attrValues ( builtins.mapAttrs get pdef.depInfo );
+    checkOne = dp: {
+      name  = dp.ident;
+      value = let
+        haves = if dp._runtime then rtDIs else pdef.depInfo;
+      in {
+        inherit (dp) _runtime _optional;
+      } // ( removeAttrs dp.peerInfo ( builtins.attrNames haves ) );
+    };
+    checkAll = let
+      pred = v: ( removeAttrs v.value ["_runtime" "_optional"] ) != {};
+    in builtins.filter pred ( map checkOne deps );
+  in builtins.listToAttrs checkAll;
+
+  checkPeersPresent = lib.libfloco.runNVFunction {
+    modify = false;
+    fn     = checkPeersPresent';
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -197,6 +240,7 @@ in {
     __mkTree
     __treeInfoFromClosure
     __treeInfoFromPdefs
+    checkPeersPresent
   ;
 
 }
