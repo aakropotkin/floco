@@ -625,7 +625,7 @@ undefined in =package.json= it is skipped.
 - option :: ~floco.packages.<ident>.<version>.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
-- type :: string
+- type :: unique package identifier
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/interface.nix][<floco>/package/interface.nix]]
 - example :: =@floco/test/4.2.0=
 
@@ -768,7 +768,7 @@ and linting.
 - option :: ~floco.packages.<ident>.<version>.trees.supported.<name>.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
-- type :: string
+- type :: unique package identifier
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/trees/interface.nix][<floco>/package/trees/interface.nix]]
 - example :: =@floco/test/4.2.0=
 
@@ -828,6 +828,24 @@ See Also: records.pdef, packages
 These base interface must be implemented, but the implementations
 themselves may be swapped or overridden.
 - type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
+
+*** =depInfo=
+- option :: ~floco.records.depInfo~
+- description :: Abstract record used to represent dependency information.
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
+
+**** =deferred=
+- option :: ~floco.records.depInfo.deferred~
+- description :: Deferred module which adds =depInfo= to a submodule.
+- type :: module
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
+
+**** =serialize=
+- option :: ~floco.records.depInfo.serialize~
+- description :: Function which serializes a =depInfo= record.
+- type :: function that evaluates to a(n) raw value
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
 
 *** =pdef=
@@ -871,86 +889,6 @@ These can be used "as is" to set =<PKG-ENT>.binInfo.binPairs=.
   semver = "bin/semver.js";
 }
 #+END_SRC
-
-**** =depInfo=
-- option :: ~floco.records.pdef.depInfo~
-- description :: Information regarding dependency modules/packages.
-This record is analogous to the various
-=package.json:.[dev|peer|optional|bundled]Dependencies[Meta]= fields.
-
-These config settings do note necessarily dictate the contents of the
-=treeInfo= configs, which are used by builders, but may be used to provide
-information needed to generate trees if they are not defined.
-- type :: attribute set of (attribute set of boolean)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/interface.nix][<floco>/records/pdef/depInfo/interface.nix]]
-
-***** =bundled=
-- option :: ~floco.records.pdef.depInfo.<name>.bundled~
-- description :: Whether the dependency is distributed in registry tarballs alongside
-the consumer.
-
-This is sometimes used to include patched modules, but whenver possible
-bundling should be avoided in favor of tooling like =esbuild=
-or =webpack= because the effect bundled dependencies have on resolution
-is fraught.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
-
-***** =descriptor=
-- option :: ~floco.records.pdef.depInfo.<name>.descriptor~
-- description :: Descriptor indicating version range or exact source required to satisfy
-a dependency.
-
-The value ="*"= allows any version or source to be used, as long as it
-has the same identifier ( name ).
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
-
-***** =dev=
-- option :: ~floco.records.pdef.depInfo.<name>.dev~
-- description :: Whether the dependency is required during pre-distribution phases.
-This includes common tasks such as building, testing, and linting.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
-
-***** =optional=
-- option :: ~floco.records.pdef.depInfo.<name>.optional~
-- description :: Whether the dependency may be omitted from the =node_modules/= tree.
-
-Conventionally this is used to mark dependencies which are only required
-under certain conditions such as platform, architecture, or engines.
-Generally optional dependencies carry =sysInfo= conditionals, or
-=postinstall= scripts which must be allowed to fail without blocking
-the build of the consumer.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
-
-***** =pin=
-- option :: ~floco.records.pdef.depInfo.<name>.pin~
-- description :: An exact version number or URI indicating the "resolved" form of a
-dependency descriptor.
-
-This will be used for =treeInfo= formation, and is available for usage
-by extensions to =floco=.
-
-In the case of conflicts, the "latest" version will be used.
-The sorting algorithm prefers pre-releases over a release of the same
-version, following the behavior of =nix-env -u=.
-Read that again.
-
-TODO: Write a sort that makes more sense.
-Honestly though this is a rare edge case in properly
-maintained software.
-- type :: null or semantic version string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
-
-***** =runtime=
-- option :: ~floco.records.pdef.depInfo.<name>.runtime~
-- description :: Whether the dependency is required at runtime.
-Other package management tools often refer to these as
-"production mode" dependencies.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/depInfo/single.interface.nix][<floco>/records/pdef/depInfo/single.interface.nix]]
 
 **** =fetchInfo=
 - option :: ~floco.records.pdef.fetchInfo~
@@ -1045,7 +983,7 @@ field exists as a stub.
 - option :: ~floco.records.pdef.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
-- type :: string
+- type :: unique package identifier
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 - example :: =@floco/test/4.2.0=
 
@@ -1098,7 +1036,7 @@ This option is effectively a shorthand for setting =lifecycle= defaults,
 but may also used by some fetchers and scrapers.
 
 See Also: lifecycle, fetchInfo
-- type :: one of "file", "link", "dir", "git"
+- type :: lifecycle type as recognized by `npm`
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 
 **** =peerInfo=
@@ -1264,7 +1202,7 @@ This includes common tasks such as building, testing, and linting.
 - option :: ~floco.records.pdef.treeInfo.<name>.key~
 - description :: Unique key used to refer to this package in =tree= submodules and other
 =floco= configs, metadata, and structures.
-- type :: string
+- type :: unique package identifier
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/treeInfo/single.interface.nix][<floco>/records/pdef/treeInfo/single.interface.nix]]
 - example :: =@floco/test/4.2.0=
 
@@ -1296,155 +1234,26 @@ the build of the consumer.
 **** =version=
 - option :: ~floco.records.pdef.version~
 - description :: Package version as found in =package.json:.version=.
-- type :: semantic version string
+- type :: semantic version number
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/interface.nix][<floco>/records/pdef/interface.nix]]
 - example :: =4.2.0=
 
 *** =pjsCore=
 - option :: ~floco.records.pjsCore~
+- type :: submodule
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]]
+
+**** =deferred=
+- option :: ~floco.records.pjsCore.deferred~
+- description :: The deferred form of a =pjsCore= record.
 - type :: module
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]]
 
-**** =cpu=
-- option :: ~floco.records.pjsCore.cpu~
-- type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-
-**** =dependencies=
-- option :: ~floco.records.pjsCore.dependencies~
-- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
-describing the required version ranges or location of a given dependency.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = "^4.17.21";
-}
-#+END_SRC
-
-**** =devDependencies=
-- option :: ~floco.records.pjsCore.devDependencies~
-- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
-describing the required version ranges or location of a given dependency.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = "^4.17.21";
-}
-#+END_SRC
-
-**** =devDependenciesMeta=
-- option :: ~floco.records.pjsCore.devDependenciesMeta~
-- description :: Dependency metadata/options declarations.
-Represented as attrs of ={ <NAME> = { <OPTION> = <BOOL>; }; }= indicating
-additional metadata about dependencies that cannot be inferred from
-their category.
-
-Conventionally this is used to indicate whether dependencies are optional,
-but additional =boolean= toggles may be used.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = {
-    optional = true;
-  };
-}
-#+END_SRC
-
-**** =engines=
-- option :: ~floco.records.pjsCore.engines~
-- type :: attribute set of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  node = ">=8.0.0";
-}
-#+END_SRC
-
-**** =ident=
-- option :: ~floco.records.pjsCore.ident~
-- description :: Package identifier/name as found in =package.json:.name=.
-- type :: package identifier/name
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example :: =@floco/foo=
-
-**** =key=
-- option :: ~floco.records.pjsCore.key~
-- description :: Unique key used to refer to this package in =tree= submodules and other
-=floco= configs, metadata, and structures.
-- type :: string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example :: =@floco/test/4.2.0=
-
-**** =name=
-- option :: ~floco.records.pjsCore.name~
-- description :: Alias of <option>ident</option>.
-- type :: package identifier/name
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-
-**** =optionalDependencies=
-- option :: ~floco.records.pjsCore.optionalDependencies~
-- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
-describing the required version ranges or location of a given dependency.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = "^4.17.21";
-}
-#+END_SRC
-
-**** =os=
-- option :: ~floco.records.pjsCore.os~
-- type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-
-**** =peerDependencies=
-- option :: ~floco.records.pjsCore.peerDependencies~
-- description :: Dependency declarations as attrs of ={ <NAME> = <DESCRIPTOR>; }=
-describing the required version ranges or location of a given dependency.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = "^4.17.21";
-}
-#+END_SRC
-
-**** =peerDependenciesMeta=
-- option :: ~floco.records.pjsCore.peerDependenciesMeta~
-- description :: Dependency metadata/options declarations.
-Represented as attrs of ={ <NAME> = { <OPTION> = <BOOL>; }; }= indicating
-additional metadata about dependencies that cannot be inferred from
-their category.
-
-Conventionally this is used to indicate whether dependencies are optional,
-but additional =boolean= toggles may be used.
-- type :: attribute set of (semantic version string or string)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  lodash = {
-    optional = true;
-  };
-}
-#+END_SRC
-
-**** =version=
-- option :: ~floco.records.pjsCore.version~
-- description :: Package version as found in =package.json:.version=.
-- type :: semantic version string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/interface.nix][<floco>/records/pjsCore/interface.nix]]
-- example :: =4.2.0=
+**** =mkOpt=
+- option :: ~floco.records.pjsCore.mkOpt~
+- description :: Defines a =pjsCore= option.
+- type :: raw value
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]]
 
 *** =target=
 - option :: ~floco.records.target~
@@ -1634,26 +1443,6 @@ established strictly by matching =name= values to =dependencies=,
 - type :: function that evaluates to a(n) (submodule)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
 
-***** =cycle=
-- option :: ~floco.topo.toposortNoPins.<function body>.cycle~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =isDAG=
-- option :: ~floco.topo.toposortNoPins.<function body>.isDAG~
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =loops=
-- option :: ~floco.topo.toposortNoPins.<function body>.loops~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =result=
-- option :: ~floco.topo.toposortNoPins.<function body>.result~
-- type :: null or (list of anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
 *** =toposortPins=
 - option :: ~floco.topo.toposortPins~
 - description :: A function which topologically sorts a list of =pdef= records.
@@ -1662,26 +1451,6 @@ Package versions are matched using =<pdef>.depInfo.*.pin= fields.
 It is an error to call this function with missing =pin= values on
 ANY =pdef= records.
 - type :: function that evaluates to a(n) (submodule)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =cycle=
-- option :: ~floco.topo.toposortPins.<function body>.cycle~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =isDAG=
-- option :: ~floco.topo.toposortPins.<function body>.isDAG~
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =loops=
-- option :: ~floco.topo.toposortPins.<function body>.loops~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-***** =result=
-- option :: ~floco.topo.toposortPins.<function body>.result~
-- type :: null or (list of anything)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
 
 *** =toposortedAll=
@@ -1698,24 +1467,4 @@ version, or =toposortPins= if multiple versions exist.
 It is an error to reference this value if these restrictions are
 not met.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-**** =cycle=
-- option :: ~floco.topo.toposortedAll.cycle~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-**** =isDAG=
-- option :: ~floco.topo.toposortedAll.isDAG~
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-**** =loops=
-- option :: ~floco.topo.toposortedAll.loops~
-- type :: list of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
-
-**** =result=
-- option :: ~floco.topo.toposortedAll.result~
-- type :: null or (list of anything)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/topo/interface.nix][<floco>/topo/interface.nix]]
