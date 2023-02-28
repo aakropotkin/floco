@@ -10,6 +10,63 @@ We'll start with a short summary of "install strategies" used by =npm= and
 =yarn= to provide context for the strategies used in =floco=.
 
 
+* Schema
+
+You can read the full schema documentation for the =treeInfo= record in the
+[[https://github.com/aakropotkin/floco/wiki/Floco-Packages-Modules#treeinfo][Modules Manual]],
+but we'll refresh your memory a bit here.
+
+=treeInfo.<PATH>= is analogous to =package-lock.json:.packages.<PATH>= entries
+but are trimmed down to refer to packages using a =key=.
+This slimmer schema makes it easier to write trees by hand, and generate them
+programatically without fussing with "manifest" and =fetchInfo= metadata.
+
+An example:
+#+BEGIN_SRC nix
+{
+  "node_modules/@floco/project-a" = {
+    key  = "@floco/project-a/4.2.0";  # `key' is "<IDENT>/<VERSION>"
+    dev  = true;   # `true'  -> only required in "build"/test phases.
+                   # `false' -> required at runtime and build/test phases.
+    link = false;  # `true'  -> symlink the globally installed package.
+                   #            no subpaths can be declared under links.
+                   # `false' -> copy the prepared package without any deps.
+                   #            subpaths may be declared to provide deps.
+    optional = false;  # `true'  -> if the package is not compatible with the
+                       #            host system, it may be skipped.
+                       # `false' -> install the package regardless of whether
+                       #            or not it is compatible with the host.
+  };
+
+  # Because `node_modules/@floco/project-a' is not a link, we are allowed to
+  # declare subpaths.
+  "node_modules/@floco/project-a/node_modules/lodash" = {
+    key  = "lodash/4.17.21";
+    dev  = false;  # Required at runtime and for build/test phases.
+    link = true;   # Symlink the package instead of copying.
+  };
+
+  "node_modules/@floco/project-b" = {
+    key = "@floco/project-b/4.2.0";
+    # We can also define arbitrary boolean fields for use by extensions:
+    testOnly = true;
+    ignored  = true;
+    foo      = true;
+    bar      = true;
+
+    # Default fields are used for the rest when undeclared:
+    #   dev = false;  link = false;  optional = false;
+  };
+
+  # Because this module is a link, we must not declare subpaths.
+  "node_modules/pacote" = {
+    key  = "pacote/13.3.0";
+    link = true;
+  };
+}
+#+END_SRC
+
+
 * Install Strategies in Other Tools
 
 =npm= and =yarn= install strategies are a useful foundation to understand.
