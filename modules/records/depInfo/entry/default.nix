@@ -129,20 +129,28 @@ in {
       default = true;
     };
 
-    devOptional = lib.mkOption {
-      description =  lib.mdDoc ''
-        Whether the dependency may be omitted from the `node_modules/` tree
-        during pre-distribution phases.
+    # This field is redundant.
+    # It is covered by `dev' and `optional' fields.
+    # Arborist docs excplicitly mention this.
+    # From what I can tell it is only used as a shorthand.
+    #
+    #devOptional = lib.mkOption {
+    #  description =  lib.mdDoc ''
+    #    Whether the dependency may be omitted from the `node_modules/` tree
+    #    during post-distribution phases, but NOT during `pre-distribution`.
 
-        Conventionally this is used to mark dependencies which are only required
-        under certain conditions such as platform, architecture, or engines.
-        Generally optional dependencies carry `sysInfo` conditionals, or
-        `postinstall` scripts which must be allowed to fail without blocking
-        the build of the consumer.
-      '';
-      type    = nt.bool;
-      default = false;
-    };
+    #    For clarity, this means "I require this to build/test, but at runtime
+    #    it is optional".
+
+    #    Conventionally this is used to mark dependencies which are only required
+    #    under certain conditions such as platform, architecture, or engines.
+    #    Generally optional dependencies carry `sysInfo` conditionals, or
+    #    `postinstall` scripts which must be allowed to fail without blocking
+    #    the build of the consumer.
+    #  '';
+    #  type    = nt.bool;
+    #  default = false;
+    #};
 
   };  # End `options'
 
@@ -189,11 +197,14 @@ in {
       ( devDependenciesMeta ? ${ident} )
     );
 
-    optional = lib.mkDefault ( optionalDependencies ? ${ident} );
-
-    devOptional = lib.mkDefault (
-      devDependenciesMeta.${ident}.optional or false
+    optional = lib.mkDefault (
+      ( optionalDependencies ? ${ident} ) ||
+      ( devDependenciesMeta.${ident}.optional or false )
     );
+
+    #devOptional = lib.mkDefault (
+    #  devDependenciesMeta.${ident}.optional or false
+    #);
 
     bundled = lib.mkDefault ( builtins.elem ident bundledDependencies );
 

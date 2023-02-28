@@ -79,6 +79,42 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Helper used by various routines to apply a function to an attrset of
+  # `config.floco.<FIELD>.<NAME>.<VERSION>'.
+  # Most commonly used to apply functions to `pdefs' and `packages'.
+  runNVFunction = {
+    field  ? "pdefs"
+  , modify ? true    # Whether the returned value should maintain the same
+                     # attrset hierarchy as the input ( performing an update ).
+                     # If false, the return value is the result of the function.
+  , fn
+  }: {
+    __functionArgs = {
+      config   = true;
+      floco    = true;
+      ${field} = true;
+    };
+    __functor = _: args: let
+      config = args.config or { floco.${field} = args; };
+      floco  = args.floco or config.floco;
+      value  = floco.${field};
+    in ka: let
+      k = if builtins.isAttrs ka then ka else
+          assert builtins.isString ka;
+          { key = ka; };
+      rsl    = fn value k;
+      forMod =
+        if args ? config then { config.floco.${field} = rsl; } else
+        if args ? floco  then { floco.${field} = rsl; } else
+        if args ? ${field}  then { ${field} = rsl; } else
+        rsl;
+    in if modify then forMod else rsl;
+  };
+
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -89,6 +125,8 @@ in {
     show showPretty showPrettyCurried
 
     prettyPrintEscaped
+
+    runNVFunction
   ;
 
   spp = showPrettyCurried;

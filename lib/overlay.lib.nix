@@ -66,7 +66,6 @@ in {
     yankN
     size
 
-    addPdefs
     getPdef
     killPdef
     mapPdefs

@@ -145,7 +145,7 @@ For example usage and more details please see
 * Updaters/Generators
 The top level flake provides an installable =floco-updaters= as well as
 =app= targets ( =fromPlock= and =fromRegistry= ) that can be used to generate
-=pdefs.nix= and =pdefs.json= files to be loaded by =lib.addPdefs= as configs.
+=pdefs.nix= and =pdefs.json= files to be loaded by as configs.
 
 These scripts will allow you to convert existing JavaScript projects to be
 used with =floco=, and update/regenerate configs as projects'
