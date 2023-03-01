@@ -147,6 +147,24 @@
 
 # ---------------------------------------------------------------------------- #
 
+  depPin = let
+    base = nt.nullOr lib.libfloco.version;
+  in base // {
+    name        = "pin";
+    description = "pinned version";
+    merge       = loc: defs: let
+      values = lib.getValues defs;
+      nnull  = builtins.filter ( x: x != null ) values;
+      cmp    = a: b: ( builtins.compareVersions a b ) < 0;
+    in if ( builtins.length values ) == 1 then builtins.head values else
+       if ( builtins.length nnull ) == 0 then null else
+       if ( builtins.length nnull ) == 1 then builtins.head nnull else
+       builtins.head ( builtins.sort cmp nnull );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -164,6 +182,7 @@ in {
 
     sha256_hash sha256_sri narHash
     rev short_rev
+    depPin
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )

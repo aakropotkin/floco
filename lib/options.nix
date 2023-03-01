@@ -162,6 +162,30 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  mkPinOption = lib.mkOption {
+    description = lib.mdDoc ''
+      An exact version number or URI indicating the "resolved" form of a
+      dependency descriptor.
+
+      This will be used for `treeInfo` formation, and is available for usage
+      by extensions to `floco`.
+
+      In the case of conflicts, the "latest" version will be used.
+      The sorting algorithm prefers pre-releases over a release of the same
+      version, following the behavior of `nix-env -u`.
+      Read that again.
+
+      TODO: Write a sort that makes more sense.
+      Honestly though this is a rare edge case in properly
+      maintained software.
+    '';
+    default = null;
+    type    = lib.libfloco.depPin;
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 
