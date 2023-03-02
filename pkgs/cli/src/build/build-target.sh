@@ -128,10 +128,22 @@ while [[ "$#" -gt 0 ]]; do
           exit 1;
         fi
       elif [[ "$#" -lt 2 ]]; then
-        echo "$_as_me: Missing argument to indicate VERSION." >&2;
-        printf '\n' >&2;
-        usage -f >&2;
-        exit 1;
+        if [[ -z "${_TARGET:-}" ]]; then
+          case "$1" in
+            global|dist|prepared|built|lint|test|installed) _TARGET="$1"; ;;
+            *)
+              echo "$_as_me: Missing argument to indicate VERSION." >&2;
+              printf '\n' >&2;
+              usage -f >&2;
+              exit 1;
+            ;;
+          esac
+        else
+          echo "$_as_me: Missing argument to indicate VERSION." >&2;
+          printf '\n' >&2;
+          usage -f >&2;
+          exit 1;
+        fi
       else
         _IDENT="$1";
         shift;
