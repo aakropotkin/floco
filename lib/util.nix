@@ -117,7 +117,7 @@
   tryImportNixOrJSON' = bpath:
     if builtins.pathExists ( bpath + ".nix" ) then bpath + ".nix" else
     if ! ( builtins.pathExists ( bpath + ".json" ) ) then null else
-    lib.modueles.importJSON ( bpath + ".json" );
+    lib.modules.importJSON ( bpath + ".json" );
 
   tryImportNixOrJSON = {
     __functionArgs = { bpath = true; dir = true; bname = true; };
@@ -130,7 +130,7 @@
   };
 
   flocoConfigsFromDir = dir: let
-    fcfg = tryImportNixOrJSON { inherit dir; bname = "/floco-config"; };
+    fcfg = tryImportNixOrJSON { inherit dir; bname = "/floco-cfg"; };
     pd   = tryImportNixOrJSON { inherit dir; bname = "/pdefs"; };
     ov   = tryImportNixOrJSON { inherit dir; bname = "/foverrides"; };
   in if fcfg != null then [fcfg] else builtins.filter ( x: x != null ) [pd ov];
