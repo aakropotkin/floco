@@ -172,6 +172,63 @@
 
 # ---------------------------------------------------------------------------- #
 
+    runFloco = let
+      bySystem   = eachSupportedSystemMap forSystem;
+      lib        = import ./lib { inherit (nixpkgs) lib; };
+      isPathlike = x:
+        ( builtins.isPath x ) ||
+        ( builtins.isString x ) ||
+        ( ( builtins.isAttrs x ) && ( x ? outPath ) );
+      isDir = x:
+        ( isPathlike x ) &&
+        ( builtins.pathExists ( x + "/." ) );
+      toCfg = x:
+        if builtins.isAttrs x then x else
+        if isDir x then {
+          _file   = toString x;
+          imports = let
+            tries = map ( f: x + ( "/" + f ) ) [
+              "floco-cfg.nix"  "floco-cfg.json"
+              "pdefs.nix"      "pdefs.json"
+              "foverrides.nix" "foverrides.json"
+            ];
+            e  = builtins.filter ( builtins.pathExists ) tries;
+            fc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
+              "floco-cfg.nix" "floco-cfg.json"
+            ] ) e;
+            pc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
+              "pdefs.nix" "pdefs.json"
+            ] ) e;
+            oc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
+              "foverrides.nix" "foverrides.json"
+            ] ) e;
+            files = if fc != [] then [( builtins.head fc )] else
+                    ( if pc == [] then [] else [( builtins.head pc )] ) ++
+                    ( if oc == [] then [] else [( builtins.head oc )] );
+          in map ( f:
+            if lib.hasSuffix ".json" f then lib.modules.importJSON f else f
+          ) files;
+        } else if isPathlike x then (
+          if lib.hasSuffix ".json" x then lib.modules.importJSON x else x
+        ) else x;
+
+      forSystem = system: cfgs: ( lib.evalModules {
+        modules = [
+          nixosModules.floco
+          { config.floco.settings = { inherit system; }; }
+        ] ++ ( map toCfg ( lib.toList cfgs ) );
+      } ).config.floco;
+
+    in bySystem // {
+      __functor = pf: system:
+        pf.${system} or (
+          throw "floco#runFloco: Unsupported system: ${system}"
+        );
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
   };  # End `outputs'
 
 

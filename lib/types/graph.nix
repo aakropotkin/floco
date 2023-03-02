@@ -91,9 +91,13 @@
 
   depInfoCore = nt.attrsOf depInfoEnt;
 
+  # Coerce a `depInfoEnt' colleciton to a `pin' collection.
   pinsFromDepInfo = nt.attrsOf (
     nt.coercedTo ( nt.attrsOf nt.anything ) ( x: x.pin ) lib.libfloco.version
   );
+
+
+# ---------------------------------------------------------------------------- #
 
 
   graphNodeDeferred = { config , options , ... }: {
@@ -128,6 +132,30 @@
       children = lib.mkOption { type = pinsFromDepInfo; default = {}; };
       requires = lib.mkOption { type = pinsFromDepInfo; default = {}; };
       scope    = lib.mkOption { type = pinsFromDepInfo; default = {}; };
+
+      referrers = lib.mkOption {
+        type = nt.listOf ( nt.submodule {
+          options = {
+            key  = lib.libfloco.mkKeyOption;
+            path = lib.mkOption {
+              type = nt.either ( nt.str ) lib.libfloco.relpath;
+            };
+          };
+        } );
+        default = [];
+      };
+
+      props = lib.mkOption {
+        type = nt.attrsOf ( nt.submodule {
+          freeformType = nt.attrsOf nt.bool;
+          options      = {
+            optional = lib.mkOption { type = nt.bool; default = false; };
+            runtime  = lib.mkOption { type = nt.bool; default = false; };
+            dev      = lib.mkOption { type = nt.bool; default = true; };
+          };
+        } );
+        default = {};
+      };
 
     };
 
@@ -181,17 +209,27 @@ in {
     graphNode
   ;
 
+  mkGraphNodeOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A node in a dependency graph.
+    '';
+    type = graphNode;
+  };
+
+  # Ad hoc module evaluation for `graphNode' records.
   mkGraphNode = {
-    ident    ? null
-  , version  ? null
-  , key      ? null
-  , depInfo  ? null
-  , peerInfo ? null
-  , path     ? null
-  , isRoot   ? null
-  , pscope   ? null
-  , children ? null
-  , requires ? null
+    ident     ? null
+  , version   ? null
+  , key       ? null
+  , depInfo   ? null
+  , peerInfo  ? null
+  , path      ? null
+  , isRoot    ? null
+  , pscope    ? null
+  , children  ? null
+  , requires  ? null
+  , referrers ? null
+  , props     ? null
   , ...
   } @ config: ( lib.evalModules {
     modules = [graphNodeDeferred { config = config.config or config; }];
