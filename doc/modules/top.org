@@ -277,7 +277,7 @@ This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
 
 See Also: extraNativeBuildInputs
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
@@ -301,7 +301,7 @@ different outputs depending on the =build=, =host=, or
 
 This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
@@ -520,7 +520,7 @@ This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
 
 See Also: extraNativeBuildInputs
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
@@ -544,7 +544,7 @@ different outputs depending on the =build=, =host=, or
 
 This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
@@ -1305,7 +1305,7 @@ This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
 
 See Also: extraNativeBuildInputs
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
@@ -1329,7 +1329,7 @@ different outputs depending on the =build=, =host=, or
 
 This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
-- type :: list of package
+- type :: list of (package or path)
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
