@@ -20,6 +20,7 @@ in {
     description = lib.mdDoc ''
       Scope used for configuring `floco` framework.
     '';
+
     type = nt.submoduleWith {
       shorthandOnlyDefinesConfig = false;
       modules = [
@@ -34,6 +35,7 @@ in {
       specialArgs.lib =
         if lib ? libfloco then lib else import ../../lib { inherit lib; };
     };
+
     default = {};
   };
 

@@ -173,6 +173,10 @@
 
 # ---------------------------------------------------------------------------- #
 
+    # A shorthand for accessing `nixpkgs' with `overlays.floco' applied.
+    # This is equivalent to `nixpkgs.legacyPackages', but intentionally uses a
+    # different name to indicate that it is an EXTENDED `nixpkgs' rather
+    # than the subset of packages defined in `overlays.floco'.
     pkgsFor = let
       bySystem = eachSupportedSystemMap ( system:
         nixpkgs.legacyPackages.${system}.extend overlays.default
@@ -187,58 +191,48 @@
 
 # ---------------------------------------------------------------------------- #
 
+    # Convenience function that evaluates the `floco' module system on a
+    # singleton or list of modules/directories.
+    #
+    # This has a flexible call style that allows you to indicate `system'.
+    # To be explicit use either:
+    #   runFloco.<system> <module(s)>
+    #   runFloco "<system>" <module(s)>
+    # To omit system intentionally:
+    #   runFloco.unknown <module(s)>
+    #   runFloco "unknown" <module(s)>
+    # Or to use the current system as the default, simply:
+    #   runFloco <module(s)>
+    #
+    # In `pure' evaluation mode, attempts to reference `builtins.currentSystem'
+    # will fall back to "unknown", meaning you will only be able to use `lib'
+    # routines and parts of the module system that do not reference `pkgs'.
+    #
+    # This is recommended as a convenience routine for interactive use on the
+    # CLI, and is explicitly NOT recommended for use scripts or CI automation.
+    # For non-interactive use, please use `lib.evalModules' directly, and be
+    # explicit about `system', module paths, and handling of JSON files
+    # ( use `lib.modules.importJSON' or `lib.libfloco.processImports[Floco]' ).
     runFloco = let
-      bySystem   = eachSupportedSystemMap forSystem;
-      lib        = import ./lib { inherit (nixpkgs) lib; };
-      isPathlike = x:
-        ( builtins.isPath x ) ||
-        ( builtins.isString x ) ||
-        ( ( builtins.isAttrs x ) && ( x ? outPath ) );
-      isDir = x:
-        ( isPathlike x ) &&
-        ( builtins.pathExists ( x + "/." ) );
-      toCfg = x:
-        if builtins.isAttrs x then x else
-        if isDir x then {
-          _file   = toString x;
-          imports = let
-            tries = map ( f: x + ( "/" + f ) ) [
-              "floco-cfg.nix"  "floco-cfg.json"
-              "pdefs.nix"      "pdefs.json"
-              "foverrides.nix" "foverrides.json"
-            ];
-            e  = builtins.filter ( builtins.pathExists ) tries;
-            fc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
-              "floco-cfg.nix" "floco-cfg.json"
-            ] ) e;
-            pc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
-              "pdefs.nix" "pdefs.json"
-            ] ) e;
-            oc = builtins.filter ( f: builtins.elem ( baseNameOf f ) [
-              "foverrides.nix" "foverrides.json"
-            ] ) e;
-            files = if fc != [] then [( builtins.head fc )] else
-                    ( if pc == [] then [] else [( builtins.head pc )] ) ++
-                    ( if oc == [] then [] else [( builtins.head oc )] );
-          in map ( f:
-            if lib.hasSuffix ".json" f then lib.modules.importJSON f else f
-          ) files;
-        } else if isPathlike x then (
-          if lib.hasSuffix ".json" x then lib.modules.importJSON x else x
-        ) else x;
-
+      lib       = import ./lib { inherit (nixpkgs) lib; };
       forSystem = system: cfgs: ( lib.evalModules {
         modules = [
           nixosModules.floco
           { config.floco.settings = { inherit system; }; }
-        ] ++ ( map toCfg ( lib.toList cfgs ) );
+        ] ++ ( lib.libfloco.processImportsFloco cfgs );
       } ).config.floco;
-
+      bySystem  = ( eachSupportedSystemMap forSystem ) // {
+        unknown = forSystem "unknown";
+      };
     in bySystem // {
-      __functor = pf: system:
-        pf.${system} or (
+      __functor = pf: arg: let
+        argIsSystem = builtins.elem arg supportedSystems;
+        system      = if argIsSystem then arg else
+                      builtins.currentSystem or "unknown";
+        fn = pf.${system} or (
           throw "floco#runFloco: Unsupported system: ${system}"
         );
+      in if argIsSystem then fn else fn arg;
     };
 
 

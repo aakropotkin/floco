@@ -25,16 +25,20 @@
 # ---------------------------------------------------------------------------- #
 
   # Can `x' be coerced to a Path?
-  isCoercibleToPath = x: ( strp x ) || ( builtins.isPath x ) || ( x ? outPath );
+  isCoercibleToPath = x:
+    ( builtins.isPath x ) ||
+    ( ( strp x ) && (  lib.test "/.*" ( toString x ) ) ) ||
+    ( ( builtins.isAttrs x ) && ( x ? outPath ) );
 
 
   # Force a path-like `x' to be a path.
   # Store paths will be returned as strings, non-store paths will be returned
   # as a `path' value.
   coercePath = x: let
-    p      = x.outPath or ( toString x );
-    asPath = if lib.hasPrefix "/nix/store" p then p else /. + p;
-  in if builtins.isPath x then x else asPath;
+    p   = x.outPath or ( toString x );
+    str = if ! ( builtins.hasContext p ) then p else
+          builtins.unsafeDiscardStringContext p;
+  in if builtins.isPath x then x else /. + p;
 
 
 # ---------------------------------------------------------------------------- #
@@ -42,11 +46,12 @@
   # Is path-like `x' an absolute path?
   # This is always true for Path types, but we're really interested in checking
   # for whether or not a relative path-like (string) needs to be resolved.
-  isAbspath = x:
-    if builtins.isPath x then true else
-    if ! ( strp x ) then
-      throw "Cannot get absolute path of type: ${builtins.typeOf x}"
-    else ( x != "" ) && ( ( builtins.substring 0 1 x ) == "/" );
+  isAbspath = x: let
+    s = toString x;
+  in if builtins.isPath x then true else
+     if ! ( strp x ) then
+       throw "Cannot get absolute path of type: ${builtins.typeOf x}"
+     else ( s != "" ) && ( ( builtins.substring 0 1 s ) == "/" );
 
   # Resolve a relative path to an absolute pathstring.
   # Uses `basedir' to resolve relative paths.
@@ -147,9 +152,19 @@
 
 # ---------------------------------------------------------------------------- #
 
+  isDir = x:
+    ( isCoercibleToPath x ) &&
+    ( builtins.pathExists ( ( coercePath x ) + "/." ) );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
+    isCoercibleToPath
+    coercePath
+    isDir
     isAbspath
     realpathRel
   ;

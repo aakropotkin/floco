@@ -93,6 +93,9 @@ in {
 
     realpathRel
     isAbspath
+    isDir
+    isCoercibleToPath
+    coercePath
 
     urlEncode
     urlDecode
@@ -104,6 +107,11 @@ in {
     showPretty
     showPrettyCurried
     spp
+
+    flocoConfigsFromDir
+    tryImportNixOrJson
+    processImport      processImports
+    processImportFloco processImportsFloco
   ;
 
 }
