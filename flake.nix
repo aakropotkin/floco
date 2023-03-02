@@ -148,11 +148,7 @@
       };
     in {
       inherit basic;
-      default = basic;
-      fillPins = {
-        description = "Expression for filling missing `pin's in `pdefs.nix'.";
-        path        = ./templates/fill-pins;
-      };
+      default  = basic;
       registry = {
         description = "a legacy style `default.nix' for a registry package.";
         path        = ./templates/registry;
