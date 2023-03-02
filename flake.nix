@@ -40,6 +40,7 @@
     nixosModules.plockToPdefs = { lib, lockDir, basedir, ... }: {
       imports = [./modules/top];
       config._module.args.basedir = lib.mkDefault lockDir;
+      config._module.args.lockDir = lib.mkDefault basedir;
       options.floco = lib.mkOption {
         type = lib.types.submoduleWith {
           shorthandOnlyDefinesConfig = false;
@@ -53,6 +54,24 @@
         };
       };
     };
+
+
+    # Use `nixpkgs#fetchzip' instead of `builtins.fetchTree' for tarballs.
+    #
+    # This changes the caching behavior of tarballs, particularly when used in
+    # combination with a remote binary cache.
+    #
+    # This module is a recommended addition to `nixosModules.floco' for driving
+    # builds in a CI/CD context with a remote cache, because it skips fetching
+    # tarballs that are inputs to existing cached artifacts.
+    # Without this module, `builtins.fetchTree' will fetch any tarballs which
+    # are an input to any requested artifact, regardless of whether or not that
+    # artifact is already in the remote store.
+    # 
+    # This module may not be desireable for local development on builds which
+    # may fail, because `nix' will not save inputs to failed results in its
+    # store, causing them to be refetched repeatedly until the build succeeds.
+    nixosModules.useFetchZip = import ./modules/configs/use-fetchzip.nix;
 
 
 # ---------------------------------------------------------------------------- #

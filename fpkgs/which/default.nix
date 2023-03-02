@@ -4,21 +4,27 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs ? ( import ../../inputs ).nixpkgs.flake
-, lib     ? import ../../lib { inherit (nixpkgs) lib; }
-, system  ? builtins.currentSystem
-, pkgsFor ? nixpkgs.legacyPackages.${system}
+{ nixpkgs      ? ( import ../../inputs ).nixpkgs.flake
+, lib          ? import ../../lib { inherit (nixpkgs) lib; }
+, system       ? builtins.currentSystem
+, pkgsFor      ? nixpkgs.legacyPackages.${system}
+, extraModules ? []
 }: let
 
 # ---------------------------------------------------------------------------- #
 
-  floco = lib.evalModules {
+  fmod = lib.evalModules {
     modules = [
       ../../modules/top
-      { config._module.args.pkgs = pkgsFor; }
+      ../../modules/configs/use-fetchzip.nix
+      {
+        config._module.args.pkgs = pkgsFor;
+        config.floco.settings    = { inherit system; };
+      }
       ./floco-cfg.nix
-    ];
+    ] ++ ( lib.toList extraModules );
   };
+
 
 # ---------------------------------------------------------------------------- #
 

@@ -1,13 +1,12 @@
 { floco     ? builtins.getFlake "github:aakropotkin/floco"
 , lib       ? floco.lib
 , system    ? builtins.currentSystem
-, floco-cfg ? ./floco-cfg.nix
 , ...
 }: let
   mod = lib.evalModules {
     modules = [
       floco.nixosModules.default
-      floco-cfg
+      ./floco-cfg.nix
       { floco.settings = { inherit system; }; }
     ];
   };

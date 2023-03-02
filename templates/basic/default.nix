@@ -4,9 +4,10 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ floco  ? builtins.getFlake "github:aakropotkin/floco"
-, lib    ? floco.lib
-, system ? builtins.currentSystem
+{ floco        ? builtins.getFlake "github:aakropotkin/floco"
+, lib          ? floco.lib
+, system       ? builtins.currentSystem
+, extraModules ? []
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -23,7 +24,7 @@
       floco.nixosModules.floco
       { config.floco.settings = { inherit system; basedir = ./.; }; }
       ./floco-cfg.nix
-    ];
+    ] ++ ( lib.toList extraModules );
   };
 
 
