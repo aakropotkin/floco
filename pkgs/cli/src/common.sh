@@ -278,6 +278,16 @@ exit "$_es";
 
 # ---------------------------------------------------------------------------- #
 
+helpUrls() {
+  echo "Report bugs to: <https://github.com/aakropotkin/floco/issues>";
+  echo "floco home page: <https://github.com/aakropotkin/floco>";
+  echo "Matrix chat support room: \
+<https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org>";
+}
+
+
+# ---------------------------------------------------------------------------- #
+
 # XXX: You must NOT export this variable, since subcommands will
 # not be passed definitions of functions defined here.
 _floco_cli_common_sourced=:;

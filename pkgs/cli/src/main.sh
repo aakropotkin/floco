@@ -49,17 +49,6 @@ ENVIRONMENT
 
 # ---------------------------------------------------------------------------- #
 
-usage() {
-  if [[ "${1:-}" = "-f" ]]; then
-    echo "$_help_msg";
-  else
-    echo "$_usage_msg";
-  fi
-}
-
-
-# ---------------------------------------------------------------------------- #
-
 # @BEGIN_INJECT_UTILS@
 : "${GREP:=grep}";
 : "${HEAD:=head}";
@@ -73,6 +62,18 @@ export GREP HEAD JQ MKTEMP NIX REALPATH;
 # shellcheck source-path=SCRIPTDIR
 # shellcheck source=./common.sh
 . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/common.sh}";
+
+
+# ---------------------------------------------------------------------------- #
+
+usage() {
+  if [[ "${1:-}" = "-f" ]]; then
+    echo "$_help_msg";
+    helpUrls;
+  else
+    echo "$_usage_msg";
+  fi
+}
 
 
 # ---------------------------------------------------------------------------- #
@@ -119,11 +120,12 @@ while [[ "$#" -gt 0 ]]; do
         usage >&2;
         exit 1;
       fi
-      case "$2" in
-        build) exec "$SDIR/build/build-target.sh" --help; ;;
-        list)  exec "$SDIR/list/list-pdefs.sh" --help; ;;
-        show)  exec "$SDIR/show/show-pdefs.sh" --help; ;;
-        edit)  exec "$SDIR/nix-edit/edit.sh"   --help; ;;
+      shift;
+      case "$1" in
+        build) "$SDIR/build/build-target.sh" --help; ;;
+        list)  "$SDIR/list/list-pdefs.sh" --help; ;;
+        show)  "$SDIR/show/show-pdefs.sh" --help; ;;
+        edit)  "$SDIR/nix-edit/edit.sh"   --help; ;;
         *)
           echo "$_as_me help: Unrecognized subcommand: \`$2'." >&2;
           printf '\n' >&2;
@@ -131,7 +133,8 @@ while [[ "$#" -gt 0 ]]; do
           exit 1;
         ;;
       esac
-      shift;
+      helpUrls;
+      exit 0;
     ;;
 
     list)
