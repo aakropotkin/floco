@@ -73,6 +73,11 @@ _floco() {
           _floco_key;
         ;;
 
+        build)
+          _floco_key;
+          compadd global prepared dist built installed;
+        ;;
+
         # TODO
         edit)
           _files;
