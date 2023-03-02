@@ -112,6 +112,29 @@
   };
 
 
+# ---------------------------------------------------------------------------- #
+
+  tryImportNixOrJSON' = bpath:
+    if builtins.pathExists ( bpath + ".nix" ) then bpath + ".nix" else
+    if ! ( builtins.pathExists ( bpath + ".json" ) ) then null else
+    lib.modueles.importJSON ( bpath + ".json" );
+
+  tryImportNixOrJSON = {
+    __functionArgs = { bpath = true; dir = true; bname = true; };
+    __functor      = _: args: let
+      bpath = if builtins.isString args then args else
+              if builtins.isPath args then toString args else
+              if args ? outPath then args.outPath else
+              args.bpath or ( args.dir + "/" + args.bname );
+    in tryImportNixOrJSON' bpath;
+  };
+
+  flocoConfigsFromDir = dir: let
+    fcfg = tryImportNixOrJSON { inherit dir; bname = "/floco-config"; };
+    pd   = tryImportNixOrJSON { inherit dir; bname = "/pdefs"; };
+    ov   = tryImportNixOrJSON { inherit dir; bname = "/foverrides"; };
+  in if fcfg != null then [fcfg] else builtins.filter ( x: x != null ) [pd ov];
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -127,6 +150,9 @@ in {
     prettyPrintEscaped
 
     runNVFunction
+
+    tryImportNixOrJSON
+    flocoConfigsFromDir
   ;
 
   spp = showPrettyCurried;

@@ -21,6 +21,16 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  moduleHandleJSONPath = x: let
+    isPathlike = ( builtins.path x ) ||
+                 ( ( builtins.isAttrs x ) && ( x ? outPath ) ) ||
+                 ( ( builtins.isString x ) && ( lib.test "/.*" x ) );
+    isJSON = lib.hasSuffix ".json" ( toString x );
+  in if ! ( isPathlike && isJSON ) then x else lib.modules.importJSON x;
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 
