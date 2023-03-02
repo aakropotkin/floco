@@ -16,19 +16,17 @@ _as_me="floco";
 
 _version="0.1.0";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] CMD [ARGS...];
+_usage_msg="Usage: $_as_me [OPTIONS]... {list|build|show|edit|help} [ARGS]...;
 
 COMMANDS
-  list                List available packages.
-  build KEY [TARGET]  Build a target for a package.
-  show KEY            Show declared package definition ( \`pdef' ).
-  edit FILE           Edit a trivial Nix file with an expression.
-  help CMD            Show help for \`CMD'.
+  list                  List available packages.
+  build [KEY] [TARGET]  Build a target for a package.
+  show [KEY]            Show declared package definition ( \`pdef' ).
+  edit FILE             Edit a trivial Nix file with an expression.
+  help CMD              Show help for \`CMD'.
 ";
 
 _help_msg="$_usage_msg
-Run \`floco help CMD' for help on a specific command.
-
 OPTIONS
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.

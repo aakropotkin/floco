@@ -17,7 +17,7 @@ _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] IDENT[@|/]VERSION [-- FLOCO-CMD-ARGS...]
+_usage_msg="Usage: $_as_me [OPTIONS]... IDENT[@|/]VERSION [-- FLOCO-CMD-ARGS]...
 
 Show a package definition ( \`pdef' record ).
 ";

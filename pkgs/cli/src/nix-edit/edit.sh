@@ -19,7 +19,8 @@ _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] [-i|--in-place] [(-a|--apply) EXPR] FILE
+_usage_msg="\
+Usage: $_as_me [OPTIONS]... [{-i|--in-place}] [{-a|--apply} EXPR] FILE
 
 Modify and rewrite a trivial Nix file.
 ";

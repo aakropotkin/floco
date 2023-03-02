@@ -18,7 +18,7 @@ _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] [-- FLOCO-CMD-ARGS...]
+_usage_msg="Usage: $_as_me [OPTIONS]... [-- FLOCO-CMD-ARGS]...
 
 List all known packages declared in a given directory.
 ";
