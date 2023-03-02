@@ -44,8 +44,20 @@ wiki/Native-Dependencies-and-Packages-with-Installs.org: guides/native-deps.org
 wiki/Extending-Package-Definition-Records.org: guides/pdef-extension.org
 	$(CP) $< $@;
 
+wiki/Multiple-Projects.org: guides/multiple-projects.org
+	$(CP) $< $@;
+
+wiki/Module-System.org: guides/module-system.org
+	$(CP) $< $@;
+
+wiki/Tree-Info-and-Strategies.org: guides/tree-info-strategies.org
+	$(CP) $< $@;
+
 update-wiki-guides: wiki/Native-Dependencies-and-Packages-with-Installs.org
 update-wiki-guides: wiki/Extending-Package-Definition-Records.org
+update-wiki-guides: wiki/Multiple-Projects.org
+update-wiki-guides: wiki/Module-System.org
+update-wiki-guides: wiki/Tree-Info-and-Strategies.org
 
 
 pull-wiki: FORCE
