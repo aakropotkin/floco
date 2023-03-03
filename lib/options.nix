@@ -76,6 +76,7 @@ in {
     '';
     type    = lib.libfloco.descriptor;
     example = "^4.2.0";
+    default = "*";
   };
 
 

@@ -200,6 +200,7 @@ in {
 
 } // ( import ./types/graph.nix { inherit lib; } )
   // ( import ./types/pjsCore { inherit lib; } )
+  // ( import ./types/depInfo.nix { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #

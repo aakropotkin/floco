@@ -46,7 +46,7 @@ in {
     description = lib.mdDoc ''
       Information regarding dependency modules/packages.
       This record is analogous to the various
-      `package.json:.[dev|peer|optional|bundled]Dependencies[Meta]` fields.
+      `package.json:.[dev|optional|bundled]Dependencies[Meta]` fields.
 
       These config settings do note necessarily dictate the contents of the
       `treeInfo` configs, which are used by builders, but may be used to provide
