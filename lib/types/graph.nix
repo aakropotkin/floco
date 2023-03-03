@@ -317,13 +317,15 @@
     in ident: pre + ident;
 
     getNode = ident: vlike: extraCfg: {
+      inherit ident;
+      version   = vlike.pin or vlike.version or vlike;
       path      = pathFor ident;
       referrers = [{ inherit (node) key path; }];
       props     = if isRoot then {
         inherit (node.depInfo.${ident}) optional runtime dev;
       } else {
-        optional = node.optional || node.depInfo.${ident}.optional;
-        inherit (node) runtime dev;
+        optional = node.props.optional || node.depInfo.${ident}.optional;
+        inherit (node.props) runtime dev;
       };
     } // extraCfg;
 
@@ -428,6 +430,20 @@ in {
       inherit graphNodeModules getChildReqs pdefs;
     } nodelike )];
   } ).config.tree;
+
+
+  mkTreeInfoWith = {
+    graphNodeModules ? null
+  , getChildReqs     ? null
+  , pdefs            ? null
+  , floco            ? null
+  , config           ? null
+  , ...
+  } @ args: nodelike: let
+    graph = lib.libfloco.treeFromGraphNode args nodelike;
+    base  = builtins.mapAttrs ( _: v: v.props // { inherit (v) key; } ) graph;
+  in removeAttrs base [""];
+
 
 }
 
