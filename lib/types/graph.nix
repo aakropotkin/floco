@@ -91,10 +91,44 @@
 
   depInfoCore = nt.attrsOf depInfoEnt;
 
+# ---------------------------------------------------------------------------- #
+
+  scopeEnt = nt.submodule {
+    options = {
+      pin  = lib.libfloco.mkPinOption;
+      path = lib.mkOption { type = nt.either nt.str lib.libfloco.relpath; };
+    };
+  };
+
+  scope = nt.attrsOf scopeEnt;
+
+
+# ---------------------------------------------------------------------------- #
+
   # Coerce a `depInfoEnt' colleciton to a `pin' collection.
   pinsFromDepInfo = nt.attrsOf (
     nt.coercedTo ( nt.attrsOf nt.anything ) ( x: x.pin ) lib.libfloco.version
   );
+
+
+# ---------------------------------------------------------------------------- #
+
+  mkScopeFromDepInfo = path: depInfo: let
+    proc = ident: de: {
+      path = let
+        pre = if path == "" then "node_modules/" else path + "/";
+      in de.path or ( pre + ident );
+      pin  = de.pin or de;
+    };
+  in builtins.mapAttrs proc depInfo;
+
+  scopeFromDepInfo = path: let
+    fromT = ( nt.attrsOf nt.anything ) // {
+      check = x: ( builtins.isAttrs x ) && (
+        ! ( builtins.all scopeEnt.check ( builtins.attrValues x ) )
+      );
+    };
+  in nt.coercedTo fromT ( mkScopeFromDepInfo path ) scope;
 
 
 # ---------------------------------------------------------------------------- #
@@ -122,23 +156,29 @@
       };
 
       path = lib.mkOption {
-        type    = nt.either ( nt.str ) lib.libfloco.relpath;
+        type    = nt.either nt.str lib.libfloco.relpath;
         default = lib.mkDerivedConfig options.ident ( i: "node_modules/" + i );
       };
 
       isRoot = lib.mkOption { type = nt.bool; };
 
-      pscope   = lib.mkOption { type = pinsFromDepInfo; };
+      pscope   = lib.mkOption { type = scope; };
       children = lib.mkOption { type = pinsFromDepInfo; default = {}; };
-      requires = lib.mkOption { type = pinsFromDepInfo; default = {}; };
-      scope    = lib.mkOption { type = pinsFromDepInfo; default = {}; };
+      requires = lib.mkOption {
+        type    = scopeFromDepInfo config.path;
+        default = {};
+      };
+      scope = lib.mkOption {
+        type    = scopeFromDepInfo config.path;
+        default = {};
+      };
 
       referrers = lib.mkOption {
         type = nt.listOf ( nt.submodule {
           options = {
             key  = lib.libfloco.mkKeyOption;
             path = lib.mkOption {
-              type = nt.either ( nt.str ) lib.libfloco.relpath;
+              type = nt.either nt.str lib.libfloco.relpath;
             };
           };
         } );
@@ -149,9 +189,18 @@
         type = nt.attrsOf ( nt.submodule {
           freeformType = nt.attrsOf nt.bool;
           options      = {
-            optional = lib.mkOption { type = nt.bool; default = false; };
-            runtime  = lib.mkOption { type = nt.bool; default = false; };
-            dev      = lib.mkOption { type = nt.bool; default = true; };
+            optional = lib.mkOption {
+              type    = lib.libfloco.boolAll;
+              default = false;
+            };
+            runtime  = lib.mkOption {
+              type    = lib.libfloco.boolAny;
+              default = false;
+            };
+            dev = lib.mkOption {
+              type    = lib.libfloco.boolAny;
+              default = true;
+            };
           };
         } );
         default = {};
@@ -166,14 +215,15 @@
       isRoot  = lib.mkOptionDefault (
         ! ( lib.hasInfix "node_modules/" config.path )
       );
-      pscope  = let
+      pscope = let
         dft = if config.isRoot then {} else {
           ${config.ident} = config.version;
         };
       in lib.mkDefault dft;
       requires = builtins.mapAttrs ( _: lib.mkDefault ) (
-        lib.filterAttrs ( di: de: ( config.pscope.${di} or null ) == de.pin )
-                        config.depInfo
+        lib.filterAttrs ( di: de:
+          ( config.pscope.${di}.pin or null ) == de.pin
+        ) config.depInfo
       );
       children = builtins.mapAttrs ( _: lib.mkDefault ) (
         removeAttrs config.depInfo ( builtins.attrNames config.requires )
@@ -184,6 +234,58 @@
   };
 
   graphNode = nt.submodule graphNodeDeferred;
+
+
+# ---------------------------------------------------------------------------- #
+
+  treeModuleFromGraphNode = node: let
+
+    pathFor = let
+      pre = if node.path == "" then "node_modules/" else
+            node.path + "/node_modules/";
+    in ident: pre + ident;
+
+    forDep = ident: de: let
+      path = de.path or ( pathFor ident );
+      pin  = de.pin  or de;
+    in {
+      name  = path;
+      value = {
+        inherit ident path;
+        version   = pin;
+        key       = ident + "/" + pin;
+        referrers = [{ inherit (node) key path; }];
+        props     = { inherit (node.depInfo.${ident}) optional runtime dev; };
+      };
+    };
+
+    depModList = let
+      union = lib.attrsets.unionOfDisjoint node.requires node.children;
+    in lib.mapAttrsToList forDep union;
+
+    childModList = lib.mapAttrsToList ( ident: _: {
+      name         = pathFor ident;
+      value.pscope = node.scope;
+    } ) node.children;
+
+  in {
+    imports = [
+      { config = builtins.listToAttrs childModList; }
+    ];
+    config  = builtins.listToAttrs ( depModList ++ [{
+      name  = node.path;
+      value = removeAttrs node [
+        "_export"
+        "metaFiles"
+        "fsInfo"
+        "fetchInfo"
+        "sourceInfo"
+        "binInfo"
+        "deserialized"
+        "fetcher"
+      ];
+    }] );
+  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -202,11 +304,31 @@ in {
     type = toposorted;
   };
 
+
+# ---------------------------------------------------------------------------- #
+
   inherit
     depInfoEnt
     depInfoCore
+  ;
+
+
+# ---------------------------------------------------------------------------- #
+
+  inherit
+    scopeEnt
+    scope
+    scopeFromDepInfo
+    mkScopeFromDepInfo
+  ;
+
+
+# ---------------------------------------------------------------------------- #
+
+  inherit
     graphNodeDeferred
     graphNode
+    treeModuleFromGraphNode
   ;
 
   mkGraphNodeOption = lib.mkOption {

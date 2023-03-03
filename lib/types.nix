@@ -165,9 +165,22 @@
 
 # ---------------------------------------------------------------------------- #
 
+  boolAny = nt.bool // {
+    merge = loc: defs: builtins.any ( x: x ) ( lib.getValues defs );
+  };
+
+  boolAll = nt.bool // {
+    merge = loc: defs: builtins.all ( x: x ) ( lib.getValues defs );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
+    boolAny boolAll
+
     jsonAtom jsonValue
 
     uri

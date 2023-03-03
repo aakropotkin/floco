@@ -31,6 +31,18 @@
 
 # ---------------------------------------------------------------------------- #
 
+  partitionAttrs = pred: attrs: let
+    npred = name: pred name attrs.${name};
+    part  = builtins.partition npred ( builtins.attrNames attrs );
+  in {
+    right = removeAttrs attrs part.wrong;
+    wrong = removeAttrs attrs part.right;
+  };
+
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -38,6 +50,7 @@ in {
     yank
     yankN
     size
+    partitionAttrs
   ;
 
 }

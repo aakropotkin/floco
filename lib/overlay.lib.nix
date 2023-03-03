@@ -65,6 +65,7 @@ in {
     yank
     yankN
     size
+    partitionAttrs
 
     getPdef
     killPdef
