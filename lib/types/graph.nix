@@ -85,7 +85,8 @@
       pin        = lib.libfloco.mkPinOption;
       optional   = lib.mkOption { type = nt.bool; default = false; };
       runtime    = lib.mkOption { type = nt.bool; default = false; };
-      dev        = lib.mkOption { type = nt.bool; default = true; };
+      dev        = lib.mkOption { type = nt.bool; default = true;  };
+      bundled    = lib.mkOption { type = nt.bool; default = false; };
     };
   };
 
@@ -133,8 +134,46 @@
 
 # ---------------------------------------------------------------------------- #
 
+  getChildReqsBasic = {
+    ident
+  , version
+  , path
+  , depInfo
+  , peerInfo
+  , isRoot
+  , needs  ? if isRoot then depInfo else lib.libfloco.getRuntimeDeps {} depInfo
+  , pscope
+  , ...
+  } @ node: let
+    keep = di: de: ( pscope.${di}.pin or null ) == de.pin;
+    part = lib.partitionAttrs keep needs;
+    bund = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
+  in {
+    requires = builtins.intersectAttrs part.right pscope;
+    children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
+  };
 
-  graphNodeDeferred = { config , options , ... }: {
+
+# ---------------------------------------------------------------------------- #
+
+  pdefFromGraphNode = node: removeAttrs node [
+    "path" "isRoot" "pscope" "children" "requires" "scope" "referrers" "props"
+  ];
+
+  graphNodeCoreFromPdef = pdef: removeAttrs pdef [
+    "_export" "metaFiles" "fsInfo" "fetchInfo" "sourceInfo" "binInfo"
+    "deserialized" "fetcher"
+  ];
+
+
+# ---------------------------------------------------------------------------- #
+
+  graphNodeDeferred = {
+    config
+  , options
+  , getChildReqs
+  , ...
+  }: {
     freeformType = nt.attrsOf nt.anything;
     options      = {
       ident   = lib.libfloco.mkIdentOption;
@@ -186,7 +225,7 @@
       };
 
       props = lib.mkOption {
-        type = nt.attrsOf ( nt.submodule {
+        type = nt.submodule {
           freeformType = nt.attrsOf nt.bool;
           options      = {
             optional = lib.mkOption {
@@ -202,13 +241,19 @@
               default = true;
             };
           };
-        } );
+        };
         default = {};
       };
 
     };
 
-    config = {
+    config = let
+      cr = getChildReqs {
+        inherit (config) ident version path depInfo peerInfo isRoot pscope;
+      };
+    in {
+      _module.args.getChildReqs = lib.mkOptionDefault getChildReqsBasic;
+
       ident   = lib.mkOptionDefault ( dirOf config.key );
       version = lib.mkOptionDefault ( baseNameOf config.key );
       key     = lib.mkOptionDefault ( config.ident + "/" + config.version );
@@ -220,15 +265,9 @@
           ${config.ident} = config.version;
         };
       in lib.mkDefault dft;
-      requires = builtins.mapAttrs ( _: lib.mkDefault ) (
-        lib.filterAttrs ( di: de:
-          ( config.pscope.${di}.pin or null ) == de.pin
-        ) config.depInfo
-      );
-      children = builtins.mapAttrs ( _: lib.mkDefault ) (
-        removeAttrs config.depInfo ( builtins.attrNames config.requires )
-      );
-      scope = lib.mkDefault ( config.pscope // config.children );
+      requires = builtins.mapAttrs ( _: lib.mkDefault ) cr.requires;
+      children = builtins.mapAttrs ( _: lib.mkDefault ) cr.children;
+      scope    = lib.mkDefault ( config.pscope // config.children );
     };
 
   };
@@ -238,53 +277,89 @@
 
 # ---------------------------------------------------------------------------- #
 
-  treeModuleFromGraphNode = node: let
+  treeModuleFromGraphNode = {
+    graphNodeModules ? [graphNodeDeferred]
+  , getChildReqs     ? null
+  , pdefs
+  }: nodelike: let
+
+    gnMods = let
+      gcrMod = if getChildReqs == null then [] else [
+        { config._module.args.getChildReqs = lib.mkDefault getChildReqs; }
+      ];
+    in ( lib.toList graphNodeModules ) ++ gcrMod ++ [
+      { options.reaped = lib.mkOption { type = nt.bool; default = false; }; }
+    ];
+
+    pdef = if builtins.isString nodelike then lib.getPdef pdefs nodelike else
+           if graphNode.check nodelike then pdefFromGraphNode nodelike else
+           if ! ( nodelike ? depInfo ) then lib.getPdef pdefs nodelike else
+           removeAttrs nodelike ["isRoot" "path"];
+
+    isRoot = nodelike.isRoot or ( ! ( graphNode.check nodelike ) );
+
+    node = if graphNode.check nodelike then nodelike else ( lib.evalModules {
+      modules = [
+        {
+          options.gnode = lib.mkOption { type = nt.submodule gnMods; };
+          config.gnode  = let
+            path' = if ! isRoot then {} else { path = nodelike.path or ""; };
+          in ( graphNodeCoreFromPdef pdef ) // path' // {
+            inherit isRoot; reaped = true;
+          };
+        }
+      ];
+    } ).config.gnode;
 
     pathFor = let
       pre = if node.path == "" then "node_modules/" else
             node.path + "/node_modules/";
     in ident: pre + ident;
 
-    forDep = ident: de: let
-      path = de.path or ( pathFor ident );
-      pin  = de.pin  or de;
-    in {
-      name  = path;
-      value = {
-        inherit ident path;
-        version   = pin;
-        key       = ident + "/" + pin;
-        referrers = [{ inherit (node) key path; }];
-        props     = { inherit (node.depInfo.${ident}) optional runtime dev; };
+    getNode = ident: vlike: extraCfg: {
+      path      = pathFor ident;
+      referrers = [{ inherit (node) key path; }];
+      props     = if isRoot then {
+        inherit (node.depInfo.${ident}) optional runtime dev;
+      } else {
+        optional = node.optional || node.depInfo.${ident}.optional;
+        inherit (node) runtime dev;
       };
-    };
+    } // extraCfg;
 
-    depModList = let
-      union = lib.attrsets.unionOfDisjoint node.requires node.children;
-    in lib.mapAttrsToList forDep union;
+    reqModList = let
+      forDep = ident: vlike: extraCfg: let
+        dnode = getNode ident vlike extraCfg;
+      in { name = dnode.path; value = dnode; };
+    in lib.mapAttrsToList ( i: v: forDep i v {} ) node.requires;
 
-    childModList = lib.mapAttrsToList ( ident: _: {
-      name         = pathFor ident;
-      value.pscope = node.scope;
-    } ) node.children;
+    childModList = lib.mapAttrsToList ( i: v: let
+      cnode = ( lib.evalModules {
+        modules = [
+          {
+            options.gnode = lib.mkOption { type = nt.submodule gnMods; };
+            config.gnode  = let
+              dpdef = lib.libfloco.getPdef pdefs {
+                ident = i; version = v.pin or v.version or v;
+              };
+              cmod = getNode i v { pscope = node.scope; isRoot = false; };
+            in ( graphNodeCoreFromPdef dpdef ) // cmod;
+          }
+        ];
+      } ).config.gnode;
+      sub = treeModuleFromGraphNode {
+        inherit graphNodeModules getChildReqs pdefs;
+      } cnode;
+    in removeAttrs sub ["options"] ) node.children;
 
   in {
-    imports = [
-      { config = builtins.listToAttrs childModList; }
-    ];
-    config  = builtins.listToAttrs ( depModList ++ [{
-      name  = node.path;
-      value = removeAttrs node [
-        "_export"
-        "metaFiles"
-        "fsInfo"
-        "fetchInfo"
-        "sourceInfo"
-        "binInfo"
-        "deserialized"
-        "fetcher"
-      ];
-    }] );
+    options.tree = lib.mkOption {
+      type    = nt.attrsOf ( nt.submodule gnMods );
+      default = {};
+    };
+    imports =
+      [{ config.tree = builtins.listToAttrs reqModList; }] ++ childModList;
+    config.tree.${node.path} = node;
   };
 
 
@@ -326,6 +401,7 @@ in {
 # ---------------------------------------------------------------------------- #
 
   inherit
+    getChildReqsBasic
     graphNodeDeferred
     graphNode
     treeModuleFromGraphNode
@@ -338,41 +414,20 @@ in {
     type = graphNode;
   };
 
-  # Ad hoc module evaluation for `graphNode' records.
-  mkGraphNode = {
-    ident     ? null
-  , version   ? null
-  , key       ? null
-  , depInfo   ? null
-  , peerInfo  ? null
-  , path      ? null
-  , isRoot    ? null
-  , pscope    ? null
-  , children  ? null
-  , requires  ? null
-  , referrers ? null
-  , props     ? null
+  treeFromGraphNode = {
+    graphNodeModules ? [graphNodeDeferred]
+  , getChildReqs     ? null
+  , pdefs            ? floco.pdefs
+  , floco            ? config.floco
+  , config           ? {
+      floco.pdefs = removeAttrs args ["graphNodeModules" "getChildReqs"];
+    }
   , ...
-  } @ config: ( lib.evalModules {
-    modules = [graphNodeDeferred { config = config.config or config; }];
-  } ).config;
-
-  mkGraphNodeWith = closure: keylike: config: let
-    key = if builtins.isString keylike then keylike else
-          keylike.key or ( keylike.ident + "/" + keylike.version );
-    ident   = keylike.ident or ( dirOf key );
-    version = keylike.version or ( baseNameOf key );
-    pred    = pdef:
-      if pdef ? key then pdef.key == key else
-      ( pdef.ident == ident ) && ( pdef.version == version );
-    pdef = builtins.head ( builtins.filter pred closure );
-  in ( lib.evalModules {
-    modules = [
-      graphNodeDeferred
-      { config = pdef; }
-      { config = config.config or config; }
-    ];
-  } ).config;
+  } @ args: nodelike: ( lib.evalModules {
+    modules = [( lib.libfloco.treeModuleFromGraphNode {
+      inherit graphNodeModules getChildReqs pdefs;
+    } nodelike )];
+  } ).config.tree;
 
 }
 

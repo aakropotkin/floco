@@ -8,7 +8,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  getDepsWith = pred: pdef: lib.filterAttrs ( _: pred ) pdef.depInfo;
+  getDepsWith = pred: x: lib.filterAttrs ( _: pred ) ( x.depInfo or x );
 
   getRuntimeDeps = {
     includeOptional ? true
