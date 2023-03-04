@@ -14,7 +14,7 @@
 
   depInfoBaseEntryDeferred = {
 
-    _file = "<libfloco>/types/depInfo.nix:depInfoBaseEntryDeferred";
+    _file = "<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred";
 
     # Additional bool fields may be added in association with various lifecycle
     # events such as `test', `lint', etc allowing users to minimize the trees
@@ -98,7 +98,7 @@
 # ---------------------------------------------------------------------------- #
 
   depInfoBaseDeferredWith = extraEntryModules: {
-    _file        = "<libfloco>/types/depInfo.nix:depInfoBaseDeferredWith";
+    _file        = "<libfloco>/types/depInfo/base.nix:depInfoBaseDeferredWith";
     freeformType = nt.attrsOf ( nt.submodule (
       [depInfoBaseEntryDeferred] ++ ( lib.toList extraEntryModules )
     ) );
@@ -107,7 +107,7 @@
   depInfoBaseWith = extraEntryModules:
     nt.submodule ( depInfoBaseDeferredWith extraEntryModules );
 
-  depInfoBase   = depInfoBaseWith [];
+  depInfoBase = depInfoBaseWith [];
 
 
   mkDepInfoBaseOptionWith = extraEntryModules: lib.mkOption {
