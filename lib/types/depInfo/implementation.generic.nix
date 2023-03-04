@@ -167,6 +167,8 @@
     _file = "<libfloco>/types/depInfo/implementation.generic.nix:" +
             "depInfoGenericMemberInit";
 
+    imports = [depInfoGenericArgs];
+
     options.depInfo = lib.mkOption {
       inherit (lib.libfloco.mkDepInfoBaseOptionWith {}) description;
       type = let
@@ -223,56 +225,6 @@ in {
       { config._module.args = { inherit extraEntryModules; }; }
     ] ++ extraModules;
   };
-
-  depInfoGenericBareWith = {
-    lib                    ? top.lib
-  , deserialized           ? null
-  , requires               ? null
-  , dependencies           ? null
-  , devDependencies        ? null
-  , devDependenciesMeta    ? null
-  , optionalDependencies   ? null
-  , bundleDependencies     ? null
-  , bundledDependencies    ? null
-  , runtimeDeps            ? null
-  , idents                 ? null
-  , extraEntryModules      ? null
-  , extraModules           ? []
-  } @ args: let
-    args' = removeAttrs ( lib.evalModules {
-      modules = [
-        depInfoGenericArgs
-        { config._module.args = removeAttrs args ["extraModules"]; }
-      ];
-    } )._module.args ["extendModules" "moduleType"];
-    nt = lib.types;
-  in nt.submoduleWith {
-    modules = let
-      fdes = if args'.deserialized then [] else [
-        lib.libfloco.depInfoEntryGenericArgs
-        lib.libfloco.depInfoEntryGenericImpl
-      ];
-    in [
-      {
-
-        freeformType = nt.attrsOf ( nt.submodule ( [
-          lib.libfloco.depInfoBaseEntryDeferred
-          {
-            config._module.args = removeAttrs args' [
-              "deserialized" "idents" "extraEntryModules"
-            ];
-          }
-        ] ++ fdes ++ ( lib.toList args'.extraEntryModules ) ) );
-
-        config = let
-          mkEnt = name: { inherit name; value = {}; };
-        in builtins.listToAttrs ( map mkEnt args'.idents );
-
-      }
-    ] ++ ( lib.toList extraModules );
-    specialArgs = args';
-  };
-
 
 # ---------------------------------------------------------------------------- #
 

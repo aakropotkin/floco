@@ -5,7 +5,6 @@
   imports = [
     ./binInfo
 
-    lib.libfloco.depInfoGenericArgs
     lib.libfloco.depInfoGenericMember
     ./depInfo/implementation.nix
 
