@@ -104,13 +104,20 @@
     ) );
   };
 
-  depInfoBaseWith = extraEntryModules:
-    nt.submodule ( depInfoBaseDeferredWith extraEntryModules );
+  depInfoBaseWith = {
+    extraModules      ? []
+  , extraEntryModules ? []
+  }: let
+    base = depInfoBaseDeferredWith extraEntryModules;
+  in nt.submodule ( [base] ++ extraModules );
 
-  depInfoBase = depInfoBaseWith [];
+  depInfoBase = depInfoBaseWith {};
 
 
-  mkDepInfoBaseOptionWith = extraEntryModules: lib.mkOption {
+  mkDepInfoBaseOptionWith = {
+    extraModules      ? []
+  , extraEntryModules ? []
+  } @ extra: lib.mkOption {
     description = lib.mdDoc ''
       Information regarding dependency modules/packages.
       This record is analogous to the various
@@ -120,11 +127,11 @@
       `treeInfo` configs, which are used by builders, but may be used to provide
       information needed to generate trees if they are not defined.
     '';
-    type    = depInfoBaseWith extraEntryModules;
+    type    = depInfoBaseWith extra;
     default = {};
   };
 
-  mkDepInfoBaseOption = mkDepInfoBaseOptionWith [];
+  mkDepInfoBaseOption = mkDepInfoBaseOptionWith {};
 
 
 # ---------------------------------------------------------------------------- #
