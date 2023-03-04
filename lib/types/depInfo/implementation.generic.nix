@@ -219,8 +219,8 @@ in {
   depInfoGenericMemberWith = {
     extraModules      ? []
   , extraEntryModules ? []
-  }: lib.types.submoduleWith {
-    modules = [
+  }: {
+    imports = [
       depInfoGenericMember
       { config._module.args = { inherit extraEntryModules; }; }
     ] ++ extraModules;
