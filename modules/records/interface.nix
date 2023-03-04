@@ -84,7 +84,7 @@ in {
                 "from scratch" implementation.
               '';
               type    = nt.deferredModule;
-              default = lib.libfloco.depInfoGenericMember;
+              default = lib.libfloco.depInfoGenericMemberDeferred;
             };
 
           };

@@ -24,7 +24,7 @@ in {
     _module.args.floco = lib.mkDefault config;
 
     depInfo = { config, ... }: {
-      deferred = lib.mkDefault ( lib.libfloco.depInfoGenericMemberWith {
+      deferred = lib.mkDefault ( lib.libfloco.depInfoGenericMemberDeferredWith {
         inherit (config) extraModules extraEntryModules;
       } );
     };

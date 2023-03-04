@@ -145,7 +145,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  depInfoGenericMember = {
+  depInfoGenericMemberDeferred = {
     lib
   , config
   , deserialized
@@ -213,18 +213,28 @@ in {
 
   inherit
     depInfoGenericArgs
-    depInfoGenericMember
+    depInfoGenericMemberDeferred
   ;
 
-  depInfoGenericMemberWith = {
+  depInfoGenericMemberDeferredWith = {
     extraModules      ? []
   , extraEntryModules ? []
   }: {
     imports = [
-      depInfoGenericMember
+      depInfoGenericMemberDeferred
       { config._module.args = { inherit extraEntryModules; }; }
     ] ++ extraModules;
   };
+
+  depInfoGenericMember     = lib.types.submodule depInfoGenericMemberDeferred;
+  depInfoGenericMemberWith = {
+    extraModules      ? []
+  , extraEntryModules ? []
+  }: lib.types.submodule ( [
+    depInfoGenericMemberDeferred
+    { config._module.args = { inherit extraEntryModules; }; }
+  ] ++ extraModules );
+
 
 # ---------------------------------------------------------------------------- #
 
