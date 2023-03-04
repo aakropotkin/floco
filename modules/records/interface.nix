@@ -47,8 +47,11 @@ in {
               description = lib.mdDoc ''
                 Deferred module which adds `depInfo` to a submodule.
               '';
-              type    = nt.deferredModule;
-              default = ./depInfo;
+              type = nt.deferredModule;
+              default.imports = [
+                lib.libfloco.depInfoGenericArgs
+                lib.libfloco.depInfoGenericMember
+              ];
             };
             options.serialize = lib.mkOption {
               description = lib.mdDoc ''

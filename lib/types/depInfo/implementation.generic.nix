@@ -120,7 +120,7 @@
     _file = "<libfloco>/types/depInfo/implementation.generic.nix:" +
             "depInfoGenericArgs";
 
-    config._module.args.deserialized = lib.mkDefault false;
+    config._module.args.deserialized = lib.mkOptionDefault false;
     config._module.args.requires     = lib.mkDefault {};
     # `package-lock.json' carries a top level `requires' field that is of type
     # `bool', so we coerce to an attrset.
@@ -174,7 +174,7 @@
           lib.libfloco.depInfoEntryGenericArgs
           lib.libfloco.depInfoEntryGenericImpl
         ];
-      in nt.attrsOf ( nt.submodule [
+      in nt.attrsOf ( nt.submodule ( [
         lib.libfloco.depInfoBaseEntryDeferred
         {
           config._module.args =
@@ -182,7 +182,7 @@
               "deserialized" "idents" "extraEntryModules"
             ];
         }
-      ] ++ fdes ++ ( lib.toList extraEntryModules ) );
+      ] ++ fdes ++ ( lib.toList extraEntryModules ) ) );
     };
 
     config.depInfo =
@@ -254,6 +254,7 @@ in {
       ];
     in [
       {
+
         freeformType = nt.attrsOf ( nt.submodule ( [
           lib.libfloco.depInfoBaseEntryDeferred
           {
@@ -262,9 +263,11 @@ in {
             ];
           }
         ] ++ fdes ++ ( lib.toList args'.extraEntryModules ) ) );
+
         config = let
           mkEnt = name: { inherit name; value = {}; };
         in builtins.listToAttrs ( map mkEnt args'.idents );
+
       }
     ] ++ ( lib.toList extraModules );
     specialArgs = args';
