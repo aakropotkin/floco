@@ -199,6 +199,7 @@ in {
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )
+  // ( import ./types/topo.nix  { inherit lib; } )
   // ( import ./types/pjsCore   { inherit lib; } )
   // ( import ./types/depInfo   { inherit lib; } )
 
