@@ -83,14 +83,15 @@
     };
   };
 
-  scope = nt.attrsOf scopeEnt;
+  scope = nt.lazyAttrsOf scopeEnt;
 
 
 # ---------------------------------------------------------------------------- #
 
   # Coerce a `depInfoEnt' colleciton to a `pin' collection.
-  pinsFromDepInfo = nt.attrsOf (
-    nt.coercedTo ( nt.attrsOf nt.anything ) ( x: x.pin ) lib.libfloco.version
+  pinsFromDepInfo = nt.lazyAttrsOf (
+    nt.coercedTo ( nt.lazyAttrsOf nt.anything ) ( x: x.pin )
+                 lib.libfloco.version
   );
 
 
@@ -106,7 +107,7 @@
   in builtins.mapAttrs proc depInfo;
 
   scopeFromDepInfo = path: let
-    fromT = ( nt.attrsOf nt.anything ) // {
+    fromT = ( nt.lazyAttrsOf nt.anything ) // {
       check = x: ( builtins.isAttrs x ) && (
         ! ( builtins.all scopeEnt.check ( builtins.attrValues x ) )
       );
@@ -208,7 +209,7 @@
 
       props = lib.mkOption {
         type = nt.submodule {
-          freeformType = nt.attrsOf nt.bool;
+          freeformType = nt.lazyAttrsOf nt.bool;
           options      = {
             optional = lib.mkOption {
               type    = lib.libfloco.boolAll;
@@ -315,7 +316,9 @@
       forDep = ident: vlike: extraCfg: let
         dnode = getNode ident vlike extraCfg;
       in { name = dnode.path; value = dnode; };
-    in lib.mapAttrsToList ( i: v: forDep i v {} ) node.requires;
+    in lib.mapAttrsToList ( i: v: forDep i v {
+      path = node.pscope.${i}.path;
+    } ) node.requires;
 
     childModList = lib.mapAttrsToList ( i: v: let
       cnode = ( lib.evalModules {
@@ -338,7 +341,7 @@
 
   in {
     options.tree = lib.mkOption {
-      type    = nt.attrsOf ( nt.submodule gnMods );
+      type    = nt.lazyAttrsOf ( nt.submodule gnMods );
       default = {};
     };
     imports =
