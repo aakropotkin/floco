@@ -4,7 +4,10 @@
 
   imports = [
     ./binInfo
-    ../depInfo ./depInfo/implementation.nix
+
+    lib.libfloco.depInfoGenericMemberDeferred
+    ./depInfo/implementation.nix
+
     ./treeInfo
     ./peerInfo
     ./sysInfo

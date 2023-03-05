@@ -76,24 +76,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # A primitive form of `depInfo'.
-  # This form is not extensible but covers most use cases for graphing.
-  depInfoEnt = nt.submodule {
-    freeformType = nt.attrsOf nt.bool;
-    options = {
-      descriptor = lib.mkOption { type = nt.str; default = "*"; };
-      pin        = lib.libfloco.mkPinOption;
-      optional   = lib.mkOption { type = nt.bool; default = false; };
-      runtime    = lib.mkOption { type = nt.bool; default = false; };
-      dev        = lib.mkOption { type = nt.bool; default = true;  };
-      bundled    = lib.mkOption { type = nt.bool; default = false; };
-    };
-  };
-
-  depInfoCore = nt.attrsOf depInfoEnt;
-
-# ---------------------------------------------------------------------------- #
-
   scopeEnt = nt.submodule {
     options = {
       pin  = lib.libfloco.mkPinOption;
@@ -101,14 +83,15 @@
     };
   };
 
-  scope = nt.attrsOf scopeEnt;
+  scope = nt.lazyAttrsOf scopeEnt;
 
 
 # ---------------------------------------------------------------------------- #
 
   # Coerce a `depInfoEnt' colleciton to a `pin' collection.
-  pinsFromDepInfo = nt.attrsOf (
-    nt.coercedTo ( nt.attrsOf nt.anything ) ( x: x.pin ) lib.libfloco.version
+  pinsFromDepInfo = nt.lazyAttrsOf (
+    nt.coercedTo ( nt.lazyAttrsOf nt.anything ) ( x: x.pin )
+                 lib.libfloco.version
   );
 
 
@@ -124,7 +107,7 @@
   in builtins.mapAttrs proc depInfo;
 
   scopeFromDepInfo = path: let
-    fromT = ( nt.attrsOf nt.anything ) // {
+    fromT = ( nt.lazyAttrsOf nt.anything ) // {
       check = x: ( builtins.isAttrs x ) && (
         ! ( builtins.all scopeEnt.check ( builtins.attrValues x ) )
       );
@@ -180,7 +163,7 @@
       version = lib.libfloco.mkVersionOption;
       key     = lib.libfloco.mkKeyOption;
 
-      depInfo = lib.mkOption { type = depInfoCore; default = {}; };
+      depInfo = lib.libfloco.mkDepInfoBaseOption;
 
       # A primitive form of `peerInfo'.
       # This form is not extensible but covers most use cases for graphing.
@@ -226,7 +209,7 @@
 
       props = lib.mkOption {
         type = nt.submodule {
-          freeformType = nt.attrsOf nt.bool;
+          freeformType = nt.lazyAttrsOf nt.bool;
           options      = {
             optional = lib.mkOption {
               type    = lib.libfloco.boolAll;
@@ -262,7 +245,7 @@
       );
       pscope = let
         dft = if config.isRoot then {} else {
-          ${config.ident} = config.version;
+          ${config.ident} = { inherit (config) path; pin = config.version; };
         };
       in lib.mkDefault dft;
       requires = builtins.mapAttrs ( _: lib.mkDefault ) cr.requires;
@@ -333,7 +316,9 @@
       forDep = ident: vlike: extraCfg: let
         dnode = getNode ident vlike extraCfg;
       in { name = dnode.path; value = dnode; };
-    in lib.mapAttrsToList ( i: v: forDep i v {} ) node.requires;
+    in lib.mapAttrsToList ( i: v: forDep i v {
+      path = node.pscope.${i}.path;
+    } ) node.requires;
 
     childModList = lib.mapAttrsToList ( i: v: let
       cnode = ( lib.evalModules {
@@ -356,7 +341,7 @@
 
   in {
     options.tree = lib.mkOption {
-      type    = nt.attrsOf ( nt.submodule gnMods );
+      type    = nt.lazyAttrsOf ( nt.submodule gnMods );
       default = {};
     };
     imports =
@@ -380,14 +365,6 @@ in {
     '';
     type = toposorted;
   };
-
-
-# ---------------------------------------------------------------------------- #
-
-  inherit
-    depInfoEnt
-    depInfoCore
-  ;
 
 
 # ---------------------------------------------------------------------------- #
