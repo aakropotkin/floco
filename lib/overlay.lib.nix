@@ -57,6 +57,7 @@ in {
     ./sources.nix
     ./util.nix
     ./closures.nix
+    ./graph
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 

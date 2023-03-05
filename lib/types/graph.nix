@@ -36,7 +36,7 @@
   mkScopeFromDepInfo = path: depInfo: let
     proc = ident: de: {
       path = let
-        pre = if path == "" then "node_modules/" else path + "/";
+        pre = if path == "" then "node_modules/" else path + "/node_modules/";
       in de.path or ( pre + ident );
       pin  = de.pin or de;
     };
@@ -49,28 +49,6 @@
       );
     };
   in nt.coercedTo fromT ( mkScopeFromDepInfo path ) scope;
-
-
-# ---------------------------------------------------------------------------- #
-
-  getChildReqsBasic = {
-    ident
-  , version
-  , path
-  , depInfo
-  , peerInfo
-  , isRoot
-  , needs  ? if isRoot then depInfo else lib.libfloco.getRuntimeDeps {} depInfo
-  , pscope
-  , ...
-  } @ node: let
-    keep = di: de: ( pscope.${di}.pin or null ) == de.pin;
-    part = lib.partitionAttrs keep needs;
-    bund = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
-  in {
-    requires = builtins.intersectAttrs part.right pscope;
-    children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
-  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -171,7 +149,8 @@
         inherit (config) ident version path depInfo peerInfo isRoot pscope;
       };
     in {
-      _module.args.getChildReqs = lib.mkOptionDefault getChildReqsBasic;
+      _module.args.getChildReqs =
+        lib.mkOptionDefault lib.libfloco.getChildReqsBasic;
 
       ident   = lib.mkOptionDefault ( dirOf config.key );
       version = lib.mkOptionDefault ( baseNameOf config.key );
@@ -240,9 +219,9 @@
       version   = vlike.pin or vlike.version or vlike;
       path      = pathFor ident;
       referrers = [{ inherit (node) key path; }];
-      props     = if isRoot then {
+      props     = if isRoot && ( node.depInfo ? ${ident} ) then {
         inherit (node.depInfo.${ident}) optional runtime dev;
-      } else {
+      } else if isRoot then {} else {
         optional = node.props.optional || node.depInfo.${ident}.optional;
         inherit (node.props) runtime dev;
       };
@@ -303,7 +282,6 @@ in {
 # ---------------------------------------------------------------------------- #
 
   inherit
-    getChildReqsBasic
     graphNodeDeferred
     graphNode
     treeModuleFromGraphNode
