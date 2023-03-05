@@ -76,24 +76,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # A primitive form of `depInfo'.
-  # This form is not extensible but covers most use cases for graphing.
-  depInfoEnt = nt.submodule {
-    freeformType = nt.attrsOf nt.bool;
-    options = {
-      descriptor = lib.mkOption { type = nt.str; default = "*"; };
-      pin        = lib.libfloco.mkPinOption;
-      optional   = lib.mkOption { type = nt.bool; default = false; };
-      runtime    = lib.mkOption { type = nt.bool; default = false; };
-      dev        = lib.mkOption { type = nt.bool; default = true;  };
-      bundled    = lib.mkOption { type = nt.bool; default = false; };
-    };
-  };
-
-  depInfoCore = nt.attrsOf depInfoEnt;
-
-# ---------------------------------------------------------------------------- #
-
   scopeEnt = nt.submodule {
     options = {
       pin  = lib.libfloco.mkPinOption;
@@ -180,7 +162,7 @@
       version = lib.libfloco.mkVersionOption;
       key     = lib.libfloco.mkKeyOption;
 
-      depInfo = lib.mkOption { type = depInfoCore; default = {}; };
+      depInfo = lib.libfloco.mkDepInfoBaseOption;
 
       # A primitive form of `peerInfo'.
       # This form is not extensible but covers most use cases for graphing.
@@ -262,7 +244,7 @@
       );
       pscope = let
         dft = if config.isRoot then {} else {
-          ${config.ident} = config.version;
+          ${config.ident} = { inherit (config) path; pin = config.version; };
         };
       in lib.mkDefault dft;
       requires = builtins.mapAttrs ( _: lib.mkDefault ) cr.requires;
@@ -380,14 +362,6 @@ in {
     '';
     type = toposorted;
   };
-
-
-# ---------------------------------------------------------------------------- #
-
-  inherit
-    depInfoEnt
-    depInfoCore
-  ;
 
 
 # ---------------------------------------------------------------------------- #
