@@ -95,6 +95,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+  getModuleBaseName = options: let
+    inherit (options._module.specialArgs) loc;
+    len = builtins.length loc;
+  in builtins.elemAt loc ( len - 3 );
+
+
+# ---------------------------------------------------------------------------- #
+
 }
 
 

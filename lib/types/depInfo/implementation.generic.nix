@@ -1,9 +1,63 @@
 # ============================================================================ #
 #
-# XXX: For because args may depend on other args, you can't use
-# `builtins.mapAttrs' to apply `lib.mkDefault' or similar overrides.
+# A generic implementation of the `depInfo' record which takes "manifest"
+# fields as arguments.
+# Additionally this implementation accepts `requires' fields as found in
+# `package-lock.json' to avoid what would otherwise be a mostly identical
+# second implementation.
+#
+# ---------------------------------------------------------------------------- #
+#
+# This implementation can be consumed as individual deferred modules to improve
+# reuse by extensions and other lib routines which may have need for them; but
+# for readers: try to avoid getting lost in "complexity" here, the form you most
+# likely want to use is `depInfoGenericMember[Deferred]',
+# or `depInfoEntryGeneric'.
+#
+# Examples:
+#
+# { lib, config, ... }:
+#
+#   # As a member of submodule.
+#   options.my-pkg = lib.mkOption {
+#     type = nt.submodule [
+#       lib.libfloco.depInfoGenericMemberDeferred
+#       {
+#         options.ident = lib.libfloco.mkIdentOption;
+#         # Other Declarations...
+#       }
+#     ];
+#     default = {};
+#   };
+#   config.my-pkg = {
+#     # To translate manifest fields
+#     _module.args.dependencies.lodash = "^4.17.21";
+#     # To add explicit declarations.
+#     # Notice that `depInfo' is a MEMBER of the `submodule'.
+#     depInfo.bar.descriptor = "^6.6.6";
+#   };
+#
+#  # As a single field submodule, containing only `depInfo'.
+#  options.singleton = lib.mkOption {
+#    type     = lib.libfloco.depInfoGenericMember;
+#     default = {};
+#  };
+#  config.depInfo-singleton._module.args.dependencies.lodash = "^4.17.21";
+#
+#  # For a single entry.
+#  options.depInfoEnt = lib.mkOption {
+#    type = lib.libfloco.depInfoGeneric;
+#  };
+#  config.depInfoEnt = config.singleton.depInfo.lodash;
+#
+#
+# ---------------------------------------------------------------------------- #
+#
+# XXX: Because args may depend on other args, you can't use `builtins.mapAttrs'
+# to apply `lib.mkDefault' or similar overrides.
 # The Nix evaluator is eager and will demand that the `let' above the
 # `builtins.mapAttrs' be evaluated first, which causes infinite recursion.
+#
 #
 # ---------------------------------------------------------------------------- #
 
@@ -27,17 +81,15 @@
   }: let
     # `package-lock.json' carries a top level `requires' field that is of type
     # `bool', so we coerce to an attrset.
-    req            = if builtins.isAttrs requires then requires else {};
+    req = if builtins.isAttrs requires then requires else {};
+    # Needs to be lower-priority than top level `depInfo' usage of
+    # `lib.mkDefault' to avoid clashing.
     mkEntryDefault = lib.mkOverride 1001;
   in {
     _file = "<libfloco>/types/depInfo/implementation.generic.nix:" +
             "depInfoEntryGenericArgs";
-    # Needs to be lower-priority than top level `depInfo' usage of
-    # `lib.mkDefault' to avoid clashing.
-    _module.args.ident = let
-      len = builtins.length options._module.specialArgs.loc;
-      i   = builtins.elemAt options._module.specialArgs.loc ( len - 3 );
-    in mkEntryDefault i;
+    _module.args.ident =
+      mkEntryDefault ( lib.libfloco.getModuleBaseName options );
     _module.args.requires             = mkEntryDefault {};
     _module.args.dependencies         = mkEntryDefault req;
     _module.args.devDependencies      = mkEntryDefault {};
