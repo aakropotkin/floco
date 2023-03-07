@@ -59,7 +59,7 @@
     part    = lib.partitionAttrs keep needs;
     bund    = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
     nonRoot = {
-      requires = builtins.intersectAttrs part.right pscope;
+      requires = builtins.intersectAttrs ( part.right // peerInfo ) pscope;
       children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
     };
     forRoot = {

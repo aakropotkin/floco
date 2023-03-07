@@ -154,7 +154,7 @@
 
   isDir = x:
     ( isCoercibleToPath x ) &&
-    ( builtins.pathExists ( ( coercePath x ) + "/." ) );
+    ( builtins.pathExists ( ( toString ( coercePath x ) ) + "/." ) );
 
 
 # ---------------------------------------------------------------------------- #

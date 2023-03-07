@@ -203,7 +203,8 @@
       version   = vlike.pin or vlike.version or vlike;
       path      = pathFor ident;
       referrers =
-        if node.depInfo ? ${ident} then [{ inherit (node) key path; }] else [];
+        if ! ( node.peerInfo // node.depInfo ) ? ${ident} then [] else
+        [{ inherit (node) key path; }];
     } // extraCfg;
 
     reqModList = let
@@ -299,9 +300,9 @@
   propsFromReferrer = ptree: ident: refPath: let
     gnode   = ptree.${refPath};
     forRoot = { inherit (gnode.depInfo.${ident}) optional runtime dev; };
-    forSub  = {
-      inherit (gnode.props) runtime dev;
-      optional = gnode.props.optional || gnode.depInfo.${ident}.optional;
+    forSub  = gnode.props // {
+      optional = gnode.props.optional ||
+                 ( gnode.depInfo.${ident} or gnode.peerInfo.${ident} ).optional;
     };
   in if gnode.isRoot then forRoot else forSub;
 
