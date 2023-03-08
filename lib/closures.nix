@@ -8,7 +8,10 @@
 
 # ---------------------------------------------------------------------------- #
 
-  getDepsWith = pred: x: lib.filterAttrs ( _: pred ) ( x.depInfo or x );
+  getDepsWith = pred: x:
+    lib.filterAttrs ( ident: entry:
+      pred ( { inherit ident; } // entry )
+    ) ( x.depInfo or x );
 
   getRuntimeDeps = {
     includeOptional ? true

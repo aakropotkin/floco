@@ -114,6 +114,10 @@ in {
     tryImportNixOrJson
     processImport      processImports
     processImportFloco processImportsFloco
+
+    nmjoin
+
+    uniqueListOf
   ;
 
 }

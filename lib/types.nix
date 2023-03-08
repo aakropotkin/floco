@@ -176,6 +176,17 @@
 
 # ---------------------------------------------------------------------------- #
 
+  uniqueListOf = elemType: let
+    base = nt.listOf elemType;
+  in base // {
+    name        = "unique list of ${elemType.name}";
+    description = "unique list of (${elemType.description})";
+    merge       = loc: defs: lib.unique ( lib.getValues defs );
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -196,12 +207,15 @@ in {
     sha256_hash sha256_sri narHash
     rev short_rev
     depPin
+
+    uniqueListOf
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )
   // ( import ./types/topo.nix  { inherit lib; } )
   // ( import ./types/pjsCore   { inherit lib; } )
   // ( import ./types/depInfo   { inherit lib; } )
+  // ( import ./types/pdef.nix  { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #

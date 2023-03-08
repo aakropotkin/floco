@@ -19,7 +19,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  topChildrenHoisted = {
+  topScopeHoisted = {
     config ? { floco.pdefs = pa; }
   , floco  ? config.floco
   , pdefs  ? config.floco.pdefs
@@ -34,7 +34,46 @@
     );
     noRoot   = builtins.filter ( pdef: pdef.key != rootKey ) closure;
     idGroups = builtins.groupBy ( pdef: pdef.ident ) noRoot;
-  in builtins.mapAttrs ( _: vs: ( builtins.head vs ).version ) idGroups;
+  in builtins.mapAttrs ( ident: vs: {
+    pin        = ( builtins.head vs ).version;
+    path       = "node_modules/" + ident;
+    oneVersion = ( builtins.length vs ) < 2;
+  } ) idGroups;
+
+
+# ---------------------------------------------------------------------------- #
+
+  subScopeHoisted = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? config.floco.pdefs
+  , ...
+  } @ pa: {
+    ident
+  , version
+  , key     ? ident + "/" + version
+  , path
+  , depInfo
+  , peerInfo
+  , pscope
+  , ...
+  } @ node: let
+    lf   = lib.libfloco;
+    pred = de: de.runtime && ( ! ( pscope.${de.ident}.oneVersion or (
+      throw ( lib.generators.toPretty {} pscope )
+    ) ) );
+      #de.runtime && ( ! ( pscope.${de.ident}.oneVersion or false ) );
+    closure = lf.pdefClosureWith pred pred { inherit pdefs; }
+                                           { inherit ident version; };
+    noRoot   = builtins.filter ( pdef: pdef.key != key ) closure;
+    idGroups = builtins.groupBy ( pdef: pdef.ident ) noRoot;
+    subscope = builtins.mapAttrs ( ident: vs: {
+      pin        = ( builtins.head vs ).version;
+      path       = builtins.concatStringsSep "" [path "/node_modules/" ident];
+      oneVersion = ( builtins.length vs ) < 2;
+    } ) idGroups;
+  in builtins.addErrorContext "while collecting `subscopeHoisted' of `${key}'"
+                              subscope;
 
 
 # ---------------------------------------------------------------------------- #
@@ -51,21 +90,33 @@
   , depInfo
   , peerInfo
   , isRoot
-  , needs  ? if isRoot then depInfo else lib.libfloco.getRuntimeDeps {} depInfo
   , pscope
   , ...
   } @ node: let
-    keep    = di: de: ( pscope.${di}.pin or null ) == de.pin;
-    part    = lib.partitionAttrs keep needs;
-    bund    = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
-    nonRoot = {
+    nonRoot = let
+      bund  = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
+      sub   = subScopeHoisted { inherit pdefs; } node;
+      scope = let
+        bund' = builtins.mapAttrs ( ident: { pin, ... }: {
+          inherit pin;
+          path = builtins.concatStringsSep "" [path "/node_modules/" ident];
+          oneVersion = pscope.${ident}.oneVersion or false;
+        } ) bund;
+      in pscope // bund' // sub;
+      keep = di: de:
+        ( ! ( bund ? ${di} ) ) && ( ( pscope.${di}.pin or null ) == de.pin );
+      part = lib.partitionAttrs keep scope;
+    in {
+      inherit scope;
       requires = builtins.intersectAttrs ( part.right // peerInfo ) pscope;
       children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
     };
-    forRoot = {
+    forRoot = let
+      scope = topScopeHoisted { inherit pdefs; } { inherit ident version; };
+    in {
+      inherit scope;
       requires = {};
-      children =
-        topChildrenHoisted { inherit pdefs; } { inherit ident version; };
+      children = builtins.mapAttrs ( _: n: n.pin ) scope;
     };
   in if isRoot then forRoot else nonRoot;
 
@@ -75,7 +126,7 @@
 in {
 
   inherit
-    topChildrenHoisted
+    topScopeHoisted
     getChildReqsHoisted
   ;
 

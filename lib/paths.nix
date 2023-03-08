@@ -159,6 +159,17 @@
 
 # ---------------------------------------------------------------------------- #
 
+  nmjoin = path: ident:
+    if path == "" then "node_modules/" + ident else
+    builtins.concatStringsSep "" [path "/node_modules/" ident];
+
+  nmDepth = path: let
+    s = builtins.split "node_modules" ( toString path );
+  in builtins.length ( builtins.filter builtins.isList s );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -167,6 +178,9 @@ in {
     isDir
     isAbspath
     realpathRel
+
+    nmjoin
+    nmDepth
   ;
 
 }

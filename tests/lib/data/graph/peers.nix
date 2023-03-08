@@ -12,6 +12,7 @@ let
 in {
   config.floco.pdefs = {
 
+    # Our "root" package.
     "proj0"."4.2.0" = defProj 0 {
       depInfo.proj1 = {
         pin     = "4.2.0";
