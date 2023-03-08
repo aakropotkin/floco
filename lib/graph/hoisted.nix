@@ -107,16 +107,12 @@
         ( ! ( bund ? ${di} ) ) && ( ( pscope.${di}.pin or null ) == de.pin );
       part = lib.partitionAttrs keep scope;
     in {
-      inherit scope;
       requires = builtins.intersectAttrs ( part.right // peerInfo ) pscope;
-      children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
+      children = builtins.intersectAttrs ( bund // part.wrong ) scope;
     };
-    forRoot = let
-      scope = topScopeHoisted { inherit pdefs; } { inherit ident version; };
-    in {
-      inherit scope;
+    forRoot = {
       requires = {};
-      children = builtins.mapAttrs ( _: n: n.pin ) scope;
+      children = topScopeHoisted { inherit pdefs; } { inherit ident version; };
     };
   in if isRoot then forRoot else nonRoot;
 

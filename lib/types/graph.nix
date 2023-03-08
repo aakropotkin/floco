@@ -113,7 +113,6 @@
       depInfo   = lib.libfloco.mkDepInfoBaseOption;
       peerInfo  = lib.libfloco.mkPeerInfoBaseOption;
       path      = lib.libfloco.mkTreePathOption;
-      depth     = lib.mkOption { type = nt.ints.unsigned; default = 0; };
       isRoot    = lib.mkOption { type = nt.bool; };
       pscope    = lib.libfloco.mkScopeOption;
       children  = lib.libfloco.mkScopeOption;
@@ -143,15 +142,12 @@
       version = lib.mkOptionDefault ( baseNameOf config.key );
       key     = lib.mkOptionDefault ( config.ident + "/" + config.version );
       path    = lib.mkOptionDefault ( "node_modules/" + config.ident );
-      depth   = lib.mkDerivedConfig options.path lib.libfloco.nmDepth;
       isRoot  = lib.mkOptionDefault (
         ! ( lib.hasInfix "node_modules/" config.path )
       );
       requires = lib.mkDefault cr.requires;
       children = lib.mkDefault cr.children;
-      scope    = lib.mkDefault (
-        cr.scope or ( config.pscope // config.children )
-      );
+      scope    = lib.mkDefault ( config.pscope // config.children );
     };  # End `config'
 
   };  # End `graphNodeDeferred'
@@ -173,23 +169,26 @@
   # Collect "tree level" attrset of refs from a `graphNode' to the modules it
   # consumes as `referrers' members.
   # This is a helper used to generate configs.
+  #
+  # NOTE: while `requires' always implies a reference, `children' do not.
+  # Particularly for "hoisted" strategies, children of a node are not
+  # necessarily referenced by their parent.
+  # With that in mind we use `depInfo' to reduce `children' to real references.
   collectRefsFromNode = {
     key
   , path
   , requires
   , children
+  , depInfo
   , ...
   }: let
     proc = ident: scopeEnt: {
       name            = scopeEnt.path;
       value.referrers = [{ inherit key path; }];
     };
-    rs  = lib.mapAttrs' proc ( lib.attrsets.unionOfDisjoint requires children );
-    ov  = builtins.intersectAttrs requires children;
-    msg =
-      "Found overlapping attrs at `${path}' for `${key}' requires/children: "
-      + ( builtins.concatStringsSep " " ( builtins.attrNames ov ) );
-  in if ov == {} then rs else throw msg;
+    cdeps = builtins.intersectAttrs depInfo children;
+    needs = lib.attrsets.unionOfDisjoint requires cdeps;
+  in lib.mapAttrs' proc needs;
 
 
 # ---------------------------------------------------------------------------- #
@@ -283,7 +282,7 @@
     };
   in lib.mapAttrsToList mkChild e.config.node.children;
 
-  treeModuleForRoot = {
+  treeForRoot = {
     graphNodeModules ? [graphNodeDeferred]
   , getChildReqs     ? null
   , pdefs
@@ -325,36 +324,23 @@
 
 # ---------------------------------------------------------------------------- #
 
-  #treeFromGraphNode = {
-  #  graphNodeModules ? [graphNodeDeferred]
-  #, getChildReqs     ? null
-  #, pdefs            ? floco.pdefs
-  #, floco            ? config.floco
-  #, config           ? {
-  #    floco.pdefs = removeAttrs args ["graphNodeModules" "getChildReqs"];
-  #  }
-  #, ...
-  #} @ args: nodelike: ( lib.evalModules {
-  #  modules = [( lib.libfloco.treeModuleFromGraphNode {
-  #    inherit graphNodeModules getChildReqs pdefs;
-  #  } nodelike )];
-  #} ).config.tree;
-
-
-# ---------------------------------------------------------------------------- #
-
-  treePropsDeferred = {
+  treePropsDeferred = let
+    dio = lib.libfloco.depInfoBaseEntryDeferred.options;
+  in {
     freeformType = nt.lazyAttrsOf nt.bool;
     options      = {
       optional = lib.mkOption {
+        inherit (dio.optional) description;
         type    = lib.libfloco.boolAll;
         default = false;
       };
       runtime  = lib.mkOption {
+        inherit (dio.runtime) description;
         type    = lib.libfloco.boolAny;
         default = false;
       };
       dev = lib.mkOption {
+        inherit (dio.dev) description;
         type    = lib.libfloco.boolAny;
         default = true;
       };
@@ -397,9 +383,9 @@
     freeformType = nt.attrsOf nt.anything;
     options      = {
       props = lib.libfloco.mkTreePropsOption;
-      inherit (( graphNodeDeferred {
-        inherit options config; getChildReqs = null;
-      } ).options) ident depInfo peerInfo isRoot referrers;
+      inherit (graphNodeInterfaceDeferred.options)
+        ident depInfo peerInfo isRoot referrers
+      ;
     };
   };
 
@@ -420,32 +406,38 @@
 
 # ---------------------------------------------------------------------------- #
 
-  #mkTreeInfoWith = {
-  #  graphNodeModules ? null
-  #, getChildReqs     ? null
-  #, pdefs            ? null
-  #, floco            ? null
-  #, config           ? null
-  #, ...
-  #} @ args: nodelike: let
-  #  inherit (( lib.evalModules {
-  #    modules = [
-  #      lib.libfloco.propTreeDeferred
-  #      {
-  #        config._module.args.tree =
-  #          lib.libfloco.treeFromGraphNode args nodelike;
-  #      }
-  #    ];
-  #  } ).config) ptree;
-  #  toTI  = { key, props, ... }: {
-  #    inherit key;
-  #    link = false;
-  #    dev  = props.dev && ( ! props.runtime );
-  #    # For debugging:
-  #    ##_props = props;
-  #  } // ( removeAttrs props ["runtime" "dev"] );
-  #  base = builtins.mapAttrs ( _: toTI ) ptree;
-  #in removeAttrs base [""];
+  mkTreeInfoWith = {
+    graphNodeModules ? null
+  , getChildReqs     ? null
+  , pdefs            ? null
+  , floco            ? null
+  , config           ? null
+  , ...
+  } @ args: nodelike: let
+    keylike  = if builtins.isString nodelike then nodelike else
+               if nodelike ? key then { inherit (nodelike) key; } else
+               { inherit (nodelike) ident version; };
+    rootTree = let
+      args' = ( builtins.intersectAttrs {
+        graphNodeMoudles = true;
+        getChildReqs     = true;
+      } args ) // { inherit pdefs; };
+    in lib.libfloco.treeForRoot args' keylike;
+    inherit (( lib.evalModules {
+      modules = [
+        lib.libfloco.propTreeDeferred
+        { config._module.args = { inherit (rootTree.config) tree; }; }
+      ];
+    } ).config) ptree;
+    toTI  = { key, props, ... }: {
+      inherit key;
+      link = false;
+      dev  = props.dev && ( ! props.runtime );
+      # For debugging:
+      ##_props = props;
+    } // ( removeAttrs props ["runtime" "dev"] );
+    base = builtins.mapAttrs ( _: toTI ) ptree;
+  in removeAttrs base [""];
 
 
 # ---------------------------------------------------------------------------- #
@@ -469,8 +461,8 @@ in {
     graphNode
     treeModuleFromGraphNode'
     mkGraphNodeOption
-    treeModuleForRoot
     treeModuleClosureOp
+    treeForRoot
   ;
 
 
@@ -495,7 +487,7 @@ in {
     propsFromTree
     propNodeDeferred
     propTreeDeferred
-    #mkTreeInfoWith
+    mkTreeInfoWith
   ;
 
 
