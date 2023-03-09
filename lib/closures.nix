@@ -262,39 +262,59 @@
   };
 
   pdefClosureFunctorWith = extra: let
-    extraModules =
-      if builtins.isList extra then extra else
-      if builtins.isFunction extra then [extra] else
-      if ( extra ? config ) || ( extra ? _module ) then [extra] else
-      if ! ( extra ? pdefs ) then [{ config = extra; }] else [{
-        config = ( removeAttrs extra ["pdefs"] ) // {
-          payload = ( extra.payload or {} ) // { inherit (extra) pdefs; };
-        };
-      }];
+    extraModules = if builtins.isList extra then extra else
+                   if extra == {} then [] else
+                   lib.toList ( extra.modules or extra );
   in nt.submodule ( [
     pdefClosureFunctorInterfaceDeferred
     pdefClosureFunctorImplementationDeferred
   ] ++ extraModules );
 
-  pdefClosureFunctor = pdefClosureFunctorWith [];
+  pdefClosureFunctor = pdefClosureFunctorWith {};
+
+  # Wraps the module in a convenience function so we can do this:
+  #   mkPdefClosureFunctor {} ( lib.evalModules { ... } ) "@foo/bar/4.2.0"
+  #   mkPdefClosureFunctor { inherit (config.floco) pdefs; } "@foo/bar/4.2.0"
+  mkPdefClosureFunctor = {
+    modules     ? []
+  , addRoot     ? args.config.addRoot     or null
+  , rootPred    ? args.config.rootPred    or null
+  , childPred   ? args.config.childPred   or null
+  , getPdef     ? args.config.getPdef     or null
+  , mkEntry     ? args.config.mkEntry     or null
+  , outputStyle ? args.config.outputStyle or null
+  , payload     ? args.config.payload     or {}
+  , pdefs       ? args.config.payload.pdefs or args.config._module.pdefs or {}
+  , config      ? ( removeAttrs args ["modules" "pdefs"] ) // {
+      _module.args = ( args._module.args or {} ) // { inherit pdefs; };
+      inherit payload;
+    }
+  , ...
+  } @ args: let
+    type    = lib.libfloco.pdefClosureFunctorWith { inherit modules; };
+    f       = lib.libfloco.runType type { inherit config; };
+    curried = f // {
+      __functor = self: {
+        config ? { floco.pdefs = pa; }
+      , floco  ? config.floco
+      , pdefs  ? floco.pdefs
+      , ...
+      } @ pa: self // {
+        payload = ( self.payload or {} ) // { inherit pdefs; };
+        inherit (f) __functor;
+      };
+    };
+  in if pdefs == {} then curried else f;
 
 
 # ---------------------------------------------------------------------------- #
 
-  pdefClosure' = pdefs: keylike: let
-    mkNode = builtins.intersectAttrs {
-      key     = true; ident    = true; version  = true;
-      depInfo = true; peerInfo = true;
+  pdefClosure' = lib.libfloco.mkPdefClosureFunctor {
+    config.mkEntry = builtins.intersectAttrs {
+      key     = null; ident    = null; version = null;
+      depInfo = null; peerInfo = null;
     };
-    get = ident: { pin, ... }: let
-      full = lib.libfloco.getPdef { inherit pdefs; } {
-        inherit ident; version = pin;
-      };
-    in mkNode full;
-    operator = pdef: builtins.attrValues ( builtins.mapAttrs get pdef.depInfo );
-  in builtins.genericClosure {
-    startSet = operator ( mkNode ( lib.libfloco.getPdef pdefs keylike ) );
-    inherit operator;
+    pdefs = {};
   };
 
   pdefClosure = {
@@ -307,22 +327,22 @@
 
 # ---------------------------------------------------------------------------- #
 
-  pdefClosureWith' = rootPred: pred: pdefs: keylike: let
-    rootPdef = lib.libfloco.getPdef pdefs keylike;
-    filterDeps = pdef: pdef // {
-      depInfo = if rootPdef.key == pdef.key then getDepsWith rootPred pdef else
-                getDepsWith pred pdef;
+  pdefClosureWith = {
+    __functionArgs =
+      removeAttrs ( lib.functionArgs lib.libfloco.mkPdefClosureFunctor ) [
+        "module" "config" "pdefs"
+      ];
+    __functor = self: {
+      mkEntry ? builtins.intersectAttrs {
+        key     = null; ident    = null; version = null;
+        depInfo = null; peerInfo = null;
+      }
+    , ...
+    } @ args: lib.libfloco.mkPdefClosureFunctor {
+      config = { inherit mkEntry; } // args;
+      pdefs  = {};
     };
-    filtered = map filterDeps ( ( pdefClosure' pdefs keylike ) ++ [rootPdef] );
-    pdefs'   = lib.libfloco.pdefsFromList filtered;
-  in pdefClosure' pdefs' keylike;
-
-  pdefClosureWith = rootPred: pred: {
-    config ? { floco.pdefs = pa; }
-  , floco  ? config.floco
-  , pdefs  ? floco.pdefs
-  , ...
-  } @ pa: keylike: pdefClosureWith' rootPred pred pdefs keylike;
+  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -410,10 +430,11 @@ in {
   mkDEPred = mkDepInfoEntryPred;
 
   inherit
-    pdefClosureFunctorInterfaceDeferred
-    pdefClosureFunctorImplementationDeferred
     pdefClosureFunctorWith
     pdefClosureFunctor
+    mkPdefClosureFunctor
+    pdefClosure
+    pdefClosureWith
   ;
 
   inherit
@@ -423,9 +444,6 @@ in {
   ;
 
   inherit
-    pdefClosure
-    pdefClosureWith
-
     checkPeersPresent
     describeCheckPeersPresentEnt
     describeCheckPeersPresent

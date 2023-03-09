@@ -26,9 +26,7 @@
   , ...
   } @ pa: keylike: let
     lf      = lib.libfloco;
-    closure =
-      lf.pdefClosureWith ( _: true ) ( de: de.runtime ) { inherit pdefs; }
-                         keylike;
+    closure = lf.pdefClosureWith { inherit pdefs; } keylike;
     rootKey = if builtins.isString keylike then keylike else keylike.key or (
       keylike.ident + "/" + ( keylike.version or keylike.pin )
     );
@@ -63,8 +61,9 @@
       throw ( lib.generators.toPretty {} pscope )
     ) ) );
       #de.runtime && ( ! ( pscope.${de.ident}.oneVersion or false ) );
-    closure = lf.pdefClosureWith pred pred { inherit pdefs; }
-                                           { inherit ident version; };
+    closure = lf.pdefClosureWith {
+      rootPred = pred; childPred = pred;
+    } { inherit pdefs; } { inherit ident version; };
     noRoot   = builtins.filter ( pdef: pdef.key != key ) closure;
     idGroups = builtins.groupBy ( pdef: pdef.ident ) noRoot;
     subscope = builtins.mapAttrs ( ident: vs: {

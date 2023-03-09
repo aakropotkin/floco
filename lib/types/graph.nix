@@ -449,10 +449,7 @@
   , ...
   }: {
     config.pdefClosure = let
-      lst = lib.libfloco.pdefClosureWith ( _: true )
-                                         ( de: de.runtime )
-                                         { inherit pdefs; }
-                                         keylike;
+      lst = lib.libfloco.pdefClosureWith { inherit pdefs; } keylike;
     in ( lib.libfloco.pdefsFromList lst );
     config.root = {
       inherit keylike;
@@ -465,34 +462,9 @@
 
     config.propClosures = {
       dev = builtins.attrNames config.tree;
-
-      runtime = let
-        cl = lib.libfloco.pdefClosureWith ( de: de.runtime )
-                                          ( de: de.runtime )
-                                          { inherit pdefs; }
-                                          keylike;
-        pcl  = lib.libfloco.pdefsFromList cl;
-        pred = path: node:
-          ( path == "" ) || ( pcl ? ${node.ident}.${node.version} );
-        part  = lib.partitionAttrs pred config.tree;
-        kill  = builtins.attrNames part.wrong;
-        spred = path: _: ! ( builtins.any ( k: lib.hasPrefix k path ) kill );
-        rtree = lib.filterAttrs spred part.right;
-      in builtins.attrNames rtree;
-
-      nopt = let
-        cl = lib.libfloco.pdefClosureWith ( de: ! de.optional )
-                                          ( de: ! de.optional )
-                                          { inherit pdefs; }
-                                          keylike;
-        pcl  = lib.libfloco.pdefsFromList cl;
-        pred = path: node:
-          ( path == "" ) || ( pcl ? ${node.ident}.${node.version} );
-        part  = lib.partitionAttrs pred config.tree;
-        kill  = builtins.attrNames part.wrong;
-        spred = path: _: ! ( builtins.any ( k: lib.hasPrefix k path ) kill );
-        rtree = lib.filterAttrs spred part.right;
-      in builtins.attrNames rtree;
+      # TODO
+      runtime = [];
+      nopt    = [];
     };
 
     # TODO
