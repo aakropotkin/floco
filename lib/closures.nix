@@ -31,13 +31,15 @@
       self.mask == ( builtins.intersectAttrs self.mask de );
   };
 
-  # Typed
+
+  # Typed form of `mkDepInfoEntryPred' making it usable in typed modules.
   depInfoEntryPred = let
     fargs = { runtime = null; dev = null; optional = null; bundled = null; };
     fromT = nt.addCheck ( nt.attrsOf ( nt.nullOr nt.bool ) )
                         ( a: ( builtins.intersectAttrs fargs a ) == a );
   in nt.coercedTo fromT mkDepInfoEntryPred ( nt.functionTo nt.bool );
 
+  # Declares a `depInfoEntryPred' option for use in a module.
   mkDepInfoEntryPredOption = lib.mkOption {
     description = lib.mdDoc ''
       A predicate used to filter `depInfo` records' entries.
@@ -65,20 +67,43 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Common dependency getters.
+  # These are convenience wrappers over the `mkDepInfoEntryPred' interface
+  # used to filter `depInfo' collections.
+
+  # getDepsWith :: predlike -> (pdef|depInfo) -> depInfo
+  # ----------------------------------------------------
   getDepsWith = predlike: x: let
     pred = if lib.isFunction predlike then predlike else
            lib.libfloco.mkDepInfoEntryPred predlike;
   in lib.filterAttrs ( ident: entry: pred ( { inherit ident; } // entry ) )
                      ( x.depInfo or x );
 
+  # getRuntimeDeps :: { optional?, bundled? } -> (pdef|depInfo) -> depInfo
+  # ----------------------------------------------------------------------
+  # Pull any `runtime' dependencies.
+  # First argument can be used to indicate handling of `optional' and `bundled'.
   getRuntimeDeps = { optional ? null, bundled ? null } @ mask:
     lib.libfloco.getDepsWith ( mask // { runtime = true; } );
 
+  # getDevDeps :: { optional?, bundled? } -> (pdef|depInfo) -> depInfo
+  # ------------------------------------------------------------------
+  # Pull any `dev' dependencies.
+  # First argument can be used to indicate handling of `optional' and `bundled'.
   getDevDeps = { optional ? null, bundled ? null } @ mask:
     getDepsWith ( mask // { dev = true; } );
 
 
 # ---------------------------------------------------------------------------- #
+
+  # Typed `functor' used to collect dependency closures.
+  #
+  # This interface can be included in modules or used standalone with the
+  # convenience wrappers `mkPdefClosureFunctor` or`pdefClosure[With]'.
+  #
+  # The default implementation `pdefClosureFunctorImplementationDeferred'
+  # is used in all convenience wrappers, but it is possible to override or
+  # extend this implementation using `pdefClosure[Functor]With'.
 
   pdefClosureFunctorInterfaceDeferred = {
     options = {
@@ -185,6 +210,7 @@
         readOnly = true;
       };
 
+      # Helper routines exposed for debugging and repurposing by extensions.
       _private = lib.mkOption {
         internal = true;
         visible  = false;
@@ -208,12 +234,13 @@
             };
           };
         };
-      };
+      };  # End `options._private'
 
     };  # End `options'
   };  # End `pdefClosureFunctorInterfaceDeferred'
 
 
+  # Default implementation of `pdefClosureFunctorInterfaceDeferred'.
   pdefClosureFunctorImplementationDeferred = {
     lib
   , config
@@ -261,6 +288,7 @@
     };
   };
 
+  # Declare a `pdefClosureFunctor' type with module extensions.
   pdefClosureFunctorWith = extra: let
     extraModules = if builtins.isList extra then extra else
                    if extra == {} then [] else
@@ -270,7 +298,10 @@
     pdefClosureFunctorImplementationDeferred
   ] ++ extraModules );
 
+
+  # Declare a `pdefClosureFunctor' type without extensions.
   pdefClosureFunctor = pdefClosureFunctorWith {};
+
 
   # Wraps the module in a convenience function so we can do this:
   #   mkPdefClosureFunctor {} ( lib.evalModules { ... } ) "@foo/bar/4.2.0"
@@ -309,24 +340,11 @@
 
 # ---------------------------------------------------------------------------- #
 
-  pdefClosure' = lib.libfloco.mkPdefClosureFunctor {
-    config.mkEntry = builtins.intersectAttrs {
-      key     = null; ident    = null; version = null;
-      depInfo = null; peerInfo = null;
-    };
-    pdefs = {};
-  };
-
-  pdefClosure = {
-    config ? { floco.pdefs = pa; }
-  , floco  ? config.floco
-  , pdefs  ? floco.pdefs
-  , ...
-  } @ pa: keylike: pdefClosure' pdefs keylike;
-
-
-# ---------------------------------------------------------------------------- #
-
+  # pdefClosureWith :: config -> pdefs -> keylike -> [entries]
+  # ----------------------------------------------------------
+  # Plain function form of `pdefClosureFunctor'.
+  # Accepts "non-module style" arguments for `config'.
+  # Requires `pdefs' and `keylike' to be curried arguments.
   pdefClosureWith = {
     __functionArgs =
       removeAttrs ( lib.functionArgs lib.libfloco.mkPdefClosureFunctor ) [
@@ -343,6 +361,19 @@
       pdefs  = {};
     };
   };
+
+  # pdefClosure :: pdefs -> keylike -> [entries]
+  # --------------------------------------------
+  # Given a collection of `pdefs' and a "keylike" identifier treated as the
+  # "root" package, return the `dev' mode closure of dependencies.
+  # Only `dev' dependencies of the "root" are included, all other modules only
+  # collect their `runtime' deps.
+  pdefClosure = {
+    config ? { floco.pdefs = pa; }
+  , floco  ? config.floco
+  , pdefs  ? floco.pdefs
+  , ...
+  } @ pa: keylike: pdefClosureWith {} pdefs keylike;
 
 
 # ---------------------------------------------------------------------------- #
@@ -382,6 +413,7 @@
     in builtins.filter pred ( map checkOne deps );
   in builtins.listToAttrs checkAll;
 
+  # Checks
   checkPeersPresent = lib.libfloco.runNVFunction {
     modify = false;
     fn     = checkPeersPresent';
@@ -390,7 +422,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  describeCheckPeersPresentEnt = ident: {
+  # Process the result of `checkPeersPresent' into a human readable report.
+  # First argument `name' is used to mark issues for use in a collection.
+  describeCheckPeersPresentEnt = name: {
     runtime  ? false
   , optional ? false
   , missing  ? {}
@@ -408,10 +442,13 @@
     missMsgs = builtins.attrValues ( builtins.mapAttrs descMiss missing );
     msgs     = builtins.concatStringsSep "\n" ( missMsgs ++ moveMsgs );
     opt      = if optional then "" else " optional";
-    okMsg    = "- `${ident}' (${when}${opt}) is okay";
-    badMsg   = "- `${ident}' (${when}${opt}) may have `peer' issues:\n${msgs}";
+    okMsg    = "- `${name}' (${when}${opt}) is okay";
+    badMsg   = "- `${name}' (${when}${opt}) may have `peer' issues:\n${msgs}";
   in if ( missing == {} ) && ( moves == {} ) then okMsg else badMsg;
 
+  # Process an attrset of results from `checkPeersPresent' into a human
+  # readable report.
+  # Attribute names are used to mark issues.
   describeCheckPeersPresent = checked:
     builtins.concatStringsSep "\n\n" ( builtins.attrValues (
       builtins.mapAttrs lib.libfloco.describeCheckPeersPresentEnt checked
@@ -430,11 +467,12 @@ in {
   mkDEPred = mkDepInfoEntryPred;
 
   inherit
+    pdefClosureFunctorInterfaceDeferred  # Exposed for documentation
     pdefClosureFunctorWith
     pdefClosureFunctor
     mkPdefClosureFunctor
-    pdefClosure
     pdefClosureWith
+    pdefClosure
   ;
 
   inherit
