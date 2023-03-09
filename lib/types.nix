@@ -187,6 +187,75 @@
 
 # ---------------------------------------------------------------------------- #
 
+  ivkey = nt.submodule ( { config, ... }: {
+    options = {
+      key     = lib.libfloco.mkKeyOption;
+      ident   = lib.libfloco.mkIdentOption;
+      version = lib.libfloco.mkVersionOption;
+    };
+    config = {
+      key     = lib.mkDefault ( config.ident + "/" + config.version );
+      ident   = lib.mkDefault ( dirOf config.key );
+      version = lib.mkDefault ( baseNameOf config.key );
+    };
+  } );
+
+  mkIVKeyOption = lib.mkOption {
+    description = lib.mdDoc ''
+      Record of `ident` ( name ), `version` ( semver ), and
+      `key` ( `<IDENT>/<VERSION>` ) fields used to identify modules.
+    '';
+    type = lib.libfloco.ivkey;
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  keylike = let
+    fromT = nt.either
+      lib.libfloco.key
+      ( nt.addCheck ( nt.attrsOf nt.raw )
+                    ( x: ( ( x ? ident ) || ( x ? name ) ) &&
+                         ( ( x ? version ) || ( x ? pin ) ) ) );
+    coerce = x: let
+      key   = if builtins.isString x then x else ident + "/" + version;
+      ident = if builtins.isString x then dirOf x else
+              x.ident or x.name or ( dirOf key );
+      version = if builtins.isString x then baseNameOf x else
+                x.version or x.pin or ( baseNameOf key );
+    in { inherit key ident version; };
+  in nt.coercedTo fromT coerce lib.libfloco.ivkey;
+
+  mkKeylikeOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A string or attrset that is coercible to a `key`.
+      This may be a plain string ( `key` ), or an attrset with at least a `key`
+      field, or an `ident`/`name` field and `version`/`pin` fields.
+
+      This type implicitly converts assignments to an attrset of
+      `{ key, ident, version }`.
+    '';
+    type = lib.libfloco.keylike;
+  };
+
+
+  runKeylike = x: ( lib.evalOptionValue [] lib.libfloco.mkKeylikeOption [{
+    file  = "<libfloco>/types.nix:runKeylike";
+    value = x;
+  }] ).value;
+
+
+# ---------------------------------------------------------------------------- #
+
+  runType = type: x:
+    ( lib.evalOptionValue [] ( lib.mkOption { inherit type; } ) [{
+        file  = "<libfloco>/types.nix:runType(${type.name})";
+        value = x;
+      }] ).value;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -209,6 +278,12 @@ in {
     depPin
 
     uniqueListOf
+
+    ivkey   mkIVKeyOption
+    keylike mkKeylikeOption
+    runKeylike
+
+    runType
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )

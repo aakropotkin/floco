@@ -12,17 +12,33 @@
 
 # ---------------------------------------------------------------------------- #
 
+  treePath = let
+    emptyStr = ( nt.enum [""] ) // {
+      name        = "emptyStr";
+      description = "empty string";
+    };
+    treeRelPath = ( nt.strMatching "[^./][^./]?.*" ) // {
+      name        = "treePath";
+      description = "node_modules tree path";
+    };
+  in nt.either emptyStr treeRelPath;
+
+  mkTreePathOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A `node_modules/*` tree path.
+      Either the empty string, or a relative path with no leading "./" part.
+    '';
+    type    = treePath;
+    default = "";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
   scopeEnt = nt.submodule {
     options = {
       pin  = lib.libfloco.mkPinOption;
-      path = lib.mkOption {
-        description = lib.mdDoc ''
-          Filesystem path where a scoped module will be installed.
-
-          This is useful for marking consumers as `referrers` of a module.
-        '';
-        type = nt.either nt.str lib.libfloco.relpath;
-      };
+      path = lib.libfloco.mkTreePathOption;
       # This would ideally only be defined for strategies which use it, but it's
       # a pain in the ass for those strategies to extend the `scope' submodule
       # type externally so it's easier just to make it available for all
@@ -63,29 +79,6 @@
     "_export" "metaFiles" "fsInfo" "fetchInfo" "sourceInfo" "binInfo"
     "deserialized" "fetcher"
   ];
-
-
-# ---------------------------------------------------------------------------- #
-
-  treePath = let
-    emptyStr = ( nt.enum [""] ) // {
-      name        = "emptyStr";
-      description = "empty string";
-    };
-    treeRelPath = ( nt.strMatching "[^./][^./]?.*" ) // {
-      name        = "treePath";
-      description = "node_modules tree path";
-    };
-  in nt.either emptyStr treeRelPath;
-
-  mkTreePathOption = lib.mkOption {
-    description = lib.mdDoc ''
-      A `node_modules/*` tree path.
-      Either the empty string, or a relative path with no leading "./" part.
-    '';
-    type    = treePath;
-    default = "";
-  };
 
 
 # ---------------------------------------------------------------------------- #
@@ -182,12 +175,12 @@
   , depInfo
   , ...
   }: let
-    proc = ident: scopeEnt: {
+    cdeps = builtins.intersectAttrs depInfo children;
+    needs = lib.attrsets.unionOfDisjoint requires cdeps;
+    proc  = ident: scopeEnt: {
       name            = scopeEnt.path;
       value.referrers = [{ inherit key path; }];
     };
-    cdeps = builtins.intersectAttrs depInfo children;
-    needs = lib.attrsets.unionOfDisjoint requires cdeps;
   in lib.mapAttrs' proc needs;
 
 
@@ -327,22 +320,18 @@
   treePropsDeferred = let
     dio = lib.libfloco.depInfoBaseEntryDeferred.options;
   in {
-    freeformType = nt.lazyAttrsOf nt.bool;
-    options      = {
+    options = {
       optional = lib.mkOption {
         inherit (dio.optional) description;
-        type    = lib.libfloco.boolAll;
-        default = false;
+        type = lib.libfloco.boolAll;
       };
-      runtime  = lib.mkOption {
+      runtime = lib.mkOption {
         inherit (dio.runtime) description;
-        type    = lib.libfloco.boolAny;
-        default = false;
+        type = lib.libfloco.boolAny;
       };
       dev = lib.mkOption {
         inherit (dio.dev) description;
-        type    = lib.libfloco.boolAny;
-        default = true;
+        type = lib.libfloco.boolAny;
       };
     };
   };
@@ -357,48 +346,181 @@
       This record accepts arbitrary `bool` values for use by extensions, and
       aligns with the properties found in a `treeInfo` entry.
     '';
-    type    = lib.libfloco.treeProps;
-    default = {};
+    type = lib.libfloco.treeProps;
   };
 
   propsFromReferrer = ptree: ident: refPath: let
     gnode   = ptree.${refPath};
     forRoot = { inherit (gnode.depInfo.${ident}) optional runtime dev; };
-    forSub  = gnode.props // {
+    forSub  = {
+      inherit (gnode.props) runtime dev;
       optional = gnode.props.optional ||
                  ( gnode.depInfo.${ident} or gnode.peerInfo.${ident} ).optional;
     };
   in if gnode.isRoot then forRoot else forSub;
 
-  propsFromTree = ptree: path: let
-    gnode = ptree.${path};
-  in if gnode.isRoot then {
-    config = { optional = false; runtime = true; dev = true; };
-  } else {
-    imports = map ( r: propsFromReferrer ptree gnode.ident r.path )
-                  gnode.referrers;
+
+# ---------------------------------------------------------------------------- #
+
+  treeInfoBuilderInterfaceDeferred = {
+    options = {
+
+      graphNodeModules = lib.mkOption {
+        description = lib.mdDoc ''
+          Modules used to form `graphNode` records.
+
+          While the default list is sufficient for most use cases, this is
+          exposed to allow users to implement extensions.
+        '';
+        type    = nt.listOf nt.deferredModule;
+        default = [lib.libfloco.graphNodeDeferred];
+      };
+
+      getChildReqs = lib.mkOption {
+        description = lib.mdDoc ''
+          Function taking a `graphNode` as an argument, returning its `children`
+          and `requires` collections ( `scope` submodules ).
+        '';
+        type = nt.functionTo ( nt.submodule {
+          options.children = lib.libfloco.mkScopeOption;
+          options.requires = lib.libfloco.mkScopeOption;
+        } );
+        default = lib.libfloco.getChildReqsBasic;
+      };
+
+      root = lib.mkOption {
+        type = nt.submodule {
+          options.keylike = lib.libfloco.mkKeylikeOption;
+          options.pdef    = lib.mkOption { type = nt.lazyAttrsOf nt.raw; };
+        };
+      };
+
+      pdefClosure = lib.mkOption {
+        type = nt.lazyAttrsOf ( nt.lazyAttrsOf nt.raw );
+      };
+
+      tree = lib.mkOption {
+        type = nt.lazyAttrsOf ( nt.submodule graphNodeDeferred );
+      };
+
+      propClosures = lib.mkOption {
+        description = lib.mdDoc ''
+          Lists representing closures of `tree` filtered by `props`.
+
+          This is used as a base for `propTree` values and is required to avoid
+          infinite recursion when cycles exist in references between tree nodes.
+          It is otherwise impossible to assign properties in most "hoisted"
+          style strategies.
+        '';
+        type = nt.submodule {
+          options = {
+            dev     = lib.mkOption { type = nt.listOf lib.libfloco.treePath; };
+            runtime = lib.mkOption { type = nt.listOf lib.libfloco.treePath; };
+            nopt    = lib.mkOption {
+              description = lib.mdDoc ''
+                List of `tree` paths that are reachable when all `optional`
+                dependencies are ignored.
+
+                This lists indicates nothing about `dev` and `runtime` props.
+              '';
+              type = nt.listOf lib.libfloco.treePath;
+            };
+          };
+        };
+      };
+
+      propTree = lib.mkOption {
+        type = nt.lazyAttrsOf lib.libfloco.treeProps;
+      };
+
+      treeInfo = lib.mkOption {
+        type = nt.lazyAttrsOf nt.raw;
+      };
+
+    };
+  };  # End `treeInfoBuilderInterfaceDeferred'
+
+
+  treeInfoBuilderImplementationDeferred = {
+    config
+  , options
+  , pdefs
+  , keylike
+  , ...
+  }: {
+    config.pdefClosure = let
+      lst = lib.libfloco.pdefClosureWith ( _: true )
+                                         ( de: de.runtime )
+                                         { inherit pdefs; }
+                                         keylike;
+    in ( lib.libfloco.pdefsFromList lst );
+    config.root = {
+      inherit keylike;
+      pdef = lib.getPdef { inherit pdefs; } config.root.keylike;
+    };
+    config.tree = ( lib.libfloco.treeForRoot {
+      inherit (config) graphNodeModules getChildReqs;
+      inherit pdefs;
+    } config.root.keylike ).config.tree;
+
+    # TODO
+    config.propClosures = {
+      dev     = {};
+      runtime = {};
+      nopt    = {};
+    };
+
+    # TODO
+    config.propTree = {};
+
+    # TODO
+    config.treeInfo = {};
   };
 
-  propNodeDeferred = { options, config, ... }: {
-    freeformType = nt.attrsOf nt.anything;
-    options      = {
+
+# ---------------------------------------------------------------------------- #
+
+  propNodeInterfaceDeferred = {
+    options = {
+      key   = lib.mkOption { type = lib.libfloco.key; readOnly = true; };
       props = lib.libfloco.mkTreePropsOption;
-      inherit (graphNodeInterfaceDeferred.options)
-        ident depInfo peerInfo isRoot referrers
-      ;
     };
+  };
+
+  propNodeDeferred = { tree, ptree, path, ... }: let
+    tnode = tree.${path};
+    pnode = tree.${path};
+    mtree = ptree // {
+      "" = tree."" // { optional = false; runtime = true; dev = true; };
+    };
+  in {
+    imports = [propNodeInterfaceDeferred];
+    config  = lib.mkMerge [
+      ( { inherit (tnode) key ident depInfo peerInfo isRoot referrers; } )
+      ( if tnode.isRoot then {
+          props = lib.mkForce { optional = false; runtime = true; dev = true; };
+        } else {
+          props = lib.mkMerge (
+            map ( r: propsFromReferrer mtree tnode.ident r.path )
+                tnode.referrers
+          );
+        } )
+    ];
   };
 
   propTreeDeferred = { config, tree, ... }: {
     options.ptree = lib.mkOption {
-      type    = nt.lazyAttrsOf ( nt.submodule propNodeDeferred );
-      default = {};
+      type = nt.lazyAttrsOf ( nt.submodule [
+        propNodeDeferred
+        {
+          config._module.args.tree  = tree;
+          config._module.args.ptree = config.ptree;
+        }
+      ] );
     };
     config = {
       ptree = let
-        proc = path: gnode: gnode // {
-          props = _: propsFromTree config.ptree path;
-        };
+        proc = path: _: { config._module.args.path = path; };
       in builtins.mapAttrs proc tree;
     };
   };
@@ -414,9 +536,9 @@
   , config           ? null
   , ...
   } @ args: nodelike: let
-    keylike  = if builtins.isString nodelike then nodelike else
-               if nodelike ? key then { inherit (nodelike) key; } else
-               { inherit (nodelike) ident version; };
+    keylike = if builtins.isString nodelike then nodelike else
+              if nodelike ? key then { inherit (nodelike) key; } else
+              { inherit (nodelike) ident version; };
     rootTree = let
       args' = ( builtins.intersectAttrs {
         graphNodeMoudles = true;
@@ -433,11 +555,25 @@
       inherit key;
       link = false;
       dev  = props.dev && ( ! props.runtime );
+      inherit (props) optional;
       # For debugging:
       ##_props = props;
-    } // ( removeAttrs props ["runtime" "dev"] );
+    };
     base = builtins.mapAttrs ( _: toTI ) ptree;
   in removeAttrs base [""];
+
+
+# ---------------------------------------------------------------------------- #
+
+  simplifyTree = x: let
+    simplifyNode = path: node:
+      ( removeAttrs node ["pscope" "ident" "version" "path"] ) // {
+        children = builtins.mapAttrs ( _: c: c.pin ) node.children;
+        depInfo  = let
+          sy = d: removeAttrs d ["descriptor"];
+        in builtins.mapAttrs ( _: sy ) node.depInfo;
+      };
+  in builtins.mapAttrs simplifyNode ( x.config.tree or x.tree or x );
 
 
 # ---------------------------------------------------------------------------- #
@@ -447,6 +583,8 @@ in {
 # ---------------------------------------------------------------------------- #
 
   inherit
+    treePath
+    mkTreePathOption
     scopeEnt
     scope
     mkScopeOption
@@ -463,14 +601,13 @@ in {
     mkGraphNodeOption
     treeModuleClosureOp
     treeForRoot
+    simplifyTree
   ;
 
 
 # ---------------------------------------------------------------------------- #
 
   inherit
-    treePath
-    mkTreePathOption
     referrerDeferred
     referrer
     mkReferrersOption
@@ -484,9 +621,16 @@ in {
     treeProps
     mkTreePropsOption
     propsFromReferrer
-    propsFromTree
     propNodeDeferred
     propTreeDeferred
+  ;
+
+
+# ---------------------------------------------------------------------------- #
+
+  inherit
+    treeInfoBuilderInterfaceDeferred
+    treeInfoBuilderImplementationDeferred
     mkTreeInfoWith
   ;
 
