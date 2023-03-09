@@ -270,6 +270,11 @@
                   "Unrecognized `outputStyle': \"${style}\"." );
       };
 
+      # The acutal function "driver".
+      # This is intentionally split into two separate `let' blocks so the
+      # evaluator can optimize processing partially applied functions.
+      # NOTE: for the evaluator to actually do this you need to use `seq', but
+      # for a "hot" callpath this can be a real advantage.
       __functor = self: let
         mkStartSet = self._private.__mkStartSet self;
         operator   = self._private.__operator   self;
@@ -335,7 +340,11 @@
         inherit (f) __functor;
       };
     };
-  in if pdefs == {} then curried else f;
+    # If `pdefs' wasn't provided we can take the opportunity to eagerly eval
+    # everything else in the functor for a slight evaluator optimization.
+    # Evaluating when `pdefs' is given would be a huge performance hit, so be
+    # careful in the future on any refactors.
+  in if pdefs == {} then builtins.deepSeq curried curried else f;
 
 
 # ---------------------------------------------------------------------------- #
