@@ -8,30 +8,275 @@
 
 # ---------------------------------------------------------------------------- #
 
-  getDepsWith = pred: x:
-    lib.filterAttrs ( ident: entry:
-      pred ( { inherit ident; } // entry )
-    ) ( x.depInfo or x );
+  nt = lib.types;
 
-  getRuntimeDeps = {
-    includeOptional ? true
-  , includeBundled  ? false
-  }: let
-    pred = de:
-      de.runtime &&
-      ( includeOptional || ( ! de.optional ) ) &&
-      ( includeBundled || ( ! de.bundled ) );
-  in getDepsWith pred;
+# ---------------------------------------------------------------------------- #
 
-  getDevDeps = {
-    includeOptional ? true
-  , includeBundled  ? false
-  }: let
-    pred = de:
-      de.dev &&
-      ( includeOptional || ( ! de.devOptional ) ) &&
-      ( includeBundled || ( ! de.bundled ) );
-  in getDepsWith pred;
+  # Build a `depInfoEntry' predicate where fields in `args' are checked.
+  # `boolean' fields in `args' must match the fields in the `depInfoEntry',
+  # while `null' fields in `args' are ignored ( skipped ).
+  # Extraneous fields in `depInfoEntry' are ignored.
+  mkDepInfoEntryPred = {
+    runtime  ? null
+  , dev      ? null
+  , optional ? null
+  , bundled  ? null
+  } @ args: {
+    mask = ( if runtime  == null then {} else { inherit runtime;  } ) //
+           ( if dev      == null then {} else { inherit dev;      } ) //
+           ( if optional == null then {} else { inherit optional; } ) //
+           ( if bundled  == null then {} else { inherit bundled;  } );
+    __functor = self: de:
+      if self.mask == {} then true else
+      self.mask == ( builtins.intersectAttrs self.mask de );
+  };
+
+  # Typed
+  depInfoEntryPred = let
+    fargs = { runtime = null; dev = null; optional = null; bundled = null; };
+    fromT = nt.addCheck ( nt.attrsOf ( nt.nullOr nt.bool ) )
+                        ( a: ( builtins.intersectAttrs fargs a ) == a );
+  in nt.coercedTo fromT mkDepInfoEntryPred ( nt.functionTo nt.bool );
+
+  mkDepInfoEntryPredOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A predicate used to filter `depInfo` records' entries.
+
+      May be set using a predicate which accepts a `depInfoEntry` argument, or
+      an attrset of `null|bool` args with the fields
+      `{ runtime, dev, optional, bundled }` indicating that `null` fields should
+      be ignored, and `bool` fields must match in the entry.
+    '';
+    type            = depInfoEntryPred;
+    default.runtime = true;
+    example         = lib.literalExpression ''
+      {
+        # Assigment as a function
+        rootPred  = de: de.runtime || de.dev;
+
+        # Assigment with "matched fields".
+        # `bundled` and `optional` may be `true` or `false`, since the matcher
+        # marked them as `null` ( the default ).
+        childPred = { runtime = true; dev = false; bundled = null; };
+      }
+    '';
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  getDepsWith = predlike: x: let
+    pred = if lib.isFunction predlike then predlike else
+           lib.libfloco.mkDepInfoEntryPred predlike;
+  in lib.filterAttrs ( ident: entry: pred ( { inherit ident; } // entry ) )
+                     ( x.depInfo or x );
+
+  getRuntimeDeps = { optional ? null, bundled ? null } @ mask:
+    lib.libfloco.getDepsWith ( mask // { runtime = true; } );
+
+  getDevDeps = { optional ? null, bundled ? null } @ mask:
+    getDepsWith ( mask // { dev = true; } );
+
+
+# ---------------------------------------------------------------------------- #
+
+  pdefClosureFunctorInterfaceDeferred = {
+    options = {
+
+      addRoot = lib.mkOption {
+        description = lib.mdDoc ''
+          Whether the `root` entry should always be included in the closure.
+
+          If this is disabled, the `root` entry will only appear if it a member
+          of a dependency cycle with another element.
+        '';
+        type    = nt.bool;
+        default = true;
+        example = false;
+      };
+
+      rootPred = lib.libfloco.mkDepInfoEntryPredOption // {
+        default = _: true;
+      };
+
+      childPred = lib.libfloco.mkDepInfoEntryPredOption // {
+        default.runtime = true;
+      };
+
+      getPdef = lib.mkOption {
+        description = lib.mdDoc ''
+          Function that looks up a `pdef` ( or equivelant ) from a `keylike`.
+
+          This takes a two arguments:
+          1. the `payload` value stashed in the functor, used for misc. storage.
+          2. a `keylike` ( string ) or an attrset containing at least
+             `{ key }`, or `{ ident, version }`.
+        '';
+        type    = nt.functionTo nt.raw;
+        example = lib.literalExpression ''
+          { lib, pdefs, ... }: {
+            config = {
+              payload = { inherit pdefs; }
+              inherit (lib.libfloco) getPdef;
+            };
+          }
+        '';
+        default = lib.libfloco.getPdef;
+      };
+
+      mkEntry = lib.mkOption {
+        description = lib.mdDoc ''
+          Post processing function applied to each `pdef`.
+        '';
+        type = nt.functionTo nt.raw;
+        example = lib.literalExpression ''
+          {
+            mkEntry = builtins.intersectAttrs {
+              key     = null;
+              ident   = null; version  = null;
+              depInfo = null; peerInfo = null;
+            };
+          }
+        '';
+        default = pdef: pdef._export or ( removeAttrs pdef [
+          "metaFiles" "deserialized" "fsInfo" "binInfo"
+          "fetcher" "fetchInfo" "sourceInfo"
+        ] );
+      };
+
+      outputStyle = lib.mkOption {
+        description = lib.mdDoc ''
+          The desired collection/container to be returned.
+          Elements are the result of `mkEntry`.
+          - list:    a flat list of elements in BFS order.
+          - idGroup: lists of elements in BFS order grouped by `ident`.
+          - ivAttrs: `{ <IDENT> = { <VERSION> = { ... }; ...; }; ...; }`.
+        '';
+        type    = nt.enum ["list" "idGroup" "ivAttrs"];
+        default = "list";
+        example = "ivAttrs";
+      };
+
+      payload = lib.mkOption {
+        description = lib.mdDoc ''
+          Misc. attributes for use by `getPdef` and `__functor`.
+          When using the default `getPdef` function you must stash the full
+          `pdefs` ( in `ivAttrs` style ) as a member.
+        '';
+        type = nt.submodule {
+          freeformType  = nt.lazyAttrsOf nt.raw;
+          options.pdefs = lib.mkOption {
+            description = lib.mdDoc ''
+              Full pool of `pdefs` used for lookups when collecting closures.
+              This must be in `ivAttrs` style ( nested attrsets ).
+            '';
+            type     = nt.lazyAttrsOf ( nt.lazyAttrsOf nt.raw );
+            readOnly = true;
+          };
+        };
+      };
+
+      __functor = lib.mkOption {
+        description = lib.mdDoc ''
+          Given a `keylike` argument, produce a `pdefClosure` using the settings
+          and and `payload` held by other `config` members.
+        '';
+        type = nt.functionTo ( nt.functionTo nt.raw );
+        readOnly = true;
+      };
+
+      _private = lib.mkOption {
+        internal = true;
+        visible  = false;
+        type     = nt.submodule {
+          freeformType = nt.lazyAttrsOf nt.raw;
+          options = {
+            # __mkStartSet :: self -> pdef -> [pdef]
+            __mkStartSet = lib.mkOption {
+              type     = nt.functionTo ( nt.functionTo ( nt.listOf nt.raw ) );
+              readOnly = true;
+            };
+            # __operator :: self -> pdef -> [pdef]
+            __operator = lib.mkOption {
+              type     = nt.functionTo ( nt.functionTo ( nt.listOf nt.raw ) );
+              readOnly = true;
+            };
+            # _handleStyle :: style -> [entries] -> any
+            _handleStyle = lib.mkOption {
+              type     = nt.functionTo ( nt.functionTo nt.raw );
+              readOnly = true;
+            };
+          };
+        };
+      };
+
+    };  # End `options'
+  };  # End `pdefClosureFunctorInterfaceDeferred'
+
+
+  pdefClosureFunctorImplementationDeferred = {
+    lib
+  , config
+  , options
+  , pdefs
+  , ...
+  }: {
+    config = {
+      _module.args.pdefs = lib.mkOptionDefault {};
+      payload            = { inherit pdefs; };
+
+      _private = let
+        getDep = self: ident: { pin, ... }:
+          self.getPdef self.payload { inherit ident; version = pin; };
+      in {
+        __mkStartSet = self: pdef: let
+          depEnts = lib.libfloco.getDepsWith self.rootPred pdef;
+        in builtins.attrValues ( builtins.mapAttrs ( getDep self ) depEnts );
+        __operator = self: pdef: let
+          depEnts = lib.libfloco.getDepsWith self.childPred pdef;
+        in builtins.attrValues ( builtins.mapAttrs ( getDep self ) depEnts );
+        _handleStyle = style: ents:
+          if style == "list"    then ents else
+          if style == "ivAttrs" then lib.libfloco.pdefsFromList ents else
+          if style == "idGroup" then builtins.groupBy ( v: v.ident ) ents else
+          throw ( "lib.libfloco.pdefClosureFunctor: " +
+                  "Unrecognized `outputStyle': \"${style}\"." );
+      };
+
+      __functor = self: let
+        mkStartSet = self._private.__mkStartSet self;
+        operator   = self._private.__operator   self;
+        # handleStyle :: [entries] -> <STYLE>
+        handleStyle = self._private._handleStyle self.outputStyle;
+      in keylike: let
+        root    = self.getPdef self.payload keylike;
+        closure = builtins.genericClosure {
+          inherit operator;
+          startSet = mkStartSet root;
+        };
+        wroot = let
+          hasRoot = builtins.any ( v: v.key == root.key ) closure;
+        in if ( ! self.addRoot ) || hasRoot then closure else [root] ++ closure;
+      in handleStyle ( map self.mkEntry wroot );
+    };
+  };
+
+  pdefClosureFunctorWith = extra: let
+    extraModules =
+      if builtins.isList extra then extra else
+      if builtins.isFunction extra then [extra] else
+      if ( extra ? config ) || ( extra ? _module ) then [extra] else
+      if ! ( extra ? pdefs ) then [{ config = extra; }] else [{
+        config = ( removeAttrs extra ["pdefs"] ) // {
+          payload = ( extra.payload or {} ) // { inherit (extra) pdefs; };
+        };
+      }];
+  in nt.submodule ( [
+    pdefClosureFunctorInterfaceDeferred
+    pdefClosureFunctorImplementationDeferred
+  ] ++ extraModules );
+
+  pdefClosureFunctor = pdefClosureFunctorWith [];
 
 
 # ---------------------------------------------------------------------------- #
@@ -82,110 +327,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # Tree Builder Node.
-  __mkTBNode = {
-    ident    ? dirOf key
-  , version  ? baseNameOf key
-  , key      ? ident + "/" + version
-  , depInfo  ? {}
-  , peerInfo ? {}
-
-  , path     ? "node_modules/" + ident
-  , isRoot   ? ! ( lib.hasInfix "node_modules/" path )
-  , pscope   ? if isRoot then {} else { ${ident} = version; }
-  , requires ?
-    lib.filterAttrs ( di: de: ( pscope.${di} or null ) == de.pin )
-                    depInfo
-  , children ? removeAttrs depInfo ( builtins.attrNames requires )
-  , ...
-  } @ args: let
-    children' = builtins.mapAttrs ( di: de: de.pin or de ) children;
-  in {
-    inherit ident version key depInfo peerInfo path isRoot pscope;
-    requires = builtins.mapAttrs ( di: de: de.pin or de ) requires;
-    children = children';
-    scope    = pscope // children';
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
-  __mkSubtree = closure: node: let
-    getPdef = { ident, version, ... }: builtins.head ( builtins.filter ( p:
-      ( p.ident == ident ) && ( p.version == version )
-    ) closure );
-    pprefix = if node.path == "" then "" else node.path + "/";
-    proc = ident: pin: let
-      cnode = __mkTBNode ( ( getPdef { inherit ident; version = pin; } ) // {
-        path   = pprefix + "node_modules/" + ident;
-        isRoot = false;
-        pscope = node.scope;
-      } );
-      value = __mkSubtree closure cnode;
-    in { name = value.path; inherit value; };
-    subtrees = builtins.mapAttrs proc node.children;
-  in node // {
-    subtree = builtins.listToAttrs ( builtins.attrValues subtrees );
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
-  __topScope = closure: rootKey: let
-    noRoot   = builtins.filter ( pdef: pdef.key != rootKey ) closure;
-    idGroups = builtins.groupBy ( pdef: pdef.ident ) noRoot;
-  in builtins.mapAttrs ( _: pdefs: ( builtins.head pdefs ).version ) idGroups;
-
-
-# ---------------------------------------------------------------------------- #
-
-  __mkTree = closure: rootPdef: let
-    top      = __topScope closure rootPdef.key;
-    rootNode = ( __mkTBNode ( rootPdef // {
-      path     = "";
-      isRoot   = true;
-      requires = {};
-      children = top;
-    } ) ) // { scope = top; };
-    subtrees = builtins.genericClosure {
-      startSet = [( __mkSubtree closure rootNode )];
-      operator = node: lib.collect ( v: v ? subtree ) node.subtree;
-    };
-  in builtins.foldl' ( acc: node: acc // node.subtree ) {} subtrees;
-
-
-# ---------------------------------------------------------------------------- #
-
-  # XXX: Incomplete draft
-  # Produce a "hoisted" `treeInfo' record from a closure.
-  # TODO: Mark `dev' and `optional' fields.
-  # TODO: Audit `peerDepInfo'.
-  # TODO: Don't include transitive `devDependencies'.
-  # TODO: Hoist subtrees when possible to deduplicate. ( `yarn' strategy )
-  __treeInfoFromClosure = closure: rootPdef: let
-    tree = __mkTree closure rootPdef;
-  in builtins.mapAttrs ( _: node: {
-    inherit (node) key;
-  } ) tree;
-
-
-# ---------------------------------------------------------------------------- #
-
-  __treeInfoFromPdefs' = pdefs: keylike: let
-    closure  = pdefClosureWith' ( _: true ) ( de: de.runtime ) pdefs keylike;
-    rootPdef = lib.libfloco.getPdef { inherit pdefs; } keylike;
-  in __treeInfoFromClosure closure rootPdef;
-
-  __treeInfoFromPdefs = {
-    config ? { floco.pdefs = pa; }
-  , floco  ? config.floco
-  , pdefs  ? floco.pdefs
-  , ...
-  } @ pa: keylike: __treeInfoFromPdefs' pdefs keylike;
-
-
-# ---------------------------------------------------------------------------- #
-
   # Check that `peerDependencies' declared by direct dependencies are listed as
   # direct dependencies.
   # Do not audit versions/semver ranges, just check to see if they are present.`
@@ -196,7 +337,7 @@
   , version ? baseNameOf key
   }: let
     pdef  = lib.libfloco.getPdef pdefs { inherit ident version; };
-    rtDIs = getRuntimeDeps { includeBundled = true; } pdef;
+    rtDIs = getRuntimeDeps {} pdef;
     deps = let
       get = ident: { pin, runtime ? false, optional ? false, ... }:
         ( lib.libfloco.getPdef pdefs { inherit ident; version = pin; } ) // {
@@ -262,17 +403,29 @@
 in {
 
   inherit
+    mkDepInfoEntryPred
+    depInfoEntryPred
+    mkDepInfoEntryPredOption
+  ;
+  mkDEPred = mkDepInfoEntryPred;
+
+  inherit
+    pdefClosureFunctorInterfaceDeferred
+    pdefClosureFunctorImplementationDeferred
+    pdefClosureFunctorWith
+    pdefClosureFunctor
+  ;
+
+  inherit
     getDepsWith
     getRuntimeDeps
     getDevDeps
+  ;
+
+  inherit
     pdefClosure
     pdefClosureWith
-    __mkTBNode
-    __mkSubtree
-    __topScope
-    __mkTree
-    __treeInfoFromClosure
-    __treeInfoFromPdefs
+
     checkPeersPresent
     describeCheckPeersPresentEnt
     describeCheckPeersPresent

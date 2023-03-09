@@ -250,7 +250,7 @@
   runType = type: x:
     ( lib.evalOptionValue [] ( lib.mkOption { inherit type; } ) [{
         file  = "<libfloco>/types.nix:runType(${type.name})";
-        value = x;
+        value = x.config or x;
       }] ).value;
 
 

@@ -138,6 +138,12 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Runs self application of functor, effectively making it a normal function.
+  runFunctor = funk: funk.__functor funk;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -155,6 +161,8 @@ in {
 
     tryImportNixOrJSON
     flocoConfigsFromDir
+
+    runFunctor
   ;
 
 

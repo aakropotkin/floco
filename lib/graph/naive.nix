@@ -29,7 +29,8 @@ in {
   , depInfo
   , peerInfo
   , isRoot
-  , needs  ? if isRoot then depInfo else lib.libfloco.getRuntimeDeps {} depInfo
+  , needs  ? if isRoot then depInfo else
+             lib.libfloco.getRuntimeDeps { bundled = false; } depInfo
   , pscope
   , ...
   } @ node: let

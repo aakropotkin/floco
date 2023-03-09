@@ -463,9 +463,9 @@
       inherit pdefs;
     } config.root.keylike ).config.tree;
 
-    # TODO
     config.propClosures = {
-      dev     = builtins.attrNames config.tree;
+      dev = builtins.attrNames config.tree;
+
       runtime = let
         cl = lib.libfloco.pdefClosureWith ( de: de.runtime )
                                           ( de: de.runtime )
@@ -479,6 +479,7 @@
         spred = path: _: ! ( builtins.any ( k: lib.hasPrefix k path ) kill );
         rtree = lib.filterAttrs spred part.right;
       in builtins.attrNames rtree;
+
       nopt = let
         cl = lib.libfloco.pdefClosureWith ( de: ! de.optional )
                                           ( de: ! de.optional )
