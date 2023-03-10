@@ -511,11 +511,16 @@
     in if ( ! addRoot ) || hasRoot then closure else
        [{ key = rootPath; }] ++ closure;
     pathOutput = map ( e: e.key ) wroot;
-    check      = x: let
+    checkParentPaths = x: let
       ok = ( ! audit ) || ( auditTreePathParents ( pathOutput ++ [""] ) );
     in if ok then x else
        throw ( "lib.libfloco.runTreeClosure: Filtered tree has dangling paths:"
                + ( lib.generators.toPretty {} pathOutput ) );
+    checkHasRoot = x:
+      if tree ? ${rootPath} then x else
+      throw ( "lib.libfloco.runTreeClosure: root path `${rootPath}` does not " +
+              "exist in given tree." );
+    check = x: checkParentPaths ( checkHasRoot x );
     output = if outputStyle == "paths" then pathOutput else
              throw ( "lib.libfloco.runTreeClosure: " +
                      "Unrecognized `outputStyle': \"${outputStyle}\"." );

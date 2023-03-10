@@ -71,18 +71,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  pdefFromGraphNode = node: removeAttrs node [
-    "path" "isRoot" "pscope" "children" "requires" "scope" "referrers" "props"
-  ];
-
-  graphNodeCoreFromPdef = pdef: removeAttrs pdef [
-    "_export" "metaFiles" "fsInfo" "fetchInfo" "sourceInfo" "binInfo"
-    "deserialized" "fetcher"
-  ];
-
-
-# ---------------------------------------------------------------------------- #
-
   referrerDeferred = {
     options.key  = lib.libfloco.mkKeyOption;
     options.path = lib.libfloco.mkTreePathOption;
@@ -357,20 +345,6 @@
     type = lib.libfloco.treeProps;
   };
 
-  # Collect properties from a referrer based on their usage of `ident', as well
-  # as their own properties.
-  # This is what allows properties to be propagated/"pushed down"
-  # from referrers.
-  propsFromReferrer = ptree: ident: refPath: let
-    gnode   = ptree.${refPath};
-    forRoot = { inherit (gnode.depInfo.${ident}) optional runtime dev; };
-    forSub  = {
-      inherit (gnode.props) runtime dev;
-      optional = gnode.props.optional ||
-                 ( gnode.depInfo.${ident} or gnode.peerInfo.${ident} ).optional;
-    };
-  in if gnode.isRoot then forRoot else forSub;
-
 
 # ---------------------------------------------------------------------------- #
 
@@ -498,11 +472,31 @@
       };
     };
 
-    # TODO
-    config.propTree = {};
+    config.propTree = let
+      markPaths = paths:
+        builtins.listToAttrs (
+          map ( name: { inherit name; value = null; } ) paths
+        );
+      dtree   = markPaths config.propClosures.dev;
+      rtree   = markPaths config.propClosures.runtime;
+      otree   = markPaths config.propClosures.nopt;
+      mkProps = path: _: {
+        dev      = dtree ? ${path};
+        runtime  = rtree ? ${path};
+        optional = ! ( otree ? ${path} );
+      };
+      children = builtins.mapAttrs mkProps ( removeAttrs config.tree [""] );
+      root."" = { dev = true; runtime = true; optional = false; };
+    in root // children;
 
-    # TODO
-    config.treeInfo = {};
+    config.treeInfo = let
+      toTI = path: { dev, runtime, optional }: {
+        inherit (config.tree.${path}) key;
+        link = false;
+        dev  = dev && ( ! runtime );
+        inherit optional;
+      };
+    in builtins.mapAttrs toTI ( removeAttrs config.propTree [""] );
   };
 
 
@@ -525,87 +519,23 @@
 
 # ---------------------------------------------------------------------------- #
 
-  propNodeInterfaceDeferred = {
-    options = {
-      key   = lib.mkOption { type = lib.libfloco.key; readOnly = true; };
-      props = lib.libfloco.mkTreePropsOption;
-    };
-  };
-
-  propNodeDeferred = { tree, ptree, path, ... }: let
-    tnode = tree.${path};
-    pnode = tree.${path};
-    mtree = ptree // {
-      "" = tree."" // { optional = false; runtime = true; dev = true; };
-    };
-  in {
-    imports = [propNodeInterfaceDeferred];
-    config  = lib.mkMerge [
-      ( { inherit (tnode) key ident depInfo peerInfo isRoot referrers; } )
-      ( if tnode.isRoot then {
-          props = lib.mkForce { optional = false; runtime = true; dev = true; };
-        } else {
-          props = lib.mkMerge (
-            map ( r: propsFromReferrer mtree tnode.ident r.path )
-                tnode.referrers
-          );
-        } )
-    ];
-  };
-
-  propTreeDeferred = { config, tree, ... }: {
-    options.ptree = lib.mkOption {
-      type = nt.lazyAttrsOf ( nt.submodule [
-        propNodeDeferred
-        {
-          config._module.args.tree  = tree;
-          config._module.args.ptree = config.ptree;
-        }
-      ] );
-    };
-    config = {
-      ptree = let
-        proc = path: _: { config._module.args.path = path; };
-      in builtins.mapAttrs proc tree;
-    };
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
   mkTreeInfoWith = {
     graphNodeModules ? null
   , getChildReqs     ? null
-  , pdefs            ? null
-  , floco            ? null
-  , config           ? null
+  , config           ? {
+      floco.pdefs = removeAttrs args ["graphNodeModules" "getChildReqs"];
+    }
+  , floco ? config.floco
+  , pdefs ? floco.pdefs
   , ...
   } @ args: nodelike: let
-    keylike = if builtins.isString nodelike then nodelike else
-              if nodelike ? key then { inherit (nodelike) key; } else
-              { inherit (nodelike) ident version; };
-    rootTree = let
-      args' = ( builtins.intersectAttrs {
-        graphNodeMoudles = true;
-        getChildReqs     = true;
-      } args ) // { inherit pdefs; };
-    in lib.libfloco.treeForRoot args' keylike;
-    inherit (( lib.evalModules {
-      modules = [
-        lib.libfloco.propTreeDeferred
-        { config._module.args = { inherit (rootTree.config) tree; }; }
-      ];
-    } ).config) ptree;
-    toTI  = { key, props, ... }: {
-      inherit key;
-      link = false;
-      dev  = props.dev && ( ! props.runtime );
-      inherit (props) optional;
-      # For debugging:
-      ##_props = props;
+    builder = lib.libfloco.mkTreeInfoBuilder {
+      inherit pdefs;
+      keylike = if builtins.isString nodelike then nodelike else
+                if nodelike ? key then { inherit (nodelike) key; } else
+                { inherit (nodelike) ident version; };
     };
-    base = builtins.mapAttrs ( _: toTI ) ptree;
-  in removeAttrs base [""];
+  in builder.treeInfo;
 
 
 # ---------------------------------------------------------------------------- #
@@ -665,9 +595,6 @@ in {
     treePropsDeferred
     treeProps
     mkTreePropsOption
-    propsFromReferrer
-    propNodeDeferred
-    propTreeDeferred
   ;
 
 
