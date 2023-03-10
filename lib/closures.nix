@@ -466,6 +466,65 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Assert that all paths in `tree' have a parent path.
+  # `tree' may be an attrset keyed by paths, or a list of paths.
+  auditTreePathParents = tree: let
+    asAttrs =
+      if builtins.isAttrs tree then tree else
+      builtins.listToAttrs ( map ( name: { inherit name; value = null; } )
+                                 tree );
+    pred = path: asAttrs ? ${lib.libfloco.nmParent path};
+  in builtins.all pred (
+    if builtins.isList tree then tree else builtins.attrNames tree
+  );
+
+
+# ---------------------------------------------------------------------------- #
+
+  # Run a closure operation over a `tree' using predicates to effectively
+  # "filter out" some paths.
+  runTreeClosure = {
+    rootPath    ? ""
+  , rootPred    ? _: true
+  , childPred   ? de: de.runtime
+  , addRoot     ? true
+  , outputStyle ? "paths"
+  , audit       ? true
+  , tree
+  }: let
+    getChildDeps = let
+      p = lib.libfloco.getDepsWith childPred;
+      f = p.__functor p;
+    in if p ? __functor then builtins.deepSeq f f else p;
+    closure = builtins.genericClosure {
+      operator = { key }: let
+        needs     = getChildDeps tree.${key};
+        fromScope = builtins.intersectAttrs needs tree.${key}.scope;
+      in lib.mapAttrsToList ( _: s: { key = s.path; } ) fromScope;
+      startSet = let
+        needs     = lib.libfloco.getDepsWith rootPred tree.${rootPath};
+        fromScope = builtins.intersectAttrs needs tree.${rootPath}.scope;
+      in lib.mapAttrsToList ( _: s: { key = s.path; } ) fromScope;
+    };
+    wroot = let
+      hasRoot = builtins.any ( v: v.key == rootPath ) closure;
+    in if ( ! addRoot ) || hasRoot then closure else
+       [{ key = rootPath; }] ++ closure;
+    pathOutput = map ( e: e.key ) wroot;
+    check      = x: let
+      ok = ( ! audit ) || ( auditTreePathParents ( pathOutput ++ [""] ) );
+    in if ok then x else
+       throw ( "lib.libfloco.runTreeClosure: Filtered tree has dangling paths:"
+               + ( lib.generators.toPretty {} pathOutput ) );
+    output = if outputStyle == "paths" then pathOutput else
+             throw ( "lib.libfloco.runTreeClosure: " +
+                     "Unrecognized `outputStyle': \"${outputStyle}\"." );
+  in assert tree ? ${rootPath};
+     check output;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -494,6 +553,11 @@ in {
     checkPeersPresent
     describeCheckPeersPresentEnt
     describeCheckPeersPresent
+  ;
+
+  inherit
+    auditTreePathParents
+    runTreeClosure
   ;
 
 }

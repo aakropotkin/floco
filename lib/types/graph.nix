@@ -248,6 +248,7 @@
 
   };  # End `treeModuleFromGraphNode''
 
+  # Collects `treeModuleFromGraphNode'' for children.
   treeModuleClosureOp = {
     graphNodeModules ? [graphNodeDeferred]
   , getChildReqs     ? null
@@ -275,6 +276,8 @@
     };
   in lib.mapAttrsToList mkChild e.config.node.children;
 
+  # Collects `treeModuleFromGraphNode' recursively and evaluates to emit a
+  # `tree' for a given `keylike' which is treated as the "root" node.
   treeForRoot = {
     graphNodeModules ? [graphNodeDeferred]
   , getChildReqs     ? null
@@ -317,6 +320,11 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # `depInfoEntry' style properties indicating the conditions requires for a
+  # node to be installed.
+  # These relate closely to `treeInfo' properties, but are subtly different
+  # in the meaning of `dev' - in this case we use the `depInfoEntry' treatment
+  # of this field.
   treePropsDeferred = let
     dio = lib.libfloco.depInfoBaseEntryDeferred.options;
   in {
@@ -349,6 +357,10 @@
     type = lib.libfloco.treeProps;
   };
 
+  # Collect properties from a referrer based on their usage of `ident', as well
+  # as their own properties.
+  # This is what allows properties to be propagated/"pushed down"
+  # from referrers.
   propsFromReferrer = ptree: ident: refPath: let
     gnode   = ptree.${refPath};
     forRoot = { inherit (gnode.depInfo.${ident}) optional runtime dev; };
@@ -361,6 +373,8 @@
 
 
 # ---------------------------------------------------------------------------- #
+
+  # Functor/Interface used to build `treeInfo' records.
 
   treeInfoBuilderInterfaceDeferred = {
     options = {
@@ -441,6 +455,7 @@
   };  # End `treeInfoBuilderInterfaceDeferred'
 
 
+  # Implements a sane default for `treeInfoBuilderInterfaceDeferred'.
   treeInfoBuilderImplementationDeferred = {
     config
   , options
@@ -448,23 +463,39 @@
   , keylike
   , ...
   }: {
-    config.pdefClosure = let
-      lst = lib.libfloco.pdefClosureWith { inherit pdefs; } keylike;
-    in ( lib.libfloco.pdefsFromList lst );
+    config.pdefClosure = lib.libfloco.pdefClosureWith {
+      addRoot     = true;
+      outputStyle = "ivAttrs";
+    } { inherit pdefs; } keylike;
+
     config.root = {
       inherit keylike;
       pdef = lib.getPdef { inherit pdefs; } config.root.keylike;
     };
+
     config.tree = ( lib.libfloco.treeForRoot {
       inherit (config) graphNodeModules getChildReqs;
       inherit pdefs;
     } config.root.keylike ).config.tree;
 
     config.propClosures = {
-      dev = builtins.attrNames config.tree;
-      # TODO
-      runtime = [];
-      nopt    = [];
+      dev     = builtins.attrNames ( removeAttrs config.tree [""] );
+      runtime = lib.libfloco.runTreeClosure {
+        rootPred    = de: de.runtime;
+        childPred   = de: de.runtime;
+        addRoot     = false;
+        outputStyle = "paths";
+        audit       = true;
+        inherit (config) tree;
+      };
+      nopt = lib.libfloco.runTreeClosure {
+        rootPred    = de: ! de.optional;
+        childPred   = de: de.runtime && ( ! de.optional );
+        addRoot     = false;
+        outputStyle = "paths";
+        audit       = true;
+        inherit (config) tree;
+      };
     };
 
     # TODO
@@ -472,6 +503,23 @@
 
     # TODO
     config.treeInfo = {};
+  };
+
+
+  mkTreeInfoBuilder = {
+    graphNodeModules ? null
+  , getChildReqs     ? null
+  , pdefs
+  , keylike
+  } @ args: let
+    type = nt.submodule [
+      treeInfoBuilderInterfaceDeferred
+      treeInfoBuilderImplementationDeferred
+    ];
+  in lib.libfloco.runType type {
+    config = ( removeAttrs args ["pdefs" "keylike"] ) // {
+      _module.args = { inherit pdefs keylike; };
+    };
   };
 
 
@@ -628,6 +676,7 @@ in {
   inherit
     treeInfoBuilderInterfaceDeferred
     treeInfoBuilderImplementationDeferred
+    mkTreeInfoBuilder
     mkTreeInfoWith
   ;
 
