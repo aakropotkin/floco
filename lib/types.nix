@@ -256,6 +256,24 @@
 
 # ---------------------------------------------------------------------------- #
 
+  functorTo = elemType: nt.submodule {
+    freeformType      = nt.lazyAttrsOf nt.raw;
+    options.__functor = lib.mkOption {
+      description = lib.mdDoc ''
+        A function of two or more arguments which takes `self` as its first arg.
+      '';
+      type = nt.functionTo ( nt.functionTo elemType );
+    };
+  };
+
+  # `functorTo' must be checked first, otherwise it will be misidentified as
+  # a function and wrapped in a way that makes introspection impossible.
+  funkTo = elemType:
+    nt.either ( lib.libfloco.functorTo elemType ) ( nt.functionTo elemType );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -284,6 +302,8 @@ in {
     runKeylike
 
     runType
+
+    functorTo funkTo
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )

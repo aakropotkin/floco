@@ -31,13 +31,12 @@
       self.mask == ( builtins.intersectAttrs self.mask de );
   };
 
-
   # Typed form of `mkDepInfoEntryPred' making it usable in typed modules.
   depInfoEntryPred = let
     fargs = { runtime = null; dev = null; optional = null; bundled = null; };
     fromT = nt.addCheck ( nt.attrsOf ( nt.nullOr nt.bool ) )
                         ( a: ( builtins.intersectAttrs fargs a ) == a );
-  in nt.coercedTo fromT mkDepInfoEntryPred ( nt.functionTo nt.bool );
+  in nt.coercedTo fromT mkDepInfoEntryPred ( lib.libfloco.funkTo nt.bool );
 
   # Declares a `depInfoEntryPred' option for use in a module.
   mkDepInfoEntryPredOption = lib.mkOption {
@@ -207,7 +206,7 @@
           and and `payload` held by other `config` members.
         '';
         type = nt.functionTo ( nt.functionTo nt.raw );
-        readOnly = true;
+        #readOnly = true;
       };
 
       # Helper routines exposed for debugging and repurposing by extensions.
@@ -255,7 +254,7 @@
       _private = let
         getDep = self: ident: { pin, ... }:
           self.getPdef self.payload { inherit ident; version = pin; };
-      in {
+      in lib.mkOptionDefault {
         __mkStartSet = self: pdef: let
           depEnts = lib.libfloco.getDepsWith self.rootPred pdef;
         in builtins.attrValues ( builtins.mapAttrs ( getDep self ) depEnts );
@@ -275,7 +274,7 @@
       # evaluator can optimize processing partially applied functions.
       # NOTE: for the evaluator to actually do this you need to use `seq', but
       # for a "hot" callpath this can be a real advantage.
-      __functor = self: let
+      __functor = lib.mkOptionDefault ( self: let
         mkStartSet = self._private.__mkStartSet self;
         operator   = self._private.__operator   self;
         # handleStyle :: [entries] -> <STYLE>
@@ -289,23 +288,28 @@
         wroot = let
           hasRoot = builtins.any ( v: v.key == root.key ) closure;
         in if ( ! self.addRoot ) || hasRoot then closure else [root] ++ closure;
-      in handleStyle ( map self.mkEntry wroot );
-    };
+      in handleStyle ( map self.mkEntry wroot ) );
+    } ;
   };
 
   # Declare a `pdefClosureFunctor' type with module extensions.
+  #
+  # Using the attrset `{ modules = [...]; implementation = <MODULE>; }' you
+  # can completely replace the default implementation.
+  # This may be useful if you want to modify the treatment args like `pdefs`.
   pdefClosureFunctorWith = extra: let
-    extraModules = if builtins.isList extra then extra else
-                   if extra == {} then [] else
-                   lib.toList ( extra.modules or extra );
+    extraModules =
+      if ! ( builtins.isAttrs extra ) then lib.toList extra else
+      if extra == {} then [] else
+      lib.toList ( extra.modules or ( removeAttrs extra ["implementation"] ) );
   in nt.submodule ( [
     pdefClosureFunctorInterfaceDeferred
-    pdefClosureFunctorImplementationDeferred
+    ( extra.implementation or pdefClosureFunctorImplementationDeferred )
   ] ++ extraModules );
 
 
   # Declare a `pdefClosureFunctor' type without extensions.
-  pdefClosureFunctor = pdefClosureFunctorWith {};
+  pdefClosureFunctor = lib.libfloco.pdefClosureFunctorWith {};
 
 
   # Wraps the module in a convenience function so we can do this:
@@ -383,6 +387,116 @@
   , pdefs  ? floco.pdefs
   , ...
   } @ pa: keylike: pdefClosureWith {} pdefs keylike;
+
+
+# ---------------------------------------------------------------------------- #
+
+  pdefClosureCachedFunctorImplementationDeferred = {
+    lib
+  , config
+  , options
+  , pdefs
+  , cache
+  , mkEntry
+  , ...
+  }: {
+
+    options.payload = lib.mkOption {
+      type = nt.submodule {
+        options.cache = lib.mkOption {
+          description = lib.mdDoc ''
+            Cached closures used to short circuit collection of subtrees.
+
+            Maps `{ <KEY> = { <MASK> = [KEY...]; ...; }; ... }`.
+            `MASK` is a serialized form of a `depEntryPred` such as:
+              `{"runtime":true}`
+            This means that both `rootPred` and `childPred` must be encoded
+            using a `depInfoEntryPred` functor, otherwise no cache lookup
+            will be performed and "normal" closure operators will run.
+          '';
+          type =
+            nt.lazyAttrsOf ( nt.lazyAttrsOf ( nt.listOf lib.libfloco.key ) );
+        };
+      };
+    };
+
+    options.__cacheChild = lib.mkOption {
+      description = lib.mdDoc ''
+        Functor which pre-caches a child's closure, returning a modified `self`.
+
+        Takes `self` as first argument and `keylike` as the second.
+        If `childPred` is not serializable or if `keylike` is already cached
+        this is a no-op.
+      '';
+      type = nt.functionTo ( nt.functionTo nt.raw );
+    };
+
+    config._module.args.cache = lib.mkOptionDefault {};
+    config.payload.cache      = lib.mkDefault cache;
+
+    # Extend the "base" definition provided by the user.
+    config._module.args.mkEntry = lib.mkOptionDefault ( pdef:
+      pdef._export or ( removeAttrs pdef [
+        "metaFiles" "deserialized" "fsInfo" "binInfo"
+        "fetcher" "fetchInfo" "sourceInfo"
+      ] )
+    );
+    config.mkEntry = lib.mkDefault ( pdef:
+      mkEntry ( removeAttrs pdef ["_fromCache"] )
+    );
+
+    config.rootPred  = lib.mkDefault {};
+    config.childPred = lib.mkDefault { runtime = true; };
+
+    config._private = let
+      base = pdefClosureFunctorImplementationDeferred {
+        inherit lib config options pdefs;
+      };
+      op = self: pred: pdef: let
+        serial   = builtins.toJSON pred.mask;
+        isCached = ( builtins.isAttrs pred ) && ( pred ? mask ) &&
+                   ( self.payload.cache ? ${pdef.key}.${serial} );
+        getCached = key:
+          ( self.getPdef self.payload key ) // { _fromCache = true; };
+        fromCache  = map getCached self.payload.cache.${pdef.key}.${serial};
+        getDep     = ident: { pin, ... }:
+          self.getPdef self.payload { inherit ident; version = pin; };
+        normal     = lib.libfloco.getDepsWith pred pdef;
+        fromNormal = builtins.attrValues ( builtins.mapAttrs getDep normal );
+      in if pdef._fromCache or false then [] else
+         if isCached then fromCache else fromNormal;
+    in {
+      inherit (base.config._private.content or base.config._private)
+        _handleStyle
+      ;
+      __mkStartSet = self: op self self.rootPred;
+      __operator   = self: op self self.childPred;
+    };
+
+    config.__cacheChild = self: let
+      cself = self // {
+        addRoot     = false;
+        rootPred    = self.childPred;
+        outputStyle = "list";
+        mkEntry     = pdef: pdef.key;
+      };
+      maskStr = builtins.toJSON self.childPred.mask;
+    in keylike: let
+      kl       = lib.libfloco.runKeylike keylike;
+      isCached = self.payload.cache ? ${kl.key}.${maskStr};
+    in if ! ( self.childPred ? mask ) || isCached then self else self // {
+      payload = ( self.payload or {} ) // {
+        cache = ( self.payload.cache or {} ) // {
+          ${kl.key}.${maskStr} = cself kl;
+        };
+      };
+    };
+
+  };  # End `pdefClosureCachedFunctorImplementationDeferred'
+
+  pdefClosureCachedFunctor =
+    lib.libfloco.pdefClosureFunctorWith
+      pdefClosureCachedFunctorImplementationDeferred;
 
 
 # ---------------------------------------------------------------------------- #
@@ -546,6 +660,11 @@ in {
     mkPdefClosureFunctor
     pdefClosureWith
     pdefClosure
+  ;
+
+  inherit
+    pdefClosureCachedFunctorImplementationDeferred
+    pdefClosureCachedFunctor
   ;
 
   inherit
