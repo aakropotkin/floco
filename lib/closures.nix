@@ -31,20 +31,41 @@
       self.mask == ( builtins.intersectAttrs self.mask de );
   };
 
-  # FIXME: it's not actually possible to declare a definition such as
-  # `myPred = depInfo: depInfo.runtime', because the module system mistakes
-  # it as `submodule' that needs arguments applied.
-  # The problem here is that `coercedTo' is a `submodule' type under the covers,
-  # so regardless of what you try to use as checkers on `fromT' or `elemType'
-  # it'll fuck it up.
-  # You need to write a type "from scratch" with a custom merge.
-  #
+
+  depInfoEntryPredAttrs = let
+    fargs = { runtime = null; dev = null; optional = null; bundled = null; };
+    base  = nt.attrsOf ( nt.nullOr nt.bool );
+    pred  = x: ( builtins.intersectAttrs fargs x ) == x;
+  in nt.addCheck base pred;
+
+  depInfoEntryPredFunk = let
+    base      = lib.libfloco.funkTo nt.bool;
+    checkDry  = f: builtins.isBool ( f {
+      ident    = "@floco/phony";
+      runtime  = true;
+      dev      = true;
+      optional = true;
+      bundled  = true;
+    } );
+    checkMask = f:
+      ( builtins.isFunction f ) ||
+      ( ! ( f ? mask ) ) ||
+      ( depInfoEntryPredAttrs.check f.mask );
+  in nt.addCheck base ( f: ( checkMask f ) && ( checkDry f ) );
+
   # Typed form of `mkDepInfoEntryPred' making it usable in typed modules.
   depInfoEntryPred = let
-    fargs = { runtime = null; dev = null; optional = null; bundled = null; };
-    fromT = nt.addCheck ( nt.attrsOf ( nt.nullOr nt.bool ) )
-                        ( a: ( builtins.intersectAttrs fargs a ) == a );
-  in nt.coercedTo fromT mkDepInfoEntryPred ( lib.libfloco.funkTo nt.bool );
+    base = nt.coercedTo depInfoEntryPredAttrs
+                        mkDepInfoEntryPred
+                        depInfoEntryPredFunk;
+  in base // {
+    merge = loc: defs: let
+      fixFunctions = d: if ! builtins.isFunction d.value then d else d // {
+        value.__functor = _: d.value;
+      };
+    in base.merge loc ( map fixFunctions defs );
+  };
+
 
   # Declares a `depInfoEntryPred' option for use in a module.
   mkDepInfoEntryPredOption = lib.mkOption {

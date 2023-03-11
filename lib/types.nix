@@ -272,14 +272,17 @@
 
 # ---------------------------------------------------------------------------- #
 
-  functorTo = elemType: nt.submodule {
-    freeformType      = nt.lazyAttrsOf nt.raw;
-    options.__functor = lib.mkOption {
-      description = lib.mdDoc ''
-        A function of two or more arguments which takes `self` as its first arg.
-      '';
-      type = nt.functionTo ( nt.functionTo elemType );
-    };
+  # This is best defined as an attrset to avoid fucky merge operations that try
+  # to coerce submodules from functions.
+  functorTo = elemType: let
+    base = nt.lazyAttrsOf nt.raw;
+    pred = x:
+      ( x ? __functor ) &&
+      ( builtins.isFunction x.__functor ) &&
+      ( builtins.isFunction ( x.__functor x ) );
+  in ( nt.addCheck base pred ) // {
+    name        = "functorTo(${elemType.name})";
+    description = "functor that evaluates to a(n) ${elemType.description}";
   };
 
   # `functorTo' must be checked first, otherwise it will be misidentified as

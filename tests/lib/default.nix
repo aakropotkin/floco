@@ -6,7 +6,8 @@
 
 let
   lib = import ../../lib {};
-in import ./util.nix { inherit lib; }
+in ( import ./util.nix { inherit lib; } ) ++
+   ( import ./closures.nix { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #
