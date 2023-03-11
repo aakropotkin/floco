@@ -159,6 +159,28 @@
 
 # ---------------------------------------------------------------------------- #
 
+  nmjoin = path: ident:
+    if path == "" then "node_modules/" + ident else
+    builtins.concatStringsSep "" [path "/node_modules/" ident];
+
+  nmDepth = path: let
+    s = builtins.split "node_modules" ( toString path );
+  in builtins.length ( builtins.filter builtins.isList s );
+
+  nmParent = path: let
+    ddp      = dirOf ( dirOf path );
+    isScoped = ( builtins.substring 0 1 ( baseNameOf ( dirOf path ) ) ) == "@";
+    rsl     = if isScoped then dirOf ddp else ddp;
+    isValid = ( baseNameOf path ) != "node_modules";
+    spath   = toString path;
+  in if ( path == "" ) || ( rsl == "." ) then "" else
+     if isValid then rsl else
+     throw ( "lib.libfloco.nmParent: Invalid module path: \`${spath}'. " +
+             "Did you forget to remove a trailing \"*/node_modules\" part?" );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -167,6 +189,10 @@ in {
     isDir
     isAbspath
     realpathRel
+
+    nmjoin
+    nmDepth
+    nmParent
   ;
 
 }

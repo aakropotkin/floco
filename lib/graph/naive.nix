@@ -16,7 +16,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib }: {
+{ lib }: let
+
+# ---------------------------------------------------------------------------- #
+
+in {
 
   getChildReqsBasic = {
     ident
@@ -25,16 +29,20 @@
   , depInfo
   , peerInfo
   , isRoot
-  , needs  ? if isRoot then depInfo else lib.libfloco.getRuntimeDeps {} depInfo
+  , needs  ? if isRoot then depInfo else
+             lib.libfloco.getRuntimeDeps { bundled = false; } depInfo
   , pscope
   , ...
   } @ node: let
-    keep = di: de: ( pscope.${di}.pin or null ) == de.pin;
-    part = lib.partitionAttrs keep needs;
+    keep  = di: de: ( pscope.${di}.pin or null ) == de.pin;
+    part  = lib.partitionAttrs keep needs;
     bund = lib.libfloco.getDepsWith ( de: de.bundled or false ) depInfo;
   in {
     requires = builtins.intersectAttrs ( part.right // peerInfo ) pscope;
-    children = builtins.mapAttrs ( _: d: d.pin ) ( bund // part.wrong );
+    children = builtins.mapAttrs ( ident: { pin, ... }: {
+      inherit pin;
+      path = lib.nmjoin path ident;
+    } ) ( bund // part.wrong );
   };
 
 }

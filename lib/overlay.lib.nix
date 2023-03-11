@@ -67,6 +67,7 @@ in {
     yankN
     size
     partitionAttrs
+    keepAttrs
 
     getPdef
     killPdef
@@ -114,6 +115,10 @@ in {
     tryImportNixOrJson
     processImport      processImports
     processImportFloco processImportsFloco
+
+    nmjoin
+
+    uniqueListOf
   ;
 
 }

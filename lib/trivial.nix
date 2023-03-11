@@ -40,6 +40,18 @@
   };
 
 
+# ---------------------------------------------------------------------------- #
+
+  # Remove fields from `attrs` that are not in `fields`.
+  # Fields may be an attrset, a string ( single field ), or list of field names.
+  keepAttrs = attrs: fields: let
+    mkAttr = name: { inherit name; value = null; };
+    keeps  = if builtins.isAttrs  fields then fields else
+             if builtins.isString fields then { ${fields} = null; } else
+             assert builtins.isList fields;
+             builtins.listToAttrs ( map mkAttr fields );
+  in builtins.intersectAttrs keeps attrs;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -51,6 +63,7 @@ in {
     yankN
     size
     partitionAttrs
+    keepAttrs
   ;
 
 }
