@@ -274,6 +274,34 @@
 
 # ---------------------------------------------------------------------------- #
 
+  emptyStr = ( nt.enum [""] ) // {
+    name        = "emptyStr";
+    description = "empty string";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  treePath = let
+    treeRelPath = ( nt.strMatching "[^./][^./]?.*" ) // {
+      name        = "treePath";
+      description = "node_modules tree path";
+    };
+  in nt.either lib.libfloco.emptyStr treeRelPath;
+
+
+  mkTreePathOption = lib.mkOption {
+    description = lib.mdDoc ''
+      A `node_modules/*` tree path.
+      Either the empty string, or a relative path with no leading "./" part.
+    '';
+    type    = treePath;
+    default = "";
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -304,6 +332,10 @@ in {
     runType
 
     functorTo funkTo
+
+    emptyStr
+    treePath mkTreePathOption
+
   ;
 
 } // ( import ./types/graph.nix { inherit lib; } )

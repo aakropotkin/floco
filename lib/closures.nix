@@ -401,6 +401,10 @@
   , ...
   }: {
 
+    # This caching style keys queries in exactly the same way as Nix's own
+    # eval cache.
+    # This leaves the door open to using a `nix' plugin to satisfy this same
+    # interface at a later date using builtins.
     options.payload = lib.mkOption {
       type = nt.submodule {
         options.cache = lib.mkOption {

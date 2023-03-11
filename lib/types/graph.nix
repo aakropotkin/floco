@@ -12,29 +12,6 @@
 
 # ---------------------------------------------------------------------------- #
 
-  treePath = let
-    emptyStr = ( nt.enum [""] ) // {
-      name        = "emptyStr";
-      description = "empty string";
-    };
-    treeRelPath = ( nt.strMatching "[^./][^./]?.*" ) // {
-      name        = "treePath";
-      description = "node_modules tree path";
-    };
-  in nt.either emptyStr treeRelPath;
-
-  mkTreePathOption = lib.mkOption {
-    description = lib.mdDoc ''
-      A `node_modules/*` tree path.
-      Either the empty string, or a relative path with no leading "./" part.
-    '';
-    type    = treePath;
-    default = "";
-  };
-
-
-# ---------------------------------------------------------------------------- #
-
   scopeEnt = nt.submodule {
     options = {
       pin  = lib.libfloco.mkPinOption;
@@ -78,6 +55,9 @@
 
   referrer          = nt.submodule lib.libfloco.referrerDeferred;
   mkReferrersOption = lib.mkOption {
+    description = lib.mdDoc ''
+      List of modules which consume this module.
+    '';
     type    = lib.uniqueListOf lib.libfloco.referrer;
     default = [];
   };
@@ -287,10 +267,13 @@
       config.parent = null;
       config.tree   = {};
     };
+
     moduleClosure = builtins.genericClosure {
       startSet = [{ key = ""; module = base; }];
       operator = treeModuleClosureOp args;
     };
+
+    # Doesn't have `referrers'.
     rough = let
       kids = map ( e: { inherit (e.module.config) tree; } ) moduleClosure;
     in lib.evalModules {
@@ -299,11 +282,23 @@
         base
       ];
     };
-  in rough.extendModules {
-    modules = let
-      getRefsModule = path: node: { config.tree = collectRefsFromNode node; };
-    in lib.mapAttrsToList getRefsModule rough.config.tree;
-  };
+
+    refs = let
+      refModules = let
+        getRefsModule = path: node: collectRefsFromNode node;
+      in lib.mapAttrsToList getRefsModule rough.config.tree;
+      t = nt.lazyAttrsOf ( nt.submodule {
+        options.referrers = lib.libfloco.mkReferrersOption;
+      } );
+      asDefs = map ( value: {
+        file = "<libfloco>/types/graph.nix:treeForRoot";
+        inherit value;
+      } ) refModules;
+    in ( lib.evalOptionValue [] ( lib.mkOption { type = t; } ) asDefs ).value;
+
+  in builtins.mapAttrs ( path: node: node // {
+    referrers = refs.${path}.referrers or [];
+  } ) rough.config.tree;
 
 
 # ---------------------------------------------------------------------------- #
@@ -558,8 +553,6 @@ in {
 # ---------------------------------------------------------------------------- #
 
   inherit
-    treePath
-    mkTreePathOption
     scopeEnt
     scope
     mkScopeOption
