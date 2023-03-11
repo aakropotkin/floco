@@ -482,10 +482,10 @@
       pdef = lib.getPdef { inherit pdefs; } config.root.keylike;
     };
 
-    config.tree = ( lib.libfloco.treeForRoot {
+    config.tree = lib.libfloco.treeForRoot {
       inherit (config) graphNodeModules getChildReqs;
       inherit pdefs;
-    } config.root.keylike ).config.tree;
+    } config.root.keylike;
 
     config.propClosures = {
       dev     = builtins.attrNames ( removeAttrs config.tree [""] );
@@ -542,15 +542,18 @@
   , pdefs
   , keylike
   } @ args: let
-    type = nt.submodule [
-      treeInfoBuilderInterfaceDeferred
-      treeInfoBuilderImplementationDeferred
-    ];
-  in lib.libfloco.runType type {
-    config = ( removeAttrs args ["pdefs" "keylike"] ) // {
-      _module.args = { inherit pdefs keylike; };
+    mod = lib.evalModules{
+      modules = [
+        treeInfoBuilderInterfaceDeferred
+        treeInfoBuilderImplementationDeferred
+        {
+          config = ( removeAttrs args ["pdefs" "keylike"] ) // {
+            _module.args = { inherit pdefs keylike; };
+          };
+        }
+      ];
     };
-  };
+  in mod.config;
 
 
 # ---------------------------------------------------------------------------- #
@@ -571,12 +574,13 @@
   , pdefs ? floco.pdefs
   , ...
   } @ args: nodelike: let
-    builder = lib.libfloco.mkTreeInfoBuilder {
+    args'   = lib.keepAttrs args ["graphNodeModules" "getChildReqs"];
+    builder = lib.libfloco.mkTreeInfoBuilder ( args' // {
       inherit pdefs;
       keylike = if builtins.isString nodelike then nodelike else
                 if nodelike ? key then { inherit (nodelike) key; } else
                 { inherit (nodelike) ident version; };
-    };
+    } );
   in builder.treeInfo;
 
 

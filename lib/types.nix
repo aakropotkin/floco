@@ -239,10 +239,10 @@
   };
 
 
-  runKeylike = x: ( lib.evalOptionValue [] lib.libfloco.mkKeylikeOption [{
+  runKeylike = x: ( lib.mergeDefinitions [] lib.libfloco.keylike [{
     file  = "<libfloco>/types.nix:runKeylike";
     value = x;
-  }] ).value;
+  }] ).mergedValue;
 
 
 # ---------------------------------------------------------------------------- #
@@ -252,6 +252,22 @@
         file  = "<libfloco>/types.nix:runType(${type.name})";
         value = x.config or x;
       }] ).value;
+
+  #runType = type: x: let
+  #  toDef = e: {
+  #    file  = e.file or "<libfloco>/types.nix:runType(${type.name})";
+  #    value = e.value or e;
+  #  };
+  #  isListOfDefs = let
+  #    fst = builtins.head x;
+  #  in /* ( type.name == "listOf" ) && */ ( x != [] ) && (
+  #    ( builtins.isAttrs fst ) && ( fst ? value )
+  #  );
+  #  defs =
+  #    if type.name != "listOf" then map toDef ( lib.toList x ) else
+  #    if isListOfDefs then map toDef x else
+  #    [( toDef x )];
+  #in ( lib.mergeDefinitions [] type defs ).mergedValue;
 
 
 # ---------------------------------------------------------------------------- #

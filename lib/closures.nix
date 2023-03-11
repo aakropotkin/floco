@@ -31,6 +31,14 @@
       self.mask == ( builtins.intersectAttrs self.mask de );
   };
 
+  # FIXME: it's not actually possible to declare a definition such as
+  # `myPred = depInfo: depInfo.runtime', because the module system mistakes
+  # it as `submodule' that needs arguments applied.
+  # The problem here is that `coercedTo' is a `submodule' type under the covers,
+  # so regardless of what you try to use as checkers on `fromT' or `elemType'
+  # it'll fuck it up.
+  # You need to write a type "from scratch" with a custom merge.
+  #
   # Typed form of `mkDepInfoEntryPred' making it usable in typed modules.
   depInfoEntryPred = let
     fargs = { runtime = null; dev = null; optional = null; bundled = null; };
@@ -120,7 +128,7 @@
       };
 
       rootPred = lib.libfloco.mkDepInfoEntryPredOption // {
-        default = _: true;
+        default = {};
       };
 
       childPred = lib.libfloco.mkDepInfoEntryPredOption // {
@@ -331,8 +339,8 @@
     }
   , ...
   } @ args: let
-    type    = lib.libfloco.pdefClosureFunctorWith { inherit modules; };
-    f       = lib.libfloco.runType type { inherit config; };
+    type = lib.libfloco.pdefClosureFunctorWith { inherit modules; };
+    f    = lib.libfloco.runType type config;
     curried = f // {
       __functor = self: {
         config ? { floco.pdefs = pa; }
@@ -361,7 +369,7 @@
   pdefClosureWith = {
     __functionArgs =
       removeAttrs ( lib.functionArgs lib.libfloco.mkPdefClosureFunctor ) [
-        "module" "config" "pdefs"
+        "modules" "config" "pdefs"
       ];
     __functor = self: {
       mkEntry ? builtins.intersectAttrs {
@@ -370,8 +378,10 @@
       }
     , ...
     } @ args: lib.libfloco.mkPdefClosureFunctor {
-      config = { inherit mkEntry; } // args;
-      pdefs  = {};
+      config = { inherit mkEntry; } // ( removeAttrs args [
+        "modules" "config" "pdefs"
+      ] );
+      pdefs = {};
     };
   };
 
