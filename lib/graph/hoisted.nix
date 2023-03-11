@@ -3,16 +3,6 @@
 # Implements `getChildReqs' and initializer for "hoisted" install strategy.
 # This file is paired with the interfaces defined in `./types/graph.nix'.
 #
-# NOTE: This implementation does not precisely reproduce the "hoisted" trees
-# created by `npm` or `yarn` ( which also differ from each other ), because it
-# does not "hoist subtrees".
-# This means that only the "top-level" `node_modules/' directory is hoisted,
-# while all subtrees use the "naive" strategy, adding dependencies as children
-# in the subdir of packages which request them.
-#
-# TODO: Hoist subtrees to improve deduplication.
-#
-#
 # ---------------------------------------------------------------------------- #
 
 { lib }: let
