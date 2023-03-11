@@ -48,6 +48,8 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # An "incoming" edge in the dependency graph used to indicate which modules
+  # in the closure/tree refer to ( consume/use ) a given node.
   referrerDeferred = {
     options.key  = lib.libfloco.mkKeyOption;
     options.path = lib.libfloco.mkTreePathOption;
@@ -62,9 +64,39 @@
     default = [];
   };
 
+  # collectRefsFromNode :: graphNode -> { <PATH> = [<GNODE-REF>]; ... }
+  # -------------------------------------------------------------------
+  # Collect "tree level" attrset of refs from a `graphNode' to the modules it
+  # consumes as `referrers' members.
+  # This is a helper used to generate configs.
+  #
+  # NOTE: while `requires' always implies a reference, `children' do not.
+  # Particularly for "hoisted" strategies, children of a node are not
+  # necessarily referenced by their parent.
+  # With that in mind we use `depInfo' to reduce `children' to real references.
+  collectRefsFromNode = {
+    key
+  , path
+  , requires
+  , children
+  , depInfo
+  , ...
+  }: let
+    cdeps = builtins.intersectAttrs depInfo children;
+    needs = lib.attrsets.unionOfDisjoint requires cdeps;
+    proc  = ident: scopeEnt: {
+      name            = scopeEnt.path;
+      value.referrers = [{ inherit key path; }];
+    };
+  in lib.mapAttrs' proc needs;
+
 
 # ---------------------------------------------------------------------------- #
 
+  # A node in a dependency graph.
+  # This interface can be extended from this deferred form.
+  # Its default implementation `graphNodeDeferred' is used as the core for
+  # `idealTree' algorithms ( `tree' and `treeInfo' builders ).
   graphNodeInterfaceDeferred = {
     freeformType = nt.attrsOf nt.anything;
     options      = {
@@ -83,6 +115,12 @@
     };  # End `options'
   };
 
+  # Implements a general purpose `graphNode'.
+  #
+  # Note that `referrers' are not implemented by this module since they are
+  # costly to resolve and aren't necessary for the standard `treeInfo' builder.
+  # `referrers' are implemented and included in the `treeForRoot' record, but
+  # are solved lazily to avoid slowing down routines which don't use them.
   graphNodeDeferred = {
     config
   , options
@@ -125,35 +163,14 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # collectRefsFromNode :: graphNode -> { <PATH> = [<GNODE-REF>]; ... }
-  # -------------------------------------------------------------------
-  # Collect "tree level" attrset of refs from a `graphNode' to the modules it
-  # consumes as `referrers' members.
-  # This is a helper used to generate configs.
+  # Produces a module associated with a node in the dependency graph as it
+  # relates to other members of the `tree'.
+  # Multiple instances of these modules are collected ( one for each node ) to
+  # produce the full `tree' ( see `treeClosureOp' ).
   #
-  # NOTE: while `requires' always implies a reference, `children' do not.
-  # Particularly for "hoisted" strategies, children of a node are not
-  # necessarily referenced by their parent.
-  # With that in mind we use `depInfo' to reduce `children' to real references.
-  collectRefsFromNode = {
-    key
-  , path
-  , requires
-  , children
-  , depInfo
-  , ...
-  }: let
-    cdeps = builtins.intersectAttrs depInfo children;
-    needs = lib.attrsets.unionOfDisjoint requires cdeps;
-    proc  = ident: scopeEnt: {
-      name            = scopeEnt.path;
-      value.referrers = [{ inherit key path; }];
-    };
-  in lib.mapAttrs' proc needs;
-
-
-# ---------------------------------------------------------------------------- #
-
+  # Note that some info such as `referrers' and `properties' are not resolved
+  # until after a "stage 0" evaluation of the tree is performed
+  # ( see `treeForRoot' for `referrers', and `treeInfoBuilder' for props ).
   treeModuleFromGraphNode' = {
     graphNodeModules ? [graphNodeDeferred]
   , getChildReqs     ? null
@@ -397,9 +414,25 @@
         '';
         type = nt.submodule {
           options = {
-            dev     = lib.mkOption { type = nt.listOf lib.libfloco.treePath; };
-            runtime = lib.mkOption { type = nt.listOf lib.libfloco.treePath; };
-            nopt    = lib.mkOption {
+            dev = lib.mkOption {
+              description = lib.mdDoc ''
+                List of `tree` paths that are reachable when `dev` dependencies
+                of the `root` node are included.
+
+                This list includes `optional` dependencies.
+              '';
+              type = nt.listOf lib.libfloco.treePath;
+            };
+            runtime = lib.mkOption {
+              description = lib.mdDoc ''
+                List of `tree` paths that are reachable when `dev` dependencies
+                of the `root` node are excluded.
+
+                This list includes `optional` dependencies.
+              '';
+              type = nt.listOf lib.libfloco.treePath;
+            };
+            nopt = lib.mkOption {
               description = lib.mdDoc ''
                 List of `tree` paths that are reachable when all `optional`
                 dependencies are ignored.
@@ -413,10 +446,17 @@
       };
 
       propTree = lib.mkOption {
+        description = lib.mdDoc ''
+          Maps paths to `dev`, `runtime`, and `optional` properties.
+          These are used to produce the final `treeInfo` properties.
+        '';
         type = nt.lazyAttrsOf lib.libfloco.treeProps;
       };
 
       treeInfo = lib.mkOption {
+        description = lib.mdDoc ''
+          The final `treeInfo` record for use by the `root` module.
+        '';
         type = nt.lazyAttrsOf nt.raw;
       };
 
@@ -494,7 +534,8 @@
     in builtins.mapAttrs toTI ( removeAttrs config.propTree [""] );
   };
 
-
+  # Constructs an instance of the full `treeInfoBuilder' functor.
+  # This is effectively a convenience wrapper.
   mkTreeInfoBuilder = {
     graphNodeModules ? null
   , getChildReqs     ? null
@@ -514,6 +555,12 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Produces a `treeInfo' record where the module associated with `nodelike`
+  # ( a `keylike` record ) is the "root" of the tree.
+  # The function `getChildReqs' may be supplied to implement alternative
+  # install strategies, the default being a naive routine that prunes a
+  # `nested' tree.
+  # This is effectively a convenience wrapper over `mkTreeInfoBuilder'.`
   mkTreeInfoWith = {
     graphNodeModules ? null
   , getChildReqs     ? null
@@ -535,6 +582,8 @@
 
 # ---------------------------------------------------------------------------- #
 
+  # Removes extraneous fields from a tree of `graphNode' records, usually to be
+  # printed in debug messages.
   simplifyTree = x: let
     simplifyNode = path: node:
       ( removeAttrs node ["pscope" "ident" "version" "path"] ) // {
