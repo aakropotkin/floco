@@ -59,6 +59,7 @@
                         mkDepInfoEntryPred
                         depInfoEntryPredFunk;
   in base // {
+    name  = "depInfoEntryPred";
     merge = loc: defs: let
       fixFunctions = d: if ! builtins.isFunction d.value then d else d // {
         value.__functor = _: d.value;

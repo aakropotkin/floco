@@ -59,7 +59,7 @@
     lf   = lib.libfloco;
     pred = de: de.runtime && ( ! ( pscope.${de.ident}.oneVersion or false ) );
     closure = lf.pdefClosureWith {
-      rootPred.__functor = _: pred; childPred.__functor = _: pred;
+      rootPred = pred; childPred = pred;
     } { inherit pdefs; } { inherit ident version; };
     noRoot   = builtins.filter ( pdef: pdef.key != key ) closure;
     idGroups = builtins.groupBy ( pdef: pdef.ident ) noRoot;
