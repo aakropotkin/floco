@@ -107,7 +107,6 @@
       peerInfo  = lib.libfloco.mkPeerInfoBaseOption;
       path      = lib.libfloco.mkTreePathOption;
       isRoot    = lib.mkOption { type = nt.bool; };
-      pscope    = lib.libfloco.mkScopeOption;
       children  = lib.libfloco.mkScopeOption;
       requires  = lib.libfloco.mkScopeOption;
       scope     = lib.libfloco.mkScopeOption;
@@ -125,13 +124,15 @@
     config
   , options
   , getChildReqs
+  , pscope
   , ...
   }: {
     imports = [lib.libfloco.graphNodeInterfaceDeferred];
 
     config = let
       cr = getChildReqs {
-        inherit (config) ident version path depInfo peerInfo isRoot pscope;
+        inherit (config) ident version path depInfo peerInfo isRoot;
+        inherit pscope;
       };
     in {
       _module.args.getChildReqs =
@@ -146,7 +147,7 @@
       );
       requires = lib.mkDefault cr.requires;
       children = lib.mkDefault cr.children;
-      scope    = lib.mkDefault ( config.pscope // config.children );
+      scope    = lib.mkDefault ( pscope // config.children );
     };  # End `config'
 
   };  # End `graphNodeDeferred'
@@ -217,17 +218,17 @@
         name  = path;
         value = {
           inherit ident path;
-          version = pin;
-          pscope  = config.node.scope;
-          isRoot  = false;
+          version             = pin;
+          isRoot              = false;
+          _module.args.pscope = config.node.scope;
         };
       } ) config.node.children;
     in kids // {
       ${config.node.path} = config.node // {
-        children = lib.mkForce config.node.children;
-        requires = lib.mkForce config.node.requires;
-        scope    = lib.mkForce config.node.scope;
-        pscope   = lib.mkForce config.node.pscope;
+        children            = lib.mkForce config.node.children;
+        requires            = lib.mkForce config.node.requires;
+        scope               = lib.mkForce config.node.scope;
+        _module.args.pscope = lib.mkForce config.node._module.args.pscope;
       };
     };
 
@@ -253,7 +254,7 @@
       config.tree   = e.config.tree;
       config.node   = ( removeAttrs e.config.tree.${p} [
         "scope" "children" "requires"
-      ] ) // { pscope = lib.mkForce e.config.node.scope; };
+      ] ) // { _module.args.pscope = lib.mkForce e.config.node.scope; };
     };
     mkChild = _: { path, ... }: {
       key    = path;
@@ -275,11 +276,11 @@
         );
       in {
         inherit key;
-        ident   = keylike.ident or ( dirOf key );
-        version = keylike.version or ( baseNameOf key );
-        isRoot  = true;
-        path    = "";
-        pscope  = {};
+        ident               = keylike.ident or ( dirOf key );
+        version             = keylike.version or ( baseNameOf key );
+        isRoot              = true;
+        path                = "";
+        _module.args.pscope = {};
       };
       config.parent = null;
       config.tree   = {};
@@ -388,12 +389,7 @@
         default = lib.libfloco.getChildReqsBasic;
       };
 
-      root = lib.mkOption {
-        type = nt.submodule {
-          options.keylike = lib.libfloco.mkKeylikeOption;
-          options.pdef    = lib.mkOption { type = nt.lazyAttrsOf nt.raw; };
-        };
-      };
+      rootKey = lib.libfloco.mkKeylikeOption;
 
       pdefClosure = lib.mkOption {
         type = nt.lazyAttrsOf ( nt.lazyAttrsOf nt.raw );
@@ -477,15 +473,12 @@
       outputStyle = "ivAttrs";
     } { inherit pdefs; } keylike;
 
-    config.root = {
-      inherit keylike;
-      pdef = lib.getPdef { inherit pdefs; } config.root.keylike;
-    };
+    config.rootKey = keylike;
 
     config.tree = lib.libfloco.treeForRoot {
       inherit (config) graphNodeModules getChildReqs;
       inherit pdefs;
-    } config.root.keylike;
+    } config.rootKey;
 
     config.propClosures = {
       dev     = builtins.attrNames ( removeAttrs config.tree [""] );
@@ -521,7 +514,7 @@
         optional = ! ( otree ? ${path} );
       };
       children = builtins.mapAttrs mkProps ( removeAttrs config.tree [""] );
-      root."" = { dev = true; runtime = true; optional = false; };
+      root.""  = { dev = true; runtime = true; optional = false; };
     in root // children;
 
     config.treeInfo = let
@@ -590,7 +583,7 @@
   # printed in debug messages.
   simplifyTree = x: let
     simplifyNode = path: node:
-      ( removeAttrs node ["pscope" "ident" "version" "path"] ) // {
+      ( removeAttrs node ["ident" "version" "path"] ) // {
         children = builtins.mapAttrs ( _: c: c.pin ) node.children;
         depInfo  = let
           sy = d: removeAttrs d ["descriptor"];
