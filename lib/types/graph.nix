@@ -137,6 +137,7 @@
     in {
       _module.args.getChildReqs =
         lib.mkOptionDefault lib.libfloco.getChildReqsBasic;
+      _module.args.pscope = lib.mkIf config.isRoot ( lib.mkDefault {} );
 
       ident   = lib.mkOptionDefault ( dirOf config.key );
       version = lib.mkOptionDefault ( baseNameOf config.key );
