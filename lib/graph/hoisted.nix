@@ -43,7 +43,7 @@
   , path
   , depInfo
   , peerInfo
-  , pscope
+  , pscope   ? node._module.args.pscope
   , ...
   } @ node: let
     lf   = lib.libfloco;

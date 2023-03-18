@@ -15,7 +15,7 @@
     ];
   };
 
-  inherit (mod.config) pdefs;
+  inherit (mod.config.floco) pdefs;
 
 # ---------------------------------------------------------------------------- #
 
@@ -102,6 +102,40 @@ in lib.runTests {
       false
       true
     ];
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+  testPdefClosureCached = let
+    pcf = lib.libfloco.runType lib.libfloco.pdefClosureCachedFunctor {
+      _module.args = { inherit pdefs; };
+    };
+    # Make sure it still works as a regular closure functor when the cache is
+    # completely empty.
+    ckeys = map ( v: v.ident + "/" + v.version )
+                ( builtins.tail ( pcf "pacote/13.3.0" ) );
+    # Select `n' members of `lst' skipping an equal number of members
+    # between selections.
+    # This is essentially a non-random way to pick `n' arbitrary members.
+    pickN = lst: n: let
+      c    = ( builtins.length lst ) / n;
+      pull = x: builtins.elemAt lst ( x * c );
+    in if c <= 1 then lst else builtins.genList pull n;
+    # `pcf' with 5 cache entries
+    pcfCached = builtins.foldl' ( f: f.__cacheChild f ) pcf ( pickN ckeys 5 );
+    cckeys    = map ( v: v.ident + "/" + v.version )
+                    ( builtins.tail ( pcfCached "pacote/13.3.0" ) );
+  in {
+    expr = {
+      nents  = builtins.length ( builtins.attrNames pcfCached.payload.cache );
+      keysEq = ( builtins.sort builtins.lessThan ckeys ) ==
+               ( builtins.sort builtins.lessThan cckeys );
+    };
+    expected = {
+      nents  = 5;
+      keysEq = true;
+    };
   };
 
 

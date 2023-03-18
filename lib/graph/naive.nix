@@ -31,7 +31,7 @@ in {
   , isRoot
   , needs  ? if isRoot then depInfo else
              lib.libfloco.getRuntimeDeps { bundled = false; } depInfo
-  , pscope
+  , pscope ? node._module.args.pscope
   , ...
   } @ node: let
     keep  = di: de: ( pscope.${di}.pin or null ) == de.pin;
