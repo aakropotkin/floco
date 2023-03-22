@@ -102,11 +102,11 @@
 
   # getDepsWith :: predlike -> (pdef|depInfo) -> depInfo
   # ----------------------------------------------------
-  getDepsWith = predlike: x: let
+  getDepsWith = predlike: let
     pred = if lib.isFunction predlike then predlike else
            lib.libfloco.mkDepInfoEntryPred predlike;
-  in lib.filterAttrs ( ident: entry: pred ( { inherit ident; } // entry ) )
-                     ( x.depInfo or x );
+  in x: lib.filterAttrs ( ident: entry: pred ( { inherit ident; } // entry ) )
+                        ( x.depInfo or x );
 
   # getRuntimeDeps :: { optional?, bundled? } -> (pdef|depInfo) -> depInfo
   # ----------------------------------------------------------------------
@@ -489,12 +489,12 @@
         inherit lib config options pdefs;
       };
       op = self: pred: pdef: let
-        serial   = builtins.toJSON pred.mask;
+        maskStr  = pred.ckey or ( builtins.toJSON pred.mask );
         isCached = ( builtins.isAttrs pred ) && ( pred ? mask ) &&
-                   ( self.payload.cache ? ${pdef.key}.${serial} );
+                   ( self.payload.cache ? ${pdef.key}.${maskStr} );
         getCached = key:
           ( self.getPdef self.payload key ) // { _fromCache = true; };
-        fromCache  = map getCached self.payload.cache.${pdef.key}.${serial};
+        fromCache  = map getCached self.payload.cache.${pdef.key}.${maskStr};
         getDep     = ident: { pin, ... }:
           self.getPdef self.payload { inherit ident; version = pin; };
         normal     = lib.libfloco.getDepsWith pred pdef;
@@ -516,7 +516,7 @@
         outputStyle = "list";
         mkEntry     = pdef: pdef.key;
       };
-      maskStr = builtins.toJSON self.childPred.mask;
+      maskStr = self.childPred.ckey or ( builtins.toJSON self.childPred.mask );
     in keylike: let
       kl       = lib.libfloco.runKeylike keylike;
       isCached = self.payload.cache ? ${kl.key}.${maskStr};

@@ -117,10 +117,22 @@ in {
   , floco  ? config.floco
   , pdefs  ? config.floco.pdefs
   , ...
-  } @ pa: lib.libfloco.mkTreeInfoWith {
+  } @ pa: keylike: let
+    closure = lib.libfloco.pdefClosureWith {
+      inherit pdefs;
+      outputStyle = "ivAttrs";
+    } keylike;
+    rootKey = if builtins.isString keylike then keylike else keylike.key or (
+      keylike.ident + "/" + ( keylike.version or keylike.pin )
+    );
+    # TODO: use `pcf'
+    pcf = lib.libfloco.runType lib.libfloco.pdefClosureCachedFunctor {
+      _module.args.pdefs = lib.libfloco.pdefsFromList closure;
+    };
+  in lib.libfloco.mkTreeInfoWith {
     inherit pdefs;
     getChildReqs = lib.libfloco.getChildReqsHoisted { inherit pdefs; };
-  };
+  } keylike;
 
 }
 
