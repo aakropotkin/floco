@@ -517,10 +517,11 @@
         mkEntry     = pdef: pdef.key;
       };
       maskStr = self.childPred.ckey or ( builtins.toJSON self.childPred.mask );
+      hasKey  = ( self.childPred ? mask ) || ( self.childPred ? ckey );
     in keylike: let
       kl       = lib.libfloco.runKeylike keylike;
       isCached = self.payload.cache ? ${kl.key}.${maskStr};
-    in if ! ( self.childPred ? mask ) || isCached then self else self // {
+    in if ( ! hasKey ) || isCached then self else self // {
       payload = ( self.payload or {} ) // {
         cache = ( self.payload.cache or {} ) // {
           ${kl.key}.${maskStr} = cself kl;
