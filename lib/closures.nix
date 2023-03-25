@@ -685,8 +685,7 @@
   }: let
     getChildDeps = let
       p = lib.libfloco.getDepsWith childPred;
-      f = p.__functor p;
-    in if p ? __functor then builtins.deepSeq f f else p;
+    in if p ? __functor then p.__functor p else p;
     closure = builtins.genericClosure {
       startSet = let
         needs     = lib.libfloco.getDepsWith rootPred tree.${rootPath};
