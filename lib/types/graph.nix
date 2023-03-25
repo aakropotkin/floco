@@ -41,7 +41,7 @@
     description = lib.mdDoc ''
       Representation of the `node` resolution scope at a given path.
     '';
-    type    = lib.libfloco.scope;
+    type    = scope;
     default = {};
   };
 
@@ -55,12 +55,12 @@
     options.path = lib.libfloco.mkTreePathOption;
   };
 
-  referrer          = nt.submodule lib.libfloco.referrerDeferred;
+  referrer          = nt.submodule referrerDeferred;
   mkReferrersOption = lib.mkOption {
     description = lib.mdDoc ''
       List of modules which consume this module.
     '';
-    type    = lib.uniqueListOf lib.libfloco.referrer;
+    type    = lib.uniqueListOf referrer;
     default = [];
   };
 
@@ -107,10 +107,10 @@
       peerInfo  = lib.libfloco.mkPeerInfoBaseOption;
       path      = lib.libfloco.mkTreePathOption;
       isRoot    = lib.mkOption { type = nt.bool; };
-      children  = lib.libfloco.mkScopeOption;
-      requires  = lib.libfloco.mkScopeOption;
-      scope     = lib.libfloco.mkScopeOption;
-      referrers = lib.libfloco.mkReferrersOption;
+      children  = mkScopeOption;
+      requires  = mkScopeOption;
+      scope     = mkScopeOption;
+      referrers = mkReferrersOption;
     };  # End `options'
   };
 
@@ -127,7 +127,7 @@
   , pscope
   , ...
   }: {
-    imports = [lib.libfloco.graphNodeInterfaceDeferred];
+    imports = [graphNodeInterfaceDeferred];
 
     config = let
       cr = getChildReqs {
@@ -232,7 +232,7 @@
   }: let
     e = lib.evalModules {
       modules = [
-        ( lib.libfloco.treeModuleFromGraphNode' args )
+        ( treeModuleFromGraphNode' args )
         module
       ];
     };
@@ -281,7 +281,7 @@
       kids = map ( e: { inherit (e.module.config) tree; } ) moduleClosure;
     in lib.evalModules {
       modules = kids ++ [
-        ( lib.libfloco.treeModuleFromGraphNode' args )
+        ( treeModuleFromGraphNode' args )
         base
       ];
     };
@@ -291,7 +291,7 @@
         getRefsModule = path: node: collectRefsFromNode node;
       in lib.mapAttrsToList getRefsModule rough.config.tree;
       t = nt.lazyAttrsOf ( nt.submodule {
-        options.referrers = lib.libfloco.mkReferrersOption;
+        options.referrers = mkReferrersOption;
       } );
       asDefs = map ( value: {
         file = "<libfloco>/types/graph.nix:treeForRoot";
@@ -330,7 +330,7 @@
     };
   };
 
-  treeProps = nt.submodule lib.libfloco.treePropsDeferred;
+  treeProps = nt.submodule treePropsDeferred;
 
   mkTreePropsOption = lib.mkOption {
     description = lib.mdDoc ''
@@ -340,7 +340,7 @@
       This record accepts arbitrary `bool` values for use by extensions, and
       aligns with the properties found in a `treeInfo` entry.
     '';
-    type = lib.libfloco.treeProps;
+    type = treeProps;
   };
 
 
@@ -359,7 +359,7 @@
           exposed to allow users to implement extensions.
         '';
         type    = nt.listOf nt.deferredModule;
-        default = [lib.libfloco.graphNodeDeferred];
+        default = [graphNodeDeferred];
       };
 
       getChildReqs = lib.mkOption {
@@ -431,7 +431,7 @@
           Maps paths to `dev`, `runtime`, and `optional` properties.
           These are used to produce the final `treeInfo` properties.
         '';
-        type = nt.lazyAttrsOf lib.libfloco.treeProps;
+        type = nt.lazyAttrsOf treeProps;
       };
 
       treeInfo = lib.mkOption {
@@ -460,7 +460,7 @@
 
     config.rootKey = keylike;
 
-    config.tree = lib.libfloco.treeForRoot {
+    config.tree = treeForRoot {
       inherit (config) graphNodeModules getChildReqs;
       pdefs = config.pdefClosure;
     } config.rootKey;
@@ -576,7 +576,7 @@
   , ...
   } @ args: nodelike: let
     args'   = lib.keepAttrs args ["graphNodeModules" "getChildReqs"];
-    builder = lib.libfloco.mkTreeInfoBuilder ( args' // {
+    builder = mkTreeInfoBuilder ( args' // {
       inherit pdefs;
       keylike = if builtins.isString nodelike then nodelike else
                 if nodelike ? key then { inherit (nodelike) key; } else

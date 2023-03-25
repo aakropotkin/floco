@@ -120,11 +120,7 @@
 
 in {
 
-  inherit
-    topScopeHoisted
-    subScopeHoisted
-    getChildReqsHoisted
-  ;
+  inherit getChildReqsHoisted;
 
   mkTreeInfoHoisted = {
     config ? { floco.pdefs = pa; }
@@ -145,7 +141,7 @@ in {
     in builtins.foldl' proc top.pcf top.pcf.payload.cache.${rootKey}.dev;
   in lib.libfloco.mkTreeInfoWith {
     inherit (top.pcf.payload) pdefs;
-    getChildReqs = lib.libfloco.getChildReqsHoisted {
+    getChildReqs = getChildReqsHoisted {
       inherit (top.pcf.payload) pdefs;
     } ( top // { inherit pcf; } );
   } keylike;
