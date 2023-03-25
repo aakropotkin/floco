@@ -672,6 +672,8 @@
 
   # Run a closure operation over a `tree' using predicates to effectively
   # "filter out" some paths.
+  # XXX: This function is a memory hog.
+  # Find a way to reduce memory consumption by `getChildDeps'.
   runTreeClosure = {
     rootPath    ? ""
   , rootPred    ? { ckey = "dev"; __functor = _: _: true; }
@@ -700,23 +702,24 @@
     in if ( ! addRoot ) || hasRoot then closure else
        [{ key = rootPath; }] ++ closure;
     pathOutput = map ( e: e.key ) wroot;
-
-    checkParentPaths = x: let
-      ok = ( ! audit ) || ( auditTreePathParents ( pathOutput ++ [""] ) );
-    in if ok then x else
-       throw ( "lib.libfloco.runTreeClosure: Filtered tree has dangling paths:"
-               + ( lib.generators.toPretty {} pathOutput ) );
-    checkHasRoot = x:
-      if tree ? ${rootPath} then x else
-      throw ( "lib.libfloco.runTreeClosure: root path `${rootPath}` does not " +
-              "exist in given tree." );
-    check = x: checkParentPaths ( checkHasRoot x );
-
+    check = x: let
+      checkParentPaths = x: let
+        ok = auditTreePathParents ( pathOutput ++ [""] );
+      in if ok then x else throw (
+        "lib.libfloco.runTreeClosure: Filtered tree has dangling paths:"
+        + ( lib.generators.toPretty {} pathOutput )
+      );
+      checkHasRoot = x:
+        if tree ? ${rootPath} then x else throw (
+          "lib.libfloco.runTreeClosure: root path `${rootPath}` does not " +
+          "exist in given tree."
+        );
+    in checkParentPaths ( checkHasRoot x );
     output = if outputStyle == "paths" then pathOutput else
              throw ( "lib.libfloco.runTreeClosure: " +
                      "Unrecognized `outputStyle': \"${outputStyle}\"." );
   in assert tree ? ${rootPath};
-     check output;
+     if audit then check output else output;
 
 
 # ---------------------------------------------------------------------------- #

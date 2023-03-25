@@ -465,6 +465,9 @@
       inherit pdefs;
     } config.rootKey;
 
+    # XXX: Collecting these closures, specifically lookups of
+    # `getDepsWith' for children in `runTreeClosure' is the biggest timesink.
+    # Find a way to memoize or something.
     config.propClosures = {
       dev     = builtins.attrNames ( removeAttrs config.tree [""] );
       runtime = lib.libfloco.runTreeClosure {
