@@ -18,13 +18,13 @@
   
 # ---------------------------------------------------------------------------- #
 
-  treeInfo = lib.libfloco.mkTreeInfoHoisted mod info;
+  treeInfo = lib.libfloco.mkTreeInfoWith mod info;
 
 
 # ---------------------------------------------------------------------------- #
 
 in lib.runTests {
-  testMkTreeInfoHoisted = {
+  testMkTreeInfoNaive = {
     expr     = builtins.isAttrs ( builtins.deepSeq treeInfo treeInfo );
     expected = true;
   };

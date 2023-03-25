@@ -60,7 +60,7 @@
   } @ pa: pcf: {
     ident
   , version
-  , key     ? ident + "/" + version
+  , key      ? ident + "/" + version
   , path
   , depInfo
   , peerInfo

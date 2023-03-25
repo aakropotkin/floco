@@ -4,11 +4,9 @@
 #
 # ---------------------------------------------------------------------------- #
 
-let
-  lib = import ../../lib {};
-in ( import ./util.nix { inherit lib; } )     ++
-   ( import ./closures.nix { inherit lib; } ) ++
-   ( import ./tree { inherit lib; } )
+{ lib ? import ../../../lib {} }:
+  ( import ./naive.nix { inherit lib; } ) ++
+  ( import ./hoist.nix { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #
@@ -16,3 +14,4 @@ in ( import ./util.nix { inherit lib; } )     ++
 #
 #
 # ============================================================================ #
+
