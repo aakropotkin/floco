@@ -225,8 +225,8 @@
       inherit (lib.libfloco.mkDepInfoBaseOptionWith {}) description;
       type = let
         fdes = if deserialized then [] else [
-          lib.libfloco.depInfoEntryGenericArgs
-          lib.libfloco.depInfoEntryGenericImpl
+          depInfoEntryGenericArgs
+          depInfoEntryGenericImpl
         ];
       in nt.attrsOf ( nt.submodule ( [
         lib.libfloco.depInfoBaseEntryDeferred
@@ -256,8 +256,8 @@ in {
 
   depInfoEntryGeneric = lib.types.submodule [
     lib.libfloco.depInfoBaseEntryDeferred
-    lib.libfloco.depInfoEntryGenericArgs
-    lib.libfloco.depInfoEntryGenericImpl
+    depInfoEntryGenericArgs
+    depInfoEntryGenericImpl
   ];
 
 

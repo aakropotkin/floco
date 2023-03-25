@@ -36,7 +36,7 @@
       "my consumers depend on the declared peer as a side effect of their
       dependence on me".
     '';
-    type    = lib.libfloco.peerInfoBase;
+    type    = peerInfoBase;
     default = {};
   };
 

@@ -18,7 +18,7 @@
   };
 
   jsonValue = ( nt.oneOf [
-    lib.libfloco.jsonAtom
+    jsonAtom
     ( nt.listOf jsonValue )
     ( nt.attrsOf jsonValue )
   ] ) // {
@@ -54,7 +54,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  descriptor = ( nt.either lib.libfloco.version lib.libfloco.uri ) // {
+  descriptor = ( nt.either version uri ) // {
     name        = "package descriptor";
     description = "version or URI";
   };
@@ -94,7 +94,7 @@
 # ---------------------------------------------------------------------------- #
 
   # `package.json', `package-lock.json', and other non-`floco' metadata.
-  depAttrs = nt.attrsOf lib.libfloco.descriptor;
+  depAttrs = nt.attrsOf descriptor;
   depMetas = nt.attrsOf ( nt.attrsOf nt.bool );
 
 
@@ -114,7 +114,7 @@
 # ---------------------------------------------------------------------------- #
 
   binPairs = nt.attrsOf nt.str;
-  pjsBin   = nt.either nt.str lib.libfloco.binPairs;
+  pjsBin   = nt.either nt.str binPairs;
 
 
 # ---------------------------------------------------------------------------- #
@@ -127,7 +127,7 @@
     name        = "SHA-256 SRI";
     description = "SHA-256 hash (SRI)";
   };
-  narHash = lib.libfloco.sha256_sri // {
+  narHash = sha256_sri // {
     name        = "narHash";
     description = "NAR hash (SHA256 SRI)";
   };
@@ -148,7 +148,7 @@
 # ---------------------------------------------------------------------------- #
 
   depPin = let
-    base = nt.nullOr lib.libfloco.version;
+    base = nt.nullOr version;
   in base // {
     name        = "pin";
     description = "pinned version";
@@ -205,7 +205,7 @@
       Record of `ident` ( name ), `version` ( semver ), and
       `key` ( `<IDENT>/<VERSION>` ) fields used to identify modules.
     '';
-    type = lib.libfloco.ivkey;
+    type = ivkey;
   };
 
 
@@ -213,7 +213,7 @@
 
   keylike = let
     fromT = nt.either
-      lib.libfloco.key
+      key
       ( nt.addCheck ( nt.attrsOf nt.raw )
                     ( x: ( ( x ? ident ) || ( x ? name ) ) &&
                          ( ( x ? version ) || ( x ? pin ) ) ) );
@@ -224,7 +224,7 @@
       version = if builtins.isString x then baseNameOf x else
                 x.version or x.pin or ( baseNameOf key );
     in { inherit key ident version; };
-  in nt.coercedTo fromT coerce lib.libfloco.ivkey;
+  in nt.coercedTo fromT coerce ivkey;
 
   mkKeylikeOption = lib.mkOption {
     description = lib.mdDoc ''
@@ -235,7 +235,7 @@
       This type implicitly converts assignments to an attrset of
       `{ key, ident, version }`.
     '';
-    type = lib.libfloco.keylike;
+    type = keylike;
   };
 
 
@@ -290,7 +290,7 @@
   # `functorTo' must be checked first, otherwise it will be misidentified as
   # a function and wrapped in a way that makes introspection impossible.
   funkTo = elemType:
-    nt.either ( lib.libfloco.functorTo elemType ) ( nt.functionTo elemType );
+    nt.either ( functorTo elemType ) ( nt.functionTo elemType );
 
 
 # ---------------------------------------------------------------------------- #
@@ -308,7 +308,7 @@
       name        = "treePath";
       description = "node_modules tree path";
     };
-  in nt.either lib.libfloco.emptyStr treeRelPath;
+  in nt.either emptyStr treeRelPath;
 
 
   mkTreePathOption = lib.mkOption {
