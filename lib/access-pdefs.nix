@@ -53,6 +53,19 @@
     vf = builtins.mapAttrs ( _: lib.filterAttrs ( _: pred ) ) pdefs;
   in lib.filterAttrs ( _: vs: vs != {} ) vf;
 
+
+# ---------------------------------------------------------------------------- #
+
+  detectPdefsStyle' = pdefs: let
+    fa = pdefs.${builtins.head ( builtins.attrNames pdefs )};
+  in if builtins.isList pdefs then "list" else
+     if pdefs == {} then "ivAttrs" else
+     if builtins.isList fa then "idGroups" else
+     "ivAttrs";
+
+
+# ---------------------------------------------------------------------------- #
+
   pdefsToList = pdefs:
     builtins.concatMap builtins.attrValues ( builtins.attrValues pdefs );
 
@@ -81,6 +94,7 @@
 
 in {
   inherit
+    getPdef'
     getPdef
     killPdef
 

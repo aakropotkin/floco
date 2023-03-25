@@ -239,10 +239,12 @@
   };
 
 
-  runKeylike = x: ( lib.mergeDefinitions [] lib.libfloco.keylike [{
-    file  = "<libfloco>/types.nix:runKeylike";
-    value = x;
-  }] ).mergedValue;
+  runKeylike = x: let
+    key = if builtins.isString x then x else
+          x.key or ( ident + "/" + version );
+    ident   = x.ident or x.name or ( dirOf key );
+    version = x.version or x.pin or ( baseNameOf key );
+  in { inherit key ident version; };
 
 
 # ---------------------------------------------------------------------------- #

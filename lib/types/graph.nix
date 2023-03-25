@@ -196,23 +196,9 @@
     options.tree = lib.mkOption {
       type = nt.lazyAttrsOf ( nt.submodule gnMods );
     };
-    options.parent = lib.mkOption {
-      type    = nt.nullOr ( nt.submodule gnMods );
-      default = null;
-    };
     options.node = lib.mkOption {
       type = nt.submodule gnMods;
     };
-
-    config.parent = let
-      parentPath = let
-        isScoped = ( builtins.substring 0 1 config.ident ) == "@";
-        dd       = dirOf ( dirOf config.path );
-        p        = if isScoped then dirOf dd else dd;
-      in if p == "." then "" else p;
-    in lib.mkDefault (
-      if config.node.isRoot then null else config.tree.${parentPath}
-    );
 
     config.tree = let
       kids = lib.mapAttrs' ( ident: { pin, path, ... }: {
@@ -251,7 +237,6 @@
       ];
     };
     childDeferred = p: {
-      config.parent = e.config.node;
       config.tree   = e.config.tree;
       config.node   = ( removeAttrs e.config.tree.${p} [
         "scope" "children" "requires"
@@ -283,8 +268,7 @@
         path                = "";
         _module.args.pscope = {};
       };
-      config.parent = null;
-      config.tree   = {};
+      config.tree = {};
     };
 
     moduleClosure = builtins.genericClosure {
@@ -508,11 +492,11 @@
         );
       dtree   = markPaths config.propClosures.dev;
       rtree   = markPaths config.propClosures.runtime;
-      otree   = markPaths config.propClosures.nopt;
+      ntree   = markPaths config.propClosures.nopt;
       mkProps = path: _: {
         dev      = dtree ? ${path};
         runtime  = rtree ? ${path};
-        optional = ! ( otree ? ${path} );
+        optional = ! ( ntree ? ${path} );
       };
       children = builtins.mapAttrs mkProps ( removeAttrs config.tree [""] );
       root.""  = { dev = true; runtime = true; optional = false; };
