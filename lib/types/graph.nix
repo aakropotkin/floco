@@ -468,6 +468,23 @@
     # XXX: Collecting these closures, specifically lookups of
     # `getDepsWith' for children in `runTreeClosure' is the biggest timesink.
     # Find a way to memoize or something.
+    #
+    # This one is honestly a clusterfuck.
+    # Simply from a graph theory/algo perspective I'm only aware of a few algos
+    # that do this, and they're all N^3.
+    #
+    # The biggest optimization I can think of is to sidestep this problem
+    # entirely by lazily generating trees when `system' and `dev' are known
+    # so things can be created in a single pass instead of 4.
+    # It's a rough spot to be in because deriving these properties is how we are
+    # able to align with the `package-lock.json' format, so just deferring the
+    # eval isn't ideal for serializing `treeInfo'.
+    #
+    # In general we're wasteful about allocations with this whole family of
+    # routines, since they were designed for correctness rather than
+    # performance on this draft.
+    # It might be a good idea to use what we've learned with this draft to take
+    # another pass at it trimming things down to what we really need.
     config.propClosures = let
     in {
       dev  = builtins.attrNames ( removeAttrs config.tree [""] );
