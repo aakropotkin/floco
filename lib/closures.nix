@@ -676,8 +676,8 @@
   # Find a way to reduce memory consumption by `getChildDeps'.
   runTreeClosure = {
     rootPath    ? ""
-  , rootPred    ? { ckey = "dev"; __functor = _: _: true; }
-  , childPred   ? { ckey = "runtime"; __functor = _: de: de.runtime; }
+  , rootPred    ? ( de: true )
+  , childPred   ? ( de: de.runtime )
   , addRoot     ? true
   , outputStyle ? "paths"
   , audit       ? true
@@ -688,13 +688,13 @@
       f = p.__functor p;
     in if p ? __functor then builtins.deepSeq f f else p;
     closure = builtins.genericClosure {
-      operator = { key }: let
-        needs     = getChildDeps tree.${key};
-        fromScope = builtins.intersectAttrs needs tree.${key}.scope;
-      in lib.mapAttrsToList ( _: s: { key = s.path; } ) fromScope;
       startSet = let
         needs     = lib.libfloco.getDepsWith rootPred tree.${rootPath};
         fromScope = builtins.intersectAttrs needs tree.${rootPath}.scope;
+      in lib.mapAttrsToList ( _: s: { key = s.path; } ) fromScope;
+      operator = { key }: let
+        needs     = getChildDeps tree.${key};
+        fromScope = builtins.intersectAttrs needs tree.${key}.scope;
       in lib.mapAttrsToList ( _: s: { key = s.path; } ) fromScope;
     };
     wroot = let

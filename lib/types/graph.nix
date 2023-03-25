@@ -462,31 +462,31 @@
 
     config.tree = lib.libfloco.treeForRoot {
       inherit (config) graphNodeModules getChildReqs;
-      inherit pdefs;
+      pdefs = config.pdefClosure;
     } config.rootKey;
 
     # XXX: Collecting these closures, specifically lookups of
     # `getDepsWith' for children in `runTreeClosure' is the biggest timesink.
     # Find a way to memoize or something.
-    config.propClosures = {
-      dev     = builtins.attrNames ( removeAttrs config.tree [""] );
-      runtime = lib.libfloco.runTreeClosure {
-        rootPred    = { ckey = "runtime"; __functor = _: de: de.runtime; };
-        childPred   = { ckey = "runtime"; __functor = _: de: de.runtime; };
+    config.propClosures = let
+    in {
+      dev  = builtins.attrNames ( removeAttrs config.tree [""] );
+      nopt = lib.libfloco.runTreeClosure {
+        rootPred    = de: ! de.optional;
+        childPred   = de: de.runtime && ( ! de.optional );
         addRoot     = false;
         outputStyle = "paths";
         audit       = false;
+        rootPath    = "";
         inherit (config) tree;
       };
-      nopt = lib.libfloco.runTreeClosure {
-        rootPred  = { ckey = "dev-nopt"; __functor = _: de: ! de.optional; };
-        childPred = {
-          ckey      = "runtime-nopt";
-          __functor = _: de: de.runtime && ( ! de.optional );
-        };
+      runtime = lib.libfloco.runTreeClosure {
+        rootPred    = de: de.runtime;
+        childPred   = de: de.runtime;
         addRoot     = false;
         outputStyle = "paths";
         audit       = false;
+        rootPath    = "";
         inherit (config) tree;
       };
     };
