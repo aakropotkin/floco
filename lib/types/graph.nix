@@ -468,19 +468,22 @@
     config.propClosures = {
       dev     = builtins.attrNames ( removeAttrs config.tree [""] );
       runtime = lib.libfloco.runTreeClosure {
-        rootPred    = de: de.runtime;
-        childPred   = de: de.runtime;
+        rootPred    = { ckey = "runtime"; __functor = _: de: de.runtime; };
+        childPred   = { ckey = "runtime"; __functor = _: de: de.runtime; };
         addRoot     = false;
         outputStyle = "paths";
-        audit       = true;
+        audit       = false;
         inherit (config) tree;
       };
       nopt = lib.libfloco.runTreeClosure {
-        rootPred    = de: ! de.optional;
-        childPred   = de: de.runtime && ( ! de.optional );
+        rootPred  = { ckey = "dev-nopt"; __functor = _: de: ! de.optional; };
+        childPred = {
+          ckey      = "runtime-nopt";
+          __functor = _: de: de.runtime && ( ! de.optional );
+        };
         addRoot     = false;
         outputStyle = "paths";
-        audit       = true;
+        audit       = false;
         inherit (config) tree;
       };
     };

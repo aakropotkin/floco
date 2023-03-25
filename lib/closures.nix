@@ -674,8 +674,8 @@
   # "filter out" some paths.
   runTreeClosure = {
     rootPath    ? ""
-  , rootPred    ? _: true
-  , childPred   ? de: de.runtime
+  , rootPred    ? { ckey = "dev"; __functor = _: _: true; }
+  , childPred   ? { ckey = "runtime"; __functor = _: de: de.runtime; }
   , addRoot     ? true
   , outputStyle ? "paths"
   , audit       ? true
@@ -700,6 +700,7 @@
     in if ( ! addRoot ) || hasRoot then closure else
        [{ key = rootPath; }] ++ closure;
     pathOutput = map ( e: e.key ) wroot;
+
     checkParentPaths = x: let
       ok = ( ! audit ) || ( auditTreePathParents ( pathOutput ++ [""] ) );
     in if ok then x else
@@ -710,6 +711,7 @@
       throw ( "lib.libfloco.runTreeClosure: root path `${rootPath}` does not " +
               "exist in given tree." );
     check = x: checkParentPaths ( checkHasRoot x );
+
     output = if outputStyle == "paths" then pathOutput else
              throw ( "lib.libfloco.runTreeClosure: " +
                      "Unrecognized `outputStyle': \"${outputStyle}\"." );
