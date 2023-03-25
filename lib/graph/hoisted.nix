@@ -27,9 +27,9 @@
     } ) closure;
   in {
     inherit scope;
-    pcf = lib.libfloco.runType lib.libfloco.pdefClosureCachedFunctor {
-      addRoot            = false;
-      _module.args.pdefs = let
+    pcf = lib.libfloco.mkPdefClosureCachedFunctor {
+      addRoot = false;
+      pdefs   = let
         proc = ident: vs: builtins.listToAttrs (
           map ( v: { name = v.version; value = v; } ) vs
         );
@@ -41,7 +41,7 @@
           de.runtime && ( ! ( scope.${de.ident}.oneVersion or false ) );
       };
       # XXX: You might not want to filter out the root if there's a cycle.
-      payload.cache.${rootKey}.dev = let
+      cache.${rootKey}.dev = let
         toKeys = map ( v: v.key or ( v.ident + "/" + v.version ) );
         lst    = builtins.concatMap toKeys ( builtins.attrValues closure );
       in builtins.filter ( k: k != "rootKey" ) lst;

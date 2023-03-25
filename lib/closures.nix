@@ -305,10 +305,10 @@
       # NOTE: for the evaluator to actually do this you need to use `seq', but
       # for a "hot" callpath this can be a real advantage.
       __functor = lib.mkOptionDefault ( self: let
-        mkStartSet = self._private.__mkStartSet self;
-        operator   = self._private.__operator   self;
+        mkStartSet = config._private.__mkStartSet self;
+        operator   = config._private.__operator   self;
         # handleStyle :: [entries] -> <STYLE>
-        handleStyle = self._private._handleStyle self.outputStyle;
+        handleStyle = config._private._handleStyle self.outputStyle;
       in keylike: let
         root    = self.getPdef self.payload keylike;
         closure = builtins.genericClosure {
@@ -362,7 +362,7 @@
   , ...
   } @ args: let
     type = lib.libfloco.pdefClosureFunctorWith { inherit modules; };
-    f    = lib.libfloco.runType type config;
+    f    = removeAttrs ( lib.libfloco.runType type config ) ["_private"];
     curried = f // {
       __functor = self: {
         config ? { floco.pdefs = pa; }
@@ -535,6 +535,44 @@
     lib.libfloco.pdefClosureFunctorWith
       pdefClosureCachedFunctorImplementationDeferred;
 
+  mkPdefClosureCachedFunctor = {
+    __functionArgs = lib.functionArgs lib.libfloco.mkPdefClosureFunctor // {
+      cache = true;
+    };
+    __functor = self: {
+      modules ? []
+    , cache   ? {}
+    , pdefs   ? args.config.payload.pdefs or args.config._module.pdefs or {}
+    , payload ? args.config.payload or { inherit cache; }
+    , config  ? ( removeAttrs args ["modules" "pdefs" "cache"] ) // {
+        _module.args = ( args._module.args or {} ) // { inherit pdefs; };
+        inherit payload;
+      }
+    , ...
+    } @ args: let
+      type = lib.libfloco.pdefClosureFunctorWith {
+        modules = [pdefClosureCachedFunctorImplementationDeferred] ++
+                  ( lib.toList modules );
+      };
+      f    = removeAttrs ( lib.libfloco.runType type config ) ["_private"];
+      curried = f // {
+        __functor = self: {
+          config ? { floco.pdefs = pa; }
+        , floco  ? config.floco
+        , pdefs  ? floco.pdefs
+        , ...
+        } @ pa: self // {
+          payload = ( self.payload or {} ) // { inherit pdefs; };
+          inherit (f) __functor;
+        };
+      };
+      # If `pdefs' wasn't provided we can take the opportunity to eagerly eval
+      # everything else in the functor for a slight evaluator optimization.
+      # Evaluating when `pdefs' is given would be a huge performance hit, so be
+      # careful in the future on any refactors.
+    in if pdefs == {} then builtins.deepSeq curried curried else f;
+  };
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -702,6 +740,7 @@ in {
   inherit
     pdefClosureCachedFunctorImplementationDeferred
     pdefClosureCachedFunctor
+    mkPdefClosureCachedFunctor
   ;
 
   inherit
