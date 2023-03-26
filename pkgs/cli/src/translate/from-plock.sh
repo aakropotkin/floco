@@ -295,37 +295,22 @@ $NPM install            \
 
 # ---------------------------------------------------------------------------- #
 
-: "${FLOCO_CONFIG=}";
-export FLOCO_REF FLOCO_CONFIG JSON OUTFILE LOCKDIR PINS TREE;
+export OUTFILE JSON PINS TREE LOCKDIR FLOCO_REF;
 
 if [[ -z "$JSON" ]]; then
-  _NIX_FLAGS="--raw --arg asJSON false";
+  _NIX_FLAGS="--raw";
 else
-  _NIX_FLAGS="--json --arg asJSON true";
+  _NIX_FLAGS="--json";
 fi
 
 if [[ -n "$DEBUG" ]]; then
   _NIX_FLAGS="$_NIX_FLAGS --show-trace";
 fi
 
-if [[ -n "$TREE" ]]; then
-  _NIX_FLAGS="$_NIX_FLAGS --arg includeRootTreeInfo true";
-else
-  _NIX_FLAGS="$_NIX_FLAGS --arg includeRootTreeInfo false";
-fi
-
-if [[ -n "$PINS" ]]; then
-  _NIX_FLAGS="$_NIX_FLAGS --arg includePins true";
-else
-  _NIX_FLAGS="$_NIX_FLAGS --arg includePins false";
-fi
-
-_NIX_FLAGS="$_NIX_FLAGS --argstr lockDir $LOCKDIR"
-
-flocoEval                      \
-  --no-substitute              \
-  $_NIX_FLAGS                  \
-  --argstr outfile "$OUTFILE"  \
+flocoEval                   \
+  --no-substitute           \
+  $_NIX_FLAGS               \
+  --apply 'f: f {}'         \
   -f - <<'EOF' >"$OUTFILE"
 let
 
@@ -346,7 +331,7 @@ let
 
 in {
   system    ? fromVarOr "_nix_system" builtins.currentSystem
-, flocoRef  ? fromVarOr "_floco_ref" ( toString ../../.. )
+, flocoRef  ? fromVarOr "FLOCO_REF" ( toString ../../../.. )
 , floco     ? builtins.getFlake flocoRef
 , lib       ? floco.lib
 , globalCfg ? fromVarOr "_g_floco_cfg" ( findCfg /etc/floco/floco-cfg )
@@ -354,11 +339,12 @@ in {
                         ( findCfg ( xdgConfigHome + "/floco/floco-cfg" ) )
 , localCfg  ? fromVarOr "_l_floco_cfg"
                         ( findCfg ( ( builtins.getEnv "PWD" ) + "/floco-cfg" ) )
-, outfile
-, asJSON
-, includePins
-, includeRootTreeInfo
-, lockDir
+
+, outfile             ? builtins.getEnv "OUTFILE"
+, asJSON              ? ( builtins.getEnv "JSON" ) != ""
+, includePins         ? ( builtins.getEnv "PINS" ) != ""
+, includeRootTreeInfo ? ( builtins.getEnv "TREE" ) != ""
+, lockDir             ? /. + ( builtins.getEnv "LOCKDIR" )
 }:
 let
 
@@ -376,8 +362,7 @@ let
       {
         config.floco = {
           buildPlan.deriveTreeInfo = false;
-          inherit includePins includeRootTreeInfo;
-          lockDir = /. + lockDir;
+          inherit includePins includeRootTreeInfo lockDir;
         };
       }
     ];
@@ -393,8 +378,10 @@ EOF
 # Nix doesn't quote some reserved keywords when dumping expressions, so we
 # post-process a bit to add quotes.
 
+# FIXME
 if [[ -z "$JSON" ]]; then
-  _nix_fmt_rewrite "$OUTFILE";
+  $SED -i 's/ \(assert\|throw\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
+          "$OUTFILE";
 fi
 
 

@@ -198,12 +198,14 @@ nixSystem() {
 # ---------------------------------------------------------------------------- #
 
 flocoCmd() {
-  local _cmd _dir _old_l_floco_cfg;
+  local _cmd _dir _old_l_floco_cfg _passthru;
   _cmd="$1";
   shift;
 
   _old_l_floco_cfg="$( localFlocoCfg 2>/dev/null||:; )";
   unset _l_floco_cfg;
+
+  _passthru=();
 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
@@ -232,12 +234,14 @@ flocoCmd() {
 
       -f|--file)
         shift;
-        _file="$2";
+        _file="$1";
       ;;
 
       *)
         if [[ -z "${_dir:-}" ]] && [[ -d "$1" ]]; then
           _dir="$1";
+        else
+          _passthru+=( "$1" );
         fi
       ;;
     esac
@@ -253,7 +257,7 @@ flocoCmd() {
     --argstr globalCfg "$_g_floco_cfg"                       \
     --argstr userCfg   "$_u_floco_cfg"                       \
     --argstr localCfg  "$( localFlocoCfg 2>/dev/null||:; )"  \
-    "$@"                                                     \
+    "${_passthru[@]}"                                        \
   ;
 
   _l_floco_cfg="$_old_l_floco_cfg";
