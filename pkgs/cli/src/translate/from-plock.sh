@@ -15,6 +15,8 @@ set -o pipefail;
 _as_sub='translate plock';
 _as_me="$_as_main $_as_sub";
 
+: "${_version:=0.1.0}";
+
 _usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
 Create or update a \`pdefs.nix' file using a \`package-lock.json' v3 provided
@@ -153,7 +155,8 @@ done
 # ---------------------------------------------------------------------------- #
 
 if [[ -n "${FLOCO_CONFIG:-}" ]]; then
-  export _l_floco_cfg="$( $REALPATH "$FLOCO_CONFIG"; )";
+  _l_floco_cfg="$( $REALPATH "$FLOCO_CONFIG"; )";
+  export _l_floco_cfg;
 fi
 
 : "${LOCKDIR:=$PWD}";
@@ -297,19 +300,21 @@ $NPM install            \
 
 export OUTFILE JSON PINS TREE LOCKDIR FLOCO_REF;
 
+_NIX_FLAGS=();
+
 if [[ -z "$JSON" ]]; then
-  _NIX_FLAGS="--raw";
+  _NIX_FLAGS+=( "--raw" );
 else
-  _NIX_FLAGS="--json";
+  _NIX_FLAGS+=( "--json" );
 fi
 
 if [[ -n "$DEBUG" ]]; then
-  _NIX_FLAGS="$_NIX_FLAGS --show-trace";
+  _NIX_FLAGS+=( "--show-trace" );
 fi
 
 flocoEval                   \
   --no-substitute           \
-  $_NIX_FLAGS               \
+  "${_NIX_FLAGS[@]}"        \
   --apply 'f: f {}'         \
   -f - <<'EOF' >"$OUTFILE"
 let
@@ -331,7 +336,7 @@ let
 
 in {
   system    ? fromVarOr "_nix_system" builtins.currentSystem
-, flocoRef  ? fromVarOr "FLOCO_REF" ( toString ../../../.. )
+, flocoRef  ? fromVarOr "FLOCO_REF" "github:aakropotkin/floco"
 , floco     ? builtins.getFlake flocoRef
 , lib       ? floco.lib
 , globalCfg ? fromVarOr "_g_floco_cfg" ( findCfg /etc/floco/floco-cfg )
@@ -345,8 +350,7 @@ in {
 , includePins         ? ( builtins.getEnv "PINS" ) != ""
 , includeRootTreeInfo ? ( builtins.getEnv "TREE" ) != ""
 , lockDir             ? /. + ( builtins.getEnv "LOCKDIR" )
-}:
-let
+}: let
 
   cfg = let
     nnull = builtins.filter ( x: ! ( builtins.elem x [null "" "null"] ))
@@ -378,7 +382,7 @@ EOF
 # Nix doesn't quote some reserved keywords when dumping expressions, so we
 # post-process a bit to add quotes.
 
-# FIXME
+# FIXME: use `_npm_fmt_rewrite'
 if [[ -z "$JSON" ]]; then
   $SED -i 's/ \(assert\|throw\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
           "$OUTFILE";
