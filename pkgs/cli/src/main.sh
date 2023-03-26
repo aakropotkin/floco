@@ -19,11 +19,12 @@ _version="0.1.0";
 _usage_msg="Usage: $_as_me [OPTIONS]... {list|build|show|edit|help} [ARGS]...;
 
 COMMANDS
-  list                  List available packages.
-  build [KEY] [TARGET]  Build a target for a package.
-  show [KEY]            Show declared package definition ( \`pdef' ).
-  edit FILE             Edit a trivial Nix file with an expression.
-  help CMD              Show help for \`CMD'.
+  list                    List available packages.
+  build [KEY] [TARGET]    Build a target for a package.
+  show [KEY]              Show declared package definition ( \`pdef' ).
+  translate [DESCRIPTOR]  Translate module metadata to \`pdefs.{nix,json}'.
+  edit FILE               Edit a trivial Nix file with an expression.
+  help CMD                Show help for \`CMD'.
 ";
 
 _help_msg="$_usage_msg
@@ -39,9 +40,14 @@ ENVIRONMENT
   MKTEMP            Command used as \`mktemp' executable.
   NIX               Command used as \`nix' executable.
   REALPATH          Command used as \`realpath' executable.
+  NPM               Command used as \`npm' executable.
   XDG_CONFIG_HOME   Used to find \`XDG_CONFIG_HOME/floco/floco-cfg.{nix,json}'.
   _g_floco_cfg      Path to global floco config file. May be set to \`null'.
   _u_floco_cfg      Path to user floco config file. May be set to \`null'.
+  FLOCO_CONFIG      Path to a \`floco' configuration file. Used as \`--config'.
+  FLOCO_REF         Flake URI ref to use for \`floco'.
+                    defaults to \`github:aakropotkin/floco'.
+  DEBUG             Show \`nix' backtraces.
 ";
 
 
@@ -120,10 +126,11 @@ while [[ "$#" -gt 0 ]]; do
       fi
       shift;
       case "$1" in
-        build) "$SDIR/build/build-target.sh" --help; ;;
-        list)  "$SDIR/list/list-pdefs.sh" --help; ;;
-        show)  "$SDIR/show/show-pdefs.sh" --help; ;;
-        edit)  "$SDIR/nix-edit/edit.sh"   --help; ;;
+        build)              "$SDIR/build/build-target.sh" --help; ;;
+        list)               "$SDIR/list/list-pdefs.sh" --help; ;;
+        show)               "$SDIR/show/show-pdefs.sh" --help; ;;
+        translate|trans|x)  "$SDIR/translate/from-plock.sh" --help; ;;
+        edit)               "$SDIR/nix-edit/edit.sh"   --help; ;;
         *)
           echo "$_as_me help: Unrecognized subcommand: \`$2'." >&2;
           printf '\n' >&2;
@@ -148,6 +155,11 @@ while [[ "$#" -gt 0 ]]; do
     show)
       shift;
       exec "$SDIR/show/show-pdefs.sh" "$@";
+    ;;
+
+    translate|trans|x)
+      shift;
+      exec "$SDIR/translate/from-plock.sh" "$@";
     ;;
 
     edit)

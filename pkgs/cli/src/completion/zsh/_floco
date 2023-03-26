@@ -49,6 +49,7 @@ _floco() {
     'list:list available packages'
     'show:show package definition'
     'edit:modify trivial nix files'
+    'translate:translate module metadata to pdefs'
     'build:build a package'
   );
   hiddenSubCmds=(
@@ -80,6 +81,11 @@ _floco() {
 
         # TODO
         edit)
+          _files;
+        ;;
+
+        # TODO
+        translate|trans|x)
           _files;
         ;;
 
