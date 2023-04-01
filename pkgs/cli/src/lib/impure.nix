@@ -42,6 +42,16 @@ let
 
 # ---------------------------------------------------------------------------- #
 
+  # nnullp :: any -> bool
+  # ---------------------
+  # Predicate which returns true if `x' is not-null or non-empty.
+  # This rejects empty environment variables, those which were explicitly set
+  # to "null", and primitive `null' values.
+  nnullp = x: ! ( builtins.elem x [null "" "null"] );
+
+
+# ---------------------------------------------------------------------------- #
+
   system = fromVarOr "_nix_system" builtins.currentSystem;
 
   flocoRef = let
@@ -55,6 +65,9 @@ let
 
 # ---------------------------------------------------------------------------- #
 
+  # Impurely lookup various config files from environment variables or fallbacks
+  # in standard locations on the system.
+
   globalConfig = fromVarOr "_g_floco_cfg" ( findCfg /etc/floco/floco-cfg );
 
   userConfig = fromVarOr "_u_floco_cfg"
@@ -64,21 +77,23 @@ let
     fromVarOr "_l_floco_cfg"
               ( findCfg ( ( builtins.getEnv "PWD" ) + "/floco-cfg" ) );
 
+  # `extraConfig' may be either a file path or a `nix' expression as a string.
+  # For example this works:
+  #   $ _e_floco_cfg='{ floco.pdefs.lodash."4.17.21" = { ... } }'  \
+  #   $   floco show lodash 4.17.21;
   extraConfig = let
-    val    = fromVarOr "_e_floco_cfg" null;
-    asFile = builtins.toFile "extra-cfg.nix" val;
+    val       = fromVarOr "_e_floco_cfg" null;
+    asFile    = builtins.toFile "extra-cfg.nix" val;
+    isAbsPath = ( builtins.match "/.*" val ) != null;
   in if val == null then null else
-     if builtins.pathExists val then val else
+     if isAbsPath && ( builtins.pathExists val ) then val else
      builtins.unsafeDiscardStringContext asFile;
 
 
 # ---------------------------------------------------------------------------- #
 
-  nnullp = x: ! ( builtins.elem x [null "" "null"] );
-
-
-# ---------------------------------------------------------------------------- #
-
+  # Impurely lookup config files that can be consumed as modules, filtering out
+  # empty/missing ones.
   getConfigModules = { ... } @ env: let
     nnull = builtins.filter nnullp [
       ( env.globalConfig or globalConfig )
@@ -94,6 +109,8 @@ let
 
 # ---------------------------------------------------------------------------- #
 
+  # Impurely lookup the `basedir' of the target `localConfig' file or `PWD'
+  # which should be used to write relative paths in written files.
   getBasedir = {
     localConfig ? null
   , basedir     ?
@@ -106,7 +123,10 @@ let
 
 in {
   inherit system flocoRef floco;
-  inherit (floco) lib;
+  lib = let
+    local = if ! ( builtins.pathExists ./default.nix ) then {} else
+            import ./. { inherit (floco.inputs.nixpkgs) lib; };
+  in if local == {} then floco.lib else local.extend floco.lib;
   inherit globalConfig userConfig localConfig extraConfig;
   inherit getConfigModules getBasedir;
   pkgsFor = builtins.getAttr system floco.pkgsFor;

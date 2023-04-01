@@ -19,9 +19,9 @@
   src     = builtins.path { path = ./src; };
   nativeBuildInputs     = [makeWrapper];
   propagatedBuildInputs = [bash coreutils gnugrep jq nix];
-  dontConfigure = true;
-  dontBuild     = true;
-  installPhase  = ''
+  dontConfigure         = true;
+  dontBuild             = true;
+  installPhase          = ''
     mkdir -p "$out/bin" "$out/share/zsh/site-functions" "$out/libexec";
     mv ./completion/zsh/_floco "$out/share/zsh/site-functions/";
     rm -rf ./completion;
@@ -32,7 +32,7 @@
       "$out/bin/floco"                                                      \
       --prefix PATH : "${lib.makeBinPath [bash coreutils gnugrep jq nix]}"  \
     ;
-    cat ${../../lib/util.nix} > "$out/libexec/util.nix";
+    cp -- ${builtins.path { path = ../../lib; }}/*.nix "$out/libexec/";
    '';
 }
 
