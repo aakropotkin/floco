@@ -123,6 +123,7 @@ done
 app="f: f {";
 for name in "${!nixVars[@]}"; do
   eval val="\${nixVars[$name]}";
+  #shellcheck disable=SC2154
   app="$app $name = $val;";
 done
 app="$app }";

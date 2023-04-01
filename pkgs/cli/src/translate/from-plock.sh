@@ -312,6 +312,7 @@ if [[ -n "$DEBUG" ]]; then
   _NIX_FLAGS+=( "--show-trace" );
 fi
 
+#shellcheck disable=SC2119
 OUTFILE_TMP="$( mktmpAuto; )";
 
 flocoEval                                  \
