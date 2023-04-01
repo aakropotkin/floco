@@ -327,10 +327,10 @@ flocoEval                                  \
 # Nix doesn't quote some reserved keywords when dumping expressions, so we
 # post-process a bit to add quotes.
 
-# FIXME: use `_npm_fmt_rewrite'
 if [[ -z "$JSON" ]]; then
-  $SED 's/ \(assert\|throw\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
-       "$OUTFILE_TMP" > "$OUTFILE";
+  _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+else
+  $JQ . "$OUTFILE_TMP" > "$OUTFILE";
 fi
 
 
