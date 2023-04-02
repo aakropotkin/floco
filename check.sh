@@ -56,22 +56,23 @@ SDIR="${SPATH%/*}";
 
 # ---------------------------------------------------------------------------- #
 
-run_test "Packages Module"        "$SDIR/tests/modules/packages/check.sh";
+run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
+
 run_test "Packages Module (dist)" "$SDIR/tests/modules/packages/dist/check.sh";
 
 run_test "Library Extensions" "$SDIR/tests/lib/check.sh";
 
-run_test "pdef (deserialized)"                                    \
+run_test "pdef (deserialized)"                                      \
   "$NIX" eval --show-trace -f "$SDIR/tests/modules/pdef/deserial";
 
-run_test "pdef lodash registry"                                      \
+run_test "pdef lodash registry"                                        \
   "$NIX" eval --json -f "$SDIR/tests/modules/pdef/from-registry.nix";
 
 run_test "install-module lodash"                   \
-  "$NIX" build --no-link --show-trace                \
+  "$NIX" build --no-link --show-trace              \
        -f "$SDIR/tests/setup/lodash-install.nix";
 
-run_test "run-script trivial"                                               \
+run_test "run-script trivial"                                                \
   "$NIX" build --no-link --show-trace -f "$SDIR/tests/setup/run-script.nix";
 
 run_test "updaters: from-registry pacote"                \
@@ -85,10 +86,11 @@ run_test "floco translate: npm-plock proj1"                    \
 run_test "treeInfo from pins"                                                \
   test "$( $NIX eval -f "$SDIR/tests/modules/pdefs/pinned" ok; )" = 'true';
 
-run_test "linkedLocks"                                                       \
-  "$NIX" eval --json -f "$SDIR/tests/modules/plock/linked-locks" linkedLocks;
+run_test "linkedLocks"                                            \
+  "$NIX" eval --json -f "$SDIR/tests/modules/plock/linked-locks"  \
+              linkedLocks;
 
-run_test "target override/extras"                                       \
+run_test "target override/extras"                                         \
   "$NIX" build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
 
 run_test "shellcheck"                                           \
