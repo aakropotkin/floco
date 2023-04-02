@@ -32,7 +32,7 @@
       "$out/bin/floco"                                                      \
       --prefix PATH : "${lib.makeBinPath [bash coreutils gnugrep jq nix]}"  \
     ;
-    cp -- ${builtins.path { path = ../../lib; }}/*.nix "$out/libexec/";
+    cp -r -- ${builtins.path { path = ../../lib; }}/* "$out/libexec/lib/";
    '';
 }
 

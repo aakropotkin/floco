@@ -25,13 +25,22 @@ in {
 , lockDir             ? /. + ( builtins.getEnv "LOCKDIR" )
 } @ args: let
 
-  configModules = impure.getConfigModules args;
+  # Sets low priority on potentially stale fields in `pdef' records.
+  moduleForUpdate = impure.lib.libfloco.prepConfigForUpdate' {
+    flocoTopModule = floco.nixosModules.floco;
+    configModules  = impure.getConfigModules args;
+    settingsModule = {
+      config.floco.settings = { inherit system; basedir = lockDir; };
+    };
+  };
 
   mod = lib.evalModules {
-    modules = configModules ++ [
+    modules = [
+      moduleForUpdate
       floco.nixosModules.plockToPdefs
-      { config._module.args.basedir = /. + ( dirOf outfile ); }
       {
+        config._module.args.basedir = /. + ( dirOf outfile );
+        config._module.args.lockDir = lockDir;
         config.floco = {
           buildPlan.deriveTreeInfo = false;
           inherit includePins includeRootTreeInfo lockDir;

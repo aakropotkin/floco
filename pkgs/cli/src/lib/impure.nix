@@ -124,9 +124,12 @@ let
 in {
   inherit system flocoRef floco;
   lib = let
-    local = if ! ( builtins.pathExists ./default.nix ) then {} else
-            import ./. { inherit (floco.inputs.nixpkgs) lib; };
-  in if local == {} then floco.lib else local.extend floco.lib;
+    # Gets dev builds select the correct lib.
+    libpath = if builtins.pathExists ./default.nix then ./. else ../../../lib;
+    local   = import libpath { inherit (floco.inputs.nixpkgs) lib; };
+  in local.extend ( _: prev: floco.lib // {
+    libfloco = prev.libfloco // floco.lib.libfloco;
+  } );
   inherit globalConfig userConfig localConfig extraConfig;
   inherit getConfigModules getBasedir;
   pkgsFor = builtins.getAttr system floco.pkgsFor;

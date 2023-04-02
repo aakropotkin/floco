@@ -45,7 +45,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  setLowPriorityForUpdateRegistry = pdef: pdef // {
+  setLowPriorityForUpdateRegistry = pdef: ( removeAttrs pdef ["_module"] ) // {
     depInfo = let
       proc = ident: de: de // { pin = lib.mkOptionDefault ( de.pin or null ); };
     in builtins.mapAttrs proc ( pdef.depInfo or {} );
@@ -59,8 +59,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  setLowPriorityForUpdateSrc = pdef:
-    ( builtins.mapAttrs ( _: lib.mkOptionDefault ) pdef ) // {
+  setLowPriorityForUpdateSrc = pdef: let
+    nmod = removeAttrs pdef ["_module"];
+  in ( builtins.mapAttrs ( _: lib.mkOptionDefault ) nmod ) // {
       inherit (pdef) ident version key;
       depInfo = let
         proc = ident: de:
@@ -83,11 +84,38 @@
 
 # ---------------------------------------------------------------------------- #
 
+  prepConfigForUpdate' = {
+    flocoTopModule  ? import ../modules/top
+  , settingsModule  ? {}  # Should provide `config.floco.settings'
+  , configModules
+  }: let
+    mod = lib.evalModules {
+      modules = [flocoTopModule settingsModule] ++ configModules;
+    };
+  in {
+    config.floco.pdefs =
+      lib.mapPdefs setLowPriorityForUpdate mod.config.floco.pdefs;
+  };
+
+  # XXX: If you're updating any local projects you must pass `settingsModule'.
+  prepConfigForUpdate = x: let
+    args =
+      if lib.isFunction  x then { configModules = [x]; } else
+      if builtins.isList x then { configModules = x; } else
+      if x ? configModules then x else
+      { configModules = [x]; };
+  in prepConfigForUpdate' args;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
   inherit
     setLowPriorityForUpdateRegistry
     setLowPriorityForUpdateSrc
     setLowPriorityForUpdate
+    prepConfigForUpdate'
+    prepConfigForUpdate
   ;
 }
 
