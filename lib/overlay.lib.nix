@@ -58,6 +58,7 @@ in {
     ./util.nix
     ./closures.nix
     ./graph
+    ./update-pdef.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 
