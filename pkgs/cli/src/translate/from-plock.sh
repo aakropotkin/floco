@@ -159,13 +159,29 @@ if [[ -n "${FLOCO_CONFIG:-}" ]]; then
   export _l_floco_cfg;
 fi
 
+if [[ -n "${FLOCO_REF:-}" ]]; then
+  # Make relative flake ref absolute
+  case "$FLOCO_REF" in
+    *:*) :; ;;
+    .*|/*) FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )"; ;;
+    *)
+      if [[ -r "$FLOCO_REF/flake.nix" ]]; then
+        FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )";
+      fi
+    ;;
+  esac
+  export _floco_ref="$FLOCO_REF";
+else
+  FLOCO_REF="$( flocoRef; )";
+fi
+
 : "${LOCKDIR:=$PWD}";
 : "${JSON=}";
 : "${NO_BACKUP=}";
-: "${FLOCO_REF:=$( flocoRef; )}";
 : "${TREE=:}";
 : "${PINS=}";
 : "${DEBUG=}";
+
 
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
@@ -178,16 +194,22 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-# Make relative flake ref absolute
-case "$FLOCO_REF" in
-  *:*) :; ;;
-  .*|/*) FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )"; ;;
-  *)
-    if [[ -r "$FLOCO_REF/flake.nix" ]]; then
-      FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )";
+declare -a oldFiles;
+oldFiles=();
+
+for f in {pdefs,foverrides}.{nix,json}; do
+  if [[ -r "$LOCKDIR/$f" ]]; then
+    oldFiles+=( "$LOCKDIR/$f~" );
+    if [[ "$OUTFILE" = "$LOCKDIR/$f" ]]; then
+      echo "$_as_me: Backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
+      cp -p -- "$OUTFILE" "$OUTFILE~";
+    else
+      echo "$_as_me: Stashing file to avoid conflicts: \`$LOCKDIR/$f'" >&2;
+      mv -- "$LOCKDIR/$f" "$LOCKDIR/$f~";
+      echo '{}' > "$LOCKDIR/$f";
     fi
-  ;;
-esac
+  fi
+done
 
 
 # ---------------------------------------------------------------------------- #
@@ -206,12 +228,6 @@ fi
 
 
 # ---------------------------------------------------------------------------- #
-
-# Backup existing outfile if one exists
-if [[ -r "$OUTFILE" ]]; then
-  echo "$_as_me: backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
-  cp -p -- "$OUTFILE" "$OUTFILE~";
-fi
 
 # Backup existing lockfile if one exists
 if [[ -r "$LOCKDIR/package-lock.json" ]]; then
@@ -240,12 +256,23 @@ pushd "$LOCKDIR" >/dev/null;
 cleanup() {
   if [[ -r "$LOCKDIR/package-lock.json~" ]]; then
     echo "$_as_me: Restoring original \`package-lock.json'." >&2;
-    mv "$LOCKDIR/package-lock.json~" "$LOCKDIR/package-lock.json";
+    mv -- "$LOCKDIR/package-lock.json~" "$LOCKDIR/package-lock.json";
+  else
+    rm -f "$LOCKDIR/package-lock.json";
   fi
   if [[ ( -n "$NO_BACKUP" ) && ( -r "$OUTFILE~" ) ]]; then
     echo "$_as_me: Deleting backup \`$OUTFILE'." >&2;
     rm -f "$OUTFILE~";
   fi
+  for o in "${oldFiles[@]}"; do
+    if [[ "${o%\~}" = "$OUTFILE" ]]; then
+      continue;
+    fi
+    if [[ -r "$o" ]]; then
+      echo "$_as_me: Restoring stashed file \`${o%\~}'." >&2;
+      mv -- "$o" "${o%\~}";
+    fi
+  done
 }
 
 bail() {

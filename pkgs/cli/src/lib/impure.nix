@@ -55,9 +55,9 @@ let
   system = fromVarOr "_nix_system" builtins.currentSystem;
 
   flocoRef = let
-    devPath  = toString ../../../../flake.nix;
-    fallback = if builtins.pathExists devPath then devPath else
-               "github:aakropotkin/floco";
+    devPath  = toString ../../../..;
+    fallback = if builtins.pathExists ( devPath + "/flake.nix" ) then devPath
+               else "github:aakropotkin/floco";
   in fromVarOr "_floco_ref" fallback;
 
   floco = builtins.getFlake flocoRef;
@@ -125,7 +125,8 @@ in {
   inherit system flocoRef floco;
   lib = let
     # Gets dev builds select the correct lib.
-    libpath = if builtins.pathExists ./default.nix then ./. else ../../../lib;
+    libpath = if builtins.pathExists ./default.nix then ./. else
+              ../../../../lib;
     local   = import libpath { inherit (floco.inputs.nixpkgs) lib; };
   in local.extend ( _: prev: floco.lib // {
     libfloco = prev.libfloco // floco.lib.libfloco;

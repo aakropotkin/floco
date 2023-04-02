@@ -45,10 +45,11 @@
 
 # ---------------------------------------------------------------------------- #
 
-  setLowPriorityForUpdateRegistry = pdef: ( removeAttrs pdef ["_module"] ) // {
+  setLowPriorityForUpdateRegistry = pdef: pdef // {
     depInfo = let
       proc = ident: de: de // { pin = lib.mkOptionDefault ( de.pin or null ); };
     in builtins.mapAttrs proc ( pdef.depInfo or {} );
+    fetcher      = lib.mkForce         ( pdef.fetcher or "composed" );
     treeInfo     = lib.mkOptionDefault ( pdef.treeInfo or null );
     metaFiles    = lib.mkOptionDefault ( pdef.metaFiles or {} );
     deserialized = lib.mkOptionDefault ( pdef.deserialized or false );
@@ -59,19 +60,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-  setLowPriorityForUpdateSrc = pdef: let
-    nmod = removeAttrs pdef ["_module"];
-  in ( builtins.mapAttrs ( _: lib.mkOptionDefault ) nmod ) // {
+  setLowPriorityForUpdateSrc = pdef:
+    ( builtins.mapAttrs ( _: lib.mkOptionDefault ) pdef ) // {
       inherit (pdef) ident version key;
-      depInfo = let
-        proc = ident: de:
-          de // { pin = lib.mkOptionDefault ( de.pin or null ); };
-      in builtins.mapAttrs proc ( pdef.depInfo or {} );
-      treeInfo     = lib.mkOptionDefault ( pdef.treeInfo or null );
-      metaFiles    = lib.mkOptionDefault ( pdef.metaFiles or {} );
-      deserialized = lib.mkOptionDefault ( pdef.deserialized or false );
-      _export      =
-        builtins.mapAttrs ( _: lib.mkOptionDefault ) ( pdef._export or {} );
     };
 
 

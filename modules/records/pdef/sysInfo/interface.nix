@@ -30,7 +30,7 @@ in {
             The string `"*"` indicates that all operating systems
             are supported.
           '';
-          type = nt.listOf ( nt.enum [
+          type = lib.libfloco.uniqueListOf ( nt.enum [
             "*" "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess"
             "win32" "unknown"
           ] );
@@ -45,7 +45,7 @@ in {
             List of supported CPU architectures.
             The string `"*"` indicates that all CPUs are supported.
           '';
-          type = nt.listOf ( nt.enum [
+          type = lib.libfloco.uniqueListOf ( nt.enum [
             "*" "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel"
             "riscv64" "unknown"
           ] );
