@@ -127,7 +127,7 @@ in {
     # Gets dev builds select the correct lib.
     libpath = if builtins.pathExists ./default.nix then ./. else
               ../../../../lib;
-    local   = import libpath { inherit (floco.inputs.nixpkgs) lib; };
+    local = import libpath { inherit (floco.inputs.nixpkgs) lib; };
   in local.extend ( _: prev: floco.lib // {
     libfloco = prev.libfloco // floco.lib.libfloco;
   } );

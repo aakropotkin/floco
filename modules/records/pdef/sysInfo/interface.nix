@@ -24,33 +24,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-        os = lib.mkOption {
-          description = lib.mdDoc ''
-            List of supported operating systems.
-            The string `"*"` indicates that all operating systems
-            are supported.
-          '';
-          type = lib.libfloco.uniqueListOf ( nt.enum [
-            "*" "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess"
-            "win32" "unknown"
-          ] );
-          default = ["*"];
-        };
-
-
-# ---------------------------------------------------------------------------- #
-
-        cpu = lib.mkOption {
-          description = lib.mdDoc ''
-            List of supported CPU architectures.
-            The string `"*"` indicates that all CPUs are supported.
-          '';
-          type = lib.libfloco.uniqueListOf ( nt.enum [
-            "*" "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel"
-            "riscv64" "unknown"
-          ] );
-          default = ["*"];
-        };
+        os  = lib.libfloco.mkSysOssOption;
+        cpu = lib.libfloco.mkSysCpusOption;
 
 
 # ---------------------------------------------------------------------------- #
