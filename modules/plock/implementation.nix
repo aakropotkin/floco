@@ -141,12 +141,12 @@ in {
         key = ident + "/" + version;
 
         engines = let
-          proc = acc: eng: let
+          proc = eng: let
             s = builtins.match "([^ ]+) (.*)" eng;
-          in acc // { ${builtins.head s} = builtins.elemAt s 1; };
+          in { name = builtins.head s; value = builtins.elemAt s 1; };
         in if ! ( values ? engines ) then {} else
            if builtins.isAttrs values.engines then values.engines else
-           builtins.foldl' proc {} values.engines;
+           builtins.listToAttrs ( map proc values.engines );
 
         resolved = values.resolved or (
           if plentKey == "" then "." else plentKey
@@ -159,8 +159,8 @@ in {
     scopes = let
       realEntries = lib.filterAttrs ( _: v: ! ( v.link or false ) )
                                     ( plock.packages or {} );
-    in builtins.foldl' ( acc: path: acc // { ${path} = { inherit path; }; } ) {}
-                       ( builtins.attrNames realEntries );
+      proc = path: { name = path; value = { inherit path; }; };
+    in builtins.listToAttrs ( map proc ( builtins.attrNames realEntries ) );
 
 
 # ---------------------------------------------------------------------------- #

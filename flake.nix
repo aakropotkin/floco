@@ -21,9 +21,9 @@
       "x86_64-darwin" "aarch64-darwin"
     ];
 
-    eachSupportedSystemMap = f: builtins.foldl' ( acc: system: acc // {
-      ${system} = f system;
-    } ) {} supportedSystems;
+    eachSupportedSystemMap = fn: let
+      proc = system: { name = system; value = fn system; };
+    in builtins.listToAttrs ( map proc supportedSystems );
 
 
 # ---------------------------------------------------------------------------- #
