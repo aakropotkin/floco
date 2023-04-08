@@ -129,6 +129,7 @@ while [[ "$#" -gt 0 ]]; do
         build)              "$SDIR/build/build-target.sh" --help; ;;
         list)               "$SDIR/list/list-pdefs.sh" --help; ;;
         show)               "$SDIR/show/show-pdefs.sh" --help; ;;
+        # TODO: merge `from-plock.sh' and `from-registry.sh'
         translate|trans|x)  "$SDIR/translate/from-plock.sh" --help; ;;
         edit)               "$SDIR/nix-edit/edit.sh"   --help; ;;
         *)
@@ -159,7 +160,26 @@ while [[ "$#" -gt 0 ]]; do
 
     translate|trans|x)
       shift;
-      exec "$SDIR/translate/from-plock.sh" "$@";
+      skip=;
+      isLocal=:;
+      for a in "$@"; do
+        if [[ -n "$skip" ]]; then
+          skip=;
+          continue;
+        fi
+        case "$a" in
+          -l|--lock-dir|--lockdir) isLocal=:; break; ;;
+          -o|--out-file|--outfile) skip=:; ;;
+          -c|--config) skip=:; ;;
+          --) break; ;;
+          *) isLocal=; break; ;;
+        esac
+      done
+      if [[ -n "${isLocal:-}" ]]; then
+        exec "$SDIR/translate/from-plock.sh" "$@";
+      else
+        exec "$SDIR/translate/from-registry.sh" "$@";
+      fi
     ;;
 
     edit)

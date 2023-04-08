@@ -15,8 +15,9 @@
 , jq          ? pkgsFor.jq
 , makeWrapper ? pkgsFor.makeWrapper
 , nix         ? pkgsFor.nix
+, npm         ? pkgsFor.nodejs-14_x.npm
 }: lib.makeOverridable ( import ./pkg-fun.nix ) {
-  inherit lib stdenv bash coreutils gnugrep jq makeWrapper nix;
+  inherit lib stdenv bash coreutils gnugrep jq makeWrapper nix npm;
 }
 
 
