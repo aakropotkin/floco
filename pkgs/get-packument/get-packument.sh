@@ -45,16 +45,6 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${LAST_MOD:-}" ]]; then
-  # Desired Format:  2018-04-24T18:07:37.696Z
-  # Can be compared "lexicographically" with simple `[[ "${LAST_MOD}" < ... ]]'
-  # Example:         date -u +%FT%T.%3NZ;
-  LAST_MOD="$( $DATE -u +%FT%T.%3NZ -d "$LAST_MOD"; )";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
 PFILE="$( $MKTEMP; )";
 PFILE2="$( $MKTEMP; )";
 
@@ -76,6 +66,10 @@ $CURL -s "https://registry.npmjs.org/$PKG" > "$PFILE";
 # ---------------------------------------------------------------------------- #
 
 if [[ -n "${LAST_MOD:-}" ]]; then
+  # Desired Format:  2018-04-24T18:07:37.696Z
+  # Can be compared "lexicographically" with simple `[[ "${LAST_MOD}" < ... ]]'
+  # Example:         date -u +%FT%T.%3NZ;
+  LAST_MOD="$( $DATE -u +%FT%T.%3NZ -d "$LAST_MOD"; )";
   cmd='del( .time.modified )';
   for l in $(
     $JQ -r '.time|to_entries|map( .key + "+" + .value )[]' "$PFILE";
