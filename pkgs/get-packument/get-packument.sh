@@ -5,6 +5,11 @@
 #
 # ---------------------------------------------------------------------------- #
 
+set -eu;
+set -o pipefail;
+
+# ---------------------------------------------------------------------------- #
+
 _as_me='get-packument';
 _version='0.1.0';
 
@@ -21,8 +26,8 @@ _version='0.1.0';
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
-    -b|--before)
-      BEFORE="$2";
+    -l|--last-mod*|--lastmod*)
+      LAST_MOD="$2";
       shift;
     ;;
     *)
@@ -40,23 +45,23 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${BEFORE:-}" ]]; then
+if [[ -n "${LAST_MOD:-}" ]]; then
   # Desired Format:  2018-04-24T18:07:37.696Z
-  # Can be compared "lexicographically" with simple `[[ "${BEFORE}" < ... ]]'
+  # Can be compared "lexicographically" with simple `[[ "${LAST_MOD}" < ... ]]'
   # Example:         date -u +%FT%T.%3NZ;
-  BEFORE="$( $DATE -u +%FT%T.%3NZ -d "$BEFORE"; )";
+  LAST_MOD="$( $DATE -u +%FT%T.%3NZ -d "$LAST_MOD"; )";
 fi
 
 
 # ---------------------------------------------------------------------------- #
 
 PFILE="$( $MKTEMP; )";
-
+PFILE2="$( $MKTEMP; )";
 
 # ---------------------------------------------------------------------------- #
 
 cleanup() {
-  rm -f "$PFILE";
+  rm -f "$PFILE" "$PFILE2";
 }
 
 _ec=0;
@@ -70,25 +75,32 @@ $CURL -s "https://registry.npmjs.org/$PKG" > "$PFILE";
 
 # ---------------------------------------------------------------------------- #
 
-declare -a versions;
-versions=();
-
-for l in $(
-  $JQ -r '.time|to_entries|map( .key + "+" + .value )[]' "$PFILE";
-); do
-  if [[ -n "${BEFORE:-}" ]]; then
-    if [[ "$BEFORE" < "${l#*+}" ]]; then
+if [[ -n "${LAST_MOD:-}" ]]; then
+  cmd='del( .time.modified )';
+  for l in $(
+    $JQ -r '.time|to_entries|map( .key + "+" + .value )[]' "$PFILE";
+  ); do
+    if [[ "${l#*+}" = "$LAST_MOD" ]] || [[ "${l#*+}" < "$LAST_MOD" ]]; then
       continue;
     fi
-  fi
-  versions+=( "${l%+*}" );
-done
+    cmd+="|del( .time[\"${l%+*}\"] )|del( .versions[\"${l%+*}\"] )";
+  done
+  $JQ "$cmd" "$PFILE" > "$PFILE2";
+  mv "$PFILE2" "$PFILE";
+fi
 
 
 # ---------------------------------------------------------------------------- #
 
-printf '%s\n' "${versions[@]}";
-
+$JQ '.
+|del( .readme )
+|del( .readmeFilename )
+|del( .["dist-tags"] )
+|del( .users )
+|del( .maintainers )
+|del( .contributors )
+|del( ._rev )
+' "$PFILE";
 
 # ---------------------------------------------------------------------------- #
 #
