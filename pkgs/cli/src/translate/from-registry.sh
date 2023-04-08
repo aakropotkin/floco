@@ -179,6 +179,13 @@ fi
 : "${PINS=}";
 : "${DEBUG=}";
 
+if [[ -z "${PKG:-}" ]]; then
+  echo "$_as_me: You must provide the name of a package." >&2;
+  echo '' >&2;
+  usage >&2;
+  exit 1;
+fi
+
 
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then

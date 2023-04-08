@@ -172,6 +172,7 @@ while [[ "$#" -gt 0 ]]; do
           -o|--out-file|--outfile) skip=:; ;;
           -c|--config) skip=:; ;;
           --) break; ;;
+          -*) continue; ;;
           *) isLocal=; break; ;;
         esac
       done
