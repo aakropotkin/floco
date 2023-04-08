@@ -56,45 +56,49 @@ SDIR="${SPATH%/*}";
 
 # ---------------------------------------------------------------------------- #
 
-run_test "Packages Module"        "$SDIR/tests/modules/packages/check.sh";
+run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
+
 run_test "Packages Module (dist)" "$SDIR/tests/modules/packages/dist/check.sh";
 
 run_test "Library Extensions" "$SDIR/tests/lib/check.sh";
 
-run_test "pdef (deserialized)"                                    \
-  $NIX eval --show-trace -f "$SDIR/tests/modules/pdef/deserial";
+run_test "pdef (deserialized)"                                      \
+  "$NIX" eval --show-trace -f "$SDIR/tests/modules/pdef/deserial";
 
-run_test "pdef lodash registry"                                      \
-  $NIX eval --json -f "$SDIR/tests/modules/pdef/from-registry.nix";
+run_test "pdef lodash registry"                                        \
+  "$NIX" eval --json -f "$SDIR/tests/modules/pdef/from-registry.nix";
 
 run_test "install-module lodash"                   \
-  $NIX build --no-link --show-trace                \
+  "$NIX" build --no-link --show-trace              \
        -f "$SDIR/tests/setup/lodash-install.nix";
 
-run_test "run-script trivial"                                               \
-  $NIX build --no-link --show-trace -f "$SDIR/tests/setup/run-script.nix";
+run_test "run-script trivial"                                                \
+  "$NIX" build --no-link --show-trace -f "$SDIR/tests/setup/run-script.nix";
 
 run_test "updaters: from-registry pacote"                \
          "$SDIR/tests/updaters/from-registry/proj1.sh";
 
 run_test "updaters: npm-plock proj1" "$SDIR/tests/updaters/npm-plock/proj1.sh";
 
-run_test "floco translate: npm-plock proj1"                    \
-         "$SDIR/tests/updaters/npm-plock/proj1-floco-cli.sh";
+run_test "floco translate: npm-plock proj1"      \
+         "$SDIR/tests/cli/translate/local1.sh";
 
 run_test "treeInfo from pins"                                                \
   test "$( $NIX eval -f "$SDIR/tests/modules/pdefs/pinned" ok; )" = 'true';
 
-run_test "linkedLocks"                                                       \
-  $NIX eval --json -f "$SDIR/tests/modules/plock/linked-locks" linkedLocks;
+run_test "linkedLocks"                                            \
+  "$NIX" eval --json -f "$SDIR/tests/modules/plock/linked-locks"  \
+              linkedLocks;
 
-run_test "target override/extras"                                       \
-  $NIX build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
+run_test "target override/extras"                                         \
+  "$NIX" build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
 
 run_test "shellcheck"                                           \
   "$SHELLCHECK" -x "$SDIR/"{updaters,pkgs/cli/src/{,*/}}/*.sh;
 
-run_test "nix flake check" $NIX flake check "$SDIR";
+run_test "floco show with extra config" "$SDIR/tests/cli/show-extra.sh";
+
+run_test "nix flake check" "$NIX" flake check "$SDIR";
 
 
 # ---------------------------------------------------------------------------- #

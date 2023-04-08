@@ -11,7 +11,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-_as_me="proj1-floco-cli.sh";
+_as_me="${BASH_SOURCE[0]##*/}";
 
 _version="0.1.0";
 
@@ -62,7 +62,7 @@ usage() {
 
 SPATH="$( $REALPATH "${BASH_SOURCE[0]}"; )";
 SDIR="${SPATH%/*}";
-PROOT="${SDIR%/tests/updaters/npm-plock}";
+PROOT="${SDIR%/tests/cli/translate}";
 FLAKE_REF="$PROOT";
 
 

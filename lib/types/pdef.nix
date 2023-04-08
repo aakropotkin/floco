@@ -43,6 +43,59 @@
 
 # ---------------------------------------------------------------------------- #
 
+
+  sysOsList = [
+    "*" "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess"
+    "win32" "unknown"
+  ];
+
+  sysOssType = let
+    base = lib.libfloco.uniqueListOf ( nt.enum sysOsList );
+  in base // {
+    merge = loc: defs: let
+      ul = base.merge loc defs;
+    in if builtins.any ( x: x == "*" ) ul then ["*"] else ul;
+  };
+
+  mkSysOssOption = lib.mkOption {
+    description = lib.mdDoc ''
+      List of supported operating systems.
+      The string `"*"` indicates that all operating systems
+      are supported.
+    '';
+    type    = sysOssType;
+    default = ["*"];
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
+
+  sysCpuList = [
+    "*" "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel"
+    "riscv64" "unknown"
+  ];
+
+  sysCpusType = let
+    base = lib.libfloco.uniqueListOf ( nt.enum sysCpuList );
+  in base // {
+    merge = loc: defs: let
+      ul = base.merge loc defs;
+    in if builtins.any ( x: x == "*" ) ul then ["*"] else ul;
+  };
+
+  mkSysCpusOption = lib.mkOption {
+    description = lib.mdDoc ''
+      List of supported CPU architectures.
+      The string `"*"` indicates that all CPUs are supported.
+    '';
+    type    =  sysCpusType;
+    default = ["*"];
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit
@@ -50,6 +103,15 @@ in {
     peerInfoBaseEntry
     peerInfoBase
     mkPeerInfoBaseOption
+  ;
+
+  inherit
+    sysOsList
+    sysOssType
+    mkSysOssOption
+    sysCpuList
+    sysCpusType
+    mkSysCpusOption
   ;
 
 }

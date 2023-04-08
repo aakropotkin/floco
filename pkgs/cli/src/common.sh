@@ -253,13 +253,13 @@ flocoCmd() {
 
   # NOTE: for `nix eval' the `--arg[str]' options are ignored which is
   # incredibly obnoxious...
-  $NIX "$_cmd" -f "$_file"                                   \
-    --argstr system    "$( nixSystem; )"                     \
-    --argstr flocoRef  "$( flocoRef; )"                      \
-    --argstr globalCfg "$_g_floco_cfg"                       \
-    --argstr userCfg   "$_u_floco_cfg"                       \
-    --argstr localCfg  "$( localFlocoCfg 2>/dev/null||:; )"  \
-    "${_passthru[@]}"                                        \
+  $NIX "$_cmd" -f "$_file"                                      \
+    --argstr system    "$( nixSystem; )"                        \
+    --argstr flocoRef  "$( flocoRef; )"                         \
+    --argstr globalConfig "$_g_floco_cfg"                       \
+    --argstr userConfig   "$_u_floco_cfg"                       \
+    --argstr localConfig  "$( localFlocoCfg 2>/dev/null||:; )"  \
+    "${_passthru[@]}"                                           \
   ;
 
   _l_floco_cfg="$_old_l_floco_cfg";

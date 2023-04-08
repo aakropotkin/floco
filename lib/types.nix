@@ -181,7 +181,9 @@
   in base // {
     name        = "unique list of ${elemType.name}";
     description = "unique list of (${elemType.description})";
-    merge       = loc: defs: lib.unique ( lib.getValues defs );
+    merge       = loc: defs: lib.unique (
+      builtins.concatLists ( lib.getValues defs )
+    );
   };
 
 

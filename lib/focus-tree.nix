@@ -77,8 +77,8 @@
           paths = builtins.attrNames ( depsOf' { pkey = key; } );
         in map ( i: { key = resolve key i; } ) paths;
       };
-      proc = acc: { key }: acc // { ${key} = tree.${key}; };
-    in builtins.foldl' proc {} close;
+      proc = { key }: { name = key; value = tree.${key}; };
+    in builtins.listToAttrs ( map proc close );
 
 
 # ---------------------------------------------------------------------------- #
@@ -133,6 +133,9 @@
     # where `dev' fields are marked for each member you need to look elsewhere.
     # The process will be similar to this routine; but I've had enough for one
     # day and I'm not opening another can of worms.
+    #
+    # XXX: this `foldl'' usage is potentially a major performance hit.
+    # Use `listToAttrs' if possible.
     markOptionals = let
       noOpt = let
         proc = acc: key: let

@@ -1,0 +1,10 @@
+{
+  "name": "@floco/phony",
+  "version": "4.2.0",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "scripts": {
+    "build": "cowsay hello > msg.txt"
+  }
+}
