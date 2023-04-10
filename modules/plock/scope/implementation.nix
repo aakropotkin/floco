@@ -43,10 +43,10 @@
   allDeps = let
     reqs  = if builtins.isBool ( plent.requires or true ) then {} else
             plent.requires;
+    proc = name: { inherit name; value = true; };
     bund = if builtins.isAttrs ( plent.bundledDependencies or {} )
            then plent.bundledDependencies or {}
-           else builtins.foldl' ( acc: ident: acc // { ${ident} = true; } ) {}
-                                plent.bundledDependencies;
+           else builtins.listToAttrs ( map proc plent.bundledDependencies );
     attrs = ( plent.dependencies or {} )         //
             ( plent.devDependencies or {} )      //
             ( plent.optionalDependencies or {} ) //
@@ -89,10 +89,11 @@ in {
       patt = config.path + sep + "node_modules/((@[^@/]+/)?[^@/]+)";
       subs = builtins.filter ( path: ( builtins.match patt path ) != null )
                              ( builtins.attrNames plents );
-      proc = acc: path: acc // {
-        ${plents.${path}.ident} = plents.${path}.version;
+      proc = path: {
+        name  = plents.${path}.ident;
+        value = plents.${path}.version;
       };
-    in builtins.foldl' proc {} subs;
+    in builtins.listToAttrs ( map proc subs );
 
 
 # ---------------------------------------------------------------------------- #

@@ -723,6 +723,49 @@
 
 # ---------------------------------------------------------------------------- #
 
+  encodeProps = {
+    runtime    # 000X ; 1|0
+  , dev        # 00X0 ; 2|0
+  , optional   # 0X00 ; 4|0
+  , bundled    # X000 ; 8|0
+  }: ( if runtime  then 1 else 0 ) +
+     ( if dev      then 2 else 0 ) +
+     ( if optional then 4 else 0 ) +
+     ( if bundled  then 8 else 0 );
+
+  decodedProps = [
+    { runtime = false; dev = false; optional = false; bundled = false; }  #  0
+    { runtime = true;  dev = false; optional = false; bundled = false; }  #  1
+    { runtime = false; dev = true;  optional = false; bundled = false; }  #  2
+    { runtime = true;  dev = true;  optional = false; bundled = false; }  #  3
+    { runtime = false; dev = false; optional = true;  bundled = false; }  #  4
+    { runtime = true;  dev = false; optional = true;  bundled = false; }  #  5
+    { runtime = false; dev = true;  optional = true;  bundled = false; }  #  6
+    { runtime = true;  dev = true;  optional = true;  bundled = false; }  #  7
+    { runtime = false; dev = false; optional = false; bundled = true;  }  #  8
+    { runtime = true;  dev = false; optional = false; bundled = true;  }  #  9
+    { runtime = false; dev = true;  optional = false; bundled = true;  }  # 10
+    { runtime = true;  dev = true;  optional = false; bundled = true;  }  # 11
+    { runtime = false; dev = false; optional = true;  bundled = true;  }  # 12
+    { runtime = true;  dev = false; optional = true;  bundled = true;  }  # 13
+    { runtime = false; dev = true;  optional = true;  bundled = true;  }  # 14
+    { runtime = true;  dev = true;  optional = true;  bundled = true;  }  # 15
+  ];
+
+  decodeProps = builtins.elemAt decodedProps;
+
+
+  collectEdges = pdef: let
+    mkEdge = ident: { pin, runtime, dev, optional, ... }: {
+      from  = pdef.key;
+      to    = ident + "/" + pin;
+      propc = encodeProps { inherit pin runtime dev optional; };
+    };
+  in builtins.attrValues ( builtins.mapAttrs mkEdge pdef.depInfo );
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
   inherit

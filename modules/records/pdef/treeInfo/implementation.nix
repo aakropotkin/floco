@@ -32,15 +32,16 @@
        ( builtins.all pred ( builtins.attrNames need ) );
 
     linked = let
-      proc = acc: ident: acc // {
-        "node_modules/${ident}" = {
+      proc = ident: {
+        name  = "node_modules/${ident}";
+        value = {
           inherit (need.${ident}) optional;
           link = true;
           key  = ident + "/" + need.${ident}.pin;
           dev  = need.${ident}.dev && ( ! need.${ident}.runtime );
         };
       };
-    in builtins.foldl' proc {} ( builtins.attrNames need );
+    in builtins.listToAttrs ( map proc ( builtins.attrNames need ) );
 
     cond = ( config.metaFiles.metaRaw.treeInfo or null ) != null ||
            ( need == {} ) || canLinkDeps;

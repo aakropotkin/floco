@@ -1,11 +1,7 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-# Update a `pdefs.nix' file using a `package-lock.json' v3 provided by `npm'.
 #
-# This script will trash any existing `node_modules/' trees, and if a
-# `package-lock.json' file already exists, it will be updated to use the v3
-# schema as a side effect of this script.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -15,22 +11,21 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-#_as_me="floco update npm-plock";
-_as_me='npm-plock.sh';
+: "${_as_main=floco}";
+_as_sub='translate registry';
+_as_me="$_as_main $_as_sub";
 
-_version="0.4.0";
+: "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: \
+$_as_me [OPTIONS...] IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
-Create or update a \`pdefs.nix' file using a \`package-lock.json' v3 provided
-by \`npm'.
+Create or update a \`pdefs.nix' file from a registry package.
 ";
 
 _help_msg="$_usage_msg
 
-This script will trash any existing \`node_modules/' trees, and if a
-\`package-lock.json' file already exists, it will be backed up and restored
-on exit to ensure that it is unmodified by this script.
+Dev. dependencies will be omitted from generated definitions.
 
 Options:
   -t,--tree           Include \`treeInfo' for the root package.
@@ -38,11 +33,6 @@ Options:
   -p,--pins           Include \`<pdef>.depInfo.*.pin' info.
   -P,--no-pins        Omit \`<pdef>.depInfo.*.pin' info.
   -d,--debug          Show \`nix' backtraces.
-  -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
-                      This directory must contain a \`package.json', but need
-                      not
-                      contain a \`package-lock.json'.
-                      Defaults to current working directory.
   -o,--out-file PATH  Path to write generated \`pdef' records.
                       Defaults to \`<LOCK-DIR>/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
@@ -59,10 +49,9 @@ Environment:
   NIX           Command used as \`nix' executable.
   NPM           Command used as \`npm' executable.
   JQ            Command used as \`jq' executable.
-  SED           Command used as \`sed' executable.
   REALPATH      Command used as \`realpath' executable.
   FLOCO_CONFIG  Path to a \`floco' configuration file. Used as \`--config'.
-  FLAKE_REF     Flake URI ref to use for \`floco'.
+  FLOCO_REF     Flake URI ref to use for \`floco'.
                 defaults to \`github:aakropotkin/floco'.
   DEBUG         Show \`nix' backtraces.
 ";
@@ -82,16 +71,15 @@ usage() {
 # ---------------------------------------------------------------------------- #
 
 # @BEGIN_INJECT_UTILS@
+: "${GREP:=grep}";
+: "${REALPATH:=realpath}";
+: "${MKTEMP:=mktemp}";
 : "${NIX:=nix}";
 : "${NPM:=npm}";
 : "${JQ:=jq}";
-: "${REALPATH:=realpath}";
-: "${SED:=sed}";
 
 
 # ---------------------------------------------------------------------------- #
-
-unset OUTFILE LOCKDIR;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -122,7 +110,6 @@ while [[ "$#" -gt 0 ]]; do
     -p|--pins|--pin)                        PINS=:; ;;
     -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
     -d|--debug)                             DEBUG=:; ;;
-    -l|--lock-dir|--lockdir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
     -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
@@ -133,109 +120,126 @@ while [[ "$#" -gt 0 ]]; do
     --)                      shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
+      echo '' >&2;
       usage -f >&2;
       exit 1;
     ;;
     *)
-      echo "$_as_me: Unexpected argument(s) '$*'" >&2;
-      usage -f >&2;
-      exit 1;
+      if [[ -z "${PKG:-}" ]]; then
+        PKG="$1";
+      else
+        echo "$_as_me: Unexpected argument(s) '$*'" >&2;
+        echo '' >&2;
+        usage -f >&2;
+        exit 1;
+      fi
     ;;
   esac
   shift;
 done
 
+
+# ---------------------------------------------------------------------------- #
+
+# Load common helpers
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../nix-edit/fmt.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../nix-edit/fmt.sh}";
+
+
+# ---------------------------------------------------------------------------- #
+
 if [[ -n "${FLOCO_CONFIG:-}" ]]; then
-  FLOCO_CONFIG="$( $REALPATH "$FLOCO_CONFIG"; )";
+  _l_floco_cfg="$( $REALPATH "$FLOCO_CONFIG"; )";
+  export _l_floco_cfg;
 fi
 
-: "${LOCKDIR:=$PWD}";
+if [[ -n "${FLOCO_REF:-}" ]]; then
+  # Make relative flake ref absolute
+  case "$FLOCO_REF" in
+    *:*) :; ;;
+    .*|/*) FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )"; ;;
+    *)
+      if [[ -r "$FLOCO_REF/flake.nix" ]]; then
+        FLOCO_REF="$( $REALPATH "$FLOCO_REF"; )";
+      fi
+    ;;
+  esac
+  export _floco_ref="$FLOCO_REF";
+else
+  FLOCO_REF="$( flocoRef; )";
+fi
+
 : "${JSON=}";
 : "${NO_BACKUP=}";
-: "${FLAKE_REF:=github:aakropotkin/floco}";
 : "${TREE=:}";
 : "${PINS=}";
 : "${DEBUG=}";
 
+if [[ -z "${PKG:-}" ]]; then
+  echo "$_as_me: You must provide the name of a package." >&2;
+  echo '' >&2;
+  usage >&2;
+  exit 1;
+fi
+
+
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
-    OUTFILE="$LOCKDIR/pdefs.nix";
+    OUTFILE="$PWD/pdefs.nix";
   else
-    OUTFILE="$LOCKDIR/pdefs.json";
+    OUTFILE="$PWD/pdefs.json";
   fi
 fi
 
 
 # ---------------------------------------------------------------------------- #
 
-# Make relative flake ref absolute
-case "$FLAKE_REF" in
-  *:*) :; ;;
-  .*|/*) FLAKE_REF="$( $REALPATH "$FLAKE_REF"; )"; ;;
-  *)
-    if [[ -r "$FLAKE_REF/flake.nix" ]]; then
-      FLAKE_REF="$( $REALPATH "$FLAKE_REF"; )";
+declare -a oldFiles;
+oldFiles=();
+
+for f in {pdefs,foverrides}.{nix,json}; do
+  if [[ -r "$PWD/$f" ]]; then
+    oldFiles+=( "$PWD/$f~" );
+    if [[ "$OUTFILE" = "$PWD/$f" ]]; then
+      echo "$_as_me: Backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
+      cp -p -- "$OUTFILE" "$OUTFILE~";
+    else
+      echo "$_as_me: Stashing file to avoid conflicts: \`$PWD/$f'" >&2;
+      mv -- "$PWD/$f" "$PWD/$f~";
+      echo '{}' > "$PWD/$f";
     fi
-  ;;
-esac
+  fi
+done
 
 
 # ---------------------------------------------------------------------------- #
 
-# Lint target package for stuff that will trip up attempts to generate `pdefs'.
-if [[ "$( $JQ -r '.name // null' "$LOCKDIR/package.json"; )" = 'null' ]]; then
-  echo "$_as_me: target package is unnamed. name it you dingus." >&2;
-  exit 1;
-fi
-
-if [[ "$( $JQ -r '.version // null' "$LOCKDIR/package.json"; )" = 'null' ]];
-then
-  echo "$_as_me: target package is unversioned. version it you dangus." >&2;
-  exit 1;
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-# Backup existing outfile if one exists
-if [[ -r "$OUTFILE" ]]; then
-  echo "$_as_me: backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
-  cp -p -- "$OUTFILE" "$OUTFILE~";
-fi
-
-# Backup existing lockfile if one exists
-if [[ -r "$LOCKDIR/package-lock.json" ]]; then
-  printf '%s' "$_as_me: backup up existing \`package-lock.json' to "  \
-              "\`$LOCKDIR/package-lock.json~'" >&2;
-  echo '' >&2;
-  cp -p -- "$LOCKDIR/package-lock.json" "$LOCKDIR/package-lock.json~";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-if [[ -d "$LOCKDIR/node_modules" ]]; then
-  echo "$_as_me: deleting \`$LOCKDIR/node_modules' to avoid pollution" >&2;
-  rm -rf "$LOCKDIR/node_modules";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
+LOCKDIR="$( mktmpAuto -d; )";
 pushd "$LOCKDIR" >/dev/null;
 
 
 # ---------------------------------------------------------------------------- #
 
 cleanup() {
-  if [[ -r "$LOCKDIR/package-lock.json~" ]]; then
-    echo "$_as_me: Restoring original \`package-lock.json'." >&2;
-    mv "$LOCKDIR/package-lock.json~" "$LOCKDIR/package-lock.json";
-  fi
+  popd >/dev/null;
+  rm -rf "$LOCKDIR";
   if [[ ( -n "$NO_BACKUP" ) && ( -r "$OUTFILE~" ) ]]; then
     echo "$_as_me: Deleting backup \`$OUTFILE'." >&2;
     rm -f "$OUTFILE~";
   fi
+  for o in "${oldFiles[@]}"; do
+    if [[ "${o%\~}" = "$OUTFILE" ]]; then
+      continue;
+    fi
+    if [[ -r "$o" ]]; then
+      echo "$_as_me: Restoring stashed file \`${o%\~}'." >&2;
+      mv -- "$o" "${o%\~}";
+    fi
+  done
 }
 
 bail() {
@@ -275,58 +279,56 @@ exit "$_es";
 
 # ---------------------------------------------------------------------------- #
 
+# `npm' renamed this flag in v9.x
+case "$( $NPM --version; )" in
+  9.*) STRATEGY_FLAG='--install-strategy=shallow'; ;;
+  *)   STRATEGY_FLAG='--global-style'; ;;
+esac
+
+
+# ---------------------------------------------------------------------------- #
+
+echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
+
 $NPM install            \
+  --save                \
   --package-lock-only   \
   --ignore-scripts      \
   --lockfile-version=3  \
   --no-audit            \
   --no-fund             \
   --no-color            \
+  "$STRATEGY_FLAG"      \
   "$@"                  \
+  "$PKG"                \
 ;
 
 
 # ---------------------------------------------------------------------------- #
 
-: "${FLOCO_CONFIG=}";
-export FLAKE_REF FLOCO_CONFIG JSON OUTFILE LOCKDIR PINS TREE;
+export OUTFILE JSON PINS TREE LOCKDIR FLOCO_REF;
+
+_NIX_FLAGS=();
 
 if [[ -z "$JSON" ]]; then
-  _NIX_FLAGS="--raw";
+  _NIX_FLAGS+=( "--raw" );
 else
-  _NIX_FLAGS="--json";
+  _NIX_FLAGS+=( "--json" );
 fi
 
 if [[ -n "$DEBUG" ]]; then
-  _NIX_FLAGS="--show-trace";
+  _NIX_FLAGS+=( "--show-trace" );
 fi
 
-$NIX --no-substitute eval $_NIX_FLAGS -f - <<'EOF' >"$OUTFILE"
-let
-  floco = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
-  inherit (floco) lib;
-  cfgPath = builtins.getEnv "FLOCO_CONFIG";
-  cfg =
-    if ( cfgPath == "" ) || ( ! ( builtins.pathExists cfgPath ) ) then [] else
-    if ( builtins.match ".*\\.json" cfgPath ) == null then [cfgPath] else
-    [( lib.modules.importJSON cfgPath )];
-  outfile = builtins.getEnv "OUTFILE";
-  asJSON  = ( builtins.getEnv "JSON" ) != "";
-  mod = lib.evalModules {
-    modules = cfg ++ [
-      floco.nixosModules.plockToPdefs
-      { config._module.args.basedir = /. + ( dirOf outfile ); }
-      {
-        config.floco.buildPlan.deriveTreeInfo = false;
-        config.floco.includePins         = ( builtins.getEnv "PINS" ) != "";
-        config.floco.includeRootTreeInfo = ( builtins.getEnv "TREE" ) != "";
-        config.floco.lockDir             = /. + ( builtins.getEnv "LOCKDIR" );
-      }
-    ];
-  };
-  contents.floco.pdefs = mod.config.floco.exports;
-in if asJSON then contents else lib.generators.toPretty {} contents
-EOF
+#shellcheck disable=SC2119
+OUTFILE_TMP="$( mktmpAuto; )";
+
+flocoEval                                     \
+  --no-substitute                             \
+  "${_NIX_FLAGS[@]}"                          \
+  --apply 'f: f {}'                           \
+  -f "${BASH_SOURCE[0]%/*}/fromRegistry.nix"  \
+  > "$OUTFILE_TMP";
 
 
 # ---------------------------------------------------------------------------- #
@@ -335,8 +337,9 @@ EOF
 # post-process a bit to add quotes.
 
 if [[ -z "$JSON" ]]; then
-  $SED -i 's/ \(assert\|throw\|with\|let\|in\|or\|inherit\|rec\) =/ "\1" =/'  \
-          "$OUTFILE";
+  _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+else
+  $JQ . "$OUTFILE_TMP" > "$OUTFILE";
 fi
 
 

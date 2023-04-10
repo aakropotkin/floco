@@ -51,7 +51,7 @@ _nix_keyword_escape() {
 
 _nix_fmt() {
   #shellcheck disable=SC2119
-  $NIX eval --raw -f "${1:-/dev/stdin}" --apply 'e: let
+  $NIX eval --raw -f "${1:--}" --apply 'e: let
     nixpkgs = builtins.getFlake "nixpkgs";
     inherit (nixpkgs) lib;
   in ( lib.generators.toPretty {} e ) + "\n"

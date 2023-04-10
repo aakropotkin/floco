@@ -198,27 +198,68 @@ nixSystem() {
 # ---------------------------------------------------------------------------- #
 
 flocoCmd() {
-  local _cmd _dir _old_l_floco_cfg;
+  local _cmd _dir _old_l_floco_cfg _passthru;
   _cmd="$1";
   shift;
 
   _old_l_floco_cfg="$( localFlocoCfg 2>/dev/null||:; )";
   unset _l_floco_cfg;
 
-  if [[ "$#" -gt 0 ]] && [[ -d "$1" ]]; then
-    _dir="$1";
-    shift;
-  else
-    _dir="$PWD";
-  fi
+  _passthru=();
 
-  $NIX "$_cmd" -f "${BASH_SOURCE[0]%/*}/common.nix"          \
-    --argstr system    "$( nixSystem; )"                     \
-    --argstr flocoRef  "$( flocoRef; )"                      \
-    --argstr globalCfg "$_g_floco_cfg"                       \
-    --argstr userCfg   "$_u_floco_cfg"                       \
-    --argstr localCfg  "$( localFlocoCfg 2>/dev/null||:; )"  \
-    "$@"                                                     \
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      # Split short options such as `-abc' -> `-a -b -c'
+      -[^-]?*)
+        _arg="$1";
+        declare -a _args;
+        _args=();
+        shift;
+        _i=1;
+        while [[ "$_i" -lt "${#_arg}" ]]; do
+          _args+=( "-${_arg:$_i:1}" );
+          _i="$(( _i + 1 ))";
+        done
+        set -- "${_args[@]}" "$@";
+        unset _arg _args _i;
+        continue;
+      ;;
+      --*=*)
+        _arg="$1";
+        shift;
+        set -- "${_arg%%=*}" "${_arg#*=}" "$@";
+        unset _arg;
+        continue;
+      ;;
+
+      -f|--file)
+        shift;
+        _file="$1";
+      ;;
+
+      *)
+        if [[ -z "${_dir:-}" ]] && [[ -d "$1" ]]; then
+          _dir="$1";
+        else
+          _passthru+=( "$1" );
+        fi
+      ;;
+    esac
+    shift
+  done
+
+  : "${_dir:=$PWD}";
+  : "${_file:=${BASH_SOURCE[0]%/*}/common.nix}";
+
+  # NOTE: for `nix eval' the `--arg[str]' options are ignored which is
+  # incredibly obnoxious...
+  $NIX "$_cmd" -f "$_file"                                      \
+    --argstr system    "$( nixSystem; )"                        \
+    --argstr flocoRef  "$( flocoRef; )"                         \
+    --argstr globalConfig "$_g_floco_cfg"                       \
+    --argstr userConfig   "$_u_floco_cfg"                       \
+    --argstr localConfig  "$( localFlocoCfg 2>/dev/null||:; )"  \
+    "${_passthru[@]}"                                           \
   ;
 
   _l_floco_cfg="$_old_l_floco_cfg";

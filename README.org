@@ -38,7 +38,7 @@ the following process will have you up and running:
 set -euo pipefail;
 cd ./my-project;
 nix flake init -t github:aakropotkin/floco;
-nix run github:aakropotkin/floco#fromPlock;
+nix run github:aakropotkin/floco -- translate;
 [[ -r ./package-lock.json~ ]] && mv ./package-lock.json{~,};
 nix build -f ./. global;
 ls -R ./result;
@@ -70,13 +70,53 @@ expected to change rapidly in the near future.
 Across the =floco= CLI a few behaviors are consistent. 
 
 The following config files are included/applied if they exist:
-- =/etc/floco/floco-cfg.{nix,json}=
+- ~/etc/floco/floco-cfg.{nix,json}~
 - =${XDG_CONFIG_HOME:-$HOME/.config}/floco/floco-config.{nix,json}=
 - "Local" =floco-config.{nix,json}= searched for between =PWD= and git
   project root, or =/= if =PWD= is not a =git= repository checkout.
 
 References to =floco= will be pulled from the nearest =flake.lock=, or
 =nix registry list=, using =github:aakropotkin/floco/main= as a fallback.
+
+** =floco translate=
+Generate a =pdefs.nix= file from a =package[-lock].json= or
+registry package.
+
+This routine utilized =npm= internally to resolve packages and form
+=node_modules= trees.
+
+*** Local Project Example
+#+BEGIN_SRC shell
+mkdir -p /tmp/foo;
+pushd /tmp/foo;
+echo '{
+  "name": "@floco/phony",
+  "version": "4.2.0",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "scripts": {
+    "build": "touch ./built"
+  }
+}' > ./package.json;
+nix shell github:aakropotkin/floco;
+floco -- translate -pt;
+nix flake init github:aakropotkin/floco -t;
+floco build;  # or `nix build -f ./. global;
+ls ./result/lib/node_modules/@floco/phony/;
+#+END_SRC
+
+*** Remote Project Example
+#+BEGIN_SRC shell
+mkdir -p /tmp/foo;
+pushd /tmp/foo;
+nix shell github:aakropotkin/floco;
+floco -- translate -pt lodash@4.17.21;
+nix flake init github:aakropotkin/floco -t registry;
+echo '{ ident = "lodash"; version = "4.17.21"; }' > ./info.nix;
+floco build;  # or `nix build -f ./.;'
+ls ./result/lib/node_modules/lodash/;
+#+END_SRC
 
 ** =floco list=
 List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
