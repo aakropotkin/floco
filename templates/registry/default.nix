@@ -27,8 +27,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # This attrset holds a few derivations related to our package.
-  # We'll only expose `global' to the CLI.
+# This attrset holds a few derivations related to our package.
 in fmod.config.floco.packages.${ident}.${version}
 
 
