@@ -86,15 +86,7 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-$JQ '.
-|del( .readme )
-|del( .readmeFilename )
-|del( .["dist-tags"] )
-|del( .users )
-|del( .maintainers )
-|del( .contributors )
-|del( ._rev )
-' "$PFILE";
+$JQ '{ versions: .versions, time: .time, _id: ._id }' "$PFILE";
 
 # ---------------------------------------------------------------------------- #
 #
