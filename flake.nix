@@ -105,16 +105,31 @@
 
     apps = eachSupportedSystemMap ( system: let
       pkgsFor = nixpkgs.legacyPackages.${system}.extend overlays.default;
+      stripNL  = s: let
+        m = builtins.match "\n*\([^\n]*.*[^\n]\)\n*" s;
+      in if m == null then m else builtins.head m;
     in {
 
       fromPlock = {
         type    = "app";
-        program = "${pkgsFor.floco-updaters}/bin/npm-plock.sh";
+        program = let
+          msg = stripNL ''
+            floco#fromPlock: The \`fromPlock' routine is deprecated.
+              Use \`floco -- translate ARGS...' or
+              `nix run github:aakropotkin/floco -- translate ARGS...` instead.
+          '';
+        in builtins.trace msg "${pkgsFor.floco-updaters}/bin/npm-plock.sh";
       };
 
       fromRegistry = {
         type    = "app";
-        program = "${pkgsFor.floco-updaters}/bin/from-registry.sh";
+        program = let
+          msg = stripNL ''
+            floco#fromPlock: The \`fromRegistry' routine is deprecated.
+              Use \`floco -- translate ARGS...' or
+              `nix run github:aakropotkin/floco -- translate ARGS...` instead.
+          '';
+        in builtins.trace msg "${pkgsFor.floco-updaters}/bin/from-registry.sh";
       };
 
     } );
