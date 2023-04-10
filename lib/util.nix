@@ -144,6 +144,64 @@
 
 # ---------------------------------------------------------------------------- #
 
+    supportedSystems = [
+      "x86_64-linux"  "aarch64-linux"  "i686-linux"
+      "x86_64-darwin" "aarch64-darwin"
+    ];
+
+    eachSupportedSystemMap = fn: let
+      proc = system: { name = system; value = fn system; };
+    in builtins.listToAttrs ( map proc lib.libfloco.supportedSystems );
+
+
+# ---------------------------------------------------------------------------- #
+
+  # Convenience function that evaluates the `floco' module system on a
+  # singleton or list of modules/directories.
+  #
+  # This has a flexible call style that allows you to indicate `system'.
+  # To be explicit use either:
+  #   runFloco.<system> <module(s)>
+  #   runFloco "<system>" <module(s)>
+  # To omit system intentionally:
+  #   runFloco.unknown <module(s)>
+  #   runFloco "unknown" <module(s)>
+  # Or to use the current system as the default, simply:
+  #   runFloco <module(s)>
+  #
+  # In `pure' evaluation mode, attempts to reference `builtins.currentSystem'
+  # will fall back to "unknown", meaning you will only be able to use `lib'
+  # routines and parts of the module system that do not reference `pkgs'.
+  #
+  # This is recommended as a convenience routine for interactive use on the
+  # CLI, and is explicitly NOT recommended for use scripts or CI automation.
+  # For non-interactive use, please use `lib.evalModules' directly, and be
+  # explicit about `system', module paths, and handling of JSON files
+  # ( use `lib.modules.importJSON' or `lib.libfloco.processImports[Floco]' ).
+  runFloco = let
+    forSystem = system: cfgs: ( lib.evalModules {
+      modules = [
+        ../modules/top
+        { config.floco.settings = { inherit system; }; }
+      ] ++ ( lib.libfloco.processImportsFloco cfgs );
+    } ).config.floco;
+    bySystem  = ( lib.libfloco.eachSupportedSystemMap forSystem ) // {
+      unknown = forSystem "unknown";
+    };
+  in bySystem // {
+    __functor = pf: arg: let
+      argIsSystem = builtins.elem arg supportedSystems;
+      system      = if argIsSystem then arg else
+                    builtins.currentSystem or "unknown";
+      fn = pf.${system} or (
+        throw "floco#runFloco: Unsupported system: ${system}"
+      );
+    in if argIsSystem then fn else fn arg;
+  };
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -163,6 +221,10 @@ in {
     flocoConfigsFromDir
 
     runFunctor
+
+    supportedSystems
+    eachSupportedSystemMap
+    runFloco
   ;
 
 

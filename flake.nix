@@ -16,14 +16,9 @@
 
 # ---------------------------------------------------------------------------- #
 
-    supportedSystems = [
-      "x86_64-linux"  "aarch64-linux"  "i686-linux" 
-      "x86_64-darwin" "aarch64-darwin"
-    ];
-
-    eachSupportedSystemMap = fn: let
-      proc = system: { name = system; value = fn system; };
-    in builtins.listToAttrs ( map proc supportedSystems );
+    inherit (( import ./lib { inherit (nixpkgs) lib; } ).libfloco)
+      eachSupportedSystemMap
+    ;
 
 
 # ---------------------------------------------------------------------------- #
@@ -134,7 +129,7 @@
         welcomeText = ''
           Initialize/update your project by running:
 
-          nix run floco#fromPlock -- -pt;
+          nix run github:aakropotkin/floco -- translate -pt;
 
 
           Build with:
@@ -155,7 +150,7 @@
         welcomeText = ''
           Initialize/update your package by running:
 
-          nix run floco#fromRegistry -- -pt <IDENT>@<VERSION>;
+          nix run github:aakropotkin/floco -- translate -pt <IDENT>@<VERSION>;
 
           echo '{ ident = "<IDENT>"; version = "<VERSION>"; }' > info.nix;
 
@@ -213,27 +208,7 @@
     # For non-interactive use, please use `lib.evalModules' directly, and be
     # explicit about `system', module paths, and handling of JSON files
     # ( use `lib.modules.importJSON' or `lib.libfloco.processImports[Floco]' ).
-    runFloco = let
-      lib       = import ./lib { inherit (nixpkgs) lib; };
-      forSystem = system: cfgs: ( lib.evalModules {
-        modules = [
-          nixosModules.floco
-          { config.floco.settings = { inherit system; }; }
-        ] ++ ( lib.libfloco.processImportsFloco cfgs );
-      } ).config.floco;
-      bySystem  = ( eachSupportedSystemMap forSystem ) // {
-        unknown = forSystem "unknown";
-      };
-    in bySystem // {
-      __functor = pf: arg: let
-        argIsSystem = builtins.elem arg supportedSystems;
-        system      = if argIsSystem then arg else
-                      builtins.currentSystem or "unknown";
-        fn = pf.${system} or (
-          throw "floco#runFloco: Unsupported system: ${system}"
-        );
-      in if argIsSystem then fn else fn arg;
-    };
+    inherit (( import ./lib { inherit (nixpkgs) lib; } ).libfloco) runFloco;
 
 
 # ---------------------------------------------------------------------------- #
