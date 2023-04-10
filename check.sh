@@ -49,6 +49,7 @@ exit "$_es";
 : "${NIX:=nix}";
 : "${REALPATH:=realpath}"
 : "${SHELLCHECK:=$NIX run 'nixpkgs#shellcheck' --}";
+: "${MKTEMP:=mktemp}"
 
 SPATH="$( $REALPATH "${BASH_SOURCE[0]}"; )";
 SDIR="${SPATH%/*}";
@@ -80,8 +81,14 @@ run_test "updaters: from-registry pacote"                \
 
 run_test "updaters: npm-plock proj1" "$SDIR/tests/updaters/npm-plock/proj1.sh";
 
-run_test "floco translate: npm-plock proj1"      \
+run_test "floco translate: npm-plock local1"     \
          "$SDIR/tests/cli/translate/local1.sh";
+
+run_test "floco translate: npm-plock local-mod1"           \
+         "$SDIR/tests/cli/translate/local-mod1/check.sh";
+
+run_test "floco translate: from-registry remote1"  \
+         "$SDIR/tests/cli/translate/remote1.sh";
 
 run_test "treeInfo from pins"                                                \
   test "$( $NIX eval -f "$SDIR/tests/modules/pdefs/pinned" ok; )" = 'true';
