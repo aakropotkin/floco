@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS pdefs (
 
 , depInfo   JSON
 , peerInfo  JSON
-, treeInfo  JSON
+, treeInfo  JSON  -- TODO: Remove
 
 , fsInfo_dir         TEXT    DEFAULT '.'
 , fsInfo_gypfile     BOOLEAN
@@ -36,21 +36,40 @@ CREATE TABLE IF NOT EXISTS pdefs (
 -- -------------------------------------------------------------------------- --
 
 CREATE TABLE IF NOT EXISTS depInfoEnts (
-  id         INTEGER PRIMARY KEY
-, parent     TEXT                  NOT NULL
+  parent     TEXT                  NOT NULL
 , ident      TEXT                  NOT NULL
 , descriptor TEXT    DEFAULT '*'   NOT NULL
 , runtime    BOOLEAN               NOT NULL
 , dev        BOOLEAN DEFAULT TRUE  NOT NULL
 , optional   BOOLEAN DEFAULT FALSE NOT NULL
 , bundled    BOOLEAN DEFAULT FALSE NOT NULL
+, PRIMARY KEY ( parent, ident )
 );
-
 
 
 -- -------------------------------------------------------------------------- --
 
 
+CREATE TABLE IF NOT EXISTS peerInfoEnts (
+  parent     TEXT                  NOT NULL
+, ident      TEXT                  NOT NULL
+, descriptor TEXT    DEFAULT '*'   NOT NULL
+, optional   BOOLEAN DEFAULT FALSE NOT NULL
+, PRIMARY KEY ( parent, ident )
+);
+
+
+-- -------------------------------------------------------------------------- --
+
+CREATE TABLE IF NOT EXISTS treeInfoEnts (
+  treeId    INTEGER               NOT NULL
+, path      TEXT                  NOT NULL
+, key       TEXT                  NOT NULL
+, link      BOOLEAN DEFAULT FALSE NOT NULL
+, dev       BOOLEAN DEFAULT TRUE  NOT NULL
+, optional  BOOLEAN DEFAULT FALSE NOT NULL
+, PRIMARY KEY ( treeId, path )
+);
 
 
 -- -------------------------------------------------------------------------- --
