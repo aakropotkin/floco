@@ -44,11 +44,13 @@ CREATE TABLE IF NOT EXISTS depInfoEnts (
 , optional   BOOLEAN DEFAULT FALSE NOT NULL
 , bundled    BOOLEAN DEFAULT FALSE NOT NULL
 , PRIMARY KEY ( parent, ident )
+, FOREIGN KEY ( parent ) REFERENCES pdefs ( key )
 );
+
+CREATE INDEX depInfoIndex ON depInfoEnts( parent );
 
 
 -- -------------------------------------------------------------------------- --
-
 
 CREATE TABLE IF NOT EXISTS peerInfoEnts (
   parent     TEXT                  NOT NULL
@@ -56,7 +58,10 @@ CREATE TABLE IF NOT EXISTS peerInfoEnts (
 , descriptor TEXT    DEFAULT '*'   NOT NULL
 , optional   BOOLEAN DEFAULT FALSE NOT NULL
 , PRIMARY KEY ( parent, ident )
+, FOREIGN KEY ( parent ) REFERENCES pdefs ( key )
 );
+
+CREATE INDEX peerInfoIndex ON peerInfoEnts( parent );
 
 
 -- -------------------------------------------------------------------------- --
