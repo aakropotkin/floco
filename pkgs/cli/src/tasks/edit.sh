@@ -159,10 +159,16 @@ esac
 
 # ---------------------------------------------------------------------------- #
 
+: "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}/../lib}";
+: "${FLOCO_NIX_LIBDIR:=${BASH_SOURCE[0]%/*}/../nix/lib}";
+
+
+# ---------------------------------------------------------------------------- #
+
 # Load common helpers
 # shellcheck source-path=SCRIPTDIR
 # shellcheck source=../lib/common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
+. "$FLOCO_LIBDIR/common.sh}";
 
 
 # ---------------------------------------------------------------------------- #
@@ -172,7 +178,7 @@ runEval() {
     inherit (builtins.getFlake \"$( flocoRef; )\") lib;
     blib = if lib ? prettyPrintEscaped then lib else lib // {
       libfloco = lib.libfloco //
-        ( import ${BASH_SOURCE[0]%/*}/../nix/lib/util.nix { inherit lib; } );
+        ( import $FLOCO_NIX_LIBDIR/util.nix { inherit lib; } );
     };
     r = ( $_EXPR ) f;
     p = blib.libfloco.prettyPrintEscaped r;

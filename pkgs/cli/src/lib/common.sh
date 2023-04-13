@@ -5,6 +5,14 @@
 #
 # ---------------------------------------------------------------------------- #
 
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+  echo "common.sh: You must source this script, it is not runnable." >&2;
+  exit 1;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
 if [[ -n "${_floco_cli_common_sourced:-}" ]]; then
   return 0;
 fi
@@ -42,6 +50,12 @@ _as_me="${SPATH##*/}";
 
 export SPATH SDIR _as_me;
 
+FLOCO_LIBDIR="$( $REALPATH "${BASH_SOURCE[0]%/*}"; )";
+FLOCO_LIBEXECDIR="$( $REALPATH "$FLOCO_LIBDIR/../libexec"; )";
+FLOCO_NIXDIR="$( $REALPATH "$FLOCO_LIBDIR/../nix"; )";
+FLOCO_NIX_LIBDIR="$( $REALPATH "$FLOCO_NIXDIR/lib"; )";
+export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR;
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -51,6 +65,8 @@ export SPATH SDIR _as_me;
 keepSearching() {
   ! { [[ "$( $REALPATH "$1"; )" = '/' ]] || [[ -d "$1/.git" ]]; };
 }
+export -f keepSearching;
+
 
 # searchUp FILE [DIR]
 # -------------------
@@ -63,6 +79,7 @@ searchUp() {
     return 1;
   fi
 }
+export -f searchUp;
 
 
 # ---------------------------------------------------------------------------- #
@@ -113,6 +130,7 @@ localFlocoCfg() {
   fi
   echo "$_l_floco_cfg";
 }
+export -f localFlocoCfg;
 
 
 # ---------------------------------------------------------------------------- #
@@ -125,6 +143,7 @@ flocoCfgFiles() {
     if [[ -n "$( localFlocoCfg||:; )" ]]; then echo "$_l_floco_cfg"; fi
   } 2>/dev/null;
 }
+export -f flocoCfgFiles;
 
 
 # ---------------------------------------------------------------------------- #
@@ -179,6 +198,7 @@ end
 
   echo "$_floco_ref";
 }
+export -f flocoRef;
 
 
 # ---------------------------------------------------------------------------- #
@@ -193,6 +213,7 @@ nixSystem() {
   fi
   echo "$_nix_system";
 }
+export -f nixSystem;
 
 
 # ---------------------------------------------------------------------------- #
@@ -249,7 +270,7 @@ flocoCmd() {
   done
 
   : "${_dir:=$PWD}";
-  : "${_file:=${BASH_SOURCE[0]%/*}/../nix/common.nix}";
+  : "${_file:=$FLOCO_NIXDIR/common.nix}";
 
   # NOTE: for `nix eval' the `--arg[str]' options are ignored which is
   # incredibly obnoxious...
@@ -264,12 +285,14 @@ flocoCmd() {
 
   _l_floco_cfg="$_old_l_floco_cfg";
 }
+export -f flocoCmd;
 
 
 # ---------------------------------------------------------------------------- #
 
 flocoEval()  { flocoCmd eval "$@"; }
 flocoBuild() { flocoCmd build "$@"; }
+export -f flocoEval flocoBuild;
 
 
 # ---------------------------------------------------------------------------- #
@@ -288,6 +311,7 @@ mktmpAuto() {
   esac
   echo "$_f";
 }
+export -f mktmpAuto;
 
 
 # ---------------------------------------------------------------------------- #
@@ -296,6 +320,7 @@ commonCleanup() {
   rm -f "${_tmp_files[@]}";
   rm -rf "${_tmp_dirs[@]}";
 }
+export -f commonCleanup;
 
 declare -a cleanupHooks;
 cleanupHooks=( commonCleanup );
@@ -307,6 +332,7 @@ cleanup() {
     "$_hook";
   done
 }
+export -f cleanup;
 
 
 _es=0;
@@ -325,13 +351,12 @@ helpUrls() {
   echo "Matrix chat support room: \
 <https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org>";
 }
+export -f helpUrls;
 
 
 # ---------------------------------------------------------------------------- #
 
-# XXX: You must NOT export this variable, since subcommands will
-# not be passed definitions of functions defined here.
-_floco_cli_common_sourced=:;
+export _floco_cli_common_sourced=:;
 
 
 # ---------------------------------------------------------------------------- #

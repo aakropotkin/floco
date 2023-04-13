@@ -67,6 +67,11 @@ _nix_fmt() {
 
 # ---------------------------------------------------------------------------- #
 
+: "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}}";
+
+
+# ---------------------------------------------------------------------------- #
+
 # _nix_fmt_rewrite FILE...
 # ------------------------
 # Rewrite one or more files.
@@ -74,7 +79,7 @@ _nix_fmt_rewrite() {
   # For `mktmpAuto'.
   # shellcheck source-path=SCRIPTDIR
   # shellcheck source=./common.sh
-  . "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/common.sh}";
+  . "$FLOCO_LIBDIR/common.sh";
   local _tmpfile;
   #shellcheck disable=SC2119
   _tmpfile="$( mktmpAuto; )";
