@@ -249,7 +249,7 @@ flocoCmd() {
   done
 
   : "${_dir:=$PWD}";
-  : "${_file:=${BASH_SOURCE[0]%/*}/common.nix}";
+  : "${_file:=${BASH_SOURCE[0]%/*}/../nix/common.nix}";
 
   # NOTE: for `nix eval' the `--arg[str]' options are ignored which is
   # incredibly obnoxious...

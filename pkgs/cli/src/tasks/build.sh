@@ -1,9 +1,7 @@
 #! /usr/bin/env bash
-# -*- mode: sh; sh-shell: bash; -*-
 # ============================================================================ #
 #
-# Edit a trivial `*.nix' file, rewriting its contents, maybe applying
-# an expression.
+# Build a target on a module/package.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -14,27 +12,24 @@ set -o pipefail;
 # ---------------------------------------------------------------------------- #
 
 : "${_as_main=floco}";
-_as_sub='edit';
+_as_sub='build';
 _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="\
-Usage: $_as_me [OPTIONS]... [{-i|--in-place}] [{-a|--apply} EXPR] FILE
+_usage_msg="Usage: $_as_me [OPTIONS]... IDENT[@|/]VERSION \
+[TARGET] [-- FLOCO-CMD-ARGS]...
 
-Modify and rewrite a trivial Nix file.
+Build a target on a module/package.
 ";
 
 _help_msg="$_usage_msg
-FILE must be a trivial Nix file, i.e. an expression that evaluates to an
-attribute set, number, string, list, boolen, or null - NOT a function.
-
-If no \`--apply' option is given, the file is rewritten in its \"flat\"
-evaluated form.
+This available modules will include any \"global\" or \"user\" level
+declarations made in associated \`floco-cfg.{nix,json}' files if they exis.
+With that in mind, you may wish to avoid creating such declarations in
+global/user configs, or setting the ENV vars \`_[gu]_floco_cfg=null'.
 
 OPTIONS
-  -i,--in-place     Edit the file in-place, overwriting it.
-  -a,--apply EXPR   Apply EXPR to the file's contents.
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.
   -v,--version      Print version information to STDOUT.
@@ -76,7 +71,7 @@ usage() {
 
 # ---------------------------------------------------------------------------- #
 
-unset _EXPR _FILE _IN_PLACE;
+unset _IDENT _VERSION _TARGET;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -105,91 +100,99 @@ while [[ "$#" -gt 0 ]]; do
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
     -v|--version)  echo "$_version"; exit 0; ;;
-    -a|--apply)    _EXPR="$2"; shift; ;;
-    -i|--in-place) _IN_PLACE=:; ;;
+    -j|--json)     _JSON=:; ;;
+    -m|--more)     _MORE=:; ;;
     --) shift; break; ;;
     -?|--*)
-      echo "$_as_me: Unrecognized option: '$1'" >&2;
+      echo "$_as_me: Unrecognized option: '$1'." >&2;
       printf '\n' >&2;
       usage -f >&2;
       exit 1;
     ;;
+    [!@]*@*|@*/*@*)
+      _IDENT="${1%@*}";
+      _VERSION="${1##*@}";
+    ;;
+    [!@]*/*|@*/*/*)
+      _IDENT="${1%/*}";
+      _VERSION="${1##*/}";
+    ;;
     *)
-      if [[ -z "${_FILE:-}" ]]; then
-        _FILE="$1";
+      if [[ -n "${_IDENT:-}${_VERSION:-}" ]]; then
+        if [[ -z "${_TARGET:-}" ]]; then
+          _TARGET="$1";
+        else
+          echo "$_as_me: Unexpected argument(s) '$*'." >&2;
+          printf '\n' >&2;
+          usage -f >&2;
+          exit 1;
+        fi
+      elif [[ "$#" -lt 2 ]]; then
+        if [[ -z "${_TARGET:-}" ]]; then
+          case "$1" in
+            global|dist|prepared|built|lint|test|installed) _TARGET="$1"; ;;
+            *)
+              echo "$_as_me: Missing argument to indicate VERSION." >&2;
+              printf '\n' >&2;
+              usage -f >&2;
+              exit 1;
+            ;;
+          esac
+        else
+          echo "$_as_me: Missing argument to indicate VERSION." >&2;
+          printf '\n' >&2;
+          usage -f >&2;
+          exit 1;
+        fi
       else
-        echo "$_as_me: Unexpected argument(s) '$*'" >&2;
-        printf '\n' >&2;
-        usage -f >&2;
-        exit 1;
+        _IDENT="$1";
+        shift;
+        _VERSION="$1";
       fi
     ;;
   esac
   shift;
 done
 
-: "${_EXPR:=x: x}";
-: "${_IN_PLACE=}";
+: "${_TARGET:=global}";
 
-if [[ -z "${_FILE:-}" ]]; then
-  echo "$_as_me: Missing argument \`FILE'." >&2;
-  printf '\n' >&2;
-  usage >&2;
-  exit 1;
-fi
-
-if ! [[ -r "$_FILE" ]]; then
-  echo "$_as_me: Cannot read file \`$_FILE'." >&2;
-  exit 1;
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-case "$( $NIX eval --raw -f "$_FILE" --apply builtins.typeOf; )" in
-  set|bool|function|int|list|null|string)
-    :;
-  ;;
-  *)
-    echo "$_as_me: \`$_FILE' is not a trivial Nix file." >&2;
+if [[ -z "${_IDENT:-}" ]]; then
+  if [[ -r ./info.nix ]]; then
+    _IDENT="$( $NIX eval --raw -f ./info.nix ident; )";
+    _VERSION="$( $NIX eval --raw -f ./info.nix version; )";
+  elif [[ -r ./info.json ]]; then
+    _IDENT="$( $JQ -r '.ident' ./info.json; )";
+    _VERSION="$( $JQ -r '.version"' ./version.json; )";
+  elif [[ -r ./package.json ]]; then
+    _IDENT="$( $JQ -r '.name' ./package.json; )";
+    _VERSION="$( $JQ -r '.version // "0.0.0-0"' ./package.json; )";
+  else
+    echo "$_as_me: Missing argument \`IDENT'." >&2;
+    printf '\n' >&2;
+    usage >&2;
     exit 1;
-  ;;
-esac
+  fi
+fi
 
 
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=../common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+# shellcheck source=../lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
 
 
 # ---------------------------------------------------------------------------- #
 
-runEval() {
-  $NIX eval --raw -f "$_FILE" --apply "f: let
-    inherit (builtins.getFlake \"$( flocoRef; )\") lib;
-    blib = if lib ? prettyPrintEscaped then lib else lib // {
-      libfloco = lib.libfloco //
-        ( import ${BASH_SOURCE[0]%/*}/../util.nix { inherit lib; } );
-    };
-    r = ( $_EXPR ) f;
-    p = blib.libfloco.prettyPrintEscaped r;
-  in assert ! ( builtins.isFunction r ); p";
+runBuild() {
+  flocoBuild                                                        \
+    "${_NIX_ARGS[@]}" "$@"                                          \
+    "mod.config.floco.packages.\"$_IDENT\".\"$_VERSION\".$_TARGET"  \
+  ;
 }
 
-
-if [[ -n "$_IN_PLACE" ]]; then
-  # shellcheck disable=SC2119
-  _TFILE="$( mktmpAuto; )";
-  runEval > "$_TFILE";
-  mv "$_FILE" "$_FILE~";
-  mv "$_TFILE" "$_FILE";
-  echo "$_as_me: Rewrote file \`$_FILE' with backup \`$_FILE~'." >&2;
-else
-  runEval;
-fi
+runBuild "$@";
 
 
 # ---------------------------------------------------------------------------- #

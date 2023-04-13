@@ -100,8 +100,8 @@ run_test "linkedLocks"                                            \
 run_test "target override/extras"                                         \
   "$NIX" build -L --no-link -f "$SDIR/tests/modules/packages/overrides";
 
-run_test "shellcheck"                                           \
-  "$SHELLCHECK" -x "$SDIR/"{updaters,pkgs/cli/src/{,*/}}/*.sh;
+run_test "shellcheck"                                             \
+  "$SHELLCHECK" -x "$SDIR/"{updaters/*.sh,pkgs/cli/src/**/*.sh};
 
 run_test "floco show with extra config" "$SDIR/tests/cli/show-extra.sh";
 

@@ -2,7 +2,8 @@
 # -*- mode: sh; sh-shell: bash; -*-
 # ============================================================================ #
 #
-# List all known packages declared in a given directory.
+# Edit a trivial `*.nix' file, rewriting its contents, maybe applying
+# an expression.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -13,24 +14,27 @@ set -o pipefail;
 # ---------------------------------------------------------------------------- #
 
 : "${_as_main=floco}";
-_as_sub='list';
+_as_sub='edit';
 _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS]... [-- FLOCO-CMD-ARGS]...
+_usage_msg="\
+Usage: $_as_me [OPTIONS]... [{-i|--in-place}] [{-a|--apply} EXPR] FILE
 
-List all known packages declared in a given directory.
+Modify and rewrite a trivial Nix file.
 ";
 
 _help_msg="$_usage_msg
-This list will include any \"global\" or \"user\" level declarations made in
-associated \`floco-cfg.{nix,json}' files if they exis.
-With that in mind, you may wish to avoid creating such declarations in
-global/user configs, or setting the ENV vars \`_[gu]_floco_cfg=null'.
+FILE must be a trivial Nix file, i.e. an expression that evaluates to an
+attribute set, number, string, list, boolen, or null - NOT a function.
+
+If no \`--apply' option is given, the file is rewritten in its \"flat\"
+evaluated form.
 
 OPTIONS
-  -j,--json         Output a JSON list.
+  -i,--in-place     Edit the file in-place, overwriting it.
+  -a,--apply EXPR   Apply EXPR to the file's contents.
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.
   -v,--version      Print version information to STDOUT.
@@ -72,6 +76,8 @@ usage() {
 
 # ---------------------------------------------------------------------------- #
 
+unset _EXPR _FILE _IN_PLACE;
+
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     # Split short options such as `-abc' -> `-a -b -c'
@@ -99,7 +105,8 @@ while [[ "$#" -gt 0 ]]; do
     -u|--usage)    usage;    exit 0; ;;
     -h|--help)     usage -f; exit 0; ;;
     -v|--version)  echo "$_version"; exit 0; ;;
-    -j|--json)     _JSON=:; ;;
+    -a|--apply)    _EXPR="$2"; shift; ;;
+    -i|--in-place) _IN_PLACE=:; ;;
     --) shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
@@ -108,39 +115,81 @@ while [[ "$#" -gt 0 ]]; do
       exit 1;
     ;;
     *)
-      echo "$_as_me: Unexpected argument(s) '$*'" >&2;
-      printf '\n' >&2;
-      usage -f >&2;
-      exit 1;
+      if [[ -z "${_FILE:-}" ]]; then
+        _FILE="$1";
+      else
+        echo "$_as_me: Unexpected argument(s) '$*'" >&2;
+        printf '\n' >&2;
+        usage -f >&2;
+        exit 1;
+      fi
     ;;
   esac
   shift;
 done
+
+: "${_EXPR:=x: x}";
+: "${_IN_PLACE=}";
+
+if [[ -z "${_FILE:-}" ]]; then
+  echo "$_as_me: Missing argument \`FILE'." >&2;
+  printf '\n' >&2;
+  usage >&2;
+  exit 1;
+fi
+
+if ! [[ -r "$_FILE" ]]; then
+  echo "$_as_me: Cannot read file \`$_FILE'." >&2;
+  exit 1;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+case "$( $NIX eval --raw -f "$_FILE" --apply builtins.typeOf; )" in
+  set|bool|function|int|list|null|string)
+    :;
+  ;;
+  *)
+    echo "$_as_me: \`$_FILE' is not a trivial Nix file." >&2;
+    exit 1;
+  ;;
+esac
 
 
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=../common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+# shellcheck source=../lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
 
 
 # ---------------------------------------------------------------------------- #
 
-declare -a _JQ_ARGS;
-_JQ_ARGS=( '-r' );
-if [[ -z "${_JSON:-}" ]]; then
-  _JQ_ARGS+=( '.[]' );
-fi
+runEval() {
+  $NIX eval --raw -f "$_FILE" --apply "f: let
+    inherit (builtins.getFlake \"$( flocoRef; )\") lib;
+    blib = if lib ? prettyPrintEscaped then lib else lib // {
+      libfloco = lib.libfloco //
+        ( import ${BASH_SOURCE[0]%/*}/../nix/lib/util.nix { inherit lib; } );
+    };
+    r = ( $_EXPR ) f;
+    p = blib.libfloco.prettyPrintEscaped r;
+  in assert ! ( builtins.isFunction r ); p";
+}
 
-flocoEval --json "$@" mod.config.floco.pdefs --apply 'pdefs:
-builtins.concatLists ( builtins.attrValues ( builtins.mapAttrs ( ident: vs:
-  builtins.attrValues (
-    builtins.mapAttrs ( version: _: ident + "/" + version ) vs
-  )
-) pdefs ) )
-'|$JQ "${_JQ_ARGS[@]}";
+
+if [[ -n "$_IN_PLACE" ]]; then
+  # shellcheck disable=SC2119
+  _TFILE="$( mktmpAuto; )";
+  runEval > "$_TFILE";
+  mv "$_FILE" "$_FILE~";
+  mv "$_TFILE" "$_FILE";
+  echo "$_as_me: Rewrote file \`$_FILE' with backup \`$_FILE~'." >&2;
+else
+  runEval;
+fi
 
 
 # ---------------------------------------------------------------------------- #

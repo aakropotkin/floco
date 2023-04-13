@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-# Build a target on a module/package.
+# List all known packages declared in a given directory.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -12,24 +12,25 @@ set -o pipefail;
 # ---------------------------------------------------------------------------- #
 
 : "${_as_main=floco}";
-_as_sub='build';
+_as_sub='show';
 _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS]... IDENT[@|/]VERSION \
-[TARGET] [-- FLOCO-CMD-ARGS]...
+_usage_msg="Usage: $_as_me [OPTIONS]... IDENT[@|/]VERSION [-- FLOCO-CMD-ARGS]...
 
-Build a target on a module/package.
+Show a package definition ( \`pdef' record ).
 ";
 
 _help_msg="$_usage_msg
-This available modules will include any \"global\" or \"user\" level
-declarations made in associated \`floco-cfg.{nix,json}' files if they exis.
+This list will include any \"global\" or \"user\" level declarations made in
+associated \`floco-cfg.{nix,json}' files if they exis.
 With that in mind, you may wish to avoid creating such declarations in
 global/user configs, or setting the ENV vars \`_[gu]_floco_cfg=null'.
 
 OPTIONS
+  -m,--more         Show more details.
+  -j,--json         Output a JSON list.
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.
   -v,--version      Print version information to STDOUT.
@@ -71,7 +72,9 @@ usage() {
 
 # ---------------------------------------------------------------------------- #
 
-unset _IDENT _VERSION _TARGET;
+unset _IDENT _VERSION;
+_MORE=;
+_JSON=;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -119,31 +122,15 @@ while [[ "$#" -gt 0 ]]; do
     ;;
     *)
       if [[ -n "${_IDENT:-}${_VERSION:-}" ]]; then
-        if [[ -z "${_TARGET:-}" ]]; then
-          _TARGET="$1";
-        else
-          echo "$_as_me: Unexpected argument(s) '$*'." >&2;
-          printf '\n' >&2;
-          usage -f >&2;
-          exit 1;
-        fi
+        echo "$_as_me: Unexpected argument(s) '$*'." >&2;
+        printf '\n' >&2;
+        usage -f >&2;
+        exit 1;
       elif [[ "$#" -lt 2 ]]; then
-        if [[ -z "${_TARGET:-}" ]]; then
-          case "$1" in
-            global|dist|prepared|built|lint|test|installed) _TARGET="$1"; ;;
-            *)
-              echo "$_as_me: Missing argument to indicate VERSION." >&2;
-              printf '\n' >&2;
-              usage -f >&2;
-              exit 1;
-            ;;
-          esac
-        else
-          echo "$_as_me: Missing argument to indicate VERSION." >&2;
-          printf '\n' >&2;
-          usage -f >&2;
-          exit 1;
-        fi
+        echo "$_as_me: Missing argument to indicate VERSION." >&2;
+        printf '\n' >&2;
+        usage -f >&2;
+        exit 1;
       else
         _IDENT="$1";
         shift;
@@ -153,8 +140,6 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift;
 done
-
-: "${_TARGET:=global}";
 
 if [[ -z "${_IDENT:-}" ]]; then
   if [[ -r ./info.nix ]]; then
@@ -179,20 +164,49 @@ fi
 
 # Load common helpers
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=../common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+# shellcheck source=../lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
 
 
 # ---------------------------------------------------------------------------- #
 
-runBuild() {
-  flocoBuild                                                        \
-    "${_NIX_ARGS[@]}" "$@"                                          \
-    "mod.config.floco.packages.\"$_IDENT\".\"$_VERSION\".$_TARGET"  \
+_NIX_APPLY=;
+if [[ -n "${_MORE:-}" ]]; then
+  _NIX_APPLY='pdef: let
+    r = removeAttrs pdef [
+      "sourceInfo" "_export" "metaFiles" "deserialized"
+    ];
+    noFilter = r // {
+      fetchInfo = removeAttrs r.fetchInfo ["filter"];
+    };
+  in if ! ( r ? fetchInfo.filter ) then r else
+     builtins.trace "WARNING: Omitting `fetchInfo.filter'"'"'." noFilter
+  ';
+else
+  _NIX_APPLY='pdef: pdef._export';
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+runShow() {
+  flocoEval                                             \
+    "${_NIX_ARGS[@]}" "$@"                              \
+    "mod.config.floco.pdefs.\"$_IDENT\".\"$_VERSION\""  \
+    --apply "$_NIX_APPLY"                               \
   ;
 }
 
-runBuild "$@";
+if [[ -n "${_JSON:-}" ]]; then
+  runShow --json "$@"|$JQ;
+else
+  _rdir="${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
+  _rdir="${_rdir%/*}";
+  # shellcheck source-path=SCRIPTDIR
+  # shellcheck source=../lib/fmt.sh
+  . "$_rdir/lib/fmt.sh";
+  runShow "$@"|_nix_fmt;
+fi
 
 
 # ---------------------------------------------------------------------------- #
