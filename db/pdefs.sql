@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS pdefs (
 , fsInfo_gypfile     BOOLEAN
 , fsInfo_shrinkwrap  BOOLEAN
 
-, sysInfo_cpu      JSON DEFAULT '["*"]'
-, sysInfo_os       JSON DEFAULT '["*"]'
+, sysInfo_cpu  JSON DEFAULT '["*"]'
+, sysInfo_os   JSON DEFAULT '["*"]'
 );
 
 
@@ -61,19 +61,6 @@ CREATE INDEX peerInfoIndex ON peerInfoEnts( parent );
 
 -- -------------------------------------------------------------------------- --
 
-CREATE TABLE IF NOT EXISTS treeInfoEnts (
-  treeId    INTEGER               NOT NULL
-, path      TEXT                  NOT NULL
-, key       TEXT                  NOT NULL
-, link      BOOLEAN DEFAULT FALSE NOT NULL
-, dev       BOOLEAN DEFAULT TRUE  NOT NULL
-, optional  BOOLEAN DEFAULT FALSE NOT NULL
-, PRIMARY KEY ( treeId, path )
-);
-
-
--- -------------------------------------------------------------------------- --
-
 CREATE TABLE IF NOT EXISTS sysInfoEngineEnts(
   parent TEXT NOT NULL
 , id     TEXT NOT NULL
@@ -98,7 +85,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
 , json_object( 'binDir',   p.binInfo_binDir
              , 'binPairs', json( p.binInfo_binPairs ) )
   -- depInfo
-, iif( ( COUNT( di.ident ) <= 0 ), json( '{}' )
+, iif( ( COUNT( di.ident ) <= 0 ), json_object()
      , json_group_object(
          di.ident
        , json_object(
@@ -109,7 +96,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
          , 'bundled',    iif( di.bundled,  json( 'true' ), json( 'false' ) )
          ) ) )
   -- peerInfo
-, iif( ( COUNT( pi.ident ) <= 0 ), json( '{}' )
+, iif( ( COUNT( pi.ident ) <= 0 ), json_object()
      , json_group_object(
          pi.ident
        , json_object(
@@ -125,7 +112,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
 , json_object(
     'cpu',     json( p.sysInfo_cpu )
   , 'os',      json( p.sysInfo_os )
-  , 'engines', iif( ( COUNT( sie.id ) <= 0 ), json( '{}' )
+  , 'engines', iif( ( COUNT( sie.id ) <= 0 ), json_object()
                   , json_group_object( sie.id, sie.value )
                   ) )
 FROM pdefs p
