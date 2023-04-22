@@ -64,8 +64,8 @@ ENVIRONMENT
 export GREP HEAD JQ MKTEMP NIX REALPATH;
 
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=./common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/common.sh}";
+# shellcheck source=./lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/lib/common.sh}";
 
 
 # ---------------------------------------------------------------------------- #
@@ -126,12 +126,12 @@ while [[ "$#" -gt 0 ]]; do
       fi
       shift;
       case "$1" in
-        build)              "$SDIR/build/build-target.sh" --help; ;;
-        list)               "$SDIR/list/list-pdefs.sh" --help; ;;
-        show)               "$SDIR/show/show-pdefs.sh" --help; ;;
+        build)              "$SDIR/tasks/build.sh" --help; ;;
+        list)               "$SDIR/tasks/list.sh" --help; ;;
+        show)               "$SDIR/tasks/show.sh" --help; ;;
         # TODO: merge `from-plock.sh' and `from-registry.sh'
-        translate|trans|x)  "$SDIR/translate/from-plock.sh" --help; ;;
-        edit)               "$SDIR/nix-edit/edit.sh"   --help; ;;
+        translate|trans|x)  "$SDIR/tasks/translate-plock.sh" --help; ;;
+        edit)               "$SDIR/tasks/edit.sh"   --help; ;;
         *)
           echo "$_as_me help: Unrecognized subcommand: \`$2'." >&2;
           printf '\n' >&2;
@@ -145,17 +145,17 @@ while [[ "$#" -gt 0 ]]; do
 
     list)
       shift;
-      exec "$SDIR/list/list-pdefs.sh" "$@";
+      exec "$SDIR/tasks/list.sh" "$@";
     ;;
 
     build)
       shift;
-      exec "$SDIR/build/build-target.sh" "$@";
+      exec "$SDIR/tasks/build.sh" "$@";
     ;;
 
     show)
       shift;
-      exec "$SDIR/show/show-pdefs.sh" "$@";
+      exec "$SDIR/tasks/show.sh" "$@";
     ;;
 
     translate|trans|x)
@@ -177,15 +177,15 @@ while [[ "$#" -gt 0 ]]; do
         esac
       done
       if [[ -n "${isLocal:-}" ]]; then
-        exec "$SDIR/translate/from-plock.sh" "$@";
+        exec "$SDIR/tasks/translate-plock.sh" "$@";
       else
-        exec "$SDIR/translate/from-registry.sh" "$@";
+        exec "$SDIR/tasks/translate-registry.sh" "$@";
       fi
     ;;
 
     edit)
       shift;
-      exec "$SDIR/nix-edit/edit.sh" "$@";
+      exec "$SDIR/tasks/edit.sh" "$@";
     ;;
 
     *)

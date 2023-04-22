@@ -12,22 +12,20 @@ set -o pipefail;
 # ---------------------------------------------------------------------------- #
 
 : "${_as_main=floco}";
-_as_sub='translate plock';
+_as_sub='translate registry';
 _as_me="$_as_main $_as_sub";
 
 : "${_version:=0.1.0}";
 
-_usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
+_usage_msg="Usage: \
+$_as_me [OPTIONS...] IDENT[@DESCRIPTOR=latest] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
-Create or update a \`pdefs.nix' file using a \`package-lock.json' v3 provided
-by \`npm'.
+Create or update a \`pdefs.nix' file from a registry package.
 ";
 
 _help_msg="$_usage_msg
 
-This script will trash any existing \`node_modules/' trees, and if a
-\`package-lock.json' file already exists, it will be backed up and restored
-on exit to ensure that it is unmodified by this script.
+Dev. dependencies will be omitted from generated definitions.
 
 Options:
   -t,--tree           Include \`treeInfo' for the root package.
@@ -35,11 +33,6 @@ Options:
   -p,--pins           Include \`<pdef>.depInfo.*.pin' info.
   -P,--no-pins        Omit \`<pdef>.depInfo.*.pin' info.
   -d,--debug          Show \`nix' backtraces.
-  -l,--lock-dir PATH  Path to directory containing \`package[-lock].json'.
-                      This directory must contain a \`package.json', but need
-                      not
-                      contain a \`package-lock.json'.
-                      Defaults to current working directory.
   -o,--out-file PATH  Path to write generated \`pdef' records.
                       Defaults to \`<LOCK-DIR>/pdefs.nix'.
                       If the outfile already exists, it may be used to optimize
@@ -125,7 +118,6 @@ while [[ "$#" -gt 0 ]]; do
     -p|--pins|--pin)                        PINS=:; ;;
     -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
     -d|--debug)                             DEBUG=:; ;;
-    -l|--lock-dir|--lockdir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
     -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
     -j|--json)               JSON=:; ;;
@@ -135,13 +127,19 @@ while [[ "$#" -gt 0 ]]; do
     --)                      shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'" >&2;
+      echo '' >&2;
       usage -f >&2;
       exit 1;
     ;;
     *)
-      echo "$_as_me: Unexpected argument(s) '$*'" >&2;
-      usage -f >&2;
-      exit 1;
+      if [[ -z "${PKG:-}" ]]; then
+        PKG="$1";
+      else
+        echo "$_as_me: Unexpected argument(s) '$*'" >&2;
+        echo '' >&2;
+        usage -f >&2;
+        exit 1;
+      fi
     ;;
   esac
   shift;
@@ -152,11 +150,11 @@ done
 
 # Load common helpers
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=../common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../common.sh}";
+# shellcheck source=../lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=../nix-edit/fmt.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../nix-edit/fmt.sh}";
+# shellcheck source=../lib/fmt.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/fmt.sh}";
 
 
 # ---------------------------------------------------------------------------- #
@@ -182,19 +180,25 @@ else
   FLOCO_REF="$( flocoRef; )";
 fi
 
-: "${LOCKDIR:=$PWD}";
 : "${JSON=}";
 : "${NO_BACKUP=}";
 : "${TREE=:}";
 : "${PINS=}";
 : "${DEBUG=}";
 
+if [[ -z "${PKG:-}" ]]; then
+  echo "$_as_me: You must provide the name of a package." >&2;
+  echo '' >&2;
+  usage >&2;
+  exit 1;
+fi
+
 
 if [[ -z "${OUTFILE:-}" ]]; then
   if [[ -z "$JSON" ]]; then
-    OUTFILE="$LOCKDIR/pdefs.nix";
+    OUTFILE="$PWD/pdefs.nix";
   else
-    OUTFILE="$LOCKDIR/pdefs.json";
+    OUTFILE="$PWD/pdefs.json";
   fi
 fi
 
@@ -205,15 +209,15 @@ declare -a oldFiles;
 oldFiles=();
 
 for f in {pdefs,foverrides}.{nix,json}; do
-  if [[ -r "$LOCKDIR/$f" ]]; then
-    oldFiles+=( "$LOCKDIR/$f~" );
-    if [[ "$OUTFILE" = "$LOCKDIR/$f" ]]; then
+  if [[ -r "$PWD/$f" ]]; then
+    oldFiles+=( "$PWD/$f~" );
+    if [[ "$OUTFILE" = "$PWD/$f" ]]; then
       echo "$_as_me: Backing up existing \`${OUTFILE##*/}' to \`$OUTFILE~'" >&2;
       cp -p -- "$OUTFILE" "$OUTFILE~";
     else
-      echo "$_as_me: Stashing file to avoid conflicts: \`$LOCKDIR/$f'" >&2;
-      mv -- "$LOCKDIR/$f" "$LOCKDIR/$f~";
-      echo '{}' > "$LOCKDIR/$f";
+      echo "$_as_me: Stashing file to avoid conflicts: \`$PWD/$f'" >&2;
+      mv -- "$PWD/$f" "$PWD/$f~";
+      echo '{}' > "$PWD/$f";
     fi
   fi
 done
@@ -221,52 +225,15 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-# Lint target package for stuff that will trip up attempts to generate `pdefs'.
-if [[ "$( $JQ -r '.name // null' "$LOCKDIR/package.json"; )" = 'null' ]]; then
-  echo "$_as_me: target package is unnamed. name it you dingus." >&2;
-  exit 1;
-fi
-
-if [[ "$( $JQ -r '.version // null' "$LOCKDIR/package.json"; )" = 'null' ]];
-then
-  echo "$_as_me: target package is unversioned. version it you dangus." >&2;
-  exit 1;
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-# Backup existing lockfile if one exists
-if [[ -r "$LOCKDIR/package-lock.json" ]]; then
-  printf '%s' "$_as_me: backup up existing \`package-lock.json' to "  \
-              "\`$LOCKDIR/package-lock.json~'" >&2;
-  echo '' >&2;
-  cp -p -- "$LOCKDIR/package-lock.json" "$LOCKDIR/package-lock.json~";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-if [[ -d "$LOCKDIR/node_modules" ]]; then
-  echo "$_as_me: deleting \`$LOCKDIR/node_modules' to avoid pollution" >&2;
-  rm -rf "$LOCKDIR/node_modules";
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
+LOCKDIR="$( mktmpAuto -d; )";
 pushd "$LOCKDIR" >/dev/null;
 
 
 # ---------------------------------------------------------------------------- #
 
 cleanup() {
-  if [[ -r "$LOCKDIR/package-lock.json~" ]]; then
-    echo "$_as_me: Restoring original \`package-lock.json'." >&2;
-    mv -- "$LOCKDIR/package-lock.json~" "$LOCKDIR/package-lock.json";
-  else
-    rm -f "$LOCKDIR/package-lock.json";
-  fi
+  popd >/dev/null;
+  rm -rf "$LOCKDIR";
   if [[ ( -n "$NO_BACKUP" ) && ( -r "$OUTFILE~" ) ]]; then
     echo "$_as_me: Deleting backup \`$OUTFILE'." >&2;
     rm -f "$OUTFILE~";
@@ -319,15 +286,29 @@ exit "$_es";
 
 # ---------------------------------------------------------------------------- #
 
+# `npm' renamed this flag in v9.x
+case "$( $NPM --version; )" in
+  9.*) STRATEGY_FLAG='--install-strategy=shallow'; ;;
+  *)   STRATEGY_FLAG='--global-style'; ;;
+esac
+
+
+# ---------------------------------------------------------------------------- #
+
+echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
+
 {
   $NPM install            \
+    --save                \
     --package-lock-only   \
     --ignore-scripts      \
     --lockfile-version=3  \
     --no-audit            \
     --no-fund             \
     --no-color            \
+    "$STRATEGY_FLAG"      \
     "$@"                  \
+    "$PKG"                \
   ;
 } >&2;
 
@@ -351,12 +332,13 @@ fi
 #shellcheck disable=SC2119
 OUTFILE_TMP="$( mktmpAuto; )";
 
-flocoEval                                  \
-  --no-substitute                          \
-  "${_NIX_FLAGS[@]}"                       \
-  --apply 'f: f {}'                        \
-  -f "${BASH_SOURCE[0]%/*}/fromPlock.nix"  \
-  > "$OUTFILE_TMP";
+flocoEval                                            \
+  --no-substitute                                    \
+  "${_NIX_FLAGS[@]}"                                 \
+  --apply 'f: f {}'                                  \
+  -f "${BASH_SOURCE[0]%/*}/../nix/fromRegistry.nix"  \
+  > "$OUTFILE_TMP"                                   \
+;
 
 
 # ---------------------------------------------------------------------------- #
@@ -365,14 +347,18 @@ flocoEval                                  \
 # post-process a bit to add quotes.
 
 if [[ -z "$JSON" ]]; then
-  _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+  if [[ "$OUTFILE" = '/dev/stdout' ]]; then
+    _nix_keyword_escape "$OUTFILE_TMP";
+  else
+    _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+  fi
 else
-  $JQ . "$OUTFILE_TMP" > "$OUTFILE";
+  if [[ "$OUTFILE" = '/dev/stdout' ]]; then
+    $JQ . "$OUTFILE_TMP";
+  else
+    $JQ . "$OUTFILE_TMP" > "$OUTFILE";
+  fi
 fi
-
-
-# ---------------------------------------------------------------------------- #
-
 
 
 # ---------------------------------------------------------------------------- #

@@ -6,8 +6,8 @@
 # ---------------------------------------------------------------------------- #
 
 # shellcheck source-path=SCRIPTDIR
-# shellcheck source=./common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/common.sh}";
+# shellcheck source=../src/lib/common.sh
+. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../src/lib/common.sh}";
 
 # ---------------------------------------------------------------------------- #
 

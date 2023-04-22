@@ -24,17 +24,27 @@ in stdenv.mkDerivation {
   dontConfigure     = true;
   dontBuild         = true;
   installPhase      = ''
-    mkdir -p "$out/bin" "$out/share/zsh/site-functions" "$out/libexec";
+    mkdir -p                           \
+      "$out/bin"                       \
+      "$out/share/floco"               \
+      "$out/share/zsh/site-functions"  \
+    ;
+    mv ./libexec "$out/libexec";
+
     mv ./completion/zsh/_floco "$out/share/zsh/site-functions/";
     rm -rf ./completion;
-    rm -f ./test-common.sh;
-    mv * "$out/libexec";
+
+    mv * "$out/share/floco/";
+
+    cp -r -- ${builtins.path { path = ../../lib; }}/*  \
+             "$out/share/floco/nix/lib/";
+
     makeShellWrapper                                              \
-      "$out/libexec/main.sh"                                      \
+      "$out/share/floco/main.sh"                                  \
       "$out/bin/floco"                                            \
       --prefix PATH : "${lib.makeBinPath propagatedBuildInputs}"  \
+      --suffix PATH : "$out/libexec"                              \
     ;
-    cp -r -- ${builtins.path { path = ../../lib; }}/* "$out/libexec/lib/";
    '';
   inherit propagatedBuildInputs;
 }

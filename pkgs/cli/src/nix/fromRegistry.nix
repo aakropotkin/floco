@@ -6,7 +6,7 @@
 
 let
 
-  impure = import ../lib/impure.nix;
+  impure = import ./lib/impure.nix;
 
 in {
   system       ? impure.system
