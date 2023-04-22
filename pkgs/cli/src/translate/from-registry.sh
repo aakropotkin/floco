@@ -105,12 +105,19 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
+    -o|--out-file|--outfile)
+      if [[ "$2" = '-' ]]; then
+        OUTFILE='/dev/stdout';
+      else
+        OUTFILE="$( $REALPATH "$2"; )";
+      fi
+      shift;
+    ;;
     -t|--tree)                              TREE=:; ;;
     -T|--no-tree|--notree)                  TREE=; ;;
     -p|--pins|--pin)                        PINS=:; ;;
     -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
     -d|--debug)                             DEBUG=:; ;;
-    -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
     -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
     -j|--json)               JSON=:; ;;
@@ -244,7 +251,7 @@ cleanup() {
 
 bail() {
   echo "$_as_me: Encountered an error. Restoring backup files." >&2;
-  rm -f "$OUTFILE";
+  if [[ "$OUTFILE" != '/dev/stdout' ]]; then rm -f "$OUTFILE"; fi
   if [[ -r "$OUTFILE~" ]]; then
     echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
     mv -- "$OUTFILE~" "$OUTFILE";
@@ -290,18 +297,20 @@ esac
 
 echo '{"name":"@floco/phony","version":"0.0.0-0"}' > ./package.json;
 
-$NPM install            \
-  --save                \
-  --package-lock-only   \
-  --ignore-scripts      \
-  --lockfile-version=3  \
-  --no-audit            \
-  --no-fund             \
-  --no-color            \
-  "$STRATEGY_FLAG"      \
-  "$@"                  \
-  "$PKG"                \
-;
+{
+  $NPM install            \
+    --save                \
+    --package-lock-only   \
+    --ignore-scripts      \
+    --lockfile-version=3  \
+    --no-audit            \
+    --no-fund             \
+    --no-color            \
+    "$STRATEGY_FLAG"      \
+    "$@"                  \
+    "$PKG"                \
+  ;
+} >&2;
 
 
 # ---------------------------------------------------------------------------- #
@@ -337,9 +346,17 @@ flocoEval                                     \
 # post-process a bit to add quotes.
 
 if [[ -z "$JSON" ]]; then
-  _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+  if [[ "$OUTFILE" = '/dev/stdout' ]]; then
+    _nix_keyword_escape "$OUTFILE_TMP";
+  else
+    _nix_keyword_escape "$OUTFILE_TMP" > "$OUTFILE";
+  fi
 else
-  $JQ . "$OUTFILE_TMP" > "$OUTFILE";
+  if [[ "$OUTFILE" = '/dev/stdout' ]]; then
+    $JQ . "$OUTFILE_TMP";
+  else
+    $JQ . "$OUTFILE_TMP" > "$OUTFILE";
+  fi
 fi
 
 

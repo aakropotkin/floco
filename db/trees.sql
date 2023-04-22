@@ -66,12 +66,12 @@ INSERT OR REPLACE INTO treeInfoEnts( treeId, path, key ) VALUES
 CREATE VIEW IF NOT EXISTS v_TreeInfoJSONV( treeId, info, JSON ) AS SELECT
   t.treeId
 , json_object(
-    'parent',    t.parent
-  , 'dev',       iif( t.dev,      json( 'true' ), json( 'false' ) )
-  , 'optional',  iif( t.optional, json( 'true' ), json( 'false' ) )
-  , 'os',        json( t.os )
-  , 'cpu',       json( t.cpu )
-  , 'engines',   json( t.engines )
+    'parent',   t.parent
+  , 'dev',      iif( t.dev,      json( 'true' ), json( 'false' ) )
+  , 'optional', iif( t.optional, json( 'true' ), json( 'false' ) )
+  , 'os',       json( t.os )
+  , 'cpu',      json( t.cpu )
+  , 'engines',  json( t.engines )
   )
 , json_group_object( e.path, (
   SELECT json( JSON ) FROM v_TreeEntJSONF ej
