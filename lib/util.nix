@@ -202,6 +202,57 @@
 
 # ---------------------------------------------------------------------------- #
 
+  pdefToSQL = pdef: let
+    bts = b: if b then "TRUE" else "FALSE";
+    dev = di: de: ''
+      ( '${pdef.key}', '${di}', '${de.descriptor}'
+      , ${bts de.runtime}, ${bts de.dev}, ${bts de.optional}
+      , ${bts de.bundled} )
+    '';
+    devs = builtins.attrValues ( builtins.mapAttrs dev pdef.depInfo );
+    de   = if pdef.depInfo == {} then "" else ''
+      INSERT OR REPLACE INTO depInfoEnts (
+       key, ident, descriptor, runtime, dev, optional, bundled
+      ) VALUES
+    '' + ( builtins.concatStringsSep ", " devs ) + ";";
+
+    pev  = pi: pe: ''
+      ( '${pdef.key}', '${pi}', '${pe.descriptor}', ${bts pe.optional} )
+    '';
+    pevs = builtins.attrValues ( builtins.mapAttrs dev pdef.peerInfo );
+    pe   = if pdef.peerInfo == {} then "" else ''
+      INSERT OR REPLACE INTO peerInfoEnts (
+       key, ident, descriptor, optional
+      ) VALUES
+    '' + ( builtins.concatStringsSep ", " pevs ) + ";";
+
+    sev  = id: value: "( '${id}', '${value}' )";
+    sevs = builtins.attrValues ( builtins.mapAttrs sev pdef.sysInfo.engines );
+    se   = if pdef.sysInfo.engines == {} then "" else
+      "INSERT OR REPLACE INTO sysInfoEngineEnts ( id, value ) VALUES" +
+      ( builtins.concatStringsSep ", " sevs ) + ";";
+  in ''
+      INSERT OR REPLACE INTO pdefs (
+        key, ident, version, ltype, fetcher, fetchInfo
+      , lifecycle_build, lifecycle_install
+      , binInfo_binDir, binInfo_binPairs
+      , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
+      , sysInfo_cpu, sysInfo_os
+      ) VALUES (
+        '${pdef.key}', '${pdef.ident}', '${pdef.version}', '${pdef.ltype}'
+      , '${pdef.fetcher}', '${builtins.toJSON pdef.fetchInfo}'
+      , ${bts pdef.lifecycle.build}, ${bts pdef.lifecycle.install}
+      , '${pdef.fsInfo.dir}', ${bts pdef.fsInfo.gypfile}
+      , ${bts pdef.fsInfo.shrinkwrap}
+      , '${builtins.toJSON pdef.sysInfo.cpu}'
+      , '${builtins.toJSON pdef.sysInfo.os}'
+      );
+    '' + de + pe + se;
+
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
 # ---------------------------------------------------------------------------- #
@@ -225,6 +276,8 @@ in {
     supportedSystems
     eachSupportedSystemMap
     runFloco
+
+    pdefToSQL
   ;
 
 
