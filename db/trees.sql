@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS treeInfoEnts (
 
 -- -------------------------------------------------------------------------- --
 
-CREATE VIEW IF NOT EXISTS v_TreeEntJSONV ( path, JSON ) AS
+CREATE VIEW IF NOT EXISTS v_TreeEntJSONF ( path, JSON ) AS
 SELECT path, json_object(
   'key',      e.key
 , 'dev',      iif( e.dev,      json( 'true' ), json( 'false' ) )
@@ -46,7 +46,41 @@ SELECT path, json_object(
 INSERT OR REPLACE INTO treeInfo( parent ) VALUES ( 'pacote/13.3.0' );
 
 INSERT OR REPLACE INTO treeInfoEnts( treeId, path, key ) VALUES
-( ( SELECT treeId FROM treeInfo LIMIT 1 ), '', 'lodash/4.17.21' );
+  ( ( SELECT treeId FROM treeInfo LIMIT 1 ), '', 'pacote/13.3.0' )
+, ( ( SELECT treeId FROM treeInfo LIMIT 1 )
+  , 'node_modules/lodash', 'lodash/4.17.21' )
+;
+
+
+-- -------------------------------------------------------------------------- --
+
+-- SQL -> JSON
+-- -----------
+-- Just the tree:
+--   $ sqlite3 <DB> 'SELECT JSON from v_TreeInfoJSONV'|jq [-s];
+--
+-- With Info:
+--   $ sqlite3 ./ti.db "SELECT json_object( 'id', treeId, 'info', json( info )
+--                                        , 'tree', json( JSON ) )
+--                      FROM v_TreeInfoJSONV"|jq [-s];
+CREATE VIEW IF NOT EXISTS v_TreeInfoJSONV( treeId, info, JSON ) AS SELECT
+  t.treeId
+, json_object(
+    'parent',    t.parent
+  , 'dev',       iif( t.dev,      json( 'true' ), json( 'false' ) )
+  , 'optional',  iif( t.optional, json( 'true' ), json( 'false' ) )
+  , 'os',        json( t.os )
+  , 'cpu',       json( t.cpu )
+  , 'engines',   json( t.engines )
+  )
+, json_group_object( e.path, (
+  SELECT json( JSON ) FROM v_TreeEntJSONF ej
+  WHERE e.path = ej.path
+  ORDER BY ej.path
+) ) FROM treeInfo t
+    LEFT JOIN treeInfoEnts e
+    ON t.treeId = e.treeId
+    GROUP BY t.treeId;
 
 
 -- -------------------------------------------------------------------------- --
