@@ -92,7 +92,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
   p.key, p.ident, p.version, p.ltype, p.fetcher, json( p.fetchInfo )
   -- lifecycle
 , json_object(
-    'build',   iif( p.lifecycle_build, json( 'true' ), json( 'false' ) )
+    'build',   iif( p.lifecycle_build,   json( 'true' ), json( 'false' ) )
   , 'install', iif( p.lifecycle_install, json( 'true' ), json( 'false' ) ) )
   -- binInfo
 , json_object( 'binDir',   p.binInfo_binDir
@@ -103,10 +103,10 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
          di.ident
        , json_object(
            'descriptor', di.descriptor
-         , 'runtime',    iif( di.runtime, json( 'true' ), json( 'false' ) )
-         , 'dev',        iif( di.dev, json( 'true' ), json( 'false' ) )
+         , 'runtime',    iif( di.runtime,  json( 'true' ), json( 'false' ) )
+         , 'dev',        iif( di.dev,      json( 'true' ), json( 'false' ) )
          , 'optional',   iif( di.optional, json( 'true' ), json( 'false' ) )
-         , 'bundled',    iif( di.bundled, json( 'true' ), json( 'false' ) )
+         , 'bundled',    iif( di.bundled,  json( 'true' ), json( 'false' ) )
          ) ) )
   -- peerInfo
 , iif( ( COUNT( pi.ident ) <= 0 ), json( '{}' )
@@ -119,7 +119,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONV (
   -- fsInfo
 , json_object(
     'dir',        p.fsInfo_dir
-  , 'gypfile',    iif( p.fsInfo_gypfile, json( 'true' ), json( 'false' ) )
+  , 'gypfile',    iif( p.fsInfo_gypfile,    json( 'true' ), json( 'false' ) )
   , 'shrinkwrap', iif( p.fsInfo_shrinkwrap, json( 'true' ), json( 'false' ) ) )
   -- sysInfo
 , json_object(
@@ -152,7 +152,7 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONF ( key, JSON ) AS SELECT key, json_object(
 , 'peerInfo',  json( p.peerInfo )
 , 'fsInfo',    json( p.fsInfo )
 , 'sysInfo',   json( p.sysInfo )
-) FROM v_PdefsJSONV p;
+) FROM v_PdefsJSONV p ORDER BY p.key;
 
 
 -- -------------------------------------------------------------------------- --
