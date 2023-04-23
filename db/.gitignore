@@ -1,1 +1,6 @@
 *.db
+*.csv
+*.json
+pdefs.nix
+floco-cfg.nix
+foverrides.nix

@@ -43,17 +43,6 @@ SELECT path, json_object(
 
 -- -------------------------------------------------------------------------- --
 
-INSERT OR REPLACE INTO treeInfo( parent ) VALUES ( 'pacote/13.3.0' );
-
-INSERT OR REPLACE INTO treeInfoEnts( treeId, path, key ) VALUES
-  ( ( SELECT treeId FROM treeInfo LIMIT 1 ), '', 'pacote/13.3.0' )
-, ( ( SELECT treeId FROM treeInfo LIMIT 1 )
-  , 'node_modules/lodash', 'lodash/4.17.21' )
-;
-
-
--- -------------------------------------------------------------------------- --
-
 -- SQL -> JSON
 -- -----------
 -- Just the tree:
