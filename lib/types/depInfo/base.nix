@@ -24,7 +24,6 @@
     options = {
 
       descriptor = lib.libfloco.mkDescriptorOption;
-      pin        = lib.libfloco.mkPinOption;
 
       optional = lib.mkOption {
         description =  lib.mdDoc ''

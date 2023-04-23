@@ -69,7 +69,7 @@ in {
                 `depInfo.<IDENT>` submodules/members.
               '';
               type    = nt.coercedTo nt.raw lib.toList ( nt.listOf nt.raw );
-              default = [];
+              default = [../../lib/types/depInfo/pin.nix];
             };
 
             options.deferred = lib.mkOption {

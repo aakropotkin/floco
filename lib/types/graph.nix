@@ -100,10 +100,12 @@
   graphNodeInterfaceDeferred = {
     freeformType = nt.attrsOf nt.anything;
     options      = {
-      ident     = lib.libfloco.mkIdentOption;
-      version   = lib.libfloco.mkVersionOption;
-      key       = lib.libfloco.mkKeyOption;
-      depInfo   = lib.libfloco.mkDepInfoBaseOption;
+      ident    = lib.libfloco.mkIdentOption;
+      version  = lib.libfloco.mkVersionOption;
+      key      = lib.libfloco.mkKeyOption;
+      depInfo  = lib.libfloco.mkDepInfoBaseOptionWith {
+        extraEntryModules = [./depInfo/pin.nix];
+      };
       peerInfo  = lib.libfloco.mkPeerInfoBaseOption;
       path      = lib.libfloco.mkTreePathOption;
       isRoot    = lib.mkOption { type = nt.bool; };
