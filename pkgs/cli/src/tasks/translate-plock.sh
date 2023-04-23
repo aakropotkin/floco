@@ -112,13 +112,20 @@ while [[ "$#" -gt 0 ]]; do
       unset _arg;
       continue;
     ;;
+    -o|--out-file|--outfile)
+      if [[ "$2" = '-' ]]; then
+        OUTFILE='/dev/stdout';
+      else
+        OUTFILE="$( $REALPATH "$2"; )";
+      fi
+      shift;
+    ;;
     -t|--tree)                              TREE=:; ;;
     -T|--no-tree|--notree)                  TREE=; ;;
     -p|--pins|--pin)                        PINS=:; ;;
     -P|--no-pins|--no-pin|--nopins|--nopin) PINS=; ;;
     -d|--debug)                             DEBUG=:; ;;
     -l|--lock-dir|--lockdir) LOCKDIR="$( $REALPATH "$2"; )"; shift; ;;
-    -o|--out-file|--outfile) OUTFILE="$( $REALPATH "$2"; )"; shift; ;;
     -B|--no-backup)          NO_BACKUP=:; ;;
     -c|--config)             FLOCO_CONFIG="$2"; shift; ;;
     -j|--json)               JSON=:; ;;
@@ -277,7 +284,7 @@ cleanup() {
 
 bail() {
   echo "$_as_me: Encountered an error. Restoring backup files." >&2;
-  rm -f "$OUTFILE";
+  if [[ "$OUTFILE" != '/dev/stdout' ]]; then rm -f "$OUTFILE"; fi
   if [[ -r "$OUTFILE~" ]]; then
     echo "$_as_me: Restoring backup \`$OUTFILE'." >&2;
     mv -- "$OUTFILE~" "$OUTFILE";
@@ -312,15 +319,17 @@ exit "$_es";
 
 # ---------------------------------------------------------------------------- #
 
-$NPM install            \
-  --package-lock-only   \
-  --ignore-scripts      \
-  --lockfile-version=3  \
-  --no-audit            \
-  --no-fund             \
-  --no-color            \
-  "$@"                  \
-;
+{
+  $NPM install            \
+    --package-lock-only   \
+    --ignore-scripts      \
+    --lockfile-version=3  \
+    --no-audit            \
+    --no-fund             \
+    --no-color            \
+    "$@"                  \
+  ;
+} >&2;
 
 
 # ---------------------------------------------------------------------------- #

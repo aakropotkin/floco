@@ -63,8 +63,8 @@ run_test "Packages Module (dist)" "$SDIR/tests/modules/packages/dist/check.sh";
 
 run_test "Library Extensions" "$SDIR/tests/lib/check.sh";
 
-run_test "pdef (deserialized)"                                      \
-  "$NIX" eval --show-trace -f "$SDIR/tests/modules/pdef/deserial";
+run_test "pdef (deserialized)"                                             \
+  "$NIX" eval --show-trace -f "$SDIR/tests/modules/pdef/deserial/noFetch";
 
 run_test "pdef lodash registry"                                        \
   "$NIX" eval --json -f "$SDIR/tests/modules/pdef/from-registry.nix";

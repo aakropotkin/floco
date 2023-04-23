@@ -204,7 +204,7 @@ else
   _rdir="${_rdir%/*}";
   # shellcheck source-path=SCRIPTDIR
   # shellcheck source=../lib/fmt.sh
-  . "$_rdir/lib/fmt.sh";
+  . "$_rdir/fmt.sh";
   runShow "$@"|_nix_fmt;
 fi
 

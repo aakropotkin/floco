@@ -131,7 +131,7 @@
                 ( optionalDependencies ? ${ident} ) ||
                 ( builtins.elem ident bundledDependencies );
 
-      dev = ( runtimeDeps              ? ${ident} ) ||
+      dev = ( runtimeDeps         ? ${ident} ) ||
             ( devDependencies     ? ${ident} ) ||
             ( devDependenciesMeta ? ${ident} );
 
