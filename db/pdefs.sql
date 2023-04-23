@@ -143,6 +143,22 @@ CREATE VIEW IF NOT EXISTS v_PdefsJSONF ( key, JSON ) AS SELECT key, json_object(
 
 
 -- -------------------------------------------------------------------------- --
+
+CREATE VIEW IF NOT EXISTS v_PdefMini(
+  key, ltype, lifecycle, binInfo, depInfo, peerInfo
+) AS SELECT
+  p.key, p.ltype, j.lifecycle
+, iif( json_extract( j.binInfo, '$.binPairs' ) = json_object()
+     , iif( p.binInfo_binDir = NULL, json_object()
+          , json_object( 'binDir', p.binInfo_binDir ) )
+     , json_remove( j.binInfo, '$.binDir' ) )
+, j.depInfo, j.peerInfo
+FROM pdefs p
+LEFT JOIN v_PdefsJSONV j ON ( p.key == j.key )
+GROUP BY p.key;
+
+
+-- -------------------------------------------------------------------------- --
 --
 --
 --

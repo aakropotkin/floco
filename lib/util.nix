@@ -212,7 +212,7 @@
     devs = builtins.attrValues ( builtins.mapAttrs dev pdef.depInfo );
     de   = if pdef.depInfo == {} then "" else ''
       INSERT OR REPLACE INTO depInfoEnts (
-       key, ident, descriptor, runtime, dev, optional, bundled
+       parent, ident, descriptor, runtime, dev, optional, bundled
       ) VALUES
     '' + ( builtins.concatStringsSep ", " devs ) + ";";
 
@@ -222,15 +222,17 @@
     pevs = builtins.attrValues ( builtins.mapAttrs dev pdef.peerInfo );
     pe   = if pdef.peerInfo == {} then "" else ''
       INSERT OR REPLACE INTO peerInfoEnts (
-       key, ident, descriptor, optional
+       parent, ident, descriptor, optional
       ) VALUES
     '' + ( builtins.concatStringsSep ", " pevs ) + ";";
 
-    sev  = id: value: "( '${id}', '${value}' )";
+    sev  = id: value: "( '${pdef.key}', '${id}', '${value}' )";
     sevs = builtins.attrValues ( builtins.mapAttrs sev pdef.sysInfo.engines );
     se   = if pdef.sysInfo.engines == {} then "" else
-      "INSERT OR REPLACE INTO sysInfoEngineEnts ( id, value ) VALUES" +
+      "INSERT OR REPLACE INTO sysInfoEngineEnts ( parent, id, value ) VALUES" +
       ( builtins.concatStringsSep ", " sevs ) + ";";
+    binDir = if pdef.binInfo.binDir == null then "null" else
+             "'${pdef.binInfo.binDir}'";
   in ''
       INSERT OR REPLACE INTO pdefs (
         key, ident, version, ltype, fetcher, fetchInfo
@@ -242,6 +244,7 @@
         '${pdef.key}', '${pdef.ident}', '${pdef.version}', '${pdef.ltype}'
       , '${pdef.fetcher}', '${builtins.toJSON pdef.fetchInfo}'
       , ${bts pdef.lifecycle.build}, ${bts pdef.lifecycle.install}
+      , '${binDir}', '${builtins.toJSON pdef.binInfo.binPairs}'
       , '${pdef.fsInfo.dir}', ${bts pdef.fsInfo.gypfile}
       , ${bts pdef.fsInfo.shrinkwrap}
       , '${builtins.toJSON pdef.sysInfo.cpu}'

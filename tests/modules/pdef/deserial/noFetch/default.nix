@@ -2,7 +2,7 @@
 # the source tree.
 # This ensures that we are really just using the cached metadata.
 let
-  lib = import ../../../../lib {};
+  lib = import ../../../../../lib {};
   mod = lib.evalModules {
     modules = [./floco-cfg.nix];
   };
