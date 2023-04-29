@@ -16,13 +16,12 @@
   version = {
     name             = "version";
     description      = "semantic version number";
-    type.strMatching = builtins.concatStringsSep "" [
-      "(0|[1-9][[:digit:]]*)(\\.(0|[1-9][[:digit:]]*)"
-      "(\\.(0|[1-9][[:digit:]]*))?)?"
-      "(-((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*)"
-      "(\\.((0|[1-9][[:digit:]]*)|[0-9]*[[:alpha:]-][[:alnum:]-]*))*)?"
-      "(\\+[[:alnum:]-]+(\\.[[:alnum:]]+)*)?"
-    ];
+    type.strMatching = let
+      num_p  = "(0|[1-9][[:digit:]]*)";
+      core_p = "${num_p}(\\.${num_p}(\\.${num_p})?)?";
+      part_p = "(${num_p}|[0-9]*[[:alpha:]-][[:alnum:]-]*)";
+      tag_p  = "${part_p}(\\.${part_p})*";
+    in "${core_p}(-${tag_p})?(\\+[[:alnum:]-]+(\\.[[:alnum:]]+)*)?";
     example = "4.2.0-pre";
   };
 
