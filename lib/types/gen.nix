@@ -31,9 +31,33 @@
 
 # ---------------------------------------------------------------------------- #
 
+  genOption = {
+    name        ? "???"
+  , description ? name
+  , type
+  , example     ? null
+  , merge       ? null
+  } @ def: let
+    m' = if ! ( def ? merge ) then {} else {
+      merge = if ! ( builtins.isString merge ) then merge else
+              lib.${merge} or lib.options.${merge} or lib.libfloco.${merge};
+    };
+    t  = lib.libfloco.genType def;
+    e' = if ! ( def ? example ) then {} else {
+      example = assert t.check example; example;
+    };
+    args = ( removeAttrs def ["name" "merge"] ) // {
+      inherit description;
+      type = t;
+    } // m' // e';
+  in lib.mkOption args;
+
+
+# ---------------------------------------------------------------------------- #
+
 in {
 
-  inherit genType;
+  inherit genType genOption;
 
 }
 
