@@ -47,8 +47,9 @@
       example = assert t.check example; example;
     };
     args = ( removeAttrs def ["name" "merge"] ) // {
-      inherit description;
-      type = t;
+      type        = t;
+      description = if builtins.isString description then lib.mdDoc description
+                                                     else description;
     } // m' // e';
   in lib.mkOption args;
 

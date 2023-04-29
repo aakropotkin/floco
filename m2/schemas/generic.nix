@@ -3,6 +3,10 @@
 # "Schemas" essentially map to `optionType' in terms of `nixpkgs' constructs,
 # but retain a flat serializable declaration format for ease of re-use.
 #
+# Siblings `{types,options}/generic.nix' create types and options from these
+# schemas for use with `nix', but in this flat form they're also trivial to
+# use elsewhere to recycle descriptions or generate documentation.
+#
 # ---------------------------------------------------------------------------- #
 
 {
