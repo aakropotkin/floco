@@ -60,6 +60,7 @@ in {
     ./graph
     ./update-pdef.nix
     ./types/gen.nix
+    ./resolve.nix
   ] ) // ( import ./url-code.nix );
   libdoc = callLib ./mdoc.nix;
 

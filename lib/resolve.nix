@@ -81,7 +81,17 @@
 # ---------------------------------------------------------------------------- #
 
 in {
-  inherit schemas;
+  _resolver_schemas = schemas;
+
+  protocol_layer = lib.libfloco.genType schemas.protocol_layer;
+
+  protocol_scheme_string =
+    lib.libfloco.genType schemas.protocol_scheme_string;
+
+  protocol_scheme_attrs =
+    lib.libfloco.genType schemas.protocol_scheme_attrs;
+
+  protocol_scheme = lib.libfloco.genType schemas.protocol_scheme;
 }
 
 
