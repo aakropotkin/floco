@@ -11,7 +11,7 @@
   applyList = fn: lst: let
     lookup = x: if ! ( builtins.isString x ) then x else
                 lib.types.${x} or lib.libfloco.${x} or x;
-  in builtins.foldl' ( f: x: f ( lookup x ) ) ( lookup fn ) lst;
+  in builtins.foldl' ( f: x: f ( lookup x ) ) ( lookup fn ) ( lib.toList lst );
 
 
 # ---------------------------------------------------------------------------- #
