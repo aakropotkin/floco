@@ -28,7 +28,7 @@
       };
 
       optional = {
-        description =  ''
+        description = ''
           Whether the dependency may be omitted from the `node_modules/` tree
           during post-distribution phases.
 
