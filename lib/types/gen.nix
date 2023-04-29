@@ -26,12 +26,7 @@
 
   genType = def:
     if ! ( def ? type ) then genType' def else
-    ( genType' def.type ) // ( removeAttrs def ["type"] );
-
-
-# ---------------------------------------------------------------------------- #
-
-
+    ( genType' def.type ) // ( removeAttrs def ["type" "merge" "example"] );
 
 
 # ---------------------------------------------------------------------------- #

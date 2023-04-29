@@ -12,17 +12,15 @@
   descriptor = {
     name        = "package descriptor";
     description = "version or URI";
-    type        = {
-      either = ["version" "uri"];
-    };
+    type.either = ["version" "uri"];
   };
 
 
 # ---------------------------------------------------------------------------- #
 
   version = {
-    name        = "version";
-    description = "semantic version number";
+    name             = "version";
+    description      = "semantic version number";
     type.strMatching = builtins.concatStringsSep "" [
       "(0|[1-9][[:digit:]]*)(\\.(0|[1-9][[:digit:]]*)"
       "(\\.(0|[1-9][[:digit:]]*))?)?"
