@@ -21,7 +21,7 @@ set -o pipefail;
 : "${NIX:=nix}";
 : "${GREP:=grep}";
 : "${HEAD:=head}";
-: "${REALPATH}"
+: "${REALPATH:=realpath}";
 export JQ NIX GREP HEAD REALPATH;
 
 

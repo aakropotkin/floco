@@ -21,7 +21,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-: "${REALPATH:=realpath}"
+: "${REALPATH:=realpath}";
 export REALPATH;
 
 

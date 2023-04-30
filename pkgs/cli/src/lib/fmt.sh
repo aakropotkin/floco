@@ -23,7 +23,7 @@ set -o pipefail;
 
 : "${NIX:=nix}";
 : "${SED:=sed}";
-: "${REALPATH:=realpath}"
+: "${REALPATH:=realpath}";
 export NIX SED realpath;
 
 
