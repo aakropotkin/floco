@@ -10,8 +10,22 @@
 #
 # ---------------------------------------------------------------------------- #
 
+if [[ -n "${_floco_cli_fmt_sourced:-}" ]]; then
+  return 0;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
+set -eu;
+set -o pipefail;
+
+
+# ---------------------------------------------------------------------------- #
+
 : "${NIX:=nix}";
 : "${SED:=sed}";
+export NIX SED;
 
 
 # ---------------------------------------------------------------------------- #
@@ -28,6 +42,7 @@ _nix_edit_escape_keywords=(
   'rec'
   'import'
 );
+export _nix_edit_escape_keywords;
 
 
 # ---------------------------------------------------------------------------- #
@@ -47,6 +62,7 @@ _nix_keyword_escape() {
   _patt_from="$_patt_from${_nix_edit_escape_keywords[$(( _npatts - 1 ))]}\) =";
   $SED "s/$_patt_from/ \"\\1\" =/g" "${@:-/dev/stdin}";
 }
+export -f _nix_keyword_escape;
 
 
 # ---------------------------------------------------------------------------- #
@@ -63,11 +79,13 @@ _nix_fmt() {
   in ( lib.generators.toPretty {} e ) + "\n"
   '|_nix_keyword_escape;
 }
+export -f _nix_fmt;
 
 
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}}";
+export FLOCO_LIBDIR;
 
 
 # ---------------------------------------------------------------------------- #
@@ -88,16 +106,12 @@ _nix_fmt_rewrite() {
     mv "$_tmpfile" "$f";
   done
 }
+export -f _nix_fmt_rewrite;
 
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-  # If sourced just export variables/functions.
-  export NIX SED;
-  export _nix_edit_escape_keywords;
-  export -f _nix_keyword_escape _nix_fmt; _nix_fmt_rewrite;
-else
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   # Make this file usable as a script.
   # Without args format STDIN.
   # Treat args as file names, printing to STDOUT or rewrite if `-i' is given.
@@ -122,6 +136,8 @@ else
       ;;
     esac
   fi
+else
+  export _floco_cli_fmt_sourced=:;
 fi
 
 
