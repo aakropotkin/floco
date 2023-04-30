@@ -44,7 +44,7 @@ else
 fi
 
 SDIR="${SPATH%/*}";
-_as_me="${SPATH##*/}";
+: "${_as_me:=${SPATH##*/}}";
 
 export SPATH SDIR _as_me;
 
