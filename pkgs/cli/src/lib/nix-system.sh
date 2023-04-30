@@ -32,6 +32,7 @@ nixSystem() {
     _nix_system="$( $NIX eval --raw --impure --expr builtins.currentSystem; )";
   fi
   echo "$_nix_system";
+  export _nix_system;
 }
 export -f nixSystem;
 
