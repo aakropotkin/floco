@@ -67,6 +67,10 @@ export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR;
 #shellcheck source=./floco-ref.sh
 . "$FLOCO_LIBDIR/floco-ref.sh";
 
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./nix-system.sh
+. "$FLOCO_LIBDIR/nix-system.sh";
+
 
 # ---------------------------------------------------------------------------- #
 
@@ -130,21 +134,6 @@ flocoCfgFiles() {
   } 2>/dev/null;
 }
 export -f flocoCfgFiles;
-
-
-# ---------------------------------------------------------------------------- #
-
-# Records the running system pair as recognized by `nix CMD --system SYSTEM'.
-: "${_nix_system=}";
-export _nix_system;
-
-nixSystem() {
-  if [[ -z "$_nix_system" ]]; then
-    _nix_system="$( $NIX eval --raw --impure --expr builtins.currentSystem; )";
-  fi
-  echo "$_nix_system";
-}
-export -f nixSystem;
 
 
 # ---------------------------------------------------------------------------- #
