@@ -10,9 +10,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_fmt_sourced:-}" ]]; then
-  return 0;
-fi
+if [[ -n "${_floco_cli_fmt_sourced:-}" ]]; then return 0; fi
 
 
 # ---------------------------------------------------------------------------- #
@@ -25,7 +23,8 @@ set -o pipefail;
 
 : "${NIX:=nix}";
 : "${SED:=sed}";
-export NIX SED;
+: "${REALPATH:=realpath}"
+export NIX SED realpath;
 
 
 # ---------------------------------------------------------------------------- #
@@ -84,7 +83,7 @@ export -f _nix_fmt;
 
 # ---------------------------------------------------------------------------- #
 
-: "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}}";
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}"; )}";
 export FLOCO_LIBDIR;
 
 
@@ -95,8 +94,8 @@ export FLOCO_LIBDIR;
 # Rewrite one or more files.
 _nix_fmt_rewrite() {
   # For `mktmpAuto'.
-  # shellcheck source-path=SCRIPTDIR
-  # shellcheck source=./common.sh
+  #shellcheck source-path=SCRIPTDIR
+  #shellcheck source=./common.sh
   . "$FLOCO_LIBDIR/common.sh";
   local _tmpfile;
   #shellcheck disable=SC2119

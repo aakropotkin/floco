@@ -14,7 +14,7 @@ set -o pipefail;
 
 _as_me="floco";
 
-_version="0.1.0";
+_version="0.2.0";
 
 _usage_msg="Usage: $_as_me [OPTIONS]... {list|build|show|edit|help} [ARGS]...;
 
@@ -63,9 +63,20 @@ ENVIRONMENT
 
 export GREP HEAD JQ MKTEMP NIX REALPATH;
 
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=./lib/common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/lib/common.sh}";
+
+# ---------------------------------------------------------------------------- #
+
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/lib"; )}";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
+# Load common helpers
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./lib/common.sh
+. "$FLOCO_LIBDIR/common.sh";
 
 
 # ---------------------------------------------------------------------------- #

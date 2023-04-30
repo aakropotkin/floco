@@ -12,7 +12,7 @@ runPjsScript() {
     -I|--no-ignore-missing) IGNORE_MISSING=; shift; ;;
     *) :; ;;
   esac
-  # shellcheck disable=SC2016
+  #shellcheck disable=SC2016
   _body="$(
     @jq@/bin/jq -r --arg sname "$1" '.scripts[$sname] // null' ./package.json;
   )";

@@ -106,18 +106,18 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=./functions/isScript
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./functions/isScript
 source "$FLOCO_FPATH/isScript";
-# shellcheck source=./functions/unpatchShebang
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./functions/unpatchShebang
 source "$FLOCO_FPATH/unpatchShebang";
 
 
 # ---------------------------------------------------------------------------- #
 
-for bp in "${SCRIPTS[@]}"; do
-  unpatchShebang "${bp#*,}";
-done
+for bp in "${SCRIPTS[@]}"; do unpatchShebang "${bp#*,}"; done
 
 
 # ---------------------------------------------------------------------------- #

@@ -15,7 +15,7 @@ set -o pipefail;
 _as_sub='translate plock';
 _as_me="$_as_main $_as_sub";
 
-: "${_version:=0.1.0}";
+: "${_version:=0.1.1}";
 
 _usage_msg="Usage: $_as_me [OPTIONS...] [-o PDEFS-FILE] [-- NPM-FLAGS...]
 
@@ -84,6 +84,7 @@ usage() {
 : "${NIX:=nix}";
 : "${NPM:=npm}";
 : "${JQ:=jq}";
+export GREP REALPATH MKTEMP NIX NPM JQ;
 
 
 # ---------------------------------------------------------------------------- #
@@ -150,13 +151,21 @@ done
 
 # ---------------------------------------------------------------------------- #
 
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../lib"; )}";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
 # Load common helpers
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=../lib/common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=../lib/fmt.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/fmt.sh}";
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/common.sh
+. "$FLOCO_LIBDIR/common.sh";
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/fmt.sh
+. "$FLOCO_LIBDIR/fmt.sh";
 
 
 # ---------------------------------------------------------------------------- #

@@ -15,7 +15,7 @@ set -o pipefail;
 _as_sub='build';
 _as_me="$_as_main $_as_sub";
 
-: "${_version:=0.1.0}";
+: "${_version:=0.1.1}";
 
 _usage_msg="Usage: $_as_me [OPTIONS]... IDENT[@|/]VERSION \
 [TARGET] [-- FLOCO-CMD-ARGS]...
@@ -67,6 +67,7 @@ usage() {
 : "${NIX:=nix}";
 : "${JQ:=jq}";
 : "${HEAD:=head}";
+export GREP REALPATH MKTEMP NIX JQ HEAD;
 
 
 # ---------------------------------------------------------------------------- #
@@ -177,10 +178,16 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../lib"; )}";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
 # Load common helpers
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=../lib/common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../lib/common.sh}";
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/common.sh
+. "$FLOCO_LIBDIR/common.sh";
 
 
 # ---------------------------------------------------------------------------- #

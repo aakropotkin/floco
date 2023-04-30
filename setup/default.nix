@@ -26,7 +26,7 @@ in {
 
   floco-utils = let
     pname   = "floco-utils";
-    version = "0.1.0";
+    version = "0.1.1";
   in derivation {
     name = pname + "-" + version;
     inherit system pname version scripts bash coreutils findutils jq nodejs;

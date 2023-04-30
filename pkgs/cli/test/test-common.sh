@@ -5,9 +5,22 @@
 #
 # ---------------------------------------------------------------------------- #
 
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=../src/lib/common.sh
-. "${_FLOCO_COMMON_SH:-${BASH_SOURCE[0]%/*}/../src/lib/common.sh}";
+: "${REALPATH:=realpath}";
+export REALPATH;
+
+# ---------------------------------------------------------------------------- #
+
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../src/lib"; )}";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
+# Load common helpers
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../src/lib/common.sh
+. "$FLOCO_LIBDIR/common.sh";
 
 # ---------------------------------------------------------------------------- #
 

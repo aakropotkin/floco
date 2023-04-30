@@ -1,14 +1,12 @@
 #! /usr/bin/env bash
 # ============================================================================ #
 #
-# Helper function which looks up the flake URI ( "flake reference" ) to use
-# for `floco'.
+# Helper function which searches for a file in a directory and in its parent
+# directories until it is located or the project/filesystem root is reached.
 #
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_search_up_sourced:-}" ]]; then
-  return 0;
-fi
+if [[ -n "${_floco_cli_search_up_sourced:-}" ]]; then return 0; fi
 
 
 # ---------------------------------------------------------------------------- #

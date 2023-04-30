@@ -17,7 +17,7 @@ set -o pipefail;
 _as_sub='edit';
 _as_me="$_as_main $_as_sub";
 
-: "${_version:=0.1.0}";
+: "${_version:=0.1.1}";
 
 _usage_msg="\
 Usage: $_as_me [OPTIONS]... [{-i|--in-place}] [{-a|--apply} EXPR] FILE
@@ -72,6 +72,7 @@ usage() {
 : "${NIX:=nix}";
 : "${JQ:=jq}";
 : "${HEAD:=head}";
+export GREP REALPATH MKTEMP NIX JQ HEAD;
 
 
 # ---------------------------------------------------------------------------- #
@@ -159,16 +160,18 @@ esac
 
 # ---------------------------------------------------------------------------- #
 
-: "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}/../lib}";
-: "${FLOCO_NIX_LIBDIR:=${BASH_SOURCE[0]%/*}/../nix/lib}";
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../lib"; )}";
+: "${FLOCO_NIX_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../nix/lib"; )}";
+export FLOCO_LIBDIR FLOCO_NIX_LIBDIR;
 
 
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=../lib/common.sh
-. "$FLOCO_LIBDIR/common.sh}";
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/common.sh
+. "$FLOCO_LIBDIR/common.sh";
 
 
 # ---------------------------------------------------------------------------- #
@@ -187,7 +190,7 @@ runEval() {
 
 
 if [[ -n "$_IN_PLACE" ]]; then
-  # shellcheck disable=SC2119
+  #shellcheck disable=SC2119
   _TFILE="$( mktmpAuto; )";
   runEval > "$_TFILE";
   mv "$_FILE" "$_FILE~";

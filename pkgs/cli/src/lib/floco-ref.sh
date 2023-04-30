@@ -6,9 +6,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_floco_ref_sourced:-}" ]]; then
-  return 0;
-fi
+if [[ -n "${_floco_cli_floco_ref_sourced:-}" ]]; then return 0; fi
 
 
 # ---------------------------------------------------------------------------- #
@@ -19,7 +17,17 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
-: "${FLOCO_LIBDIR:=${BASH_SOURCE[0]%/*}}";
+: "${JQ:=jq}";
+: "${NIX:=nix}";
+: "${GREP:=grep}";
+: "${HEAD:=head}";
+: "${REALPATH}"
+export JQ NIX GREP HEAD REALPATH;
+
+
+# ---------------------------------------------------------------------------- #
+
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../lib"; )}";
 export FLOCO_LIBDIR;
 
 
@@ -27,18 +35,9 @@ export FLOCO_LIBDIR;
 
 # Source helpers
 
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=./search-up.sh
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./search-up.sh
 . "$FLOCO_LIBDIR/search-up.sh";
-
-
-# ---------------------------------------------------------------------------- #
-
-: "${JQ:=jq}";
-: "${NIX:=nix}";
-: "${GREP:=grep}";
-: "${HEAD:=head}";
-export JQ NIX GREP HEAD;
 
 
 # ---------------------------------------------------------------------------- #

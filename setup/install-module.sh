@@ -347,7 +347,7 @@ if [[ -z "$NO_BINS${NO_PATCH:-}" ]]; then
   popd;
 elif [[ -z "$NO_BINS$NO_PERMS" ]]; then
   pushd "$TO" >/dev/null;
-  # shellcheck disable=SC2046
+  #shellcheck disable=SC2046
   ${CHMOD:-chmod} +wx $( for bp in $BIN_PAIRS; do
     _bin="${bp#*,}";
     _bin="${_bin#/}";

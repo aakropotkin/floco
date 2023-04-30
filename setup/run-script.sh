@@ -166,7 +166,7 @@ fi
 # ---------------------------------------------------------------------------- #
 
 for s in "${SCRIPTS[@]}"; do
-  # shellcheck disable=SC2016
+  #shellcheck disable=SC2016
   body="$(
     $JQ -r --arg sname "$s" '.scripts[$sname] // null' ./package.json;
   )";

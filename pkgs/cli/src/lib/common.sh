@@ -13,9 +13,7 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_common_sourced:-}" ]]; then
-  return 0;
-fi
+if [[ -n "${_floco_cli_common_sourced:-}" ]]; then return 0; fi
 
 
 # ---------------------------------------------------------------------------- #
@@ -61,11 +59,12 @@ export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR;
 
 # Source helpers
 
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=./search-up.sh
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./search-up.sh
 . "$FLOCO_LIBDIR/search-up.sh";
-# shellcheck source-path=SCRIPTDIR
-# shellcheck source=./floco-ref.sh
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./floco-ref.sh
 . "$FLOCO_LIBDIR/floco-ref.sh";
 
 
