@@ -48,11 +48,7 @@ export FLOCO_LIBDIR;
 export _floco_ref;
 
 flocoRef() {
-  : "${_floco_ref=}";
-  if [[ -n "$_floco_ref" ]]; then
-    echo "$_floco_ref";
-    return 0;
-  fi
+  if [[ -n "$_floco_ref" ]]; then echo "$_floco_ref"; return 0; fi
 
   local flock;
   if [[ -n "${flock=$( searchUp flake.lock||:; )}" ]]; then
@@ -89,6 +85,7 @@ end
     }|$HEAD -n1;
   )";
   _floco_ref="${_floco_ref##* }";
+  export _floco_ref;
 
   echo "$_floco_ref";
 }

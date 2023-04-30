@@ -44,7 +44,7 @@ else
 fi
 
 SDIR="${SPATH%/*}";
-_as_me="${SPATH##*/}";
+: "${_as_me:=${SPATH##*/}}";
 
 export SPATH SDIR _as_me;
 
@@ -67,84 +67,13 @@ export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR;
 #shellcheck source=./floco-ref.sh
 . "$FLOCO_LIBDIR/floco-ref.sh";
 
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./nix-system.sh
+. "$FLOCO_LIBDIR/nix-system.sh";
 
-# ---------------------------------------------------------------------------- #
-
-# Set the var `_g_floco_cfg' to the "global" floco config file if it exists.
-if [[ -z "${_g_floco_cfg+y}" ]]; then
-  if [[ -r /etc/floco/floco-cfg.nix ]]; then
-    export _g_floco_cfg='/etc/floco/floco-cfg.nix';
-  elif [[ -r /etc/floco/floco-cfg.json ]]; then
-    export _g_floco_cfg='/etc/floco/floco-cfg.json';
-  else
-    export _g_floco_cfg=;
-  fi
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-# Set the var `_u_floco_cfg' to the "user" floco config file if it exists.
-: "${XDG_CONFIG_HOME:=${HOME:-/homeless/shelter}/.config}";
-export XDG_CONFIG_HOME;
-
-if [[ -z "${_u_floco_cfg+y}" ]]; then
-  if [[ -r $XDG_CONFIG_HOME/floco/floco-cfg.nix ]]; then
-    export _u_floco_cfg="$XDG_CONFIG_HOME/floco/floco-cfg.nix";
-  elif [[ -r $XDG_CONFIG_HOME/floco/floco-cfg.json ]]; then
-    export _u_floco_cfg="$XDG_CONFIG_HOME/floco/floco-cfg.json";
-  else
-    export _u_floco_cfg=;
-  fi
-fi
-
-
-# ---------------------------------------------------------------------------- #
-
-: "${_l_floco_cfg=}";
-export _l_floco_cfg;
-
-# Lazily locate the closest `floco-cfg.{json,nix}' between `PWD' and the closest
-# repository root, or filesystem root.
-localFlocoCfg() {
-  if [[ -z "${_l_floco_cfg:=$( searchUp floco-cfg.nix||:; )}" ]]; then
-    unset _floco_cfg;
-    if [[ -z "${_l_floco_cfg:=$( searchUp floco-cfg.json||:; )}" ]]; then
-      echo "$_as_me: no floco-cfg.nix or floco-cfg.json found" >&2;
-      return 1;
-    fi
-  fi
-  echo "$_l_floco_cfg";
-}
-export -f localFlocoCfg;
-
-
-# ---------------------------------------------------------------------------- #
-
-# Print all the floco config files that are "in scope".
-flocoCfgFiles() {
-  if [[ -n "$_g_floco_cfg" ]]; then echo "$_g_floco_cfg"; fi
-  if [[ -n "$_u_floco_cfg" ]]; then echo "$_u_floco_cfg"; fi
-  {
-    if [[ -n "$( localFlocoCfg||:; )" ]]; then echo "$_l_floco_cfg"; fi
-  } 2>/dev/null;
-}
-export -f flocoCfgFiles;
-
-
-# ---------------------------------------------------------------------------- #
-
-# Records the running system pair as recognized by `nix CMD --system SYSTEM'.
-: "${_nix_system=}";
-export _nix_system;
-
-nixSystem() {
-  if [[ -z "$_nix_system" ]]; then
-    _nix_system="$( $NIX eval --raw --impure --expr builtins.currentSystem; )";
-  fi
-  echo "$_nix_system";
-}
-export -f nixSystem;
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./configs.sh
+. "$FLOCO_LIBDIR/configs.sh";
 
 
 # ---------------------------------------------------------------------------- #
