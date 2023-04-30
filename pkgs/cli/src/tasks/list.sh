@@ -146,6 +146,7 @@ done
 # ---------------------------------------------------------------------------- #
 
 declare -a _named_filters;
+#shellcheck disable=SC2207
 _named_filters=( $(
   flocoEval --raw "lib.libfloco.pdefFilters.noArgs"                       \
     --apply 'f: builtins.concatStringsSep " " ( builtins.attrNames f )';
