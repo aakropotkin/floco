@@ -26,13 +26,16 @@ export REALPATH NIX;
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}"; )}";
-: "${FLOCO_NIXDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../nix"; )}";
-export FLOCO_LIBDIR FLOCO_NIXDIR;
+export FLOCO_LIBDIR;
 
 
 # ---------------------------------------------------------------------------- #
 
 # Source Helpers
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./dirs.sh
+. "$FLOCO_LIBDIR/dirs.sh";
 
 #shellcheck source-path=SCRIPTDIR
 #shellcheck source=./configs.sh

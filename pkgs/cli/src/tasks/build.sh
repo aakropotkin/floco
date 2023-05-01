@@ -185,6 +185,7 @@ export FLOCO_LIBDIR;
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
+
 #shellcheck source-path=SCRIPTDIR
 #shellcheck source=../lib/common.sh
 . "$FLOCO_LIBDIR/common.sh";

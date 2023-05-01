@@ -158,6 +158,10 @@ export FLOCO_LIBDIR;
 # Load common helpers
 
 #shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/dirs.sh
+. "$FLOCO_LIBDIR/dirs.sh";
+
+#shellcheck source-path=SCRIPTDIR
 #shellcheck source=../lib/common.sh
 . "$FLOCO_LIBDIR/common.sh";
 
@@ -341,12 +345,13 @@ fi
 #shellcheck disable=SC2119
 OUTFILE_TMP="$( mktmpAuto; )";
 
-flocoEval                                            \
-  --no-substitute                                    \
-  "${_NIX_FLAGS[@]}"                                 \
-  --apply 'f: f {}'                                  \
-  -f "${BASH_SOURCE[0]%/*}/../nix/fromRegistry.nix"  \
-  > "$OUTFILE_TMP"                                   \
+#shellcheck disable=SC2153
+flocoEval                              \
+  --no-substitute                      \
+  "${_NIX_FLAGS[@]}"                   \
+  --apply 'f: f {}'                    \
+  -f "$FLOCO_NIXDIR/fromRegistry.nix"  \
+  > "$OUTFILE_TMP"                     \
 ;
 
 

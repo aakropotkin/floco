@@ -161,13 +161,16 @@ esac
 # ---------------------------------------------------------------------------- #
 
 : "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../lib"; )}";
-: "${FLOCO_NIX_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}/../nix/lib"; )}";
-export FLOCO_LIBDIR FLOCO_NIX_LIBDIR;
+export FLOCO_LIBDIR;
 
 
 # ---------------------------------------------------------------------------- #
 
 # Load common helpers
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=../lib/dirs.sh
+. "$FLOCO_LIBDIR/dirs.sh";
 
 #shellcheck source-path=SCRIPTDIR
 #shellcheck source=../lib/common.sh

@@ -57,10 +57,8 @@ setScriptVars() {
   _z="$1";
   shift;
   if [[ "$#" -gt 0 ]]; then
-    echo "a" >&2;
     : "${SPATH:=$( $REALPATH "$1"; )}";
   else
-    echo "b" >&2;
     : "${SPATH:=$( $REALPATH "$( command -v "$_z"; )"; )}";
   fi
   : "${SDIR:=${SPATH%/*}}";

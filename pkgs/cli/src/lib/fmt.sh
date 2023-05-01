@@ -30,6 +30,12 @@ export NIX SED realpath;
 
 # ---------------------------------------------------------------------------- #
 
+: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}"; )}";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
 declare -a _nix_edit_escape_keywords;
 _nix_edit_escape_keywords=(
   'assert'
@@ -80,12 +86,6 @@ _nix_fmt() {
   '|_nix_keyword_escape;
 }
 export -f _nix_fmt;
-
-
-# ---------------------------------------------------------------------------- #
-
-: "${FLOCO_LIBDIR:=$( $REALPATH "${BASH_SOURCE[0]%/*}"; )}";
-export FLOCO_LIBDIR;
 
 
 # ---------------------------------------------------------------------------- #
