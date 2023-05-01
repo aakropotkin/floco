@@ -17,6 +17,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${REALPATH:=realpath}";
 export REALPATH;
 
@@ -48,7 +49,7 @@ export -f searchUp;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   if [[ "$#" -gt 2 ]] || [[ "$#" -lt 1 ]]; then
     echo "floco-ref.sh: You may pass one or two arguments." >&2;

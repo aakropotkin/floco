@@ -21,6 +21,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${NIX:=nix}";
 : "${SED:=sed}";
 : "${REALPATH:=realpath}";
@@ -110,7 +111,7 @@ export -f _nix_fmt_rewrite;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   # Without args format STDIN.
   # Treat args as file names, printing to STDOUT or rewrite if `-i' is given.

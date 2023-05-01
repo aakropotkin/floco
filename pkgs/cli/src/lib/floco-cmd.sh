@@ -17,6 +17,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${REALPATH:=realpath}";
 : "${NIX:=nix}";
 export REALPATH NIX;
@@ -130,7 +131,7 @@ export -f flocoEval flocoBuild;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   flocoCmd "$@";
 else

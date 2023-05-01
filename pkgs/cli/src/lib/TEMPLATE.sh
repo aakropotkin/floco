@@ -51,7 +51,7 @@ export -f FUNCTION;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   FUNCTION "$@";
 else

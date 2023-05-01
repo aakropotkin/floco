@@ -17,6 +17,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${JQ:=jq}";
 : "${NIX:=nix}";
 : "${GREP:=grep}";
@@ -94,7 +95,7 @@ export -f flocoRef;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   # If an argument is given print ref associated with the given directory.
   if [[ "$#" -gt 1 ]]; then

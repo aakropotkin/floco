@@ -17,6 +17,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${NIX:=nix}";
 export NIX;
 
@@ -39,7 +40,7 @@ export -f nixSystem;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   nixSystem;
 else

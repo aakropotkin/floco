@@ -31,33 +31,17 @@ set -o pipefail;
 : "${MKTEMP:=mktemp}";
 : "${NIX:=nix}";
 : "${REALPATH:=realpath}";
-
 export GREP HEAD JQ MKTEMP NIX REALPATH;
 
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${#BASH_SOURCE[@]}" -gt 1 ]]; then
-  SPATH="$( $REALPATH "${BASH_SOURCE[1]}"; )";
-else
-  SPATH="$PWD/interactive";
-fi
-
-SDIR="${SPATH%/*}";
-: "${_as_me:=${SPATH##*/}}";
-
-export SPATH SDIR _as_me;
-
-FLOCO_LIBDIR="$( $REALPATH "${BASH_SOURCE[0]%/*}"; )";
-FLOCO_LIBEXECDIR="$( $REALPATH "$FLOCO_LIBDIR/../libexec"; )";
-FLOCO_NIXDIR="$( $REALPATH "$FLOCO_LIBDIR/../nix"; )";
-FLOCO_NIX_LIBDIR="$( $REALPATH "$FLOCO_NIXDIR/lib"; )";
-export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR;
-
-
-# ---------------------------------------------------------------------------- #
-
 # Source helpers
+
+#shellcheck source-path=SCRIPTDIR
+#shellcheck source=./dirs.sh
+. "$FLOCO_LIBDIR/dirs.sh";
+setScriptVars "$0" "${BASH_SOURCE[@]:1}";
 
 #shellcheck source-path=SCRIPTDIR
 #shellcheck source=./search-up.sh

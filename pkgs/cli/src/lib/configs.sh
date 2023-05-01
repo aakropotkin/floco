@@ -21,6 +21,7 @@ set -o pipefail;
 
 # ---------------------------------------------------------------------------- #
 
+# @BEGIN_INJECT_UTILS@
 : "${REALPATH:=realpath}";
 export REALPATH;
 
@@ -42,7 +43,7 @@ export FLOCO_LIBDIR;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   # If an argument is given print ref associated with the given directory.
   if [[ "$#" -gt 1 ]]; then
@@ -126,7 +127,7 @@ export -f flocoCfgFiles;
 
 # ---------------------------------------------------------------------------- #
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   # A similar block above handles changing `PWD'.
   flocoCfgFiles;
