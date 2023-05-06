@@ -35,7 +35,6 @@ in {
 
         imports = [
           ./pdef/deferred.nix
-          ./target
         ];
 
         options.depInfo = lib.mkOption {

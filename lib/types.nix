@@ -366,6 +366,7 @@ in {
   // ( import ./types/pjsCore   { inherit lib; } )
   // ( import ./types/depInfo   { inherit lib; } )
   // ( import ./types/pdef.nix  { inherit lib; } )
+  // ( import ./types/target    { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #
