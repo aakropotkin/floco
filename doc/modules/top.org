@@ -222,7 +222,7 @@ XXX: If a =build= script produces executable scripts you should NOT
 patch shebangs yet - patching should be deferred to the
 =prepared= stage.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/implementation.nix][<floco>/package/targets/built/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 
 **** =copyTree=
 - option :: ~floco.packages.<ident>.<version>.built.copyTree~
@@ -232,7 +232,7 @@ This may resolve issues with certain dependencies with
 non-compliant implementations of =resolve= such as =webpack=
 or =jest=.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example :: =true=
 
 **** =dependsOnLint=
@@ -240,10 +240,12 @@ or =jest=.
 - description :: Causes the =built= lifecycle stage to be blocked by successful
 =lint= checking ( requires =lint= to be non-null ).
 
-This is recommended for projects which are under active development.
+This is recommended for projects which are under
+active development.
 
-If =preferMultipleOutputDerivations= is enabled this is implemented
-by making the =lint= derivation an input of the =built= derivation.
+If =preferMultipleOutputDerivations= is enabled this is
+implemented by making the =lint= derivation an input of the
+=built= derivation.
 Otherwise this will cause a =preBuild= phase to run =lint= checks,
 killing the builder if the check fails.
 
@@ -259,7 +261,7 @@ See Also: lint, install.dependsOnTest
 - option :: ~floco.packages.<ident>.<version>.built.enable~
 - description :: Whether to enable the target.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example :: =true=
 
 **** =extraBuildInputs=
@@ -278,7 +280,7 @@ across modules to create a concatenated list.
 
 See Also: extraNativeBuildInputs
 - type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, ... }: {
@@ -302,7 +304,7 @@ different outputs depending on the =build=, =host=, or
 This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
 - type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, ... }: {
@@ -319,7 +321,7 @@ before =overrideAttrs=.
 
 See Also: overrideAttrs
 - type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 {
@@ -339,7 +341,7 @@ applying =override= to the orginal argument set.
 
 See Also: override
 - type :: null or (function that evaluates to a(n) anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, config, ... }: {
@@ -355,7 +357,7 @@ See Also: override
 - option :: ~floco.packages.<ident>.<version>.built.package~
 - description :: Derivation which produces the target.
 - type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 
 **** =scripts=
 - option :: ~floco.packages.<ident>.<version>.built.scripts~
@@ -363,7 +365,7 @@ See Also: override
 These scripts are run in the order listed, and if a script is
 undefined in =package.json= it is skipped.
 - type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 [
@@ -376,7 +378,7 @@ undefined in =package.json= it is skipped.
 - option :: ~floco.packages.<ident>.<version>.built.tree~
 - description :: =node_modules/= tree used for building.
 - type :: null or package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/built/interface.nix][<floco>/package/targets/built/interface.nix]]
 
 *** =checkSystemSupport=
 - option :: ~floco.packages.<ident>.<version>.checkSystemSupport~
@@ -464,7 +466,7 @@ XXX: If an =install= script produces executable scripts you should NOT
 patch shebangs yet - patching should be deferred to the
 =prepared= stage.
 - type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/implementation.nix][<floco>/package/targets/installed/implementation.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 
 **** =copyTree=
 - option :: ~floco.packages.<ident>.<version>.installed.copyTree~
@@ -474,7 +476,7 @@ This may resolve issues with certain dependencies with
 non-compliant implementations of =resolve= such as =webpack=
 or =jest=.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example :: =true=
 
 **** =dependsOnTest=
@@ -482,13 +484,14 @@ or =jest=.
 - description :: Causes the =installed= lifecycle stage to be blocked by successful
 =test= checking ( requires =test= to be non-null ).
 
-This is recommended for projects which are under active development.
+This is recommended for projects which are under
+active development.
 
-If =preferMultipleOutputDerivations= is enabled this is implemented
-by making the =test= derivation an input of the
+If =preferMultipleOutputDerivations= is enabled this is
+implemented by making the =test= derivation an input of the
 =installed= derivation.
-Otherwise this will cause a =preinstall= phase to run =test= checks,
-killing the installer if the check fails.
+Otherwise this will cause a =preinstall= phase to run =test=
+checks, killing the installer if the check fails.
 
 NOTE: if =installed= is an alias of =built=, this causes either
 =installed= or =prepared= to depend on =test= instead.
@@ -502,7 +505,7 @@ See Also: lint, built.dependsOnLint
 - option :: ~floco.packages.<ident>.<version>.installed.enable~
 - description :: Whether to enable the target.
 - type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example :: =true=
 
 **** =extraBuildInputs=
@@ -521,7 +524,7 @@ across modules to create a concatenated list.
 
 See Also: extraNativeBuildInputs
 - type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, ... }: {
@@ -545,7 +548,7 @@ different outputs depending on the =build=, =host=, or
 This is processed before overrides, and may be set multiple times
 across modules to create a concatenated list.
 - type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, ... }: {
@@ -562,7 +565,7 @@ before =overrideAttrs=.
 
 See Also: overrideAttrs
 - type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 {
@@ -582,7 +585,7 @@ applying =override= to the orginal argument set.
 
 See Also: override
 - type :: null or (function that evaluates to a(n) anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 { pkgs, config, ... }: {
@@ -598,7 +601,7 @@ See Also: override
 - option :: ~floco.packages.<ident>.<version>.installed.package~
 - description :: Derivation which produces the target.
 - type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 
 **** =scripts=
 - option :: ~floco.packages.<ident>.<version>.installed.scripts~
@@ -606,7 +609,7 @@ See Also: override
 These scripts are run in the order listed, and if a script is
 undefined in =package.json= it is skipped.
 - type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 - example ::
 #+BEGIN_SRC nix
 [
@@ -619,7 +622,7 @@ undefined in =package.json= it is skipped.
 - option :: ~floco.packages.<ident>.<version>.installed.tree~
 - description :: =node_modules/= tree used for building.
 - type :: null or package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/package/targets/installed/interface.nix][<floco>/package/targets/installed/interface.nix]]
 
 *** =key=
 - option :: ~floco.packages.<ident>.<version>.key~
@@ -872,6 +875,86 @@ These can be used "as is" to set =<PKG-ENT>.binInfo.binPairs=.
 }
 #+END_SRC
 
+**** =depInfo=
+- option :: ~floco.records.pdef.depInfo~
+- description :: Information regarding dependency modules/packages.
+This record is analogous to the various
+=package.json:.[dev|optional|bundled]Dependencies[Meta]= fields.
+
+These config settings do note necessarily dictate the contents of the
+=treeInfo= configs, which are used by builders, but may be used to provide
+information needed to generate trees if they are not defined.
+- type :: attribute set of (attribute set of boolean)
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/implementation.generic.nix:depInfoGenericMemberInit][<libfloco>/types/depInfo/implementation.generic.nix:depInfoGenericMemberInit]]
+
+***** =bundled=
+- option :: ~floco.records.pdef.depInfo.<name>.bundled~
+- description :: Whether the dependency is distributed in registry tarballs alongside
+the consumer.
+
+This is sometimes used to include patched modules, but whenver
+possible bundling should be avoided in favor of tooling like =esbuild=
+or =webpack= because the effect bundled dependencies have on
+resolution is fraught.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+
+***** =descriptor=
+- option :: ~floco.records.pdef.depInfo.<name>.descriptor~
+- description :: A package "descriptor" or "specifier" being either a semantic version
+number, or a URI.
+- type :: version or URI
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+- example :: =^4.2.0=
+
+***** =dev=
+- option :: ~floco.records.pdef.depInfo.<name>.dev~
+- description :: Whether the dependency is required during pre-distribution phases.
+This includes common tasks such as building, testing, and linting.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+
+***** =optional=
+- option :: ~floco.records.pdef.depInfo.<name>.optional~
+- description :: Whether the dependency may be omitted from the =node_modules/= tree
+during post-distribution phases.
+
+Conventionally this is used to mark dependencies which are only
+required under certain conditions such as platform, architecture,
+or engines.
+Generally optional dependencies carry =sysInfo= conditionals, or
+=postinstall= scripts which must be allowed to fail without blocking
+the build of the consumer.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+
+***** =pin=
+- option :: ~floco.records.pdef.depInfo.<name>.pin~
+- description :: An exact version number or URI indicating the "resolved" form of a
+dependency descriptor.
+
+This will be used for =treeInfo= formation, and is available for usage
+by extensions to =floco=.
+
+In the case of conflicts, the "latest" version will be used.
+The sorting algorithm prefers pre-releases over a release of the same
+version, following the behavior of =nix-env -u=.
+Read that again.
+
+TODO: Write a sort that makes more sense.
+Honestly though this is a rare edge case in properly
+maintained software.
+- type :: pinned version
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+
+***** =runtime=
+- option :: ~floco.records.pdef.depInfo.<name>.runtime~
+- description :: Whether the dependency is required at runtime.
+Other package management tools often refer to these as
+"production mode" dependencies.
+- type :: boolean
+- from :: [[https://github.com/aakropotkin/floco/blob/main/modules<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred][<libfloco>/types/depInfo/base.nix:depInfoBaseEntryDeferred]]
+
 **** =fetchInfo=
 - option :: ~floco.records.pdef.fetchInfo~
 - description :: Arguments passed to fetchers to produce a package/module's source tree.
@@ -1115,7 +1198,7 @@ root is a subdir the option `fsInfo.dir` must be set in order for
 - option :: ~floco.records.pdef.sysInfo.cpu~
 - description :: List of supported CPU architectures.
 The string ="*"= indicates that all CPUs are supported.
-- type :: list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
+- type :: unique list of (one of "*", "x86_64", "i686", "aarch", "aarch64", "powerpc64le", "mipsel", "riscv64", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
 ***** =engines=
@@ -1136,7 +1219,7 @@ The string ="*"= indicates that all CPUs are supported.
 - description :: List of supported operating systems.
 The string ="*"= indicates that all operating systems
 are supported.
-- type :: list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
+- type :: unique list of (one of "*", "darwin", "freebsd", "netbsd", "linux", "openbsd", "sunprocess", "win32", "unknown")
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pdef/sysInfo/interface.nix][<floco>/records/pdef/sysInfo/interface.nix]]
 
 **** =treeInfo=
@@ -1236,157 +1319,6 @@ the build of the consumer.
 - description :: Defines a =pjsCore= option.
 - type :: raw value
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]]
-
-*** =target=
-- option :: ~floco.records.target~
-- description :: Abstract record used to declare a package/module build "target".
-A target is analogous to a "lifecycle stage" or "event" which transforms
-a package towards its "prepared" state.
-
-Targets are designed to run in individual derivations in order to improve
-caching and avoid issues with cyclical dependencies; but users are free
-to optimize their pipelines by combining multiple targets ( an exercise
-for the reader ).
-
-This is a "deferred" module making it extensible.
-Its base interface must be implemented, but the implementations themselves
-may be swapped or overridden.
-- type :: module
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-
-**** =copyTree=
-- option :: ~floco.records.target.copyTree~
-- description :: Whether =node_modules/= tree should be copied into build area
-instead of symlinked.
-This may resolve issues with certain dependencies with
-non-compliant implementations of =resolve= such as =webpack=
-or =jest=.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example :: =true=
-
-**** =enable=
-- option :: ~floco.records.target.enable~
-- description :: Whether to enable the target.
-- type :: boolean
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example :: =true=
-
-**** =extraBuildInputs=
-- option :: ~floco.records.target.extraBuildInputs~
-- description :: Additional =buildInputs= passed to the builder.
-
-"Build Inputs" are packages/tools that are available at build time
-and respect cross-compilation/linking settings.
-These are conventionally libraries, headers, compilers, or
-linkers, and should not be confused with =nativeBuildInputs= which
-are better suited for utilities used only to drive builds
-( such as =make=, =coreutils=, =grep=, etc ).
-
-This is processed before overrides, and may be set multiple times
-across modules to create a concatenated list.
-
-See Also: extraNativeBuildInputs
-- type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{ pkgs, ... }: {
-  config.extraBuildInputs = [pkgs.openssl.dev];
-}
-
-#+END_SRC
-
-**** =extraNativeBuildInputs=
-- option :: ~floco.records.target.extraNativeBuildInputs~
-- description :: Additional =nativeBuildInputs= passed to the builder.
-
-"Native Build Inputs" are packages/tools that are available at
-build time that are insensitive to
-cross-compilation/linking settings.
-These are conventionally CLI tools such as =make=, =coreutils=,
-=grep=, etc that are required to drive a build, but don't produce
-different outputs depending on the =build=, =host=, or
-=target= platform.
-
-This is processed before overrides, and may be set multiple times
-across modules to create a concatenated list.
-- type :: list of (package or path)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{ pkgs, ... }: {
-  config.extraNativeBuildInputs = [pkgs.typescript];
-}
-
-#+END_SRC
-
-**** =override=
-- option :: ~floco.records.target.override~
-- description :: Overrides applied to =stdenv.mkDerivation= invocation.
-This option is processed after =extra*= options, and
-before =overrideAttrs=.
-
-See Also: overrideAttrs
-- type :: attribute set of anything
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{
-  preBuild = ''
-    echo "Howdy" >&2;
-  '';
-}
-#+END_SRC
-
-**** =overrideAttrs=
-- option :: ~floco.records.target.overrideAttrs~
-- description :: Override function applied to =stdenv.mkDerivation= invocation.
-This option is an advanced form of =override= which allows =prev=
-arguments to be referenced.
-The function is evaluated after =extra*= options, and after
-applying =override= to the orginal argument set.
-
-See Also: override
-- type :: null or (function that evaluates to a(n) anything)
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-{ pkgs, config, ... }: {
-  config.built.overrideAttrs = prev: {
-    # Append pre-release tag to version.
-    version = prev.version + "-pre";
-  };
-}
-
-#+END_SRC
-
-**** =package=
-- option :: ~floco.records.target.package~
-- description :: Derivation which produces the target.
-- type :: package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-
-**** =scripts=
-- option :: ~floco.records.target.scripts~
-- description :: Scripts that should be run during "build" process.
-These scripts are run in the order listed, and if a script is
-undefined in =package.json= it is skipped.
-- type :: list of string
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
-- example ::
-#+BEGIN_SRC nix
-[
-  "build:part1"
-  "build:part2"
-]
-#+END_SRC
-
-**** =tree=
-- option :: ~floco.records.target.tree~
-- description :: =node_modules/= tree used for building.
-- type :: null or package
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/target/interface.nix][<floco>/records/target/interface.nix]]
 
 ** =settings=
 - option :: ~floco.settings~
