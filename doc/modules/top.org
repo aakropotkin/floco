@@ -19,7 +19,7 @@ from pinned =<pdef>.depInfo.*.pin= fields.
 
 This option should not be enabled if the build plan contains
 dependency cycles, unless explicit =treeInfo= records have been
-provided forall cycle memebers.
+provided forall cycle members.
 - type :: boolean
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/buildPlan/interface.nix][<floco>/buildPlan/interface.nix]]
 
@@ -777,7 +777,7 @@ and linting.
 
 ** =pdefs=
 - option :: ~floco.pdefs~
-- description :: Collection of =pdef= metadata records for all known pacakges
+- description :: Collection of =pdef= metadata records for all known packages
 and modules.
 
 These records are used to generate build recipes and build plans.
@@ -1162,7 +1162,7 @@ nuggets of metadata are isomorphic with a flake input.
 
 However, unlike flake inputs, =sourceInfo.outPath= may set to a derived
 store path if and only if =fetchInfo= is explicitly set to =null=.
-In this case =fsInfo.dir= is still used to identify a pacakage/module's
+In this case =fsInfo.dir= is still used to identify a package/module's
 root directory where we will attempt to read =package.json=
 ( must exist ) and similar metadata files will be read from
 ( if they exist ).

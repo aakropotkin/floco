@@ -10,7 +10,7 @@
 # This implementation makes no attempt to optimize the install process using
 # package metadata making it slow but reliable.
 # This should serve as a baseline for optimized implementations that leverage
-# known pacakge/module information to flatten/inline calls to `cp' and `ln'.
+# known package/module information to flatten/inline calls to `cp' and `ln'.
 # While those optimizations make a significant impact on performance; they are
 # difficult to trace, and having "ol' reliable" available in times of need is
 # a necessity.

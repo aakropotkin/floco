@@ -1,7 +1,7 @@
 # ============================================================================ #
 #
 # A `options.floco.pdefs.*.*' submodule representing the definition of
-# a single Node.js pacakage.
+# a single Node.js package.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -75,7 +75,7 @@ in {
 
         However, unlike flake inputs, `sourceInfo.outPath` may set to a derived
         store path if and only if `fetchInfo` is explicitly set to `null`.
-        In this case `fsInfo.dir` is still used to identify a pacakage/module's
+        In this case `fsInfo.dir` is still used to identify a package/module's
         root directory where we will attempt to read `package.json`
         ( must exist ) and similar metadata files will be read from
         ( if they exist ).

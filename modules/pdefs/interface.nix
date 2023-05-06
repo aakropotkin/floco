@@ -20,7 +20,7 @@ in {
   options.pdefs = lib.mkOption {
 
     description = lib.mdDoc ''
-      Collection of `pdef` metadata records for all known pacakges
+      Collection of `pdef` metadata records for all known packages
       and modules.
 
       These records are used to generate build recipes and build plans.

@@ -28,7 +28,7 @@ in {
 
           This option should not be enabled if the build plan contains
           dependency cycles, unless explicit `treeInfo` records have been
-          provided forall cycle memebers.
+          provided forall cycle members.
         '';
         type    = nt.bool;
         default = false;
