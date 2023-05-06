@@ -24,6 +24,7 @@ in {
     ./sysInfo/interface.nix
     ./fsInfo/interface.nix
     ./lifecycle/interface.nix
+    lib.libfloco.depInfoGenericMemberDeferred
   ];
 
 
