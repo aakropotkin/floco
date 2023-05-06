@@ -46,29 +46,34 @@ in {
         `prepared` stage.
       '';
 
-      type = nt.submodule {
-        options.dependsOnTest = lib.mkOption {
-          description = lib.mdDoc ''
-            Causes the `installed` lifecycle stage to be blocked by successful
-            `test` checking ( requires `test` to be non-null ).
+      type = ( nt.submodule {
+        options = lib.libfloco.targetDeferred.options // {
+          dependsOnTest = lib.mkOption {
+            description = lib.mdDoc ''
+              Causes the `installed` lifecycle stage to be blocked by successful
+              `test` checking ( requires `test` to be non-null ).
 
-            This is recommended for projects which are under active development.
+              This is recommended for projects which are under
+              active development.
 
-            If `preferMultipleOutputDerivations` is enabled this is implemented
-            by making the `test` derivation an input of the
-            `installed` derivation.
-            Otherwise this will cause a `preinstall` phase to run `test` checks,
-            killing the installer if the check fails.
+              If `preferMultipleOutputDerivations` is enabled this is
+              implemented by making the `test` derivation an input of the
+              `installed` derivation.
+              Otherwise this will cause a `preinstall` phase to run `test`
+              checks, killing the installer if the check fails.
 
-            NOTE: if `installed` is an alias of `built`, this causes either
-            `installed` or `prepared` to depend on `test` instead.
+              NOTE: if `installed` is an alias of `built`, this causes either
+              `installed` or `prepared` to depend on `test` instead.
 
-            See Also: lint, built.dependsOnLint
-          '';
-          type    = nt.bool;
-          default = false;
-          example = true;
+              See Also: lint, built.dependsOnLint
+            '';
+            type    = nt.bool;
+            default = false;
+            example = true;
+          };
         };
+      } ) // {
+        inherit (lib.libfloco.target) description;
       };  # End `options.installed.type'
     };  # End `options.installed'
   };  # End `options'
