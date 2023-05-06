@@ -5,8 +5,11 @@
 # ---------------------------------------------------------------------------- #
 
 { lib }:
-     ( import ./base.nix { inherit lib; } )
-  // ( import ./implementation.generic.nix { inherit lib; } )
+  ( import ./base.nix { inherit lib; } )                   //
+  ( import ./implementation.generic.nix { inherit lib; } ) // {
+    depInfoSerialize = import ./serialize { inherit lib; };
+  }
+
 
 
 # ---------------------------------------------------------------------------- #

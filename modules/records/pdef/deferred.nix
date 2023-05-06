@@ -29,11 +29,7 @@ in {
       Its base interface must be implemented, but the implementations themselves
       may be swapped or overridden.
     '';
-    type = nt.deferredModuleWith {
-      staticModules = [
-        ./interface.nix
-      ];
-    };
+    type = nt.deferredModuleWith { staticModules = [./interface.nix]; };
     default = {};
   };
 
@@ -62,12 +58,9 @@ in {
 # ---------------------------------------------------------------------------- #
 
   config.pdef = { config, options, ... }: {
-    imports = [
-      top.config.depInfo.deferred
-      ./implementation.nix
-    ];
+    imports = [./implementation.nix];
     config._export =
-      lib.mkDerivedConfig options.depInfo top.config.depInfo.serialize;
+      lib.mkDerivedConfig options.depInfo lib.libfloco.depInfoSerialize;
     config._module.args.pkgs     = lib.mkOverride 999  pkgs;
     config._module.args.fetchers = lib.mkOverride 999  floco.fetchers;
     config._module.args.pdefs    = lib.mkOverride 1001 floco.pdefs;
