@@ -830,24 +830,6 @@ themselves may be swapped or overridden.
 - type :: submodule
 - from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/pjsCore/module.nix][<floco>/records/pjsCore/module.nix]] [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
 
-*** =depInfo=
-- option :: ~floco.records.depInfo~
-- description :: Abstract record used to represent dependency information.
-- type :: submodule
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
-
-**** =deferred=
-- option :: ~floco.records.depInfo.deferred~
-- description :: Deferred module which adds =depInfo= to a submodule.
-- type :: module
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
-
-**** =serialize=
-- option :: ~floco.records.depInfo.serialize~
-- description :: Function which serializes a =depInfo= record.
-- type :: function that evaluates to a(n) raw value
-- from :: [[https://github.com/aakropotkin/floco/blob/main/modules/records/interface.nix][<floco>/records/interface.nix]]
-
 *** =pdef=
 - option :: ~floco.records.pdef~
 - description :: Abstract record used to declare a package/module at a specific version.
