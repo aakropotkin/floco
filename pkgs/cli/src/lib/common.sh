@@ -97,9 +97,7 @@ export cleanupHooks;
 
 cleanup() {
   local _hook;
-  for _hook in "${cleanupHooks[@]}"; do
-    "$_hook";
-  done
+  for _hook in "${cleanupHooks[@]}"; do "$_hook"; done
 }
 export -f cleanup;
 
