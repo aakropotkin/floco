@@ -107,7 +107,7 @@ if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
     # remove) db_remove "$@"; ;;
     # show)   db_show "$@"; ;;
     *)
-      echo "floco:lib/db.sh: Unrecognized command '$cmd'." >&2;
+      echo "floco:lib/db.sh: Unrecognized command '$_cmd'." >&2;
       exit 1;
     ;;
   esac
