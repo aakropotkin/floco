@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS depInfoEnts (
 , FOREIGN KEY ( parent ) REFERENCES pdefs ( key )
 );
 
-CREATE INDEX depInfoIndex ON depInfoEnts( parent );
+CREATE INDEX IF NOT EXISTS depInfoIndex ON depInfoEnts( parent );
 
 
 -- -------------------------------------------------------------------------- --
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS peerInfoEnts (
 , FOREIGN KEY ( parent ) REFERENCES pdefs ( key )
 );
 
-CREATE INDEX peerInfoIndex ON peerInfoEnts( parent );
+CREATE INDEX IF NOT EXISTS peerInfoIndex ON peerInfoEnts( parent );
 
 
 -- -------------------------------------------------------------------------- --
