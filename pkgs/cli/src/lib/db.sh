@@ -64,7 +64,7 @@ is_sql_db() {
   local _magic;
   if [[ -d "$1" ]]; then return 1; fi
   if ! [[ -r "$1" ]]; then return 1; fi
-  read -n 6 _magic < "$1";
+  read -rn 6 _magic < "$1";
   [[ "$_magic" = 'SQLite' ]];
 }
 
