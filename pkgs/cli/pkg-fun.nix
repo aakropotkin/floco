@@ -19,7 +19,7 @@
   propagatedBuildInputs = [bash coreutils gnugrep jq nix npm sqlite];
 in stdenv.mkDerivation {
   pname    = "floco";
-  version  = "0.2.1";
+  version  = "0.2.2";
   src      = builtins.path {
     path   = ./src;
     filter = name: type: ( baseNameOf name ) != "site-sql";
