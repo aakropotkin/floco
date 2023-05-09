@@ -14,7 +14,7 @@ set -o pipefail;
 
 _as_me="floco";
 
-_version="0.2.0";
+_version="0.2.1";
 
 _usage_msg="Usage: $_as_me [OPTIONS]... {list|build|show|edit|help} [ARGS]...;
 

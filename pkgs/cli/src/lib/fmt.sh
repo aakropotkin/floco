@@ -38,15 +38,7 @@ export FLOCO_LIBDIR;
 
 declare -a _nix_edit_escape_keywords;
 _nix_edit_escape_keywords=(
-  'assert'
-  'throw'
-  'with'
-  'let'
-  'in'
-  'or'
-  'inherit'
-  'rec'
-  'import'
+  'if' 'then' 'else' 'assert' 'with' 'let' 'in' 'rec' 'inherit'
 );
 export _nix_edit_escape_keywords;
 

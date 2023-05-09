@@ -18,7 +18,7 @@
   propagatedBuildInputs = [bash coreutils gnugrep jq nix npm];
 in stdenv.mkDerivation {
   pname             = "floco";
-  version           = "0.2.0";
+  version           = "0.2.1";
   src               = builtins.path { path = ./src; };
   nativeBuildInputs = [makeWrapper];
   dontConfigure     = true;

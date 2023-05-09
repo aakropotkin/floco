@@ -61,15 +61,7 @@
   prettyPrintEscaped = let
     escapeKeywords = let
       keywords = [
-        "assert"
-        "throw"
-        "with"
-        "let"
-        "in"
-        "or"
-        "inherit"
-        "rec"
-        "import"
+        "if" "then" "else" "assert" "with" "let" "in" "rec" "inherit"
       ];
       froms = map ( k: " ${k} = " ) keywords;
       tos   = map ( k: " \"${k}\" = " ) keywords;
