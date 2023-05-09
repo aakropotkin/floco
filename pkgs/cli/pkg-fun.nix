@@ -18,9 +18,12 @@
 }: let
   propagatedBuildInputs = [bash coreutils gnugrep jq nix npm sqlite];
 in stdenv.mkDerivation {
-  pname             = "floco";
-  version           = "0.2.1";
-  src               = builtins.path { path = ./src; };
+  pname    = "floco";
+  version  = "0.2.1";
+  src      = builtins.path {
+    path   = ./src;
+    filter = name: type: ( baseNameOf name ) != "site-sql";
+  };
   nativeBuildInputs = [makeWrapper];
   dontConfigure     = true;
   dontBuild         = true;
@@ -28,6 +31,7 @@ in stdenv.mkDerivation {
     mkdir -p                           \
       "$out/bin"                       \
       "$out/share/floco"               \
+      "$out/share/floco/site-sql"      \
       "$out/share/zsh/site-functions"  \
     ;
     mv ./libexec "$out/libexec";
@@ -37,8 +41,8 @@ in stdenv.mkDerivation {
 
     mv * "$out/share/floco/";
 
-    cp -r -- ${builtins.path { path = ../../db; }} ./db;
-    mv -f ./db/*.sql "$out/share/floco/site-sql/";
+    cp -- ${builtins.path { path = ../../db; }}/*.sql  \
+          "$out/share/floco/site-sql/";
 
     cp -r -- ${builtins.path { path = ../../lib; }}/*  \
              "$out/share/floco/nix/lib/";

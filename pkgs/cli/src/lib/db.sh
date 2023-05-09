@@ -72,7 +72,7 @@ is_sql_db() {
 # ---------------------------------------------------------------------------- #
 
 # db_run [PATH] ARGS
-# ----------------
+# ------------------
 # Run `sqlite3' commands directly on a `pdefs.db'
 db_run() {
   local _db;

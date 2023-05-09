@@ -50,7 +50,7 @@ final: prev: {
     };
 
   floco = prev.lib.makeOverridable ( import ./pkgs/cli/pkg-fun.nix ) {
-    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper;
+    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper sqlite;
     nix = final.nixVersions.nix_2_12;
     npm = final.nodejs-14_x.pkgs.npm;
   };
