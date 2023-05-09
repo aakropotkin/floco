@@ -13,9 +13,10 @@
 , makeWrapper
 , nix
 , npm
+, sqlite
 , ...
 }: let
-  propagatedBuildInputs = [bash coreutils gnugrep jq nix npm];
+  propagatedBuildInputs = [bash coreutils gnugrep jq nix npm sqlite];
 in stdenv.mkDerivation {
   pname             = "floco";
   version           = "0.2.1";
@@ -35,6 +36,9 @@ in stdenv.mkDerivation {
     rm -rf ./completion;
 
     mv * "$out/share/floco/";
+
+    cp -r -- ${builtins.path { path = ../../db; }} ./db;
+    mv -f ./db/*.sql "$out/share/floco/site-sql/";
 
     cp -r -- ${builtins.path { path = ../../lib; }}/*  \
              "$out/share/floco/nix/lib/";
