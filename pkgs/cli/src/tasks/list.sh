@@ -171,7 +171,7 @@ if [[ -n "${_FILTER:-}" ]]; then
     ;;
   esac
 else
-  _FILTER="lib.id";
+  _FILTER="( _: true )";
 fi
 
 
