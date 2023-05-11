@@ -103,12 +103,9 @@ localFlocoCfg() {
     if [[ -z "${_l_floco_cfg:=$( searchUp floco-cfg.json||:; )}" ]]; then
       echo "$_as_me: no floco-cfg.nix or floco-cfg.json found" >&2;
       return 1;
-    else
-      export _l_floco_cfg;
     fi
-  else
-    export _l_floco_cfg;
   fi
+  export _l_floco_cfg;
   echo "$_l_floco_cfg";
 }
 export -f localFlocoCfg;

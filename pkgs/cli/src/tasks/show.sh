@@ -31,6 +31,7 @@ global/user configs, or setting the ENV vars \`_[gu]_floco_cfg=null'.
 OPTIONS
   -m,--more         Show more details.
   -j,--json         Output a JSON list.
+  -r,--remote       Translate and show from registry.
   -h,--help         Print help message to STDOUT.
   -u,--usage        Print usage message to STDOUT.
   -v,--version      Print version information to STDOUT.
@@ -76,6 +77,7 @@ export GREP REALPATH MKTEMP NIX JQ HEAD;
 unset _IDENT _VERSION;
 _MORE=;
 _JSON=;
+_REMOTE=;
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -106,6 +108,7 @@ while [[ "$#" -gt 0 ]]; do
     -v|--version)  echo "$_version"; exit 0; ;;
     -j|--json)     _JSON=:; ;;
     -m|--more)     _MORE=:; ;;
+    -r|--remote)   _REMOTE=:; ;;
     --) shift; break; ;;
     -?|--*)
       echo "$_as_me: Unrecognized option: '$1'." >&2;
@@ -142,7 +145,13 @@ while [[ "$#" -gt 0 ]]; do
   shift;
 done
 
-if [[ -z "${_IDENT:-}" ]]; then
+
+# ---------------------------------------------------------------------------- #
+
+# guessTarget
+# -----------
+# Set a fallback target based on `info.{nix,json}' or `package.json'
+guessTarget() {
   if [[ -r ./info.nix ]]; then
     _IDENT="$( $NIX eval --raw -f ./info.nix ident; )";
     _VERSION="$( $NIX eval --raw -f ./info.nix version; )";
@@ -152,12 +161,20 @@ if [[ -z "${_IDENT:-}" ]]; then
   elif [[ -r ./package.json ]]; then
     _IDENT="$( $JQ -r '.name' ./package.json; )";
     _VERSION="$( $JQ -r '.version // "0.0.0-0"' ./package.json; )";
-  else
-    echo "$_as_me: Missing argument \`IDENT'." >&2;
-    printf '\n' >&2;
-    usage >&2;
-    exit 1;
   fi
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+# Handle potentially unset `ident'/`version'.
+if [[ -z "$_REMOTE${_IDENT:-}" ]]; then guessTarget; fi
+
+if [[ -z "${_IDENT:-}" ]]; then
+  echo "$_as_me: Missing argument \`IDENT'." >&2;
+  printf '\n' >&2;
+  usage >&2;
+  exit 1;
 fi
 
 
@@ -197,6 +214,26 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
+popdCleanup() {
+  if [[ -n "$_REMOTE" ]] && [[ "${_proj:-}" = "$PWD" ]]; then
+    popd >/dev/null;
+    rm -rf "$_proj";
+  fi
+}
+
+# Generate a temporary config if we're scanning a remote
+if [[ -n "$_REMOTE" ]]; then
+  _proj="$( mktmpAuto -d; )";
+  echo "{
+    floco.pdefs.\"$_IDENT\".\"$_VERSION\" = {
+      ident = \"$_IDENT\"; version = \"$_VERSION\"; ltype = \"file\";
+    };
+  }" > ./floco-cfg.nix;
+fi
+
+
+# ---------------------------------------------------------------------------- #
+
 runShow() {
   flocoEval                                             \
     "${_NIX_ARGS[@]}" "$@"                              \
@@ -205,14 +242,21 @@ runShow() {
   ;
 }
 
-if [[ -n "${_JSON:-}" ]]; then
-  runShow --json "$@"|$JQ;
-else
-  #shellcheck source-path=SCRIPTDIR
-  #shellcheck source=../lib/fmt.sh
-  . "$FLOCO_LIBDIR/fmt.sh";
-  runShow "$@"|_nix_fmt;
-fi
+
+# ---------------------------------------------------------------------------- #
+
+{
+  if [[ -n "${_JSON:-}" ]]; then
+    runShow --json "$@"|$JQ;
+  else
+    #shellcheck source-path=SCRIPTDIR
+    #shellcheck source=../lib/fmt.sh
+    . "$FLOCO_LIBDIR/fmt.sh";
+    runShow "$@"|_nix_fmt;
+  fi
+}||{ popdCleanup; exit 1; };
+
+popdCleanup;
 
 
 # ---------------------------------------------------------------------------- #

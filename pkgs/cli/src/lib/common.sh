@@ -74,10 +74,12 @@ export _tmp_files _tmp_dirs;
 mktmpAuto() {
   local _f;
   _f="$( $MKTEMP "$@"; )";
-  case " $* " in
-    *\ -d\ *|*\ --directory\ *) _tmp_dirs+=( "$_f" ); ;;
-    *)                          _tmp_files+=( "$_f" ); ;;
-  esac
+  if [[ -d "$_f" ]]; then
+    _tmp_dirs+=( "$_f" );
+  else
+    _tmp_files+=( "$_f" );
+  fi
+  export _tmp_files _tmp_dirs;
   echo "$_f";
 }
 export -f mktmpAuto;
