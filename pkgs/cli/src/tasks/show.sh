@@ -214,16 +214,11 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-popdCleanup() {
-  if [[ -n "$_REMOTE" ]] && [[ "${_proj:-}" = "$PWD" ]]; then
-    popd >/dev/null;
-    rm -rf "$_proj";
-  fi
-}
-
 # Generate a temporary config if we're scanning a remote
 if [[ -n "$_REMOTE" ]]; then
-  _proj="$( mktmpAuto -d; )";
+  mktmpAuto -d;
+  _proj="$_tmpAuto";
+  pushd "$_proj" >/dev/null;
   echo "{
     floco.pdefs.\"$_IDENT\".\"$_VERSION\" = {
       ident = \"$_IDENT\"; version = \"$_VERSION\"; ltype = \"file\";
@@ -245,18 +240,14 @@ runShow() {
 
 # ---------------------------------------------------------------------------- #
 
-{
-  if [[ -n "${_JSON:-}" ]]; then
-    runShow --json "$@"|$JQ;
-  else
-    #shellcheck source-path=SCRIPTDIR
-    #shellcheck source=../lib/fmt.sh
-    . "$FLOCO_LIBDIR/fmt.sh";
-    runShow "$@"|_nix_fmt;
-  fi
-}||{ popdCleanup; exit 1; };
-
-popdCleanup;
+if [[ -n "${_JSON:-}" ]]; then
+  runShow --json "$@"|$JQ;
+else
+  #shellcheck source-path=SCRIPTDIR
+  #shellcheck source=../lib/fmt.sh
+  . "$FLOCO_LIBDIR/fmt.sh";
+  runShow "$@"|_nix_fmt;
+fi
 
 
 # ---------------------------------------------------------------------------- #

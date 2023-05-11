@@ -37,8 +37,9 @@ flocoRef;
 
 # ---------------------------------------------------------------------------- #
 
+mktmmpAuto -d;
 (
-  cd "$( mktmpAuto -d; )" >/dev/null||exit;
+  cd "$_tmpAuto" >/dev/null||exit;
   echo '{
     inputs.floco.url = "github:aakropotkin/floco";
     outputs = _: {};

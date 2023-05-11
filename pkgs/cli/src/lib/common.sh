@@ -13,11 +13,6 @@ fi
 
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_common_sourced:-}" ]]; then return 0; fi
-
-
-# ---------------------------------------------------------------------------- #
-
 set -eu;
 set -o pipefail;
 
@@ -66,21 +61,26 @@ setScriptVars "$0" "${BASH_SOURCE[@]:1}";
 
 # ---------------------------------------------------------------------------- #
 
-declare -a _tmp_files _tmp_dirs;
-_tmp_files=();
-_tmp_dirs=();
-export _tmp_files _tmp_dirs;
+declare -ax _tmp_files _tmp_dirs;
+if ! declare -p _tmp_files >/dev/null 2>&1; then _tmp_files=(); fi
+if ! declare -p _tmp_dirs >/dev/null 2>&1;  then _tmp_dirs=(); fi
+
+_tmpAuto=;
+export _tmpAuto;
 
 mktmpAuto() {
   local _f;
+  _tmpAuto=;
   _f="$( $MKTEMP "$@"; )";
+  if [[ -n "${_TRACE:-}" ]]; then
+    echo "${_as_me:-floco:lib/common.sh}: mktmpAuto $*  --> $_f" >&2;
+  fi
   if [[ -d "$_f" ]]; then
     _tmp_dirs+=( "$_f" );
   else
     _tmp_files+=( "$_f" );
   fi
-  export _tmp_files _tmp_dirs;
-  echo "$_f";
+  _tmpAuto="$_f";
 }
 export -f mktmpAuto;
 
@@ -89,17 +89,25 @@ export -f mktmpAuto;
 
 commonCleanup() {
   rm -f "${_tmp_files[@]}";
+  case " ${_tmp_dirs[*]} " in
+    \ "$PWD"\ ) cd / >/dev/null; ;;
+    *) :; ;;
+  esac
   rm -rf "${_tmp_dirs[@]}";
 }
 export -f commonCleanup;
 
-declare -a cleanupHooks;
+declare -ax cleanupHooks;
 cleanupHooks=( commonCleanup );
-export cleanupHooks;
 
 cleanup() {
   local _hook;
-  for _hook in "${cleanupHooks[@]}"; do "$_hook"; done
+  for _hook in "${cleanupHooks[@]}"; do
+    if [[ -n "${_TRACE:-}" ]]; then
+      echo "${_as_me:-floco:lib/common.sh}: running cleanupHook '$_hook'." >&2;
+    fi
+    "$_hook";
+  done
 }
 export -f cleanup;
 
@@ -121,11 +129,6 @@ helpUrls() {
 <https://matrix.to/#/!tBPFHeGmZfhbuYgvcw:matrix.org?via=matrix.org>";
 }
 export -f helpUrls;
-
-
-# ---------------------------------------------------------------------------- #
-
-export _floco_cli_common_sourced=:;
 
 
 # ---------------------------------------------------------------------------- #

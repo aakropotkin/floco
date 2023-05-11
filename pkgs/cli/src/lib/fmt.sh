@@ -92,7 +92,8 @@ _nix_fmt_rewrite() {
   . "$FLOCO_LIBDIR/common.sh";
   local _tmpfile;
   #shellcheck disable=SC2119
-  _tmpfile="$( mktmpAuto; )";
+  mktmpAuto;
+  _tmpfile="$_tmpAuto";
   for f in "$@"; do
     _nix_fmt "$f" > "$_tmpfile";
     mv "$_tmpfile" "$f";

@@ -194,7 +194,8 @@ runEval() {
 
 if [[ -n "$_IN_PLACE" ]]; then
   #shellcheck disable=SC2119
-  _TFILE="$( mktmpAuto; )";
+  mktmpAuto;
+  _TFILE="$_tmpAuto";
   runEval > "$_TFILE";
   mv "$_FILE" "$_FILE~";
   mv "$_TFILE" "$_FILE";

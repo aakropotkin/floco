@@ -238,7 +238,8 @@ done
 
 # ---------------------------------------------------------------------------- #
 
-LOCKDIR="$( mktmpAuto -d; )";
+mktmpAuto -d;
+LOCKDIR="$_tmpAuto";
 pushd "$LOCKDIR" >/dev/null;
 
 
@@ -343,7 +344,8 @@ if [[ -n "$DEBUG" ]]; then
 fi
 
 #shellcheck disable=SC2119
-OUTFILE_TMP="$( mktmpAuto; )";
+mktmpAuto;
+OUTFILE_TMP="$_tmpAuto";
 
 #shellcheck disable=SC2153
 flocoEval                              \
