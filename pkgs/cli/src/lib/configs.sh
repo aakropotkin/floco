@@ -5,11 +5,6 @@
 #
 # ---------------------------------------------------------------------------- #
 
-if [[ -n "${_floco_cli_configs_sourced:-}" ]]; then return 0; fi
-
-
-# ---------------------------------------------------------------------------- #
-
 set -eu;
 set -o pipefail;
 
@@ -128,8 +123,6 @@ if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   # Make this file usable as a script.
   # A similar block above handles changing `PWD'.
   flocoCfgFiles;
-else
-  export _floco_cli_configs_sourced=:;
 fi
 
 

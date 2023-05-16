@@ -36,15 +36,6 @@ export FLOCO_LIBDIR;
 
 # ---------------------------------------------------------------------------- #
 
-declare -a _nix_edit_escape_keywords;
-_nix_edit_escape_keywords=(
-  'if' 'then' 'else' 'assert' 'with' 'let' 'in' 'rec' 'inherit'
-);
-export _nix_edit_escape_keywords;
-
-
-# ---------------------------------------------------------------------------- #
-
 # _nix_keyword_escape
 # -------------------
 # Quote/escape reserved keywords read from STDIN and print to STDOUT.
@@ -52,6 +43,10 @@ export _nix_edit_escape_keywords;
 #shellcheck disable=SC2120
 _nix_keyword_escape() {
   local _patt_from _npatts;
+  declare -a _nix_edit_escape_keywords;
+  _nix_edit_escape_keywords=(
+    'if' 'then' 'else' 'assert' 'with' 'let' 'in' 'rec' 'inherit'
+  );
   _npatts="${#_nix_edit_escape_keywords[@]}";
   _patt_from=" \(";
   for k in "${_nix_edit_escape_keywords[@]:0:$(( _npatts - 1 ))}"; do

@@ -224,6 +224,10 @@ if [[ -n "$_REMOTE" ]]; then
       ident = \"$_IDENT\"; version = \"$_VERSION\"; ltype = \"file\";
     };
   }" > ./floco-cfg.nix;
+  unset _l_floco_cfg;
+  #shellcheck source-path=SCRIPTDIR
+  #shellcheck source=../lib/configs.sh
+  . "$FLOCO_LIBDIR/configs.sh";
 fi
 
 

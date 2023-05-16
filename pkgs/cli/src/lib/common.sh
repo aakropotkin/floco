@@ -31,6 +31,12 @@ export GREP HEAD JQ MKTEMP NIX REALPATH;
 
 # ---------------------------------------------------------------------------- #
 
+FLOCO_LIBDIR="$( $REALPATH "${BASH_SOURCE[0]%/*}"; )";
+export FLOCO_LIBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
 # Source helpers
 
 #shellcheck source-path=SCRIPTDIR
@@ -97,12 +103,26 @@ commonCleanup() {
 }
 export -f commonCleanup;
 
-declare -ax cleanupHooks;
-cleanupHooks=( commonCleanup );
+cleanupHooks="commonCleanup";
+export cleanupHooks;
+
+
+addCleanupHook() {
+  for h in "$@"; do
+    case " ${cleanupHooks:-} " in
+      *\ "$h"\ *) :; ;;
+      *) cleanupHooks="${cleanupHooks:+$cleanupHooks }$h"; ;;
+    esac
+  done
+  export cleanupHooks;
+}
+export -f addCleanupHook;
+
 
 cleanup() {
-  local _hook;
-  for _hook in "${cleanupHooks[@]}"; do
+  local _hook _cleanupHooks;
+  read -ra _cleanupHooks <<< "$cleanupHooks";
+  for _hook in "${_cleanupHooks[@]}"; do
     if [[ -n "${_TRACE:-}" ]]; then
       echo "${_as_me:-floco:lib/common.sh}: running cleanupHook '$_hook'." >&2;
     fi
