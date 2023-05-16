@@ -6,7 +6,6 @@
 
 #include <cstring>
 #include <limits>
-#include <nix/config.h>
 #include <nix/cache.hh>
 #include <nix/types.hh>
 #include <nix/url-parts.hh>

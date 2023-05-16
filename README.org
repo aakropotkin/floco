@@ -1,4 +1,5 @@
 #+TITLE: floco
+
 =floco= is a JavaScript package management and build tool powered by
 [[https://nixos.org][Nix]].
 
@@ -25,6 +26,7 @@ not implemented naively.
 Writing a JavaScript package management framework in =bash= and =nix= was
 done /not because it is easy/ - on the contrary it was fucking hard.
 
+
 * Getting Started
 
 There's a dedicated
@@ -44,7 +46,9 @@ nix build -f ./. global;
 ls -R ./result;
 #+END_SRC
 
+
 ** Documentation
+
 A collection of documentation is hosted on GitHub on the project's
 [[https://github.com/aakropotkin/floco/wiki][wiki]] tab, and is also
 available under
@@ -55,18 +59,23 @@ Additionally all CLI tooling and scripts support the =--help= option.
 The =floco help CMD= sub-command may also be used to view "help" messages
 for a given =CMD=.
 
+
 ** Templates
+
 A simple template with the boilerplate needed for use with our /updaters/
 is available through ~nix flake init -t github:aakropotkin/floco~.
 
 More templates are on the way.
+
 
 * CLI
 
 The =floco= CLI interface is currently under active development and is
 expected to change rapidly in the near future.
 
+
 ** Common Behaviors
+
 Across the =floco= CLI a few behaviors are consistent. 
 
 The following config files are included/applied if they exist:
@@ -78,14 +87,18 @@ The following config files are included/applied if they exist:
 References to =floco= will be pulled from the nearest =flake.lock=, or
 =nix registry list=, using =github:aakropotkin/floco/main= as a fallback.
 
+
 ** =floco translate=
+
 Generate a =pdefs.nix= file from a =package[-lock].json= or
 registry package.
 
 This routine utilized =npm= internally to resolve packages and form
 =node_modules= trees.
 
+
 *** Local Project Example
+
 #+BEGIN_SRC shell
 mkdir -p /tmp/foo;
 pushd /tmp/foo;
@@ -106,7 +119,9 @@ floco build;  # or `nix build -f ./. global;
 ls ./result/lib/node_modules/@floco/phony/;
 #+END_SRC
 
+
 *** Remote Project Example
+
 #+BEGIN_SRC shell
 mkdir -p /tmp/foo;
 pushd /tmp/foo;
@@ -118,7 +133,9 @@ floco build;  # or `nix build -f ./.;'
 ls ./result/lib/node_modules/lodash/;
 #+END_SRC
 
+
 ** =floco list=
+
 List all declared projects by "key", being =<IDENT>/<VERSION>=, such as
 =@foo/bar/4.2.0= or =baz/4.2.0=.
 
@@ -143,7 +160,9 @@ acorn-globals/4.3.4
 acorn-jsx/5.3.2
 #+end_example
 
+
 ** =floco show=
+
 Print the =pdef= record for a given package.
 
 #+BEGIN_SRC shell :exports both :results output
@@ -183,6 +202,7 @@ For example usage and more details please see
 
 
 * Updaters/Generators
+
 The top level flake provides an installable =floco-updaters= as well as
 =app= targets ( =fromPlock= and =fromRegistry= ) that can be used to generate
 =pdefs.nix= and =pdefs.json= files to be loaded by as configs.
@@ -191,7 +211,9 @@ These scripts will allow you to convert existing JavaScript projects to be
 used with =floco=, and update/regenerate configs as projects'
 dependencies and build requirements change.
 
+
 ** =fromPlock=
+
 This generator is intended for use with local projects.
 It is essentially a wrapper around =npm i --package-lock-only=.
 
@@ -199,7 +221,9 @@ For example usage please see the
 [[https://github.com/aakropotkin/floco/blob/main/doc/guides/basics.org][Getting Started]]
 guide.
 
+
 ** =fromRegistry=
+
 This generator is intended for use with published registry packages that
 you'd like to make accessible to =floco= and =nix=.
 
@@ -217,6 +241,7 @@ compilation ).
 
 
 * Modules
+
 Package metadata collection, also called /translation/, and project
 composition is managed using
 [[https://github.com/NixOS/nixpkgs/blob/master/lib/modules.nix][Nixpkgs Modules]]
@@ -228,7 +253,9 @@ similar to those used by
 These modules are organized as sets of =interface.nix= and
 =implementation.nix= files and are designed to be extensible.
 
+
 ** Organization
+
 The core of the module system revolves around a record called =pdef=, short
 for "package definition", which organizes translated metadata, and
 =package= records which organize the build pipelines.
@@ -244,7 +271,9 @@ drastically improve performance by leveraging
 [[https://www.tweag.io/blog/2020-06-25-eval-cache/][eval caching]] to avoid
 re-evaluation of recipe generation on successive runs.
 
+
 ** =pdef= Package Definitions
+
 The =pdef= record closely mirrors the pseudo-standard schema used by most
 =package.json= files; but is much stricter about how declarations
 are written.
@@ -252,12 +281,16 @@ are written.
 If desired, users could ditch =package.json= files altogether and simply
 write =pdef= records for their projects.
 
+
 ** Translators
+
 At time of writing only a few translators have been migrated from the alpha
 iteration, [[https://github.com/aameen-tulip/at-node-nix][at-node-nix]], but
 in the near future these will be finalized for production use.
 
+
 *** =package.json=
+
 This is our bread and butter, and serves as the default implementation for
 creating a =pdef= record.
 
@@ -266,7 +299,9 @@ structure of their =node_modules/= tree using the =treeInfo= submodule.
 For this reason we strongly recommend using the =package-lock.json=
 translator for projects with large dependency graphs.
 
+
 **** Progress on /Ideal Tree/
+
 The term /ideal tree/ refers to the mapping of a =node_modules/= tree
 from a dependency graph.
 This process is by far the most complex and challenging aspect of
@@ -288,14 +323,18 @@ routines used to fetch closures of /packument/ records effectively solve
 half of the /ideal tree/ process, leaving only scope and /follows/
 management to be completed.
 
+
 *** =package-lock.json= v2/v3
+
 This is by far the most developed translator, and is the recommended
 option for large projects.
 
 This translator will automatically fill =treeInfo= submodules, and
 triggers minimal network fetching.
 
+
 *** =yarn.lock= v5
+
 A rudimentary translator exists to collect information from =yarn.lock=
 v5 ( produced by =yarn= v3 ), but because these lockfiles lack
 /ideal tree/ information users will need to provide =treeInfo= themselves.
@@ -304,8 +343,11 @@ In the future we intend to produce =treeInfo= from these locks using
 the pinned version information they contain; but this routine still needs
 to be authored.
 
+
 * Experimental Features
+
 ** =treeFor=
+
 A CLI frontend for the =npm= /ideal tree/ routine,
 [[https://github.com/npm/cli/blob/main/workspaces/arborist/README.md][arborist]],
 modified such that =package-lock.json= files can be emitted to =STDOUT=
@@ -320,6 +362,7 @@ top-level flake.
 
 
 ** Nix Plugin
+
 A =nix= plugin for use with ~nix --plugin-files ...~ is available in the
 top level flake, along with a wrapper executable, =floco-nix=, which
 automatically loads this plugin.
@@ -331,11 +374,14 @@ and sub-commands.
 This plugin was developed for Nix v2.12.0, but is likely compatible with
 a wider range of versions.
 
+
 *** New Builtins
+
 Our plugin adds a few new =builtins= to the =nix= evaluator which are
 useful for dynamically generating package definitions.
 
 **** =builtins.npmShow=
+
 Wraps ~npm show~ allowing Nix to query package registries using a users
 existing =npm= config and any environment =NPM_CONFIG_*= variables.
 
@@ -387,7 +433,9 @@ builtins.attrNames ( builtins.npmShow "lodash" )
 ]
 #+end_example
 
+
 **** =builtins.npmResolve=
+
 Resolves package descriptors such as =foo@^1.0.0= or =bar@latest=
 using =npm=, returning a resolved URI.
 
@@ -405,7 +453,9 @@ builtins.npmResolve "lodash@latest"
 #+RESULTS:
 : "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 
+
 **** =builtins.npmLock=
+
 Produces a virtual =package-lock.json= for a given project path
 without modifying the project or making any writes to the filesystem.
 
@@ -430,7 +480,9 @@ nix run github:aakropotkin/floco#floco-nix -- eval --impure  \
 #+RESULTS:
 : [ "lockfileVersion" "name" "packages" "requires" "version" ]
 
+
 **** =builtins.semverSat=
+
 Runs =node-semver= to test whether a semantic version satisfies
 a constraint.
 In the future =node-semver= will be replaced using a native C++ port
@@ -454,6 +506,7 @@ nix run github:aakropotkin/floco#floco-nix -- eval --expr '[
 
 
 * Future Extensions
+
 Many of the following extensions have function drafts or well tested
 prototypes in the alpha release of =floco=; but are not developed enough for
 use in production code-bases as pieces of reliable infrastructure.
@@ -500,7 +553,9 @@ use in production code-bases as pieces of reliable infrastructure.
     =bundledDependencies=, and other oddballs which are a prerequisite for use
     in the general case.
 
+
 * Community
+
 ** Matrix
 Sadly IRC is dead. IRC remains dead.
 So like most folks these days we use Matrix Chat.
@@ -517,7 +572,9 @@ Support Room:
 Development Room:
 [[https://matrix.to/#/!qDFpEnHkbpkhLSenko:matrix.org?via=matrix.org]]
 
+
 * Supporters
+
 ** [[https://tulip.co/][Tulip Interfaces]]
 =floco= was originally developed for use by Tulip Interfaces.
 Without their support this project never would have been possible.

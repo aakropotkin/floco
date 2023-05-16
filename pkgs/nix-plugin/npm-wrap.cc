@@ -8,6 +8,7 @@
 #include <nix/util.hh>
 #include <nix/primops.hh>
 #include <nix/json-to-value.hh>
+#include <nix/eval-inline.hh>
 
 #include "progs.hh"
 

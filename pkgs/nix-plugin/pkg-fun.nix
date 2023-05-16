@@ -13,12 +13,14 @@
 
 { stdenv
 , boost
+, nlohmann_json
 , treeFor
 , semver
 , nodejs
 , npm
 , bash
 , nix
+, pkg-config
 , darwin
 }: stdenv.mkDerivation {
   inherit bash nix;
@@ -30,16 +32,33 @@
     filter = name: type:
       ( type == "regular" ) && ( ( builtins.match ".*\\.nix" name ) == null );
   };
-  libExt      = stdenv.hostPlatform.extensions.sharedLibrary;
-  buildInputs = [nix.dev boost.dev] ++ (
+  libExt            = stdenv.hostPlatform.extensions.sharedLibrary;
+  nativeBuildInputs = [pkg-config];
+  buildInputs       = [nix.dev boost.dev] ++ (
     if stdenv.isDarwin then [darwin.apple_sdk.frameworks.Security] else []
   );
-  propagatedBuildInputs = [nodejs npm treeFor semver];
+  propagatedBuildInputs = [nix nodejs npm treeFor semver];
+  # NOTE: Nix 2.12.x requires `-lnixfetchers' to be linked explicitly.
+  # npm 9.3.1
   buildPhase = ''
     runHook preBuild;
-    $CXX -shared -o libfloco$libExt -std=c++17  \
+    $CXX                                                                       \
+      -o "libfloco$libExt"                                                     \
+      -fPIC                                                                    \
+      -shared                                                                  \
+      -I${nix.dev}/include                                                     \
+      -I${nix.dev}/include/nix                                                 \
+      -I${boost.dev}/include                                                   \
+      -I${nlohmann_json}/include                                               \
+      -include ${nix.dev}/include/nix/config.h                                 \
+      $( pkg-config --cflags nix-main nix-store nix-expr; )                    \
       ${if stdenv.isDarwin then "-undefined suppress -flat_namespace" else ""} \
-      ./npm-wrap.cc ./npm-fetcher.cc ./progs.cc;
+      ./npm-wrap.cc ./npm-fetcher.cc ./progs.cc                                \
+      -Wl,--as-needed                                                          \
+      $( pkg-config --libs nix-store nix-expr nix-cmd; )                       \
+      -lnixfetchers                                                            \
+      -Wl,--no-as-needed                                                       \
+    ;
     runHook postBuild;
   '';
   installPhase = ''

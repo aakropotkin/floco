@@ -10,10 +10,9 @@ final: prev: {
   inherit (import ./updaters {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
-    inherit (final) system bash coreutils jq gnused;
+    inherit (final) system bash coreutils jq gnused nix;
     nodejs   = final.nodejs-slim-14_x;
     npm      = final.nodejs-14_x.pkgs.npm;
-    nix      = final.nixVersions.nix_2_12;
     flakeRef = ./.;
   }) floco-updaters;
 
@@ -43,15 +42,15 @@ final: prev: {
 
   floco-nix =
     prev.lib.makeOverridable ( import ./pkgs/nix-plugin/pkg-fun.nix ) {
-      inherit (final) stdenv boost treeFor semver bash darwin;
+      inherit (final)
+        stdenv boost nlohmann_json treeFor semver bash darwin pkg-config nix
+      ;
       nodejs = final.nodejs-14_x;
       npm    = final.nodejs-14_x.pkgs.npm;
-      nix    = final.nixVersions.nix_2_12;
     };
 
   floco = prev.lib.makeOverridable ( import ./pkgs/cli/pkg-fun.nix ) {
-    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper sqlite;
-    nix = final.nixVersions.nix_2_12;
+    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper sqlite nix;
     npm = final.nodejs-14_x.pkgs.npm;
   };
 

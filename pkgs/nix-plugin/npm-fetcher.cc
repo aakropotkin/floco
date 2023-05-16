@@ -4,7 +4,6 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <nix/config.h>
 #include <nix/filetransfer.hh>
 #include <nix/cache.hh>
 #include <nix/store-api.hh>
@@ -12,6 +11,7 @@
 #include <nix/url-parts.hh>
 #include <nix/fetchers.hh>
 #include <nix/fetch-settings.hh>
+#include <nix/eval-inline.hh>
 
 #include <optional>
 #include <nlohmann/json.hpp>
