@@ -15,13 +15,12 @@
   int
 main( int argc, char * argv[], char ** envp )
 {
-  sqlite3     * db;
-  char        * messageError;
-  std::string   sql = pjsCoreSchemaSQL;
-  int           err = 0;
+  sqlite3 * db;
+  char    * messageError;
+  int       err = 0;
 
   err = sqlite3_open( "pjs-core.db", & db );
-  err = sqlite3_exec( db, sql.c_str(), NULL, 0, & messageError );
+  err = sqlite3_exec( db, pjsCoreSchemaSQL, NULL, 0, & messageError );
 
   if ( err != SQLITE_OK )
     {
