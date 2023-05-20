@@ -5,15 +5,22 @@
 # ---------------------------------------------------------------------------- #
 
 { stdenv, sqlite, pkg-config }: stdenv.mkDerivation {
-  pname             = "floco-db";
-  version           = "0.1.0";
-  src               = ./.;
+  pname   = "floco-db";
+  version = "0.1.0";
+  src     = builtins.path {
+    path = ../.;
+    filter = name: type: let
+      bname   = baseNameOf name;
+      ignores = ["result" "floco-sql.hh"];
+    in ( type == "directory" ) || ( ! ( builtins.elem bname ignores ) );
+  };
   nativeBuildInputs = [pkg-config];
   buildInputs       = [sqlite.dev];
   dontConfigure     = true;
   buildPhase        = ''
     runHook preBuild;
-    $CXX -o "$pname" -std=c++17 $( pkg-config --cflags --libs sqlite3; ) *.cc;
+    cd ./cli;
+    make;
     runHook postBuild;
   '';
   installPhase = ''
