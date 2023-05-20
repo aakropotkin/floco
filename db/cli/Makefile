@@ -42,10 +42,19 @@ all: gen-headers bins
 
 # ---------------------------------------------------------------------------- #
 
-floco-sql.hh: ../pjs-core.sql
+floco-sql.hh: ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 	echo '#include <string>' > "$@";
-	printf 'std::string pjsCoreSchemaSQL = R"SQL(' >> "$@";
+	printf 'static const std::string pjsCoreSchemaSQL = R"SQL(' >> "$@";
 	$(CAT) ../pjs-core.sql >> "$@";
+	echo ')SQL";' >> "$@";
+	printf 'static const std::string fetchInfoSchemaSQL = R"SQL(' >> "$@";
+	$(CAT) ../fetch-info.sql >> "$@";
+	echo ')SQL";' >> "$@";
+	printf 'static const std::string pdefsSchemaSQL = R"SQL(' >> "$@";
+	$(CAT) ../pdefs.sql >> "$@";
+	echo ')SQL";' >> "$@";
+	printf 'static const std::string treesSchemaSQL = R"SQL(' >> "$@";
+	$(CAT) ../trees.sql >> "$@";
 	echo ')SQL";' >> "$@";
 
 
