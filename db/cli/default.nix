@@ -11,7 +11,11 @@
 , sqlite        ? pkgsFor.sqlite
 , pkg-config    ? pkgsFor.pkg-config
 , nlohmann_json ? pkgsFor.nlohmann_json
-}: import ./pkg-fun.nix { inherit stdenv sqlite pkg-config nlohmann_json; }
+, curlpp        ? pkgsFor.curlpp
+, curl          ? pkgsFor.curl
+}: import ./pkg-fun.nix {
+  inherit stdenv sqlite pkg-config nlohmann_json curlpp curl;
+}
 
 
 # ---------------------------------------------------------------------------- #

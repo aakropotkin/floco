@@ -19,8 +19,17 @@ PKG_CONFIG ?= pkg-config
 # ---------------------------------------------------------------------------- #
 
 GEN_HEADERS = floco-sql.hh
-BINS        = floco-db
+BINS        = floco-db fetch
 SQL_SCHEMAS = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+
+
+# ---------------------------------------------------------------------------- #
+
+CXXFLAGS =                                                      \
+  -std=c++17                                                    \
+  $(shell $(PKG_CONFIG) --cflags sqlite3 nlohmann_json curlpp)
+
+LDFLAGS = $(shell $(PKG_CONFIG) --libs sqlite3 curlpp)
 
 
 # ---------------------------------------------------------------------------- #
@@ -60,11 +69,12 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS = -std=c++23 $(shell $(PKG_CONFIG) --cflags sqlite3 nlohmann_json)
-LDFLAGS  = $(shell $(PKG_CONFIG) --libs sqlite3)
-
 floco-db: gen-headers pjs-core.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ *.cc -o "$@"
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ pjs-core.cc -o "$@"
+
+
+fetch: fetch.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ fetch.cc -o "$@"
 
 
 # ---------------------------------------------------------------------------- #
