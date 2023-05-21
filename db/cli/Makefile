@@ -44,7 +44,7 @@ all: gen-headers bins
 # ---------------------------------------------------------------------------- #
 
 floco-sql.hh: Makefile $(SQL_SCHEMAS)
-	printf 'static const char pjsCoreSchemaSQL[] = R"SQL(' >> "$@";
+	printf 'static const char pjsCoreSchemaSQL[] = R"SQL(' > "$@";
 	$(CAT) ../pjs-core.sql >> "$@";
 	echo ')SQL";' >> "$@";
 	printf 'static const char fetchInfoSchemaSQL[] = R"SQL(' >> "$@";
@@ -60,8 +60,11 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
+CXXFLAGS = -std=c++23 $(shell $(PKG_CONFIG) --cflags sqlite3 nlohmann_json)
+LDFLAGS  = $(shell $(PKG_CONFIG) --libs sqlite3)
+
 floco-db: gen-headers pjs-core.cc
-	$(CXX) -std=c++17 $$( $(PKG_CONFIG) --libs --cflags sqlite3; ) *.cc -o "$@"
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ *.cc -o "$@"
 
 
 # ---------------------------------------------------------------------------- #
