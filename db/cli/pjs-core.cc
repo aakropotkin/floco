@@ -6,6 +6,7 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include <sqlite3.h>
 #include <nlohmann/json.hpp>
@@ -15,37 +16,36 @@
 
 /* -------------------------------------------------------------------------- */
 
-  static inline bool
-jsonHasKey( nlohmann::json & json, const std::string & key )
-{
-  for ( nlohmann::json::iterator i = json.begin(); i != json.end(); ++i )
-    {
-      if ( i.key() == key )
-        {
-          return true;
-        }
-    }
-  return false;
-}
+static const nlohmann::json defaultPjs = {
+  { "name",                 nullptr }
+, { "version",              nullptr }
+, { "bin",                  nullptr }
+, { "dependencies",         nlohmann::json::object() }
+, { "devDependencies",      nlohmann::json::object() }
+, { "devDependenciesMeta",  nlohmann::json::object() }
+, { "peerDependencies",     nlohmann::json::object() }
+, { "peerDependenciesMeta", nlohmann::json::object() }
+, { "os",                   { "*" } }
+, { "cpu",                  { "*" } }
+, { "engines",              nlohmann::json::object() }
+};
+
+static const std::vector<std::string> pjsKeys = {
+  "name"
+, "version"
+, "bin"
+, "dependencies"
+, "devDependencies"
+, "devDependenciesMeta"
+, "peerDependencies"
+, "peerDependenciesMeta"
+, "os"
+, "cpu"
+, "engines"
+};
 
 
 /* -------------------------------------------------------------------------- */
-
-  void
-addObjectOrEmpty(       nlohmann::json & pjs
-                ,       std::string    & sql
-                , const std::string    & key )
-{
-  if ( jsonHasKey( pjs, key ) )
-    {
-      sql += "'" + pjs[key].dump() + "', ";
-    }
-  else
-    {
-      sql += "'{}', ";
-    }
-}
-
 
   const std::string
 pjsJsonToSQL( const std::string   url
@@ -61,24 +61,45 @@ pjsJsonToSQL( const std::string   url
     ) VALUES (
   )SQL";
 
+  nlohmann::json full = defaultPjs;
+
   char ts[128];
   std::snprintf( ts, sizeof( ts ), "%lu", timestamp );
 
-  sql += "    '" + url + "', " + ts + ", '";
-  sql += pjs["name"].get<std::string>() + "', '";
-  sql += pjs["version"].get<std::string>() + "', ";
+  sql += "    '" + url + "', " + ts;
 
-  addObjectOrEmpty( pjs, sql, "bin" );
-  addObjectOrEmpty( pjs, sql, "dependencies" );
-  addObjectOrEmpty( pjs, sql, "devDependencies" );
-  addObjectOrEmpty( pjs, sql, "devDependenciesMeta" );
-  addObjectOrEmpty( pjs, sql, "peerDependencies" );
-  addObjectOrEmpty( pjs, sql, "peerDependenciesMeta" );
-  // TODO: OS
-  // TODO: CPU
-  addObjectOrEmpty( pjs, sql, "engines" );
+  for ( auto & [key, value] : pjs.items() )
+    {
+      for ( auto i = pjsKeys.begin(); i != pjsKeys.end(); ++i )
+        {
+          if ( ( *i ) == key )
+            {
+              full[key] = value;
+              break;
+            }
+        }
+    }
 
-  sql += ");";
+  for ( auto key = pjsKeys.begin(); key != pjsKeys.end(); ++key )
+    {
+      if ( full[*key] == nullptr )
+        {
+          sql += ", NULL";
+        }
+      else
+        {
+          if ( full[*key].type() != nlohmann::json::value_t::string )
+            {
+              sql += ", '" + full[*key].dump() + "'";
+            }
+          else
+            {
+              sql += ", '" + full[*key].get<std::string>() + "'";
+            }
+        }
+    }
+
+  sql += " );";
 
   return sql;
 }
@@ -97,7 +118,7 @@ main( int argc, char * argv[], char ** envp )
   o["name"]    = "@floco/phony";
   o["version"] = "4.2.0";
 
-  std::cout << pjsJsonToSQL( "foo", 0, o );
+  std::cout << pjsJsonToSQL( "https://foo.com", 0, o ) << std::endl;
 
   err = sqlite3_open( "pjs-core.db", & db );
   err = sqlite3_exec( db, pjsCoreSchemaSQL, NULL, 0, & messageError );
