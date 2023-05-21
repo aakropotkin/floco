@@ -12,7 +12,9 @@ stdenv.mkDerivation {
     path = ../.;
     filter = name: type: let
       bname   = baseNameOf name;
-      ignores = ["result" "floco-sql.hh"];
+      ignores = [
+        "result" "floco-sql.hh" "fetch" "floco-db" "default.nix" "pkg-fun.nix"
+      ];
     in ( type == "directory" ) || ( ! ( builtins.elem bname ignores ) );
   };
   nativeBuildInputs = [pkg-config];
