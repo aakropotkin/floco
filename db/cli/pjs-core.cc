@@ -49,8 +49,8 @@ static const std::vector<std::string> pjsKeys = {
 
   const std::string
 pjsJsonToSQL( const std::string   url
-            , unsigned long       timestamp
-            , nlohmann::json    & pjs )
+            , nlohmann::json    & pjs
+            , unsigned long       timestamp = 0 )
 {
   std::string sql = R"SQL(
     INSERT OR REPLACE INTO PjsCores (
@@ -63,8 +63,11 @@ pjsJsonToSQL( const std::string   url
 
   nlohmann::json full = defaultPjs;
 
-  char ts[128];
-  std::snprintf( ts, sizeof( ts ), "%lu", timestamp );
+  char ts[128] = "unixepoch()";
+  if ( 0 < timestamp )
+    {
+      std::snprintf( ts, sizeof( ts ), "%lu", timestamp );
+    }
 
   sql += "    '" + url + "', " + ts;
 
@@ -114,12 +117,6 @@ main( int argc, char * argv[], char ** envp )
   char    * messageError;
   int       err = 0;
 
-  nlohmann::json o;
-  o["name"]    = "@floco/phony";
-  o["version"] = "4.2.0";
-
-  std::cout << pjsJsonToSQL( "https://foo.com", 0, o ) << std::endl;
-
   err = sqlite3_open( "pjs-core.db", & db );
   err = sqlite3_exec( db, pjsCoreSchemaSQL, NULL, 0, & messageError );
 
@@ -131,6 +128,24 @@ main( int argc, char * argv[], char ** envp )
   else
     {
       std::cout << "Table created Successfully" << std::endl;
+    }
+
+
+  /* Create a dummy row */
+  nlohmann::json o;
+  o["name"]    = "@floco/phony";
+  o["version"] = "4.2.0";
+
+  std::string sql = pjsJsonToSQL( "https://foo.com", o );
+  err = sqlite3_exec( db, sql.c_str(), NULL, 0, & messageError );
+  if ( err != SQLITE_OK )
+    {
+      std::cerr << "Error Inserting into Table" << std::endl;
+      sqlite3_free( messageError );
+    }
+  else
+    {
+      std::cout << "Inserted into Table Successfully" << std::endl;
     }
 
   sqlite3_close( db );
