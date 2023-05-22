@@ -16,8 +16,15 @@
 
 /* -------------------------------------------------------------------------- */
 
+#ifndef MAIN_PROG
+  #define MAIN_PROG  fetch
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
   size_t
-FileCallback( FILE * f, char * ptr, size_t size, size_t nmemb )
+fileCallback( FILE * f, char * ptr, size_t size, size_t nmemb )
 {
   return fwrite( ptr, size, nmemb, f );
 }
@@ -25,23 +32,15 @@ FileCallback( FILE * f, char * ptr, size_t size, size_t nmemb )
 
 /* -------------------------------------------------------------------------- */
 
-
   int
-main( int argc, char * argv[], char ** envp )
+curlFile( const char * url, const char * outFile )
 {
-  if ( argc != 3 )
-    {
-      std::cerr << argv[0] << ": Wrong number of arguments" << std::endl
-                << argv[0] << ": Usage: " << " url file"    << std::endl;
-      return EXIT_FAILURE;
-    }
+  int    ec   = EXIT_FAILURE;
+  FILE * file = fopen( outFile, "w" );
 
-  char * url      = argv[1];
-  char * filename = argv[2];
-  FILE * file     = fopen( filename, "w" );
   if ( ! file )
     {
-      std::cerr << "Error opening " << filename << std::endl;
+      std::cerr << "Error opening " << outFile << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -54,7 +53,7 @@ main( int argc, char * argv[], char ** envp )
       using namespace std::placeholders;
       curlpp::options::WriteFunction * test =
         new curlpp::options::WriteFunction(
-          std::bind( & FileCallback, file, _1, _2, _3 )
+          std::bind( & fileCallback, file, _1, _2, _3 )
         );
       request.setOpt( test );
 
@@ -63,19 +62,40 @@ main( int argc, char * argv[], char ** envp )
       request.setOpt( new curlpp::options::Verbose( false ) );
       request.perform();
 
-      return EXIT_SUCCESS;
+      ec = EXIT_SUCCESS;
     }
   catch ( curlpp::LogicError & e )
     {
       std::cout << e.what() << std::endl;
+      ec = EXIT_FAILURE;
     }
   catch ( curlpp::RuntimeError & e )
     {
       std::cout << e.what() << std::endl;
+      ec = EXIT_FAILURE;
     }
 
-  return EXIT_FAILURE;
+  fclose( file );
+
+  return ec;
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+#if MAIN_PROG == fetch
+  int
+main( int argc, char * argv[], char ** envp )
+{
+  if ( argc != 3 )
+    {
+      std::cerr << argv[0] << ": Wrong number of arguments" << std::endl
+                << argv[0] << ": Usage: " << " url file"    << std::endl;
+      return EXIT_FAILURE;
+    }
+  return curlFile( argv[1], argv[2] );
+}
+#endif
 
 
 /* -------------------------------------------------------------------------- *
