@@ -35,6 +35,7 @@ class BinInfo {
   std::string                                  _binDir;
   std::unordered_map<std::string, std::string> _binPairs;
 
+
     void
   initByStrings( std::string_view name, std::string_view s )
   {
@@ -58,7 +59,9 @@ class BinInfo {
       }
   }
 
+
   public:
+
     BinInfo( std::string_view name, std::string_view s )
     {
       initByStrings( name, s );
@@ -94,8 +97,10 @@ class BinInfo {
         }
     }
 
+
     bool isPairs() { return this->_isPairs; }
     bool isDir()   { return ! this->_isPairs; }
+
 
     std::string_view binDir() { return this->_binDir; }
 
@@ -104,6 +109,7 @@ class BinInfo {
     {
       return this->_binPairs;
     }
+
 
       nlohmann::json
     toJSON()
@@ -123,6 +129,7 @@ class BinInfo {
         }
       return j;
     }
+
 
       std::string
     toSQLValue()
@@ -145,7 +152,7 @@ class BinInfo {
       return sql;
     }
 
-};
+};  /* End `BinInfo' */
 
 
 /* -------------------------------------------------------------------------- */
