@@ -26,11 +26,14 @@ COMMON_HEADERS = pjs-core.hh fetch.hh
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS =                                                      \
-  -std=c++17                                                    \
-  $(shell $(PKG_CONFIG) --cflags sqlite3 nlohmann_json curlpp)
+CXXFLAGS = -std=c++17
 
-LDFLAGS = $(shell $(PKG_CONFIG) --libs sqlite3 curlpp)
+sqlite3_CFLAGS = $(shell $(PKG_CONFIG) --cflags sqlite3)
+nljson_CFLAGS  = $(shell $(PKG_CONFIG) --cflags nlohmann_json)
+curlpp_CFLAGS  = $(shell $(PKG_CONFIG) --cflags curlpp)
+
+sqlite3_LDFLAGS = $(shell $(PKG_CONFIG) --libs sqlite3)
+curlpp_LDFLAGS  = $(shell $(PKG_CONFIG) --libs curlpp)
 
 
 # ---------------------------------------------------------------------------- #
@@ -71,10 +74,14 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
+floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS)
+floco-db: LDFLAGS  += $(sqlite3_LDFLAGS)
 floco-db: gen-headers pjs-core.hh pjs-core.cc db-main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) pjs-core.cc db-main.cc -o "$@"
 
 
+fetch: CXXFLAGS += $(curlpp_CFLAGS)
+fetch: LDFLAGS  += $(curlpp_LDFLAGS)
 fetch: fetch.hh fetch.cc fetch-main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc fetch-main.cc -o "$@"
 
