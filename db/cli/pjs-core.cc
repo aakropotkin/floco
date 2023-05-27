@@ -160,6 +160,41 @@ PjsCore::init(       std::string_view   url
 
 /* `BinInfo' Implementations */
 
+BinInfo::BinInfo( std::string_view name, std::string_view s )
+{
+  initByStrings( name, s );
+}
+
+BinInfo::BinInfo( const nlohmann::json & j )
+{
+  if ( j.type() != nlohmann::json::value_t::object )
+    {
+      throw std::invalid_argument(
+        "BinInfo JSON without a name must be an object of strings"
+      );
+    }
+  this->initByObject( j );
+}
+
+BinInfo::BinInfo( std::string_view name, const nlohmann::json & j )
+{
+  nlohmann::json::value_t t = j.type();
+  if ( t == nlohmann::json::value_t::object )
+    {
+      this->initByObject( j );
+    }
+  else if ( t == nlohmann::json::value_t::string )
+    {
+      this->initByStrings( name, j.get<std::string_view>() );
+    }
+  else
+    {
+      throw std::invalid_argument(
+        "BinInfo JSON must be a string or object of strings"
+      );
+    }
+}
+
   void
 BinInfo::initByStrings( std::string_view name, std::string_view s )
 {

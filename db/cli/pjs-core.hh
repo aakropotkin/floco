@@ -58,41 +58,9 @@ class BinInfo {
     BinInfo()                       : _binPairs( {} ),    _isPairs( true )  {}
     BinInfo( std::string_view dir ) : _binDir( dir ),     _isPairs( false ) {}
     BinInfo( bin_pairs pairs )      : _binPairs( pairs ), _isPairs( true )  {}
-
-    BinInfo( std::string_view name, std::string_view s )
-    {
-      initByStrings( name, s );
-    }
-
-    BinInfo( const nlohmann::json & j )
-    {
-      if ( j.type() != nlohmann::json::value_t::object )
-        {
-          throw std::invalid_argument(
-            "BinInfo JSON without a name must be an object of strings"
-          );
-        }
-      this->initByObject( j );
-    }
-
-    BinInfo( std::string_view name, const nlohmann::json & j )
-    {
-      nlohmann::json::value_t t = j.type();
-      if ( t == nlohmann::json::value_t::object )
-        {
-          this->initByObject( j );
-        }
-      else if ( t == nlohmann::json::value_t::string )
-        {
-          this->initByStrings( name, j.get<std::string_view>() );
-        }
-      else
-        {
-          throw std::invalid_argument(
-            "BinInfo JSON must be a string or object of strings"
-          );
-        }
-    }
+    BinInfo( std::string_view name, std::string_view s );
+    BinInfo( const nlohmann::json & j );
+    BinInfo( std::string_view name, const nlohmann::json & j );
 
     bool             isPairs()    const { return this->_isPairs; }
     bool             isDir()      const { return ! this->_isPairs; }
