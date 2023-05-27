@@ -14,6 +14,7 @@ CXX        ?= c++
 RM         ?= rm -f
 CAT        ?= cat
 PKG_CONFIG ?= pkg-config
+NIX        ?= nix
 
 
 # ---------------------------------------------------------------------------- #
@@ -32,9 +33,22 @@ sqlite3_CFLAGS  = $(shell $(PKG_CONFIG) --cflags sqlite3)
 nljson_CFLAGS   = $(shell $(PKG_CONFIG) --cflags nlohmann_json)
 curlpp_CFLAGS   = $(shell $(PKG_CONFIG) --cflags curlpp)
 argparse_CFLAGS = $(shell $(PKG_CONFIG) --cflags argparse)
+boost_CFLAGS    ?=                                                             \
+  -I$(shell $(NIX) build --no-link --print-out-paths 'nixpkgs#boost')/include
 
-sqlite3_LDFLAGS = $(shell $(PKG_CONFIG) --libs sqlite3)
-curlpp_LDFLAGS  = $(shell $(PKG_CONFIG) --libs curlpp)
+sqlite3_LDFLAGS     =  $(shell $(PKG_CONFIG) --libs sqlite3)
+curlpp_LDFLAGS      =  $(shell $(PKG_CONFIG) --libs curlpp)
+
+
+nix_LDFLAGS =  $(shell $(PKG_CONFIG) --libs nix-main nix-cmd nix-expr nix-store)
+nix_LDFLAGS += -lnixfetchers
+
+nix_CFLAGS =  $(boost_CFLAGS)
+nix_CFLAGS += $(shell $(PKG_CONFIG) --cflags nix-main nix-cmd nix-expr)
+nix_CFLAGS += -isystem $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)
+nix_CFLAGS += -DHAVE_NIX_FETCHERS=1
+nix_CFLAGS +=                                                                 \
+  -include $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)/nix/config.h
 
 
 # ---------------------------------------------------------------------------- #
@@ -75,14 +89,14 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
-floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS)
-floco-db: LDFLAGS  += $(sqlite3_LDFLAGS)
-floco-db: gen-headers pjs-core.hh pjs-core.cc db-main.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) pjs-core.cc db-main.cc -o "$@"
+floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS) $(nix_CFLAGS)
+floco-db: LDFLAGS  += $(sqlite3_LDFLAGS) $(curlpp_LDFLAGS) $(nix_LDFLAGS)
+floco-db: gen-headers pjs-core.hh pjs-core.cc db-main.cc fetch.hh fetch.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc pjs-core.cc db-main.cc -o "$@"
 
 
-fetch: CXXFLAGS += $(curlpp_CFLAGS) $(argparse_CFLAGS)
-fetch: LDFLAGS  += $(curlpp_LDFLAGS)
+fetch: CXXFLAGS += $(curlpp_CFLAGS) $(argparse_CFLAGS) $(nix_CFLAGS)
+fetch: LDFLAGS  += $(curlpp_LDFLAGS) $(nix_LDFLAGS)
 fetch: fetch.hh fetch.cc fetch-main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc fetch-main.cc -o "$@"
 

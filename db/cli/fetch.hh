@@ -19,6 +19,13 @@ int curlFile( const char * url, const char * outFile );
 
 /* -------------------------------------------------------------------------- */
 
+#if defined( HAVE_NIX_FETCHERS ) && ( HAVE_NIX_FETCHERS != 0 )
+int nixDownloadFile( const char * url, const char * outFile );
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::fetch' */
 }  /* End Namespace `floco' */
 

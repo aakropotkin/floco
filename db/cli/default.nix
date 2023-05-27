@@ -14,8 +14,10 @@
 , curlpp        ? pkgsFor.curlpp
 , curl          ? pkgsFor.curl
 , argparse      ? pkgsFor.argparse
+, nix           ? pkgsFor.nix
+, boost         ? pkgsFor.boost
 }: import ./pkg-fun.nix {
-  inherit stdenv sqlite pkg-config nlohmann_json curlpp curl argparse;
+  inherit stdenv sqlite pkg-config nlohmann_json curlpp curl argparse nix boost;
 }
 
 

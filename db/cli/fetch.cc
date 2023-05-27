@@ -7,14 +7,20 @@
 #include "fetch.hh"
 #include <cstdio>                // for fclose, fopen, fwrite, FILE, size_t
 #include <cstdlib>               // for EXIT_FAILURE, EXIT_SUCCESS, size_t
+#include <functional>            // for _Placeholder, bind, _1, _2, _3, func...
+#include <iostream>              // for operator<<, endl, basic_ostream, ost...
+#include <memory>                // for allocator
+#include <filesystem>            // for path
+#include <nix/fetchers.hh>
+#include <nix/eval-inline.hh>
+#include <nix/store-api.hh>
+#include <nix/shared.hh>
+#undef HAVE_BOOST
 #include <curlpp/Easy.hpp>       // for Easy
 #include <curlpp/Exception.hpp>  // for LogicError, RuntimeError
 #include <curlpp/Option.inl>     // for OptionTrait::OptionTrait<OptionType,...
 #include <curlpp/Options.hpp>    // for WriteFunction, Url, Verbose
 #include <curlpp/cURLpp.hpp>     // for Cleanup
-#include <functional>            // for _Placeholder, bind, _1, _2, _3, func...
-#include <iostream>              // for operator<<, endl, basic_ostream, ost...
-#include <memory>                // for allocator
 
 
 
@@ -81,6 +87,41 @@ curlFile( const char * url, const char * outFile )
 
   return ec;
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+#if defined( HAVE_NIX_FETCHERS ) && ( HAVE_NIX_FETCHERS != 0 )
+  int
+nixDownloadFile( const char * url, const char * outFile )
+{
+  std::string _url( url );
+
+  nix::initNix();
+  nix::initGC();
+
+  nix::evalSettings.pureEval = false;
+
+  nix::EvalState state( {}, nix::openStore() );
+
+  std::filesystem::path outpath( outFile );
+
+  nix::fetchers::DownloadFileResult rsl = nix::fetchers::downloadFile(
+    state.store, _url, outpath.filename(), false
+  );
+
+  if ( std::filesystem::exists( outpath ) )
+    {
+      std::filesystem::remove( outpath );
+    }
+
+  std::filesystem::create_symlink(
+    rsl.storePath.to_string(), outpath.string()
+  );
+
+  return EXIT_SUCCESS;
+}
+#endif
 
 
 /* -------------------------------------------------------------------------- */
