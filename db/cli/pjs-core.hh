@@ -21,17 +21,22 @@
 
 /* -------------------------------------------------------------------------- */
 
+extern int curlFile( const char * url, const char * outFile );
+
+
+/* -------------------------------------------------------------------------- */
+
+namespace floco {
+  namespace db {
+
+/* -------------------------------------------------------------------------- */
+
   static inline bool
 pathIsJSFile( std::string_view p )
 {
   size_t l = p.length();
   return ( p[l - 3] == '.' ) && ( p[l - 2] == 'j' ) && ( p[l - 1] == 's' );
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-extern int curlFile( const char * url, const char * outFile );
 
 
 /* -------------------------------------------------------------------------- */
@@ -66,8 +71,20 @@ class BinInfo {
       }
   }
 
+    void
+  initByObject( const nlohmann::json & j )
+  {
+    for ( auto & [bname, path] : j.items() )
+      {
+        this->_binPairs.emplace( std::make_pair( bname, path ) );
+      }
+    this->_isPairs = true;
+  }
+
 
   public:
+
+    BinInfo() : _binPairs( {} ), _isPairs( true ) {}
 
     BinInfo( std::string_view name, std::string_view s )
     {
@@ -81,20 +98,27 @@ class BinInfo {
       , _isPairs( true )
     {}
 
+    BinInfo( const nlohmann::json & j )
+    {
+      if ( j.type() != nlohmann::json::value_t::object )
+        {
+          throw std::invalid_argument(
+            "BinInfo JSON without a name must be an object of strings"
+          );
+        }
+      this->initByObject( j );
+    }
+
     BinInfo( std::string_view name, const nlohmann::json & j )
     {
       nlohmann::json::value_t t = j.type();
       if ( t == nlohmann::json::value_t::object )
         {
-          for ( auto & [bname, path] : j.items() )
-            {
-              this->_binPairs.emplace( std::make_pair( bname, path ) );
-            }
-          this->_isPairs = true;
+          this->initByObject( j );
         }
       else if ( t == nlohmann::json::value_t::string )
         {
-          initByStrings( name, j.get<std::string_view>() );
+          this->initByStrings( name, j.get<std::string_view>() );
         }
       else
         {
@@ -105,21 +129,21 @@ class BinInfo {
     }
 
 
-    bool isPairs() { return this->_isPairs; }
-    bool isDir()   { return ! this->_isPairs; }
+    bool isPairs() const { return this->_isPairs; }
+    bool isDir()   const { return ! this->_isPairs; }
 
 
-    std::string_view binDir() { return this->_binDir; }
+    std::string_view binDir() const { return this->_binDir; }
 
       std::unordered_map<std::string, std::string>
-    binPairs()
+    binPairs() const
     {
       return this->_binPairs;
     }
 
 
       nlohmann::json
-    toJSON()
+    toJSON() const
     {
       nlohmann::json j;
       if ( this->_isPairs )
@@ -137,9 +161,8 @@ class BinInfo {
       return j;
     }
 
-
       std::string
-    toSQLValue()
+    toSQLValue() const
     {
       std::string sql;
       if ( this->_isPairs )
@@ -160,6 +183,36 @@ class BinInfo {
     }
 
 };  /* End `BinInfo' */
+
+
+void to_json( nlohmann::json & j, const BinInfo & b ) { j = b.toJSON(); }
+
+  void
+from_json( const nlohmann::json & j, BinInfo & b )
+{
+  if ( j.contains( "name" ) )
+    {
+      if ( j.contains( "bin" ) )
+        {
+          b = BinInfo( j["name"].get<std::string_view>(), j["bin"] );
+        }
+      else
+        {
+          b = BinInfo();
+        }
+    }
+  else
+    {
+      if ( j.contains( "bin" ) )
+        {
+          b = BinInfo( j["bin"] );
+        }
+      else
+        {
+          b = BinInfo( j );
+        }
+    }
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -246,6 +299,12 @@ class PjsCore {
     }
 
 };
+
+
+/* -------------------------------------------------------------------------- */
+
+  }  /* End Namespace `floco::db' */
+}  /* End Namespace `floco' */
 
 
 /* -------------------------------------------------------------------------- *
