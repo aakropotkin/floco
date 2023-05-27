@@ -18,9 +18,10 @@ PKG_CONFIG ?= pkg-config
 
 # ---------------------------------------------------------------------------- #
 
-GEN_HEADERS = floco-sql.hh
-BINS        = floco-db fetch
-SQL_SCHEMAS = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+GEN_HEADERS    = floco-sql.hh
+BINS           = floco-db fetch
+SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+COMMON_HEADERS = pjs-core.hh
 
 
 # ---------------------------------------------------------------------------- #
@@ -70,12 +71,12 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
-floco-db: gen-headers pjs-core.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ pjs-core.cc -o "$@"
+floco-db: gen-headers $(COMMON_HEADERS) pjs-core.cc db-main.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) db-main.cc pjs-core.cc -o "$@"
 
 
 fetch: fetch.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $ fetch.cc -o "$@"
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc -o "$@"
 
 
 # ---------------------------------------------------------------------------- #

@@ -11,8 +11,14 @@
 #include <sqlite3.h>
 #include <nlohmann/json.hpp>
 
+#include "pjs-core.hh"
 #include "floco-sql.hh"
 
+
+/* -------------------------------------------------------------------------- */
+
+namespace floco {
+  namespace db {
 
 /* -------------------------------------------------------------------------- */
 
@@ -50,7 +56,8 @@ static const std::vector<std::string> pjsKeys = {
   const std::string
 pjsJsonToSQL( const std::string   url
             , nlohmann::json    & pjs
-            , unsigned long       timestamp = 0 )
+            , unsigned long       timestamp
+            )
 {
   std::string sql = R"SQL(
     INSERT OR REPLACE INTO PjsCores (
@@ -110,48 +117,121 @@ pjsJsonToSQL( const std::string   url
 
 /* -------------------------------------------------------------------------- */
 
-  int
-main( int argc, char * argv[], char ** envp )
+/* `BinInfo' Implementations */
+
+  void
+BinInfo::initByStrings( std::string_view name, std::string_view s )
 {
-  sqlite3 * db;
-  char    * messageError;
-  int       err = 0;
-
-  err = sqlite3_open( "pjs-core.db", & db );
-  err = sqlite3_exec( db, pjsCoreSchemaSQL, NULL, 0, & messageError );
-
-  if ( err != SQLITE_OK )
+  if ( pathIsJSFile( s ) )
     {
-      std::cerr << "Error Create Table" << std::endl;
-      sqlite3_free( messageError );
+      if ( name[0] == '@' )
+        {
+          std::filesystem::path bname( name );
+          this->_binPairs.emplace( std::make_pair( bname.filename(), s ) );
+        }
+      else
+        {
+          this->_binPairs.emplace( std::make_pair( name, s ) );
+        }
+      this->_isPairs = true;
     }
   else
     {
-      std::cout << "Table created Successfully" << std::endl;
+      this->_binDir  = s;
+      this->_isPairs = false;
     }
-
-
-  /* Create a dummy row */
-  nlohmann::json o;
-  o["name"]    = "@floco/phony";
-  o["version"] = "4.2.0";
-
-  std::string sql = pjsJsonToSQL( "https://foo.com", o );
-  err = sqlite3_exec( db, sql.c_str(), NULL, 0, & messageError );
-  if ( err != SQLITE_OK )
-    {
-      std::cerr << "Error Inserting into Table" << std::endl;
-      sqlite3_free( messageError );
-    }
-  else
-    {
-      std::cout << "Inserted into Table Successfully" << std::endl;
-    }
-
-  sqlite3_close( db );
-
-  return err;
 }
+
+  void
+BinInfo::initByObject( const nlohmann::json & j )
+{
+  for ( auto & [bname, path] : j.items() )
+    {
+      this->_binPairs.emplace( std::make_pair( bname, path ) );
+    }
+  this->_isPairs = true;
+}
+
+
+  nlohmann::json
+BinInfo::toJSON() const
+{
+  nlohmann::json j;
+  if ( this->_isPairs )
+    {
+      j = nlohmann::json::object();
+      for ( auto & [bname, path] : this->_binPairs )
+        {
+          j[bname] = path;
+        }
+    }
+  else
+    {
+      j = this->_binDir;
+    }
+  return j;
+}
+
+  std::string
+BinInfo::toSQLValue() const
+{
+  std::string sql;
+  if ( this->_isPairs )
+    {
+      sql = "'{";
+      for ( auto & [bname, path] : this->_binPairs )
+        {
+          sql += "\"" + bname + "\":\"" + path + "\",";
+        }
+      sql[sql.length() - 1] = '}';
+      sql += "'";
+    }
+  else
+    {
+      sql = "'" + this->_binDir + "'";
+    }
+  return sql;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+/* `BinInfo' <--> JSON */
+
+void to_json( nlohmann::json & j, const BinInfo & b ) { j = b.toJSON(); }
+
+  void
+from_json( const nlohmann::json & j, BinInfo & b )
+{
+  if ( j.contains( "name" ) )
+    {
+      if ( j.contains( "bin" ) )
+        {
+          b = BinInfo( j["name"].get<std::string_view>(), j["bin"] );
+        }
+      else
+        {
+          b = BinInfo();
+        }
+    }
+  else
+    {
+      if ( j.contains( "bin" ) )
+        {
+          b = BinInfo( j["bin"] );
+        }
+      else
+        {
+          b = BinInfo( j );
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  }  /* End Namespace `floco::db' */
+}  /* End Namespace `floco' */
 
 
 /* -------------------------------------------------------------------------- *

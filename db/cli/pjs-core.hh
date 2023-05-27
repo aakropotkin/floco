@@ -41,62 +41,28 @@ pathIsJSFile( std::string_view p )
 
 /* -------------------------------------------------------------------------- */
 
+typedef std::unordered_map<std::string, std::string>  bin_pairs;
+
+
 class BinInfo {
 
-  bool                                         _isPairs;
-  std::string                                  _binDir;
-  std::unordered_map<std::string, std::string> _binPairs;
+  bool        _isPairs;
+  std::string _binDir;
+  bin_pairs   _binPairs;
 
-
-    void
-  initByStrings( std::string_view name, std::string_view s )
-  {
-    if ( pathIsJSFile( s ) )
-      {
-        if ( name[0] == '@' )
-          {
-            std::filesystem::path bname( name );
-            this->_binPairs.emplace( std::make_pair( bname.filename(), s ) );
-          }
-        else
-          {
-            this->_binPairs.emplace( std::make_pair( name, s ) );
-          }
-        this->_isPairs = true;
-      }
-    else
-      {
-        this->_binDir  = s;
-        this->_isPairs = false;
-      }
-  }
-
-    void
-  initByObject( const nlohmann::json & j )
-  {
-    for ( auto & [bname, path] : j.items() )
-      {
-        this->_binPairs.emplace( std::make_pair( bname, path ) );
-      }
-    this->_isPairs = true;
-  }
-
+  void initByStrings( std::string_view name, std::string_view s );
+  void initByObject( const nlohmann::json & j );
 
   public:
 
-    BinInfo() : _binPairs( {} ), _isPairs( true ) {}
+    BinInfo()                       : _binPairs( {} ),    _isPairs( true )  {}
+    BinInfo( std::string_view dir ) : _binDir( dir ),     _isPairs( false ) {}
+    BinInfo( bin_pairs pairs )      : _binPairs( pairs ), _isPairs( true )  {}
 
     BinInfo( std::string_view name, std::string_view s )
     {
       initByStrings( name, s );
     }
-
-    BinInfo( std::string_view dir ) : _binDir( dir ), _isPairs( false ) {}
-
-    BinInfo( std::unordered_map<std::string, std::string> pairs )
-      : _binPairs( pairs )
-      , _isPairs( true )
-    {}
 
     BinInfo( const nlohmann::json & j )
     {
@@ -128,91 +94,18 @@ class BinInfo {
         }
     }
 
-
-    bool isPairs() const { return this->_isPairs; }
-    bool isDir()   const { return ! this->_isPairs; }
-
-
-    std::string_view binDir() const { return this->_binDir; }
-
-      std::unordered_map<std::string, std::string>
-    binPairs() const
-    {
-      return this->_binPairs;
-    }
-
-
-      nlohmann::json
-    toJSON() const
-    {
-      nlohmann::json j;
-      if ( this->_isPairs )
-        {
-          j = nlohmann::json::object();
-          for ( auto & [bname, path] : this->_binPairs )
-            {
-              j[bname] = path;
-            }
-        }
-      else
-        {
-          j = this->_binDir;
-        }
-      return j;
-    }
-
-      std::string
-    toSQLValue() const
-    {
-      std::string sql;
-      if ( this->_isPairs )
-        {
-          sql = "'{";
-          for ( auto & [bname, path] : this->_binPairs )
-            {
-              sql += "\"" + bname + "\":\"" + path + "\",";
-            }
-          sql[sql.length() - 1] = '}';
-          sql += "'";
-        }
-      else
-        {
-          sql = "'" + this->_binDir + "'";
-        }
-      return sql;
-    }
+    bool             isPairs()    const { return this->_isPairs; }
+    bool             isDir()      const { return ! this->_isPairs; }
+    std::string_view binDir()     const { return this->_binDir; }
+    bin_pairs        binPairs()   const { return this->_binPairs; }
+    nlohmann::json   toJSON()     const;
+    std::string      toSQLValue() const;
 
 };  /* End `BinInfo' */
 
 
-void to_json( nlohmann::json & j, const BinInfo & b ) { j = b.toJSON(); }
-
-  void
-from_json( const nlohmann::json & j, BinInfo & b )
-{
-  if ( j.contains( "name" ) )
-    {
-      if ( j.contains( "bin" ) )
-        {
-          b = BinInfo( j["name"].get<std::string_view>(), j["bin"] );
-        }
-      else
-        {
-          b = BinInfo();
-        }
-    }
-  else
-    {
-      if ( j.contains( "bin" ) )
-        {
-          b = BinInfo( j["bin"] );
-        }
-      else
-        {
-          b = BinInfo( j );
-        }
-    }
-}
+void to_json( nlohmann::json & j, const BinInfo & b );
+void from_json( const nlohmann::json & j, BinInfo & b );
 
 
 /* -------------------------------------------------------------------------- */
@@ -299,6 +192,14 @@ class PjsCore {
     }
 
 };
+
+
+/* -------------------------------------------------------------------------- */
+
+const std::string pjsJsonToSQL( const std::string   url
+                              , nlohmann::json    & pjs
+                              , unsigned long       timestamp = 0 );
+
 
 
 /* -------------------------------------------------------------------------- */
