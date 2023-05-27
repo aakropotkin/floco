@@ -13,13 +13,13 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Exception.hpp>
 
+#include "fetch.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef MAIN_PROG
-  #define MAIN_PROG  fetch
-#endif
-
+namespace floco {
+  namespace fetch {
 
 /* -------------------------------------------------------------------------- */
 
@@ -83,19 +83,8 @@ curlFile( const char * url, const char * outFile )
 
 /* -------------------------------------------------------------------------- */
 
-#if MAIN_PROG == fetch
-  int
-main( int argc, char * argv[], char ** envp )
-{
-  if ( argc != 3 )
-    {
-      std::cerr << argv[0] << ": Wrong number of arguments" << std::endl
-                << argv[0] << ": Usage: " << " url file"    << std::endl;
-      return EXIT_FAILURE;
-    }
-  return curlFile( argv[1], argv[2] );
-}
-#endif
+  }  /* End Namespace `floco::fetch' */
+}  /* End Namespace `floco' */
 
 
 /* -------------------------------------------------------------------------- *

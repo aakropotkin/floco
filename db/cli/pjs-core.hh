@@ -18,10 +18,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
-
-/* -------------------------------------------------------------------------- */
-
-extern int curlFile( const char * url, const char * outFile );
+#include "fetch.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -72,6 +69,7 @@ class BinInfo {
 };  /* End `BinInfo' */
 
 
+/* `BinInfo' <--> JSON */
 void to_json( nlohmann::json & j, const BinInfo & b );
 void from_json( const nlohmann::json & j, BinInfo & b );
 
@@ -114,7 +112,7 @@ class PjsCore {
       std::string   tmp = std::tmpnam( nullptr );
       std::string   _url( url );
       unsigned long timestamp = std::time( nullptr );
-      curlFile( _url.c_str(), tmp.c_str() );
+      floco::fetch::curlFile( _url.c_str(), tmp.c_str() );
       std::ifstream f( tmp );
       nlohmann::json json = nlohmann::json::parse( f );
       f.close();
