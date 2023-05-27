@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ stdenv, sqlite, pkg-config, nlohmann_json, curlpp, curl }:
+{ stdenv, sqlite, pkg-config, nlohmann_json, curlpp, curl, argparse }:
 stdenv.mkDerivation {
   pname   = "floco-db";
   version = "0.1.0";
@@ -18,7 +18,7 @@ stdenv.mkDerivation {
     in ( type == "directory" ) || ( ! ( builtins.elem bname ignores ) );
   };
   nativeBuildInputs = [pkg-config];
-  buildInputs       = [sqlite.dev nlohmann_json curlpp curl.dev];
+  buildInputs       = [sqlite.dev nlohmann_json curlpp curl.dev argparse];
   dontConfigure     = true;
   buildPhase        = ''
     runHook preBuild;
