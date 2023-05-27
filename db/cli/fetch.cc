@@ -112,12 +112,28 @@ nixDownloadFile( const char * url, const char * outFile )
 
   if ( std::filesystem::exists( outpath ) )
     {
-      std::filesystem::remove( outpath );
+      try
+        {
+          std::filesystem::remove( outpath );
+        }
+      catch( std::filesystem::filesystem_error & e )
+        {
+          std::cout << e.what() << std::endl;
+          return EXIT_FAILURE;
+        }
     }
 
-  std::filesystem::create_symlink(
-    rsl.storePath.to_string(), outpath.string()
-  );
+  try
+    {
+      std::filesystem::create_symlink(
+        rsl.storePath.to_string(), outpath.string()
+      );
+    }
+  catch( std::filesystem::filesystem_error & e )
+    {
+      std::cout << e.what() << std::endl;
+      return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
