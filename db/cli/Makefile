@@ -20,7 +20,7 @@ NIX        ?= nix
 # ---------------------------------------------------------------------------- #
 
 GEN_HEADERS    = floco-sql.hh
-BINS           = floco-db fetch
+BINS           = floco-db fetch packument-main
 SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 COMMON_HEADERS = pjs-core.hh fetch.hh
 
@@ -99,6 +99,11 @@ fetch: CXXFLAGS += $(curlpp_CFLAGS) $(argparse_CFLAGS) $(nix_CFLAGS)
 fetch: LDFLAGS  += $(curlpp_LDFLAGS) $(nix_LDFLAGS)
 fetch: fetch.hh fetch.cc fetch-main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc fetch-main.cc -o "$@"
+
+
+packument: CXXFLAGS += $(nljson_CFLAGS)
+packument: packument.hh packument-main.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) packument-main.cc -o "$@"
 
 
 # ---------------------------------------------------------------------------- #
