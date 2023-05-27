@@ -4,15 +4,21 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <string>
-#include <iostream>
-#include <vector>
-
-#include <sqlite3.h>
-#include <nlohmann/json.hpp>
-
 #include "pjs-core.hh"
-#include "floco-sql.hh"
+#include <cstdio>                                         // for snprintf
+#include <filesystem>                                     // for path
+#include <fstream>                                        // for ifstream
+#include <initializer_list>                               // for initializer...
+#include <nlohmann/detail/iterators/iter_impl.hpp>        // for iter_impl
+#include <nlohmann/detail/iterators/iteration_proxy.hpp>  // for iteration_p...
+#include <nlohmann/detail/json_ref.hpp>                   // for json_ref
+#include <nlohmann/detail/value_t.hpp>                    // for value_t
+#include <nlohmann/json.hpp>                              // for basic_json
+#include <stdexcept>                                      // for invalid_arg...
+#include <string>                                         // for string, bas...
+#include <utility>                                        // for make_pair
+#include <vector>                                         // for vector
+#include "fetch.hh"                                       // for curlFile
 
 
 /* -------------------------------------------------------------------------- */
@@ -153,6 +159,20 @@ PjsCore::init(       std::string_view   url
           this->peerDependenciesMeta = value;
         }
     }
+}
+
+
+PjsCore::PjsCore( std::string_view url )
+{
+  std::string   tmp = std::tmpnam( nullptr );
+  std::string   _url( url );
+  unsigned long timestamp = std::time( nullptr );
+  floco::fetch::curlFile( _url.c_str(), tmp.c_str() );
+  std::ifstream f( tmp );
+  nlohmann::json json = nlohmann::json::parse( f );
+  f.close();
+  remove( tmp.c_str() );
+  this->init( url, json, timestamp );
 }
 
 

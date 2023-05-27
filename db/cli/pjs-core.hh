@@ -6,19 +6,13 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <filesystem>
-#include <utility>
-#include <stdexcept>
-#include <chrono>
-#include <cstdio>
-#include <fstream>
-
-#include <nlohmann/json.hpp>
-#include <unordered_map>
-
-#include "fetch.hh"
+#include <ctime>                  // for time, size_t
+#include <map>                    // for operator!=
+#include <nlohmann/json.hpp>      // for basic_json
+#include <nlohmann/json_fwd.hpp>  // for json
+#include <string>                 // for string, basic_string, hash, allocator
+#include <string_view>            // for string_view, basic_string_view
+#include <unordered_map>          // for unordered_map
 
 
 /* -------------------------------------------------------------------------- */
@@ -107,18 +101,7 @@ class PjsCore {
       this->init( url, json, timestamp );
     }
 
-    PjsCore( std::string_view url )
-    {
-      std::string   tmp = std::tmpnam( nullptr );
-      std::string   _url( url );
-      unsigned long timestamp = std::time( nullptr );
-      floco::fetch::curlFile( _url.c_str(), tmp.c_str() );
-      std::ifstream f( tmp );
-      nlohmann::json json = nlohmann::json::parse( f );
-      f.close();
-      remove( tmp.c_str() );
-      this->init( url, json, timestamp );
-    }
+    PjsCore( std::string_view url );
 
 };
 

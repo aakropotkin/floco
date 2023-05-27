@@ -4,15 +4,15 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <string>
-#include <iostream>
-#include <vector>
-
-#include <sqlite3.h>
-#include <nlohmann/json.hpp>
-
-#include "pjs-core.hh"
-#include "floco-sql.hh"
+#include <sqlite3.h>              // for sqlite3_exec, sqlite3_free, sqlite3...
+#include <stddef.h>               // for NULL
+#include <iostream>               // for operator<<, endl, basic_ostream
+#include <map>                    // for operator!=
+#include <nlohmann/json.hpp>      // for basic_json
+#include <nlohmann/json_fwd.hpp>  // for json
+#include <string>                 // for allocator, basic_string, string
+#include "floco-sql.hh"           // for pjsCoreSchemaSQL
+#include "pjs-core.hh"            // for pjsJsonToSQL, db
 
 
 /* -------------------------------------------------------------------------- */

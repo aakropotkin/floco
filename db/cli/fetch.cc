@@ -4,16 +4,18 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-
-#include <curlpp/cURLpp.hpp>
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
-#include <curlpp/Exception.hpp>
-
 #include "fetch.hh"
+#include <cstdio>                // for fclose, fopen, fwrite, FILE, size_t
+#include <cstdlib>               // for EXIT_FAILURE, EXIT_SUCCESS, size_t
+#include <curlpp/Easy.hpp>       // for Easy
+#include <curlpp/Exception.hpp>  // for LogicError, RuntimeError
+#include <curlpp/Option.inl>     // for OptionTrait::OptionTrait<OptionType,...
+#include <curlpp/Options.hpp>    // for WriteFunction, Url, Verbose
+#include <curlpp/cURLpp.hpp>     // for Cleanup
+#include <functional>            // for _Placeholder, bind, _1, _2, _3, func...
+#include <iostream>              // for operator<<, endl, basic_ostream, ost...
+#include <memory>                // for allocator
+
 
 
 /* -------------------------------------------------------------------------- */
