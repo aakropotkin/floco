@@ -117,6 +117,47 @@ pjsJsonToSQL( const std::string   url
 
 /* -------------------------------------------------------------------------- */
 
+/* `PjsCore' Implementations */
+
+  void
+PjsCore::init(       std::string_view   url
+             , const nlohmann::json   & json
+             ,       unsigned long      timestamp
+             )
+{
+  this->url       = url;
+  this->timestamp = timestamp;
+  for ( auto & [key, value] : json.items() )
+    {
+      if ( key == "name" )              { this->name         = value; }
+      else if ( key == "version" )      { this->version      = value; }
+      else if ( key == "bin" )          { this->bin          = value; }
+      else if ( key == "dependencies" ) { this->dependencies = value; }
+      else if ( key == "os" )           { this->os           = value; }
+      else if ( key == "cpu" )          { this->cpu          = value; }
+      else if ( key == "engines" )      { this->engines      = value; }
+      else if ( key == "devDependencies" )
+        {
+          this->devDependencies = value;
+        }
+      else if ( key == "devDependenciesMeta" )
+        {
+          this->devDependenciesMeta = value;
+        }
+      else if ( key == "peerDependencies" )
+        {
+          this->peerDependencies = value;
+        }
+      else if ( key == "peerDependenciesMeta" )
+        {
+          this->peerDependenciesMeta = value;
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 /* `BinInfo' Implementations */
 
   void

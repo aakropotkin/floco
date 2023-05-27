@@ -112,6 +112,11 @@ void from_json( const nlohmann::json & j, BinInfo & b );
 
 class PjsCore {
 
+  void init(       std::string_view   url
+           , const nlohmann::json   & json
+           ,       unsigned long      timestamp = std::time( nullptr )
+           );
+
   public:
 
     std::string    url;
@@ -127,48 +132,6 @@ class PjsCore {
     nlohmann::json os                   = nlohmann::json::array( { "*" } );
     nlohmann::json cpu                  = nlohmann::json::array( { "*" } );
     nlohmann::json engines              = nlohmann::json::object();
-
-
-  private:
-
-      void
-    init(       std::string_view   url
-        , const nlohmann::json   & json
-        ,       unsigned long      timestamp = std::time( nullptr )
-        )
-    {
-      this->url       = url;
-      this->timestamp = timestamp;
-      for ( auto & [key, value] : json.items() )
-        {
-          if ( key == "name" )              { this->name         = value; }
-          else if ( key == "version" )      { this->version      = value; }
-          else if ( key == "bin" )          { this->bin          = value; }
-          else if ( key == "dependencies" ) { this->dependencies = value; }
-          else if ( key == "os" )           { this->os           = value; }
-          else if ( key == "cpu" )          { this->cpu          = value; }
-          else if ( key == "engines" )      { this->engines      = value; }
-          else if ( key == "devDependencies" )
-            {
-              this->devDependencies = value;
-            }
-          else if ( key == "devDependenciesMeta" )
-            {
-              this->devDependenciesMeta = value;
-            }
-          else if ( key == "peerDependencies" )
-            {
-              this->peerDependencies = value;
-            }
-          else if ( key == "peerDependenciesMeta" )
-            {
-              this->peerDependenciesMeta = value;
-            }
-        }
-    }
-
-
-  public:
 
     PjsCore(       std::string_view   url
            , const nlohmann::json   & json
