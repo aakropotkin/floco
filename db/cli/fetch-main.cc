@@ -56,7 +56,20 @@ main( int argc, char * argv[], char ** envp )
 
 /* -------------------------------------------------------------------------- */
 
-  return floco::fetch::nixDownloadFile( url.c_str(), output.c_str() );
+  try
+    {
+      floco::fetch::fetchFileTo( url.c_str(), output.c_str() );
+    }
+  catch( std::filesystem::filesystem_error & e )
+    {
+      std::cout << e.what() << std::endl;
+      return EXIT_FAILURE;
+    }
+
+
+/* -------------------------------------------------------------------------- */
+
+  return EXIT_SUCCESS;
 }
 
 

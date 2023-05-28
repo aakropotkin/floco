@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <string>
+#include <nlohmann/json.hpp>
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -14,7 +17,13 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-int nixDownloadFile( const char * url, const char * outFile );
+std::string fetchFile( std::string_view url );
+std::string fetchFileTo( std::string_view url
+                       , std::string_view outfile
+                       , bool             link    = false
+                       );
+
+nlohmann::json fetchJSON( std::string_view url );
 
 
 /* -------------------------------------------------------------------------- */

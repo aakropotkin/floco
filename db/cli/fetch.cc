@@ -15,6 +15,7 @@
 #include <nix/eval-inline.hh>
 #include <nix/store-api.hh>
 #include <nix/shared.hh>
+#include <nix/url.hh>
 #include <fstream>
 
 
@@ -25,71 +26,71 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-  int
-nixDownloadFile( const char * url, const char * outFile )
+  std::string
+fetchFile( std::string_view url )
 {
-  std::string   _url( url );
-
   nix::initNix();
   nix::initGC();
 
   nix::evalSettings.pureEval = false;
 
-  nix::EvalState state( {}, nix::openStore() );
-
-  std::filesystem::path outpath( outFile );
+  nix::EvalState         state( {}, nix::openStore() );
+  nix::ParsedURL         purl = nix::parseURL( std::string( url ) );
+  std::filesystem::path filepath( purl.path );
+  std::string           _url( url );
 
   nix::fetchers::DownloadFileResult rsl = nix::fetchers::downloadFile(
-    state.store, _url, outpath.filename(), false
+    state.store, _url, filepath.filename(), false
   );
 
-  std::string storePath( state.store->toRealPath( rsl.storePath ) );
-  std::string line;
-  std::ifstream f( storePath );
+  return state.store->toRealPath( rsl.storePath );
 
-  if ( outpath == "/dev/stdout" )
+}
+
+  std::string
+fetchFileTo( std::string_view url, std::string_view outfile, bool link )
+{
+  std::string           storePath = fetchFile( url );
+  std::filesystem::path outpath( outfile );
+
+  if ( link )
     {
+      if ( std::filesystem::exists( outpath ) )
+        {
+          try
+            {
+              std::filesystem::remove( outpath );
+              std::filesystem::create_symlink( storePath, outfile );
+            }
+          catch( std::filesystem::filesystem_error & e )
+            {
+              std::cout << e.what() << std::endl;
+            }
+        }
+    }
+  else  /* Write */
+    {
+      std::ifstream f( storePath );
+      std::string   of( outfile );
+      std::ofstream o( of );
+      std::string   line;
       while ( ! ( f.fail() || f.eof() ) )
         {
           f >> line;
-          std::cout << line;
-        }
-      return EXIT_SUCCESS;
-    }
-  else if ( outpath == "/dev/stderr" )
-    {
-      while ( ! ( f.fail() || f.eof() ) )
-        {
-          f >> line;
-          std::cerr << line;
-        }
-      return EXIT_SUCCESS;
-    }
-
-  if ( std::filesystem::exists( outpath ) )
-    {
-      try
-        {
-          std::filesystem::remove( outpath );
-        }
-      catch( std::filesystem::filesystem_error & e )
-        {
-          std::cout << e.what() << std::endl;
-          return EXIT_FAILURE;
+          o << line;
         }
     }
 
-  try
-    {
-      std::filesystem::create_symlink( storePath, outpath.string() );
-    }
-  catch( std::filesystem::filesystem_error & e )
-    {
-      std::cout << e.what() << std::endl;
-      return EXIT_FAILURE;
-    }
+  return storePath;
+}
 
-  return EXIT_SUCCESS;
+
+/* -------------------------------------------------------------------------- */
+
+  nlohmann::json
+fetchJSON( std::string_view url )
+{
+  return nlohmann::json::parse( std::ifstream( fetchFile( url ) ) );
 }
 
 
