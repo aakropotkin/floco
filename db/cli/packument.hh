@@ -42,7 +42,8 @@ struct Packument {
    *   ...
    * }
    */
-  std::map<std::string, std::string> dist_tags;
+  std::map<std::string, std::string>    dist_tags;
+  std::map<std::string, nlohmann::json> versions;
 
   //Packument( std::string_view url );
   Packument() {}
@@ -61,6 +62,7 @@ to_json( nlohmann::json & j, const Packument & p )
   , { "name",      p.name }
   , { "time",      p.time }
   , { "dist-tags", p.dist_tags }
+  , { "versions",  p.versions }
   };
 }
 
@@ -72,6 +74,7 @@ from_json( const nlohmann::json & j, Packument & p )
   j.at( "name" ).get_to( p.name );
   j.at( "time" ).get_to( p.time );
   j.at( "dist-tags" ).get_to( p.dist_tags );
+  j.at( "versions" ).get_to( p.versions );
 }
 
 

@@ -56,7 +56,7 @@ main( int argc, char * argv[], char ** envp )
 
 /* -------------------------------------------------------------------------- */
 
-  return floco::fetch::curlFile( url.c_str(), output.c_str() );
+  return floco::fetch::nixDownloadFile( url.c_str(), output.c_str() );
 }
 
 

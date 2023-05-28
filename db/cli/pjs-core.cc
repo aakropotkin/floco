@@ -167,7 +167,7 @@ PjsCore::PjsCore( std::string_view url )
   std::string   tmp = std::tmpnam( nullptr );
   std::string   _url( url );
   unsigned long timestamp = std::time( nullptr );
-  floco::fetch::curlFile( _url.c_str(), tmp.c_str() );
+  floco::fetch::nixDownloadFile( _url.c_str(), tmp.c_str() );
   std::ifstream f( tmp );
   nlohmann::json json = nlohmann::json::parse( f );
   f.close();

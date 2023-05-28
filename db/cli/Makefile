@@ -31,13 +31,11 @@ CXXFLAGS = -std=c++17
 
 sqlite3_CFLAGS  = $(shell $(PKG_CONFIG) --cflags sqlite3)
 nljson_CFLAGS   = $(shell $(PKG_CONFIG) --cflags nlohmann_json)
-curlpp_CFLAGS   = $(shell $(PKG_CONFIG) --cflags curlpp)
 argparse_CFLAGS = $(shell $(PKG_CONFIG) --cflags argparse)
 boost_CFLAGS    ?=                                                             \
   -I$(shell $(NIX) build --no-link --print-out-paths 'nixpkgs#boost')/include
 
 sqlite3_LDFLAGS     =  $(shell $(PKG_CONFIG) --libs sqlite3)
-curlpp_LDFLAGS      =  $(shell $(PKG_CONFIG) --libs curlpp)
 
 
 nix_LDFLAGS =  $(shell $(PKG_CONFIG) --libs nix-main nix-cmd nix-expr nix-store)
@@ -90,13 +88,13 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 # ---------------------------------------------------------------------------- #
 
 floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS) $(nix_CFLAGS)
-floco-db: LDFLAGS  += $(sqlite3_LDFLAGS) $(curlpp_LDFLAGS) $(nix_LDFLAGS)
+floco-db: LDFLAGS  += $(sqlite3_LDFLAGS) $(nix_LDFLAGS)
 floco-db: gen-headers pjs-core.hh pjs-core.cc db-main.cc fetch.hh fetch.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc pjs-core.cc db-main.cc -o "$@"
 
 
-fetch: CXXFLAGS += $(curlpp_CFLAGS) $(argparse_CFLAGS) $(nix_CFLAGS)
-fetch: LDFLAGS  += $(curlpp_LDFLAGS) $(nix_LDFLAGS)
+fetch: CXXFLAGS += $(argparse_CFLAGS) $(nix_CFLAGS)
+fetch: LDFLAGS  += $(nix_LDFLAGS)
 fetch: fetch.hh fetch.cc fetch-main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch.cc fetch-main.cc -o "$@"
 

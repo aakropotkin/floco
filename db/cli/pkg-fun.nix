@@ -8,8 +8,6 @@
 , sqlite
 , pkg-config
 , nlohmann_json
-, curlpp
-, curl
 , argparse
 , nix
 , boost
@@ -27,7 +25,7 @@
   };
   nativeBuildInputs = [pkg-config];
   buildInputs       = [
-    sqlite.dev nlohmann_json curlpp curl.dev argparse nix.dev boost
+    sqlite.dev nlohmann_json argparse nix.dev boost
   ];
   makeFlags = ["boost_CFLAGS=-I${boost}/include"];
   dontConfigure     = true;
