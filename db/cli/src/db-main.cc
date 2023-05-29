@@ -48,7 +48,7 @@ main( int argc, char * argv[], char ** envp )
   o["name"]    = "@floco/phony";
   o["version"] = "4.2.0";
 
-  std::string sql = pjsJsonToSQL( "https://foo.com", o );
+  std::string sql = pjsJsonToSQL( o );
   err = sqlite3_exec( db, sql.c_str(), NULL, 0, & messageError );
   if ( err != SQLITE_OK )
     {

@@ -31,10 +31,7 @@ using namespace floco::db;
 main( int argc, char * argv[], char ** envp )
 {
   Packument p( (std::string_view) "https://registry.npmjs.org/lodash" );
-  VInfo     v( "https://registry.npmjs.org/lodash/4.17.21"
-             , p.versions["4.17.21"].get<nlohmann::json::object_t>()
-             , floco::util::parseDateTimeToEpoch( p.time["4.17.21"] )
-             );
+  VInfo     v( p.versions["4.17.21"].get<nlohmann::json::object_t>() );
   nlohmann::json j;
   to_json( j, v );
   std::cout << j.dump() << std::endl;

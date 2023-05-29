@@ -8,9 +8,9 @@
 
 -- -------------------------------------------------------------------------- --
 
-INSERT INTO PjsCores ( url, timestamp, name, version, dependencies ) VALUES
-  ( 'phony:1', unixepoch(), '@floco/phony', '4.2.0', '{"lodash":"*"}' )
-, ( 'phony:2', unixepoch(), '@floco/phony', '4.2.1', '{}' )
+INSERT INTO PjsCores ( name, version, dependencies ) VALUES
+  ( '@floco/phony', '4.2.0', '{"lodash":"*"}' )
+, ( '@floco/phony', '4.2.1', '{}' )
 ;
 
 

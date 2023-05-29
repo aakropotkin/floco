@@ -60,29 +60,19 @@ static const std::vector<std::string> pjsKeys = {
 /* -------------------------------------------------------------------------- */
 
   const std::string
-pjsJsonToSQL( const std::string   url
-            , nlohmann::json    & pjs
-            , unsigned long       timestamp
-            )
+pjsJsonToSQL( nlohmann::json & pjs )
 {
   std::string sql = R"SQL(
     INSERT OR REPLACE INTO PjsCores (
-      url, timestamp, name, version, bin
+      name, version, bin
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta
     , os, cpu, engines
     ) VALUES (
   )SQL";
+  bool comma = false;
 
   nlohmann::json full = defaultPjs;
-
-  char ts[128] = "unixepoch()";
-  if ( 0 < timestamp )
-    {
-      std::snprintf( ts, sizeof( ts ), "%lu", timestamp );
-    }
-
-  sql += "    '" + url + "', " + ts;
 
   for ( auto & [key, value] : pjs.items() )
     {
@@ -98,19 +88,28 @@ pjsJsonToSQL( const std::string   url
 
   for ( auto key = pjsKeys.begin(); key != pjsKeys.end(); ++key )
     {
+      if ( comma )
+        {
+          sql+= ", ";
+        }
+      else
+        {
+          comma = true;
+        }
+
       if ( full[*key] == nullptr )
         {
-          sql += ", NULL";
+          sql += "NULL";
         }
       else
         {
           if ( full[*key].type() != nlohmann::json::value_t::string )
             {
-              sql += ", '" + full[*key].dump() + "'";
+              sql += "'" + full[*key].dump() + "'";
             }
           else
             {
-              sql += ", '" + full[*key].get<std::string>() + "'";
+              sql += "'" + full[*key].get<std::string>() + "'";
             }
         }
     }
@@ -126,13 +125,8 @@ pjsJsonToSQL( const std::string   url
 /* `PjsCore' Implementations */
 
   void
-PjsCore::init(       std::string_view   url
-             , const nlohmann::json   & json
-             ,       unsigned long      timestamp
-             )
+PjsCore::init( const nlohmann::json & json )
 {
-  this->url       = url;
-  this->timestamp = timestamp;
   for ( auto & [key, value] : json.items() )
     {
       if ( key == "name" )              { this->name         = value; }
@@ -164,9 +158,7 @@ PjsCore::init(       std::string_view   url
 
 PjsCore::PjsCore( std::string_view url )
 {
-  unsigned long  timestamp = std::time( nullptr );
-  nlohmann::json json      = floco::fetch::fetchJSON( url );
-  this->init( url, json, timestamp );
+  this->init( floco::fetch::fetchJSON( url ) );
 }
 
 

@@ -31,12 +31,9 @@ namespace floco {
 /* `PjsCore' Implementations */
 
   void
-VInfo::init(         std::string_view   url
-             , const nlohmann::json   & json
-             ,       unsigned long      timestamp
-             )
+VInfo::init( const nlohmann::json & json )
 {
-  this->PjsCore::init( url, json, timestamp );
+  this->PjsCore::init( json );
   for ( auto & [key, value] : json.items() )
     {
       if ( key == "_id" )                 { this->_id            = value; }
@@ -56,9 +53,7 @@ VInfo::init(         std::string_view   url
 
 VInfo::VInfo( std::string_view url )
 {
-  unsigned long  timestamp = std::time( nullptr );
-  nlohmann::json json      = floco::fetch::fetchJSON( url );
-  this->init( url, json, timestamp );
+  this->init( floco::fetch::fetchJSON( url ) );
 }
 
 
@@ -95,10 +90,7 @@ to_json( nlohmann::json & j, const VInfo & v )
   void
 from_json( const nlohmann::json & j, VInfo & v )
 {
-  std::string url = "https://registry.npmjs.org/" +
-                    j["name"].get<std::string>() + "/" +
-                    j["version"].get<std::string>();
-  VInfo _v( url, j );
+  VInfo _v( j );
   v = _v;
 }
 

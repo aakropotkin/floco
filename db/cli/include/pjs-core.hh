@@ -73,15 +73,9 @@ void from_json( const nlohmann::json & j, BinInfo & b );
 class PjsCore {
 
   protected:
-    void init(       std::string_view   url
-             , const nlohmann::json   & json
-             ,       unsigned long      timestamp = std::time( nullptr )
-             );
+    void init( const nlohmann::json & json );
 
   public:
-    std::string    url;
-    unsigned long  timestamp;
-
     std::string    name;
     std::string    version              = "0.0.0-0";
     nlohmann::json bin                  = nlohmann::json::object();
@@ -96,12 +90,9 @@ class PjsCore {
 
     PjsCore() {}
 
-    PjsCore(       std::string_view   url
-           , const nlohmann::json   & json
-           ,       unsigned long      timestamp = std::time( nullptr )
-           )
+    PjsCore( const nlohmann::json & json )
     {
-      this->init( url, json, timestamp );
+      this->init( json );
     }
 
     PjsCore( std::string_view url );
@@ -111,9 +102,7 @@ class PjsCore {
 
 /* -------------------------------------------------------------------------- */
 
-const std::string pjsJsonToSQL( const std::string   url
-                              , nlohmann::json    & pjs
-                              , unsigned long       timestamp = 0 );
+const std::string pjsJsonToSQL( nlohmann::json & pjs );
 
 
 

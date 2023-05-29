@@ -5,15 +5,13 @@
 -- -------------------------------------------------------------------------- --
 
 CREATE TABLE IF NOT EXISTS SchemaVersion( version TEXT NOT NULL );
-INSERT OR IGNORE INTO SchemaVersion ( version ) VALUES ( '0.1.0' );
+INSERT OR IGNORE INTO SchemaVersion ( version ) VALUES ( '1.0.0' );
 
 
 -- -------------------------------------------------------------------------- --
 
 CREATE TABLE IF NOT EXISTS PjsCores (
-  url                  TEXT    NOT NULL
-, timestamp            INTEGER NOT NULL
-, name                 TEXT    NOT NULL
+  name                 TEXT    NOT NULL
 , version              TEXT    NOT NULL
 , dependencies         JSON    DEFAULT '{}'
 , devDependencies      JSON    DEFAULT '{}'
@@ -24,14 +22,14 @@ CREATE TABLE IF NOT EXISTS PjsCores (
 , cpu                  JSON    DEFAULT '["*"]'
 , engines              JSON    DEFAULT '{}'
 , bin                  JSON    DEFAULT NULL
-, PRIMARY KEY ( url, timestamp )
+, PRIMARY KEY ( name, version )
 );
 
 
 -- -------------------------------------------------------------------------- --
 
-CREATE VIEW IF NOT EXISTS v_PjsCoresJSON ( key, url, timestamp, json ) AS
-  SELECT name || '/' || version, url, timestamp, json_object(
+CREATE VIEW IF NOT EXISTS v_PjsCoresJSON ( key, json ) AS
+  SELECT name || '/' || version, json_object(
     'name',                 name
   , 'version',              version
   , 'dependencies',         json( dependencies )

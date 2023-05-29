@@ -21,10 +21,7 @@ namespace floco {
 class VInfo : public PjsCore {
 
   protected:
-    void init(       std::string_view   url
-             , const nlohmann::json   & json
-             ,       unsigned long      timestamp = std::time( nullptr )
-             );
+    void init( const nlohmann::json & json );
 
   public:
 
@@ -36,12 +33,9 @@ class VInfo : public PjsCore {
     nlohmann::json dist           = nlohmann::json::object();
     bool           _hasShrinkwrap = false;
 
-    VInfo(       std::string_view   url
-         , const nlohmann::json   & json
-         ,       unsigned long      timestamp = std::time( nullptr )
-         )
+    VInfo( const nlohmann::json & json )
     {
-      this->init( url, json, timestamp );
+      this->init( json );
     }
 
     VInfo( std::string_view url );
