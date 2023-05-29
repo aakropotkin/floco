@@ -42,7 +42,7 @@ dateBefore( const std::tm & before, const std::tm & time )
 {
   std::tm b = before;
   std::tm t = time;
-  return std::mktime( & b ) <= std::mktime( & t );
+  return std::mktime( & t ) <= std::mktime( & b );
 }
 
   bool

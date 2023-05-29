@@ -20,7 +20,7 @@ NIX        ?= nix
 # ---------------------------------------------------------------------------- #
 
 GEN_HEADERS    = floco-sql.hh
-BINS           = floco-db fetch packument-main
+BINS           = floco-db fetch packument
 SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 COMMON_HEADERS = pjs-core.hh fetch.hh
 
@@ -44,7 +44,6 @@ nix_LDFLAGS += -lnixfetchers
 nix_CFLAGS =  $(boost_CFLAGS)
 nix_CFLAGS += $(shell $(PKG_CONFIG) --cflags nix-main nix-cmd nix-expr)
 nix_CFLAGS += -isystem $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)
-nix_CFLAGS += -DHAVE_NIX_FETCHERS=1
 nix_CFLAGS +=                                                                 \
   -include $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)/nix/config.h
 
@@ -100,8 +99,8 @@ fetch: fetch.hh fetch.cc fetch-main.cc
 
 
 packument: CXXFLAGS += $(nljson_CFLAGS)
-packument: packument.hh packument-main.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) packument-main.cc -o "$@"
+packument: date.hh date.cc packument.hh packument.cc packument-main.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) date.cc packument.cc packument-main.cc -o "$@"
 
 
 # ---------------------------------------------------------------------------- #
