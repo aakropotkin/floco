@@ -23,11 +23,15 @@
       ];
     in ( type == "directory" ) || ( ! ( builtins.elem bname ignores ) );
   };
+  libExt            = stdenv.hostPlatform.extensions.sharedLibrary;
   nativeBuildInputs = [pkg-config];
   buildInputs       = [
     sqlite.dev nlohmann_json argparse nix.dev boost
   ];
-  makeFlags = ["boost_CFLAGS=-I${boost}/include"];
+  makeFlags = [
+    "boost_CFLAGS=-I${boost}/include"
+    "libExt=${stdenv.hostPlatform.extensions.sharedLibrary}"
+  ];
   dontConfigure     = true;
   buildPhase        = ''
     runHook preBuild;
@@ -37,8 +41,9 @@
   '';
   installPhase = ''
     runHook preInstall;
-    mkdir -p "$out/bin";
+    mkdir -p "$out/bin" "$out/lib";
     mv "./$pname" "$out/bin/$pname";
+    mv "./libflocodb"* "$out/lib/";
     runHook postInstall;
   '';
 }

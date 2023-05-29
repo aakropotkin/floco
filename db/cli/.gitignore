@@ -2,3 +2,4 @@ floco-sql.hh
 floco-db
 fetch
 packument
+libflocodb.*
