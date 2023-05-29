@@ -45,7 +45,9 @@ struct Packument {
   std::map<std::string, std::string>    dist_tags;
   std::map<std::string, nlohmann::json> versions;
 
-  //Packument( std::string_view url );
+
+  Packument( const nlohmann::json & j );
+  Packument( std::string_view url );
   Packument() {}
 
     std::map<std::string_view, std::string_view>

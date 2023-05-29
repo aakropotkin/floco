@@ -27,12 +27,13 @@ using namespace floco::db;
   int
 main( int argc, char * argv[], char ** envp )
 {
-  std::ifstream f( argv[1] );
-  nlohmann::json j = nlohmann::json::parse( f );
-  Packument p;
+  //std::ifstream f( argv[1] );
+  //nlohmann::json j = nlohmann::json::parse( f );
+  //Packument p;
+  Packument p( (std::string_view) "https://registry.npmjs.org/lodash" );
 
-  from_json( j, p );
-  to_json( j, p );
+  //from_json( j, p );
+  //to_json( j, p );
 
   //std::cout << j.dump() << std::endl;
 

@@ -4,6 +4,7 @@
  *
  * -------------------------------------------------------------------------- */
 
+#include "fetch.hh"
 #include "packument.hh"
 #include "date.hh"
 #include <map>
@@ -15,6 +16,42 @@
 
 namespace floco {
   namespace db {
+
+/* -------------------------------------------------------------------------- */
+
+Packument::Packument( const nlohmann::json & j )
+{
+  try
+    {
+      j.at( "_id" ).get_to( this->_id );
+    }
+  catch ( nlohmann::json::out_of_range & e )
+    {
+      j.at( "name" ).get_to( this->_id );
+    }
+
+  try
+    {
+      j.at( "name" ).get_to( this->name );
+    }
+  catch ( nlohmann::json::out_of_range & e )
+    {
+      j.at( "_id" ).get_to( this->name );
+    }
+
+  try { j.at( "_rev" ).get_to( this->_rev ); }           catch ( ... ) {}
+  try { j.at( "time" ).get_to( this->time ); }           catch ( ... ) {}
+  try { j.at( "dist-tags" ).get_to( this->dist_tags ); } catch ( ... ) {}
+  try { j.at( "versions" ).get_to( this->versions ); }   catch ( ... ) {}
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+Packument::Packument( std::string_view url )
+  : Packument( floco::fetch::fetchJSON( url ) )
+{}
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -52,6 +89,7 @@ to_json( nlohmann::json & j, const Packument & p )
   };
 }
 
+/* TODO: Move to a common init function shared by `Packument( JSON )' */
   void
 from_json( const nlohmann::json & j, Packument & p )
 {
