@@ -81,7 +81,8 @@ lib:         $(LIBS)
 # ---------------------------------------------------------------------------- #
 
 clean: FORCE
-	$(RM) $(GEN_HEADERS) $(BINS)
+	$(RM) $(GEN_HEADERS) $(BINS) $(LIBS)
+	$(RM) *.o
 	$(RM) result
 
 
