@@ -20,6 +20,9 @@ CAT        ?= cat
 PKG_CONFIG ?= pkg-config
 NIX        ?= nix
 UNAME      ?= uname
+MKDIR      ?= mkdir
+MKDIR_P    ?= $(MKDIR) -p
+CP         ?= cp
 
 
 # ---------------------------------------------------------------------------- #
@@ -36,18 +39,26 @@ endif  # ifndef libExt
 
 # ---------------------------------------------------------------------------- #
 
-LIBFLOCODB = libflocodb$(libExt)
-
-GEN_HEADERS    = floco-sql.hh
-BINS           = floco-db fetch packument
-LIBS           = $(LIBFLOCODB)
-SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
-COMMON_HEADERS = pjs-core.hh fetch.hh
+PREFIX     ?= $(MAKEFILE_DIR)/out
+BINDIR     ?= $(PREFIX)/bin
+LIBDIR     ?= $(PREFIX)/lib
+INCLUDEDIR ?= $(PREFIX)/include
 
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS     = -std=c++17
+LIBFLOCODB = libflocodb$(libExt)
+
+GEN_HEADERS    = floco-sql.hh
+COMMON_HEADERS = pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh
+BINS           = floco-db fetch packument
+LIBS           = $(LIBFLOCODB)
+SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+
+
+# ---------------------------------------------------------------------------- #
+
+CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include'
 lib_CXXFLAGS = -shared -fPIC
 lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 
@@ -68,23 +79,29 @@ nix_CFLAGS +=                                                                 \
 nix_LDFLAGS =  $(shell $(PKG_CONFIG) --libs nix-main nix-cmd nix-expr nix-store)
 nix_LDFLAGS += -lnixfetchers
 
-flocodb_LDFLAGS =  -L$(MAKEFILEDIR) -lflocodb
-flocodb_LDFLAGS += -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN:$$ORIGIN/../lib'
+flocodb_LDFLAGS =  '-L$(MAKEFILE_DIR)/lib' -lflocodb
+flocodb_LDFLAGS += -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN/../lib'
+
 
 # ---------------------------------------------------------------------------- #
 
-.PHONY: gen-headers bin lib
-gen-headers: $(GEN_HEADERS)
-bin:         $(BINS)
-lib:         $(LIBS)
+.PHONY: gen-headers bin lib include
+gen-headers: $(addprefix include/,$(GEN_HEADERS))
+
+bin: $(addprefix bin/,$(BINS))
+lib: $(addprefix lib/,$(LIBS))
+include: $(addprefix include/,$(GEN_HEADERS) $(COMMON_HEADERS))
 
 
 # ---------------------------------------------------------------------------- #
 
 clean: FORCE
-	$(RM) $(GEN_HEADERS) $(BINS) $(LIBS)
-	$(RM) *.o
+	$(RM) $(GEN_HEADERS) $(addprefix include/,$(GEN_HEADERS))
+	$(RM) $(addprefix bin/,$(BINS))
+	$(RM) $(addprefix lib/,$(LIBS))
+	$(RM) src/*.o
 	$(RM) result
+	$(RM) -r $(PREFIX)
 
 
 # ---------------------------------------------------------------------------- #
@@ -94,7 +111,7 @@ all: gen-headers bin lib
 
 # ---------------------------------------------------------------------------- #
 
-floco-sql.hh: Makefile $(SQL_SCHEMAS)
+include/floco-sql.hh: Makefile $(SQL_SCHEMAS)
 	printf 'static const char pjsCoreSchemaSQL[] = R"SQL(' > "$@";
 	$(CAT) ../pjs-core.sql >> "$@";
 	echo ')SQL";' >> "$@";
@@ -111,10 +128,10 @@ floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
-fetch.o: fetch.hh
-date.o: date.hh
-pjs-core.o: floco-sql.hh pjs-core.hh fetch.hh
-packument.o: packument.hh date.hh
+src/fetch.o: include/fetch.hh
+src/date.o: include/date.hh
+src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
+src/packument.o: $(addprefix include/,packument.hh date.hh)
 
 
 # ---------------------------------------------------------------------------- #
@@ -123,35 +140,57 @@ packument.o: packument.hh date.hh
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c "$<"
 
 
-$(LIBFLOCODB): CXXFLAGS += $(lib_CXXFLAGS) $(nix_CFLAGS) $(sqlite3_CFLAGS)
-$(LIBFLOCODB): CXXFLAGS += $(nljson_CFLAGS)
-$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
-$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
-$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
-$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
-$(LIBFLOCODB): pjs-core.o fetch.o packument.o date.o
+lib/$(LIBFLOCODB): CXXFLAGS += $(lib_CXXFLAGS) $(nix_CFLAGS) $(sqlite3_CFLAGS)
+lib/$(LIBFLOCODB): CXXFLAGS += $(nljson_CFLAGS)
+lib/$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
+lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
+lib/$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
+lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
+lib/$(LIBFLOCODB): $(addprefix src/,pjs-core.o fetch.o packument.o date.o)
 	$(CXX) $^ $(LDFLAGS) -o "$@"
 
 
 
 # ---------------------------------------------------------------------------- #
 
-floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS) $(nix_CFLAGS)
-floco-db: LDFLAGS  += $(sqlite3_LDFLAGS) $(nix_LDFLAGS) $(flocodb_LDFLAGS)
-floco-db: db-main.cc $(LIBFLOCODB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) db-main.cc -o "$@"
+bin/floco-db: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS) $(nix_CFLAGS)
+bin/floco-db: LDFLAGS  += $(sqlite3_LDFLAGS) $(nix_LDFLAGS) $(flocodb_LDFLAGS)
+bin/floco-db: src/db-main.cc lib/$(LIBFLOCODB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
 
 
-fetch: CXXFLAGS += $(argparse_CFLAGS) $(nix_CFLAGS)
-fetch: LDFLAGS  += $(nix_LDFLAGS) $(flocodb_LDFLAGS)
-fetch: fetch-main.cc $(LIBFLOCODB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) fetch-main.cc -o "$@"
+bin/fetch: CXXFLAGS += $(argparse_CFLAGS) $(nix_CFLAGS)
+bin/fetch: LDFLAGS  += $(nix_LDFLAGS) $(flocodb_LDFLAGS)
+bin/fetch: src/fetch-main.cc lib/$(LIBFLOCODB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
 
 
-packument: CXXFLAGS += $(nljson_CFLAGS)
-packument: LDFLAGS  += $(flocodb_LDFLAGS)
-packument: packument-main.cc $(LIBFLOCODB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) packument-main.cc -o "$@"
+bin/packument: CXXFLAGS += $(nljson_CFLAGS)
+bin/packument: LDFLAGS  += $(flocodb_LDFLAGS)
+bin/packument: src/packument-main.cc lib/$(LIBFLOCODB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
+
+
+# ---------------------------------------------------------------------------- #
+
+.PHONY: install-dirs install-bin install-lib install-include install
+install: install-dirs install-bin install-lib install-include
+
+install-dirs: FORCE
+	$(MKDIR_P) $(BINDIR) $(LIBDIR) $(INCLUDEDIR)
+
+$(INCLUDEDIR)/%: include/% | install-dirs
+	$(CP) -- "$<" "$@"
+
+$(LIBDIR)/%: lib/% | install-dirs
+	$(CP) -- "$<" "$@"
+
+$(BINDIR)/%: bin/% | install-dirs
+	$(CP) -- "$<" "$@"
+
+install-bin: $(addprefix $(BINDIR)/,$(BINS))
+install-lib: $(addprefix $(LIBDIR)/,$(LIBS))
+install-include: $(addprefix $(INCLUDEDIR)/,$(GEN_HEADERS) $(COMMON_HEADERS))
 
 
 # ---------------------------------------------------------------------------- #

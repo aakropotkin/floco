@@ -19,9 +19,17 @@
     filter = name: type: let
       bname   = baseNameOf name;
       ignores = [
-        "result" "floco-sql.hh" "fetch" "floco-db" "default.nix" "pkg-fun.nix"
+        "result"
+        "floco-sql.hh"
+        "fetch"
+        "floco-db"
+        "packument"
+        "default.nix"
+        "pkg-fun.nix"
       ];
-    in ( type == "directory" ) || ( ! ( builtins.elem bname ignores ) );
+    in if type == "directory"
+       then bname != "out"
+       else ! ( builtins.elem bname ignores );
   };
   libExt            = stdenv.hostPlatform.extensions.sharedLibrary;
   nativeBuildInputs = [pkg-config];
@@ -32,19 +40,16 @@
     "boost_CFLAGS=-I${boost}/include"
     "libExt=${stdenv.hostPlatform.extensions.sharedLibrary}"
   ];
-  dontConfigure     = true;
-  buildPhase        = ''
+  configurePhase = ''
+    runHook preConfigure;
+    export PREFIX="$out";
+    runHook postConfigure;
+  '';
+  buildPhase = ''
     runHook preBuild;
     cd ./cli;
     eval "make $makeFlags";
     runHook postBuild;
-  '';
-  installPhase = ''
-    runHook preInstall;
-    mkdir -p "$out/bin" "$out/lib";
-    mv "./$pname" "$out/bin/$pname";
-    mv "./libflocodb"* "$out/lib/";
-    runHook postInstall;
   '';
 }
 
