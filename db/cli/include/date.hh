@@ -18,6 +18,7 @@ namespace floco {
 /* -------------------------------------------------------------------------- */
 
 std::tm parseDateTime( std::string_view timestamp );
+unsigned long parseDateTimeToEpoch( std::string_view timestamp );
 
 
 /* -------------------------------------------------------------------------- */

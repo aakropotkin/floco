@@ -4,6 +4,7 @@
  *
  * -------------------------------------------------------------------------- */
 
+#include <cmath>
 #include "date.hh"
 #include <string>
 #include <ctime>
@@ -32,6 +33,17 @@ parseDateTime( std::string_view timestamp )
   std::string s( timestamp );
   strptime( s.c_str(), fmt, & t );
   return t;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  unsigned long
+parseDateTimeToEpoch( std::string_view timestamp )
+{
+  std::tm t = parseDateTime( timestamp );
+  double  s = std::mktime( & t );
+  return std::floor( s );
 }
 
 
