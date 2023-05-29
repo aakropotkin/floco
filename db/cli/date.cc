@@ -42,7 +42,7 @@ dateBefore( const std::tm & before, const std::tm & time )
 {
   std::tm b = before;
   std::tm t = time;
-  return ( std::mktime( & b ) <= std::mktime( & t ) );
+  return std::mktime( & b ) <= std::mktime( & t );
 }
 
   bool
@@ -61,6 +61,35 @@ dateBefore( const std::tm & before, std::string_view timestamp )
 dateBefore( std::string_view before, const std::tm & time )
 {
   return dateBefore( parseDateTime( before ), time );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  bool
+compareDateTime( const std::tm & a, const std::tm & b )
+{
+  std::tm _a = a;
+  std::tm _b = b;
+  return std::mktime( & _a ) < std::mktime( & _b );
+}
+
+  bool
+compareDateTime( std::string_view a, std::string_view b )
+{
+  return compareDateTime( parseDateTime( a ), parseDateTime( b ) );
+}
+
+  bool
+compareDateTime( const std::tm & a, std::string_view b )
+{
+  return compareDateTime( a, parseDateTime( b ) );
+}
+
+  bool
+compareDateTime( std::string_view a, const std::tm & b )
+{
+  return compareDateTime( parseDateTime( a ), b );
 }
 
 

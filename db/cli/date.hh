@@ -30,6 +30,14 @@ bool dateBefore( std::string_view before, const std::tm & time );
 
 /* -------------------------------------------------------------------------- */
 
+bool compareDateTime( const std::tm & a, const std::tm & b );
+bool compareDateTime( std::string_view a, std::string_view b );
+bool compareDateTime( const std::tm & a, std::string_view b );
+bool compareDateTime( std::string_view a, const std::tm & b );
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::util' */
 }  /* End Namespace `floco' */
 
