@@ -107,6 +107,37 @@ compareDateTime( std::string_view a, const std::tm & b )
 
 /* -------------------------------------------------------------------------- */
 
+  std::string
+DateTime::stamp() const
+{
+  char buffer[128];
+  strftime( buffer, sizeof( buffer ), "%Y-%m-%dT%T", & this->_time );
+  return std::string( buffer );
+}
+
+  unsigned long
+DateTime::epoch() const
+{
+  std::tm     t = this->_time;
+  std::time_t s = std::mktime( & t );
+  return std::floor( s );
+}
+
+  bool
+DateTime::isBefore( const DateTime & before ) const
+{
+  return dateBefore( before._time, this->_time );
+}
+
+  int
+DateTime::compare( const DateTime & other ) const
+{
+  return this->epoch() - other.epoch();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::util' */
 }  /* End Namespace `floco' */
 

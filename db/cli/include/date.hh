@@ -39,6 +39,32 @@ bool compareDateTime( std::string_view a, const std::tm & b );
 
 /* -------------------------------------------------------------------------- */
 
+class DateTime {
+
+  std::tm _time;
+
+  public:
+
+    DateTime( std::string_view timestamp )
+      : _time( parseDateTime( timestamp ) ) {}
+    DateTime( const time_t secondsSinceEpoch )
+      : _time( * gmtime( & secondsSinceEpoch ) ) {}
+    DateTime( const unsigned long secondsSinceEpoch )
+      : DateTime( (const time_t) secondsSinceEpoch ) {}
+    DateTime( const std::tm & time ) : _time( time ) {};
+
+    std::string   stamp() const;
+    unsigned long epoch() const;
+    std::tm       time()  const { return this->_time; }
+
+    bool isBefore( const DateTime & before ) const;
+    int  compare( const DateTime & other ) const;
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::util' */
 }  /* End Namespace `floco' */
 
