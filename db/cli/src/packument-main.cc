@@ -13,7 +13,10 @@
 #include <string>                 // for allocator, basic_string, string
 #include <fstream>
 #include "packument.hh"
+#include "vinfo.hh"
+#include "date.hh"
 
+#include <ctime>
 #include <map>
 
 
@@ -27,24 +30,16 @@ using namespace floco::db;
   int
 main( int argc, char * argv[], char ** envp )
 {
-  //std::ifstream f( argv[1] );
-  //nlohmann::json j = nlohmann::json::parse( f );
-  //Packument p;
   Packument p( (std::string_view) "https://registry.npmjs.org/lodash" );
-
-  //from_json( j, p );
-  //to_json( j, p );
-
-  //std::cout << j.dump() << std::endl;
-
-  std::map<std::string_view, std::string_view> vs =
-    p.versionsBefore( "2016-11-16T07:21:41.106Z" );
-
-  for ( auto & [version, timestamp] : vs )
-    {
-      std::cout << version << ": " << timestamp << std::endl;
-    }
-
+  std::tm t = floco::util::parseDateTime( p.time["4.17.21"] );
+  double  s = std::mktime( & t );
+  VInfo     v( "https://registry.npmjs.org/lodash/4.17.21"
+             , p.versions["4.17.21"].get<nlohmann::json::object_t>()
+             , std::floor( s )
+             );
+  nlohmann::json j;
+  to_json( j, v );
+  std::cout << j.dump() << std::endl;
   return EXIT_SUCCESS;
 }
 

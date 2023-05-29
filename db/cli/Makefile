@@ -128,6 +128,7 @@ include/floco-sql.hh: Makefile $(SQL_SCHEMAS)
 
 # ---------------------------------------------------------------------------- #
 
+src/vinfo.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh vinfo.hh)
 src/fetch.o: include/fetch.hh
 src/date.o: include/date.hh
 src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
@@ -146,6 +147,7 @@ lib/$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
 lib/$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
+lib/$(LIBFLOCODB): $(addprefix src/,vinfo.o)
 lib/$(LIBFLOCODB): $(addprefix src/,pjs-core.o fetch.o packument.o date.o)
 	$(CXX) $^ $(LDFLAGS) -o "$@"
 
