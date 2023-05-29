@@ -48,27 +48,27 @@ COMMON_HEADERS = pjs-core.hh fetch.hh
 
 CXXFLAGS     = -std=c++17
 lib_CXXFLAGS = -shared -fPIC
+lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 
-sqlite3_CFLAGS  = $(shell $(PKG_CONFIG) --cflags sqlite3)
+
 nljson_CFLAGS   = $(shell $(PKG_CONFIG) --cflags nlohmann_json)
 argparse_CFLAGS = $(shell $(PKG_CONFIG) --cflags argparse)
 boost_CFLAGS    ?=                                                             \
   -I$(shell $(NIX) build --no-link --print-out-paths 'nixpkgs#boost')/include
 
+sqlite3_CFLAGS  = $(shell $(PKG_CONFIG) --cflags sqlite3)
 sqlite3_LDFLAGS =  $(shell $(PKG_CONFIG) --libs sqlite3)
-flocodb_LDFLAGS =  -L$(MAKEFILEDIR) -lflocodb
-flocodb_LDFLAGS += -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN:$$ORIGIN/../lib'
-
-
-nix_LDFLAGS =  $(shell $(PKG_CONFIG) --libs nix-main nix-cmd nix-expr nix-store)
-nix_LDFLAGS += -lnixfetchers
 
 nix_CFLAGS =  $(boost_CFLAGS)
 nix_CFLAGS += $(shell $(PKG_CONFIG) --cflags nix-main nix-cmd nix-expr)
 nix_CFLAGS += -isystem $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)
 nix_CFLAGS +=                                                                 \
   -include $(shell $(PKG_CONFIG) --variable=includedir nix-cmd)/nix/config.h
+nix_LDFLAGS =  $(shell $(PKG_CONFIG) --libs nix-main nix-cmd nix-expr nix-store)
+nix_LDFLAGS += -lnixfetchers
 
+flocodb_LDFLAGS =  -L$(MAKEFILEDIR) -lflocodb
+flocodb_LDFLAGS += -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN:$$ORIGIN/../lib'
 
 # ---------------------------------------------------------------------------- #
 
@@ -121,9 +121,14 @@ packument.o: packument.hh date.hh
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c "$<"
 
 
-$(LIBFLOCODB): CXXFLAGS += $(lib_CXXFLAGS)
+$(LIBFLOCODB): CXXFLAGS += $(lib_CXXFLAGS) $(nix_CFLAGS) $(sqlite3_CFLAGS)
+$(LIBFLOCODB): CXXFLAGS += $(nljson_CFLAGS)
+$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
+$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
+$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
+$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
 $(LIBFLOCODB): pjs-core.o fetch.o packument.o date.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o "$@"
+	$(CXX) $^ $(LDFLAGS) -o "$@"
 
 
 
