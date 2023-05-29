@@ -35,6 +35,43 @@ parseDateTime( std::string_view timestamp )
 }
 
 
+/* -------------------------------------------------------------------------- */
+
+  bool
+dateBefore( std::tm before, std::tm time )
+{
+  return ( time.tm_year <= before.tm_year ) &&
+         ( time.tm_yday <= before.tm_yday ) &&
+         ( time.tm_hour <= before.tm_hour ) &&
+         ( time.tm_min <= before.tm_min ) &&
+         ( time.tm_sec <= before.tm_sec );
+}
+
+  bool
+dateBefore( std::string_view before, std::string_view timestamp )
+{
+  return dateBefore( parseDateTime( before ), parseDateTime( timestamp ) );
+}
+
+  bool
+dateBefore( std::tm before, std::string_view timestamp )
+{
+  return dateBefore( before, parseDateTime( timestamp ) );
+}
+
+  bool
+dateBefore( std::string_view before, std::tm time )
+{
+  return dateBefore( parseDateTime( before ), time );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  }  /* End Namespace `floco::util' */
+}  /* End Namespace `floco' */
+
+
 /* -------------------------------------------------------------------------- *
  *
  *
