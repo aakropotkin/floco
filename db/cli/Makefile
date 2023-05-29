@@ -4,6 +4,10 @@
 #
 # ---------------------------------------------------------------------------- #
 
+MAKEFILE_DIR ?= $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+
+# ---------------------------------------------------------------------------- #
+
 .PHONY: all clean FORCE
 .DEFAULT_GOAL = all
 
@@ -28,9 +32,6 @@ else
 	libExt ?= .dylib
 endif  # ifeq (Linux,$(OS))
 endif  # ifndef libExt
-
-# FIXME
-MAKEFILEDIR ?= $(CURDIR)
 
 
 # ---------------------------------------------------------------------------- #
