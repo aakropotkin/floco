@@ -28,7 +28,7 @@ namespace floco {
   std::tm
 parseDateTime( std::string_view timestamp )
 {
-  static const char fmt[] = "%Y-%m-%dT%T.";
+  static const char fmt[] = "%Y-%m-%dT%T";
   std::tm t;
   std::string s( timestamp );
   strptime( s.c_str(), fmt, & t );
@@ -107,6 +107,12 @@ compareDateTime( std::string_view a, const std::tm & b )
 
 /* -------------------------------------------------------------------------- */
 
+DateTime::operator std::time_t() const
+{
+  std::tm t = this->_time;
+  return std::mktime( & t );
+}
+
   std::string
 DateTime::stamp() const
 {
@@ -118,9 +124,7 @@ DateTime::stamp() const
   unsigned long
 DateTime::epoch() const
 {
-  std::tm     t = this->_time;
-  std::time_t s = std::mktime( & t );
-  return std::floor( s );
+  return std::floor( (std::time_t) this );
 }
 
   bool

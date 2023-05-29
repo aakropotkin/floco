@@ -60,6 +60,9 @@ class DateTime {
     bool isBefore( const DateTime & before ) const;
     int  compare( const DateTime & other ) const;
 
+    operator unsigned long() const { return this->epoch(); }
+    operator std::time_t()   const;
+
 };
 
 
