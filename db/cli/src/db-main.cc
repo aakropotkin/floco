@@ -30,12 +30,14 @@ main( int argc, char * argv[], char ** envp )
 
   PjsCore p( (std::string_view) "https://registry.npmjs.org/lodash/4.17.21" );
 
+  p.sqlite3Write( db );
+
+  PjsCore p2( db, "lodash", "4.17.21" );
+
   nlohmann::json j;
-  to_json( j, p );
+  to_json( j, p2 );
 
   std::cout << j.dump() << std::endl;
-
-  p.sqlite3Write( db );
 
   return EXIT_SUCCESS;
 }
