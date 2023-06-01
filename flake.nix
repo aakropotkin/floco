@@ -23,8 +23,10 @@
 
 # ---------------------------------------------------------------------------- #
 
+    overlays.deps    = final: prev: {};
     overlays.floco   = import ./overlay.nix;
-    overlays.default = overlays.floco;
+    overlays.default = nixpkgs.lib.composeExtensions overlays.deps
+                                                     overlays.floco;
 
 
 # ---------------------------------------------------------------------------- #

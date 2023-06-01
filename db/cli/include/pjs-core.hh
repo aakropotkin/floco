@@ -13,6 +13,7 @@
 #include <string>                 // for string, basic_string, hash, allocator
 #include <string_view>            // for string_view, basic_string_view
 #include <unordered_map>          // for unordered_map
+#include <sqlite3pp.h>
 
 
 /* -------------------------------------------------------------------------- */
@@ -49,13 +50,20 @@ class PjsCore {
 
     PjsCore( std::string_view url );
 
+    PjsCore( sqlite3pp::database & db
+           , std::string_view name
+           , std::string_view version
+           );
+
+    void sqlite3Write( sqlite3pp::database & db );
+
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-const std::string pjsJsonToSQL( nlohmann::json & pjs );
-
+void to_json( nlohmann::json & j, const PjsCore & p );
+void from_json( const nlohmann::json & j, PjsCore & p );
 
 
 /* -------------------------------------------------------------------------- */

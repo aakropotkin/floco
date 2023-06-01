@@ -4,7 +4,6 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <sqlite3.h>              // for sqlite3_exec, sqlite3_free, sqlite3...
 #include <stddef.h>               // for NULL
 #include <iostream>               // for operator<<, endl, basic_ostream
 #include <map>                    // for operator!=
@@ -13,6 +12,7 @@
 #include <string>                 // for allocator, basic_string, string
 #include "floco-sql.hh"           // for pjsCoreSchemaSQL
 #include "pjs-core.hh"            // for pjsJsonToSQL, db
+#include <sqlite3pp.h>
 
 
 /* -------------------------------------------------------------------------- */
@@ -25,44 +25,19 @@ using namespace floco::db;
   int
 main( int argc, char * argv[], char ** envp )
 {
-  sqlite3 * db;
-  char    * messageError;
-  int       err = 0;
+  sqlite3pp::database db( "pjs-core.db" );
+  db.execute( pjsCoreSchemaSQL );
 
-  err = sqlite3_open( "pjs-core.db", & db );
-  err = sqlite3_exec( db, pjsCoreSchemaSQL, NULL, 0, & messageError );
+  PjsCore p( (std::string_view) "https://registry.npmjs.org/lodash/4.17.21" );
 
-  if ( err != SQLITE_OK )
-    {
-      std::cerr << "Error Create Table" << std::endl;
-      sqlite3_free( messageError );
-    }
-  else
-    {
-      std::cout << "Table created Successfully" << std::endl;
-    }
+  nlohmann::json j;
+  to_json( j, p );
 
+  std::cout << j.dump() << std::endl;
 
-  /* Create a dummy row */
-  nlohmann::json o;
-  o["name"]    = "@floco/phony";
-  o["version"] = "4.2.0";
+  p.sqlite3Write( db );
 
-  std::string sql = pjsJsonToSQL( o );
-  err = sqlite3_exec( db, sql.c_str(), NULL, 0, & messageError );
-  if ( err != SQLITE_OK )
-    {
-      std::cerr << "Error Inserting into Table" << std::endl;
-      sqlite3_free( messageError );
-    }
-  else
-    {
-      std::cout << "Inserted into Table Successfully" << std::endl;
-    }
-
-  sqlite3_close( db );
-
-  return err;
+  return EXIT_SUCCESS;
 }
 
 
