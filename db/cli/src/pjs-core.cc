@@ -212,6 +212,16 @@ from_json( const nlohmann::json & j, PjsCore & p )
 }
 
 
+/* -------------------------------------------------------------------------- */
+
+  nlohmann::json
+PjsCore::toJSON() const
+{
+  nlohmann::json j;
+  to_json( j, * this );
+  return j;
+}
+
 
 /* -------------------------------------------------------------------------- */
 

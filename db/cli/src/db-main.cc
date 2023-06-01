@@ -34,10 +34,7 @@ main( int argc, char * argv[], char ** envp )
 
   PjsCore p2( db, "lodash", "4.17.21" );
 
-  nlohmann::json j;
-  to_json( j, p2 );
-
-  std::cout << j.dump() << std::endl;
+  std::cout << p2.toJSON().dump() << std::endl;
 
   return EXIT_SUCCESS;
 }

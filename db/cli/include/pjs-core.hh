@@ -43,27 +43,37 @@ class PjsCore {
 
     PjsCore() {}
 
+    /** Read a `PjsCore' from a JSON file such as `package.json'. */
     PjsCore( const nlohmann::json & json )
     {
       this->init( json );
     }
 
+    /** Read a `PjsCore' from an NPM registry URL. */
     PjsCore( std::string_view url );
 
+    /** Read a `PjsCore' from a SQLite3 database. */
     PjsCore( sqlite3pp::database & db
-           , std::string_view name
-           , std::string_view version
+           , std::string_view      name
+           , std::string_view      version
            );
 
+    /** Write a `PjsCore' to a SQLite3 database. */
     void sqlite3Write( sqlite3pp::database & db );
+
+    /** Convert a `PjsCore' to a JSON representation. */
+    nlohmann::json toJSON() const;
+
+    /** Get the `<name>@<version>` identifier used by NPM registries. */
+    std::string id() const { return this->name + "@" + this->version; }
 
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-void to_json( nlohmann::json & j, const PjsCore & p );
-void from_json( const nlohmann::json & j, PjsCore & p );
+void to_json(         nlohmann::json & j, const PjsCore & p );
+void from_json( const nlohmann::json & j,       PjsCore & p );
 
 
 /* -------------------------------------------------------------------------- */
