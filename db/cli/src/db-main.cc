@@ -12,7 +12,7 @@
 #include <string>                 // for allocator, basic_string, string
 #include "floco-sql.hh"           // for pjsCoreSchemaSQL
 #include "pjs-core.hh"            // for pjsJsonToSQL, db
-#include <sqlite3pp.h>
+#include "sqlite3pp.h"
 
 
 /* -------------------------------------------------------------------------- */

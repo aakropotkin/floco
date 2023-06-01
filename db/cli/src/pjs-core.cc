@@ -19,7 +19,7 @@
 #include <utility>                                        // for make_pair
 #include <vector>                                         // for vector
 #include "fetch.hh"                                       // for curlFile
-#include <sqlite3pp.h>
+#include "sqlite3pp.h"
 
 
 /* -------------------------------------------------------------------------- */

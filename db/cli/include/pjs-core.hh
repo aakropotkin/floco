@@ -13,7 +13,7 @@
 #include <string>                 // for string, basic_string, hash, allocator
 #include <string_view>            // for string_view, basic_string_view
 #include <unordered_map>          // for unordered_map
-#include <sqlite3pp.h>
+#include "sqlite3pp.h"
 
 
 /* -------------------------------------------------------------------------- */

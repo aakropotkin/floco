@@ -4,7 +4,6 @@
  *
  * -------------------------------------------------------------------------- */
 
-//#include <sqlite3.h>              // for sqlite3_exec, sqlite3_free, sqlite3...
 #include <stddef.h>               // for NULL
 #include <iostream>               // for operator<<, endl, basic_ostream
 #include <map>                    // for operator!=
