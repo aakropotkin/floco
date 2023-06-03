@@ -54,6 +54,7 @@ BINS           = floco-db fetch packument
 LIBS           = $(LIBFLOCODB)
 SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 COMMON_HEADERS = pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
+TESTS          = $(wildcard tests/*.cc)
 
 
 # ---------------------------------------------------------------------------- #
@@ -102,11 +103,6 @@ clean: FORCE
 	$(RM) src/*.o
 	$(RM) result
 	$(RM) -r $(PREFIX)
-
-
-# ---------------------------------------------------------------------------- #
-
-all: gen-headers bin lib
 
 
 # ---------------------------------------------------------------------------- #
@@ -194,6 +190,38 @@ $(BINDIR)/%: bin/% | install-dirs
 install-bin: $(addprefix $(BINDIR)/,$(BINS))
 install-lib: $(addprefix $(LIBDIR)/,$(LIBS))
 install-include: $(addprefix $(INCLUDEDIR)/,$(GEN_HEADERS) $(COMMON_HEADERS))
+
+
+# ---------------------------------------------------------------------------- #
+
+.PHONY: tests check
+
+tests/%: CXXFLAGS += $(sqlite3_CFLAGS) $(nljson_CFLAGS)
+tests/%: CXXFLAGS += $(nix_CFLAGS) $(nljson_CFLAGS)
+tests/%: LDFLAGS  += $(sqlite3_LDFLAGS) $(nix_LDFLAGS)
+tests/%: LDFLAGS  += $(flocodb_LDFLAGS)
+$(TESTS:.cc=): %: %.cc lib/$(LIBFLOCODB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
+
+
+check: $(TESTS:.cc=)
+	_ec=0;                      \
+	for t in $(TESTS:.cc=); do  \
+	  echo "Testing: $$t";      \
+	  if "./$$t" >&2; then      \
+	    echo "PASS: $$t";       \
+	  else                      \
+		_ec=1;                  \
+		echo "FAIL: $$t";       \
+	  fi;                       \
+	  echo '';                  \
+	done;                       \
+	exit "$$_ec"
+
+
+# ---------------------------------------------------------------------------- #
+
+all: gen-headers bin lib tests
 
 
 # ---------------------------------------------------------------------------- #
