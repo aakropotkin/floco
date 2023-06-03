@@ -25,9 +25,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace floco {
   namespace db {
 
@@ -177,19 +174,8 @@ to_json( nlohmann::json & j, const PjsCore & p )
   void
 from_json( const nlohmann::json & j, PjsCore & p )
 {
-  j.at( "name" ).get_to( p.name );
-  j.at( "version" ).get_to( p.version );
-  floco::util::tryGetJSONTo( j, "bin", p.bin );
-  floco::util::tryGetJSONTo( j, "dependencies", p.dependencies );
-  floco::util::tryGetJSONTo( j, "devDependencies", p.devDependencies );
-  floco::util::tryGetJSONTo( j, "devDependenciesMeta", p.devDependenciesMeta );
-  floco::util::tryGetJSONTo( j, "peerDependencies", p.peerDependencies );
-  floco::util::tryGetJSONTo(
-    j, "peerDependenciesMeta", p.peerDependenciesMeta
-  );
-  floco::util::tryGetJSONTo( j, "os", p.os );
-  floco::util::tryGetJSONTo( j, "cpu", p.cpu );
-  floco::util::tryGetJSONTo( j, "engines", p.engines );
+  PjsCore _p( j );
+  p = _p;
 }
 
 

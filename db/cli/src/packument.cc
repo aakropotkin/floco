@@ -11,6 +11,7 @@
 #include <string>
 #include <nlohmann/json.hpp>      // for basic_json
 #include <nlohmann/json_fwd.hpp>  // for json
+#include "util.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -19,7 +20,8 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-Packument::Packument( const nlohmann::json & j )
+  void
+Packument::init( const nlohmann::json & j )
 {
   try
     {
@@ -39,10 +41,10 @@ Packument::Packument( const nlohmann::json & j )
       j.at( "_id" ).get_to( this->name );
     }
 
-  try { j.at( "_rev" ).get_to( this->_rev ); }           catch ( ... ) {}
-  try { j.at( "time" ).get_to( this->time ); }           catch ( ... ) {}
-  try { j.at( "dist-tags" ).get_to( this->dist_tags ); } catch ( ... ) {}
-  try { j.at( "versions" ).get_to( this->versions ); }   catch ( ... ) {}
+  floco::util::tryGetJSONTo( j, "_rev",      this->_rev );
+  floco::util::tryGetJSONTo( j, "time",      this->time );
+  floco::util::tryGetJSONTo( j, "dist-tags", this->dist_tags );
+  floco::util::tryGetJSONTo( j, "versions",  this->versions );
 }
 
 
@@ -56,7 +58,7 @@ Packument::Packument( std::string_view url )
 /* -------------------------------------------------------------------------- */
 
   std::map<std::string_view, std::string_view>
-Packument::versionsBefore( std::string_view before )
+Packument::versionsBefore( std::string_view before ) const
 {
   std::tm b = floco::util::parseDateTime( before );
 
@@ -76,6 +78,40 @@ Packument::versionsBefore( std::string_view before )
 
 /* -------------------------------------------------------------------------- */
 
+  nlohmann::json
+Packument::toJSON() const
+{
+  nlohmann::json j;
+  to_json( j, * this );
+  return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  bool
+Packument::operator==( const Packument & other ) const
+{
+  return
+    ( this->_id == other._id ) &&
+    ( this->_rev == other._rev ) &&
+    ( this->name == other.name ) &&
+    ( this->time == other.time ) &&
+    ( this->dist_tags == other.dist_tags ) &&
+    ( this->versions == other.versions )
+  ;
+}
+
+
+  bool
+Packument::operator!=( const Packument & other ) const
+{
+  return ! ( ( * this ) == other );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 to_json( nlohmann::json & j, const Packument & p )
 {
@@ -89,34 +125,12 @@ to_json( nlohmann::json & j, const Packument & p )
   };
 }
 
-/* TODO: Move to a common init function shared by `Packument( JSON )' */
   void
 from_json( const nlohmann::json & j, Packument & p )
 {
-  try
-    {
-      j.at( "_id" ).get_to( p._id );
-    }
-  catch ( nlohmann::json::out_of_range & e )
-    {
-      j.at( "name" ).get_to( p._id );
-    }
-
-  try
-    {
-      j.at( "name" ).get_to( p.name );
-    }
-  catch ( nlohmann::json::out_of_range & e )
-    {
-      j.at( "_id" ).get_to( p.name );
-    }
-
-  try { j.at( "_rev" ).get_to( p._rev ); }           catch ( ... ) {}
-  try { j.at( "time" ).get_to( p.time ); }           catch ( ... ) {}
-  try { j.at( "dist-tags" ).get_to( p.dist_tags ); } catch ( ... ) {}
-  try { j.at( "versions" ).get_to( p.versions ); }   catch ( ... ) {}
+  Packument _p( j );
+  p = _p;
 }
-
 
 
 /* -------------------------------------------------------------------------- */
