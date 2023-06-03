@@ -52,6 +52,9 @@ class PjsCore {
     /** Read a `PjsCore' from an NPM registry URL. */
     PjsCore( std::string_view url );
 
+    /** Read a `PjsCore' from `https://registry.npmjs.org'. */
+    PjsCore( std::string_view name, std::string_view version );
+
     /** Read a `PjsCore' from a SQLite3 database. */
     PjsCore( sqlite3pp::database & db
            , std::string_view      name
@@ -66,6 +69,9 @@ class PjsCore {
 
     /** Get the `<name>@<version>` identifier used by NPM registries. */
     std::string id() const { return this->name + "@" + this->version; }
+
+    bool operator==( const PjsCore & other ) const;
+    bool operator!=( const PjsCore & other ) const;
 
 };
 

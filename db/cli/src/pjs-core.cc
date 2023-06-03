@@ -75,6 +75,18 @@ PjsCore::PjsCore( std::string_view url )
 
 /* -------------------------------------------------------------------------- */
 
+PjsCore::PjsCore( std::string_view name, std::string_view version )
+{
+  std::string url = "https://registry.npmjs.org/";
+  url += name;
+  url += "/";
+  url += version;
+  this->init( floco::fetch::fetchJSON( url ) );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 PjsCore::PjsCore( sqlite3pp::database & db
                 , std::string_view name
                 , std::string_view version
@@ -189,6 +201,34 @@ PjsCore::toJSON() const
   nlohmann::json j;
   to_json( j, * this );
   return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  bool
+PjsCore::operator==( const PjsCore & other ) const
+{
+  return
+    ( this->name == other.name ) &&
+    ( this->version == other.version ) &&
+    ( this->bin == other.bin ) &&
+    ( this->dependencies == other.dependencies ) &&
+    ( this->devDependencies == other.devDependencies ) &&
+    ( this->devDependenciesMeta == other.devDependenciesMeta ) &&
+    ( this->peerDependencies == other.peerDependencies ) &&
+    ( this->peerDependenciesMeta == other.peerDependenciesMeta ) &&
+    ( this->os == other.os ) &&
+    ( this->cpu == other.cpu ) &&
+    ( this->engines == other.engines )
+  ;
+}
+
+
+  bool
+PjsCore::operator!=( const PjsCore & other ) const
+{
+  return ! ( ( * this ) == other );
 }
 
 
