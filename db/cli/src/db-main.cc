@@ -28,11 +28,11 @@ main( int argc, char * argv[], char ** envp )
   sqlite3pp::database db( "pjs-core.db" );
   db.execute( pjsCoreSchemaSQL );
 
-  PjsCore p( (std::string_view) "https://registry.npmjs.org/lodash/4.17.21" );
+  PjsCore p( (std::string_view) "https://registry.npmjs.org/prettier/2.8.8" );
 
   p.sqlite3Write( db );
 
-  PjsCore p2( db, "lodash", "4.17.21" );
+  PjsCore p2( db, "prettier", "2.8.8" );
 
   std::cout << p2.toJSON().dump() << std::endl;
 

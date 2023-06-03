@@ -20,6 +20,7 @@
 #include <vector>                                         // for vector
 #include "fetch.hh"                                       // for curlFile
 #include "sqlite3pp.h"
+#include "util.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -164,51 +165,19 @@ to_json( nlohmann::json & j, const PjsCore & p )
   void
 from_json( const nlohmann::json & j, PjsCore & p )
 {
-
   j.at( "name" ).get_to( p.name );
   j.at( "version" ).get_to( p.version );
-
-  try { j.at( "bin" ).get_to( p.bin ); } catch( ... ) {}
-
-  try
-    {
-      j.at( "dependencies" ).get_to( p.dependencies );
-    }
-  catch( ... )
-    {}
-
-  try
-    {
-      j.at( "devDependencies" ).get_to( p.devDependencies );
-    }
-  catch( ... )
-    {}
-
-  try
-    {
-      j.at( "devDependenciesMeta" ).get_to( p.devDependenciesMeta );
-    }
-  catch( ... )
-    {}
-
-  try
-    {
-      j.at( "peerDependencies" ).get_to( p.peerDependencies );
-    }
-  catch( ... )
-    {}
-
-  try
-    {
-      j.at( "peerDependenciesMeta" ).get_to( p.peerDependenciesMeta );
-    }
-  catch( ... )
-    {}
-
-  try { j.at( "os" ).get_to( p.os ); }           catch( ... ) {}
-  try { j.at( "cpu" ).get_to( p.cpu ); }         catch( ... ) {}
-  try { j.at( "engines" ).get_to( p.engines ); } catch( ... ) {}
-
+  floco::util::tryGetJSONTo( j, "bin", p.bin );
+  floco::util::tryGetJSONTo( j, "dependencies", p.dependencies );
+  floco::util::tryGetJSONTo( j, "devDependencies", p.devDependencies );
+  floco::util::tryGetJSONTo( j, "devDependenciesMeta", p.devDependenciesMeta );
+  floco::util::tryGetJSONTo( j, "peerDependencies", p.peerDependencies );
+  floco::util::tryGetJSONTo(
+    j, "peerDependenciesMeta", p.peerDependenciesMeta
+  );
+  floco::util::tryGetJSONTo( j, "os", p.os );
+  floco::util::tryGetJSONTo( j, "cpu", p.cpu );
+  floco::util::tryGetJSONTo( j, "engines", p.engines );
 }
 
 
