@@ -224,7 +224,6 @@ PjsCore::operator==( const PjsCore & other ) const
   ;
 }
 
-
   bool
 PjsCore::operator!=( const PjsCore & other ) const
 {

@@ -44,10 +44,7 @@ class PjsCore {
     PjsCore() {}
 
     /** Read a `PjsCore' from a JSON file such as `package.json'. */
-    PjsCore( const nlohmann::json & json )
-    {
-      this->init( json );
-    }
+    PjsCore( const nlohmann::json & json ) { this->init( json ); }
 
     /** Read a `PjsCore' from an NPM registry URL. */
     PjsCore( std::string_view url );

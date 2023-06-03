@@ -57,24 +57,60 @@ VInfo::VInfo( std::string_view url )
 }
 
 
+VInfo::VInfo( std::string_view name, std::string_view version )
+{
+  std::string url = "https://registry.npmjs.org/";
+  url += name;
+  url += "/";
+  url += version;
+  this->init( floco::fetch::fetchJSON( url ) );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  nlohmann::json
+VInfo::toJSON() const
+{
+  nlohmann::json j;
+  to_json( j, * this );
+  return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  bool
+VInfo::operator==( const VInfo & other ) const
+{
+  return
+    ( * ( (PjsCore *) this ) ) == ( (PjsCore &) other ) &&
+    /* VInfo Fields */
+    ( this->_id == other._id ) &&
+    ( this->homepage == other.homepage ) &&
+    ( this->description == other.description ) &&
+    ( this->license == other.license ) &&
+    ( this->repository == other.repository ) &&
+    ( this->dist == other.dist ) &&
+    ( this->_hasShrinkwrap == other._hasShrinkwrap )
+  ;
+}
+
+  bool
+VInfo::operator!=( const VInfo & other ) const
+{
+  return ! ( ( * this ) == other );
+}
+
+
 /* -------------------------------------------------------------------------- */
 
   void
 to_json( nlohmann::json & j, const VInfo & v )
 {
-  j = nlohmann::json {
+  to_json( j, (const PjsCore &) v );
+  j += {
     { "_id",                  v._id }
-  , { "name",                 v.name }
-  , { "version",              v.version }
-  , { "bin",                  v.bin }
-  , { "dependencies",         v.dependencies }
-  , { "devDependencies",      v.devDependencies }
-  , { "devDependenciesMeta",  v.devDependenciesMeta }
-  , { "peerDependencies",     v.peerDependencies }
-  , { "peerDependenciesMeta", v.peerDependenciesMeta }
-  , { "os",                   v.os }
-  , { "cpu",                  v.cpu }
-  , { "engines",              v.engines }
   , { "homepage",             v.homepage }
   , { "description",          v.description }
   , { "license",              v.license }
@@ -93,7 +129,6 @@ from_json( const nlohmann::json & j, VInfo & v )
   VInfo _v( j );
   v = _v;
 }
-
 
 
 /* -------------------------------------------------------------------------- */
