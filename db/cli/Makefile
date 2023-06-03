@@ -205,14 +205,15 @@ $(TESTS:.cc=): %: %.cc lib/$(LIBFLOCODB)
 
 
 check: $(TESTS:.cc=)
-	_ec=0;                      \
+	@_ec=0;                     \
+	echo '';                    \
 	for t in $(TESTS:.cc=); do  \
 	  echo "Testing: $$t";      \
-	  if "./$$t" >&2; then      \
+	  if "./$$t"; then          \
 	    echo "PASS: $$t";       \
 	  else                      \
-		_ec=1;                  \
-		echo "FAIL: $$t";       \
+	    _ec=1;                  \
+	    echo "FAIL: $$t";       \
 	  fi;                       \
 	  echo '';                  \
 	done;                       \
