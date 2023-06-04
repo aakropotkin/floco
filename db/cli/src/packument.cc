@@ -207,7 +207,9 @@ Packument::Packument( sqlite3pp::database & db
         }
       else
         {
-          this->versions.emplace( version, PackumentVInfo( db, name, version ) );
+          this->versions.emplace( version
+                                , PackumentVInfo( db, name, version )
+                                );
         }
     }
 }
