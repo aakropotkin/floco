@@ -48,8 +48,8 @@ main( int argc, char * argv[], char ** envp )
 
       Packument p2( db, "lodash" );
 
-      PackumentVInfo pvi  = p.vinfos.at( "4.17.21" );
-      PackumentVInfo pvi2 = p2.vinfos.at( "4.17.21" );
+      PackumentVInfo pvi  = p.versions.at( "4.17.21" );
+      PackumentVInfo pvi2 = p2.versions.at( "4.17.21" );
 
       db.disconnect();
       remove( filename );

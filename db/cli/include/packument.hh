@@ -88,7 +88,7 @@ class Packument {
      */
     std::map<std::string, floco::version> distTags;
 
-    std::map<floco::version, PackumentVInfo> vinfos;
+    std::map<floco::version, PackumentVInfo> versions;
 
     Packument() {}
     Packument( const nlohmann::json & j ) { this->init( j ); }

@@ -102,7 +102,7 @@ Packument::init( const nlohmann::json & j )
               distTags.emplace( tag );
             }
         }
-      this->vinfos.emplace( version
+      this->versions.emplace( version
                           , PackumentVInfo(
                               floco::util::DateTime( this->time.at( version ) )
                             , vj
@@ -163,7 +163,7 @@ Packument::operator==( const Packument & other ) const
     ( this->name == other.name ) &&
     ( this->time == other.time ) &&
     ( this->distTags == other.distTags ) &&
-    ( this->vinfos == other.vinfos )
+    ( this->versions == other.versions )
   ;
 }
 
@@ -207,7 +207,7 @@ Packument::Packument( sqlite3pp::database & db
         }
       else
         {
-          this->vinfos.emplace( version, PackumentVInfo( db, name, version ) );
+          this->versions.emplace( version, PackumentVInfo( db, name, version ) );
         }
     }
 }
@@ -234,7 +234,7 @@ Packument::sqlite3Write( sqlite3pp::database & db ) const
 
   cmd.execute();
 
-  for ( auto & [version, pvi] : this->vinfos )
+  for ( auto & [version, pvi] : this->versions )
     {
       pvi.sqlite3Write( db );
     }
@@ -247,7 +247,7 @@ Packument::sqlite3Write( sqlite3pp::database & db ) const
 to_json( nlohmann::json & j, const Packument & p )
 {
   nlohmann::json versions = nlohmann::json::object();
-  for ( auto & [version, pvi] : p.vinfos )
+  for ( auto & [version, pvi] : p.versions )
     {
       versions.emplace( version, pvi.toJSON() );
     }
