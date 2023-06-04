@@ -180,6 +180,75 @@ Packument::operator!=( const Packument & other ) const
 
 /* -------------------------------------------------------------------------- */
 
+Packument::Packument( sqlite3pp::database & db
+                    , floco::ident_view     name
+                    )
+  : _id( name ), name( name )
+{
+  sqlite3pp::query cmd( db, R"SQL(
+    SELECT _rev, time, distTags FROM Packument WHERE ( name = ? )
+  )SQL" );
+  cmd.bind( 1, this->name, sqlite3pp::nocopy );
+  auto rsl = * cmd.begin();
+
+  const char * s = rsl.get<const char *>( 0 );
+  if ( s != nullptr ) { this->_rev = s; }
+
+  s = rsl.get<const char *>( 1 );
+  if ( s != nullptr ) { this->time = nlohmann::json::parse( s ); }
+
+  s = rsl.get<const char *>( 2 );
+  if ( s != nullptr ) { this->distTags = nlohmann::json::parse( s ); }
+
+  nlohmann::json j;
+
+  for ( auto & [version, time] : this->time )
+    {
+      if ( ( version == "created" ) || ( version == "modified" ) )
+        {
+          continue;
+        }
+      else
+        {
+          this->vinfos.emplace( version, PackumentVInfo( db, name, version ) );
+          this->versions.emplace( version
+                                , this->vinfos.at( version ).toJSON()
+                                );
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+Packument::sqlite3Write( sqlite3pp::database & db ) const
+{
+  sqlite3pp::command cmd( db, R"SQL(
+    INSERT OR REPLACE INTO Packument ( _id, _rev, name, time, distTags )
+    VALUES ( ?, ?, ?, ?, ? )
+  )SQL" );
+  cmd.bind( 1, this->_id,  sqlite3pp::nocopy );
+  cmd.bind( 2, this->_rev, sqlite3pp::nocopy );
+  cmd.bind( 3, this->name, sqlite3pp::nocopy );
+
+  /* We have to copy any fileds that aren't already `std::string' */
+  nlohmann::json j = this->time;
+  cmd.bind( 4, j.dump(), sqlite3pp::copy );
+  j = this->distTags;
+  cmd.bind( 5, j.dump(), sqlite3pp::copy );
+
+  cmd.execute();
+
+  for ( auto & [version, pvi] : this->vinfos )
+    {
+      pvi.sqlite3Write( db );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 to_json( nlohmann::json & j, const Packument & p )
 {

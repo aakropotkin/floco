@@ -93,7 +93,6 @@ class Packument {
     std::map<floco::version, nlohmann::json> versions;
     std::map<floco::version, PackumentVInfo> vinfos;
 
-
     Packument() {}
     Packument( const nlohmann::json & j ) { this->init( j ); }
     Packument( std::string_view url );
@@ -101,13 +100,13 @@ class Packument {
       std::map<floco::version_view, floco::timestamp_view>
     versionsBefore( floco::timestamp_view before ) const;
 
-    // /** Read a `Packument' from a SQLite3 database. */
-    // Packument( sqlite3pp::database & db
-    //          , std::ident_view       name
-    //          );
+    /** Read a `Packument' from a SQLite3 database. */
+    Packument( sqlite3pp::database & db
+             , floco::ident_view     name
+             );
 
-    // /** Write a `Packument' to a SQLite3 database. */
-    // void sqlite3Write( sqlite3pp::database & db ) const;
+    /** Write a `Packument' to a SQLite3 database. */
+    void sqlite3Write( sqlite3pp::database & db ) const;
 
     /** Convert a `Packument' to a JSON representation. */
     nlohmann::json toJSON() const;
