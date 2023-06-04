@@ -44,15 +44,21 @@ CREATE TABLE IF NOT EXISTS PackumentVInfo (
 
 -- -------------------------------------------------------------------------- --
 
+-- NOTE: `json_patch' omits `{ "foo": null }' fields in its second argument.
+--       With this in mind we must make any nullable fields part of the first
+--       argument instead.
+--       We can "get away with" only declaring nullable fields from `VInfo' here
+--       only because `null' is not a valid value for any `PjsCore' fields.
 CREATE VIEW IF NOT EXISTS v_VInfoJSON ( _id, json ) AS
-  SELECT v._id, json_patch( json( p.json ), json_object(
+  SELECT v._id, json_patch( json_object(
     'homepage',       iif( v.homepage    = NULL, json( 'null' ), v.homepage )
   , 'description',    iif( v.description = NULL, json( 'null' ), v.description )
   , 'license',        iif( v.license     = NULL, json( 'null' ), v.license )
   , 'repository',     json( iif( v.repository  = NULL, 'null', v.repository ) )
   , 'dist',           json( iif( v.dist        = NULL, 'null', v.dist ) )
   , '_hasShrinkWrap', iif( v._hasShrinkwrap, json( 'true' ), json( 'false' ) )
-  ) ) FROM VInfo v LEFT JOIN v_PjsCoreJSON p ON ( v._id = p._id );
+  ), json( p.json ) )
+  FROM VInfo v LEFT JOIN v_PjsCoreJSON p ON ( v._id = p._id );
 
 
 -- -------------------------------------------------------------------------- --
