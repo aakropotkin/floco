@@ -50,7 +50,7 @@ INCLUDEDIR ?= $(PREFIX)/include
 LIBFLOCODB = libflocodb$(libExt)
 
 GEN_HEADERS    = floco-sql.hh
-BINS           = floco-db fetch packument
+BINS           = floco-db fetch
 LIBS           = $(LIBFLOCODB)
 SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 COMMON_HEADERS = pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
@@ -107,29 +107,11 @@ clean: FORCE
 
 # ---------------------------------------------------------------------------- #
 
-include/floco-sql.hh: Makefile $(SQL_SCHEMAS)
-	printf 'static const char pjsCoreSchemaSQL[] = R"SQL(' > "$@";
-	$(CAT) ../pjs-core.sql >> "$@";
-	echo ')SQL";' >> "$@";
-	printf 'static const char fetchInfoSchemaSQL[] = R"SQL(' >> "$@";
-	$(CAT) ../fetch-info.sql >> "$@";
-	echo ')SQL";' >> "$@";
-	printf 'static const char pdefsSchemaSQL[] = R"SQL(' >> "$@";
-	$(CAT) ../pdefs.sql >> "$@";
-	echo ')SQL";' >> "$@";
-	printf 'static const char treesSchemaSQL[] = R"SQL(' >> "$@";
-	$(CAT) ../trees.sql >> "$@";
-	echo ')SQL";' >> "$@";
-
-
-# ---------------------------------------------------------------------------- #
-
 src/bin-info.o: $(addprefix include/,bin-info.hh)
 src/vinfo.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh vinfo.hh)
 src/fetch.o: $(addprefix include/,fetch.hh)
 src/date.o: $(addprefix include/,date.hh)
 src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
-src/packument.o: $(addprefix include/,packument.hh date.hh)
 
 
 # ---------------------------------------------------------------------------- #
@@ -161,12 +143,6 @@ bin/floco-db: src/db-main.cc lib/$(LIBFLOCODB)
 bin/fetch: CXXFLAGS += $(argparse_CFLAGS) $(nix_CFLAGS)
 bin/fetch: LDFLAGS  += $(nix_LDFLAGS) $(flocodb_LDFLAGS)
 bin/fetch: src/fetch-main.cc lib/$(LIBFLOCODB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
-
-
-bin/packument: CXXFLAGS += $(nljson_CFLAGS)
-bin/packument: LDFLAGS  += $(flocodb_LDFLAGS)
-bin/packument: src/packument-main.cc lib/$(LIBFLOCODB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) "$<" -o "$@"
 
 
@@ -223,6 +199,11 @@ check: $(TESTS:.cc=)
 # ---------------------------------------------------------------------------- #
 
 all: gen-headers bin lib tests
+
+
+# ---------------------------------------------------------------------------- #
+
+include gen-floco-sql.mk
 
 
 # ---------------------------------------------------------------------------- #
