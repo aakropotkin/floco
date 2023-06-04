@@ -119,7 +119,7 @@ VInfo::VInfo( sqlite3pp::database & db
   this->_id = _id;
   sqlite3pp::query cmd( db, R"SQL(
     SELECT homepage, description, license, repository, dist, _hasShrinkwrap
-    FROM VInfo WHERE ( id = ? )
+    FROM VInfo WHERE ( _id = ? )
   )SQL" );
   cmd.bind( 1, _id, sqlite3pp::nocopy );
   auto rsl = * cmd.begin();
@@ -183,7 +183,7 @@ VInfo::sqlite3Write( sqlite3pp::database & db ) const
 to_json( nlohmann::json & j, const VInfo & v )
 {
   to_json( j, (const PjsCore &) v );
-  j += {
+  j.merge_patch( {
     { "_id",            v._id }
   , { "homepage",       v.homepage }
   , { "description",    v.description }
@@ -191,7 +191,7 @@ to_json( nlohmann::json & j, const VInfo & v )
   , { "repository",     v.repository }
   , { "dist",           v.dist }
   , { "_hasShrinkwrap", v._hasShrinkwrap }
-  };
+  } );
 }
 
 

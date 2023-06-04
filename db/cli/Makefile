@@ -61,7 +61,7 @@ SQL_SCHEMAS += ../packument.sql
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include'
+CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include' -ggdb3
 lib_CXXFLAGS = -shared -fPIC
 lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 
@@ -99,12 +99,14 @@ include: $(addprefix include/,$(GEN_HEADERS) $(COMMON_HEADERS))
 # ---------------------------------------------------------------------------- #
 
 clean: FORCE
-	$(RM) $(GEN_HEADERS) $(addprefix include/,$(GEN_HEADERS))
-	$(RM) $(addprefix bin/,$(BINS))
-	$(RM) $(addprefix lib/,$(LIBS))
-	$(RM) src/*.o
-	$(RM) result
-	$(RM) -r $(PREFIX)
+	-$(RM) $(GEN_HEADERS) $(addprefix include/,$(GEN_HEADERS))
+	-$(RM) $(addprefix bin/,$(BINS))
+	-$(RM) $(addprefix lib/,$(LIBS))
+	-$(RM) src/*.o
+	-$(RM) result
+	-$(RM) -r $(PREFIX)
+	-$(RM) tests/$(TESTS:.cc=)
+	-$(RM) *.db
 
 
 # ---------------------------------------------------------------------------- #

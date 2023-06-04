@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS PjsCore (
 -- -------------------------------------------------------------------------- --
 
 CREATE VIEW IF NOT EXISTS v_PjsCoreJSON ( _id, json ) AS
-  SELECT name || '@' || version, json_object(
+  SELECT ( name || '@' || version ), json_object(
     'name',                 name
   , 'version',              version
   , 'dependencies',         json( dependencies )

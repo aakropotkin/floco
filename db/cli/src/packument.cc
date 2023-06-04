@@ -47,15 +47,15 @@ PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
   : VInfo( db, name, version )
 {
   sqlite3pp::query cmd( db, R"SQL(
-    SELECT time, distTags FROM PackumentVInfo WHERE ( id = ? )
+    SELECT time, distTags FROM PackumentVInfo WHERE ( _id = ? )
   )SQL" );
   cmd.bind( 1, this->_id, sqlite3pp::nocopy );
   auto rsl = * cmd.begin();
 
-  const char * s = rsl.get<const char *>( 0 );
-  if ( s != nullptr ) { this->distTags = nlohmann::json::parse( s ); }
+  this->time = (unsigned long) rsl.get<int>( 0 );
 
-  this->time = (unsigned long) rsl.get<int>( 1 );
+  const char * s = rsl.get<const char *>( 1 );
+  if ( s != nullptr ) { this->distTags = nlohmann::json::parse( s ); }
 }
 
 
