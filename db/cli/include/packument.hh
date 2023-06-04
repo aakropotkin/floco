@@ -11,11 +11,41 @@
 #include <nlohmann/json.hpp>      // for basic_json
 #include <nlohmann/json_fwd.hpp>  // for json
 #include "pjs-core.hh"
+#include "vinfo.hh"
+#include "date.hh"
+#include <unordered_set>
+
 
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
   namespace db {
+
+/* -------------------------------------------------------------------------- */
+
+class Packument;
+
+
+/* -------------------------------------------------------------------------- */
+
+class PackumentVInfo : public VInfo {
+  public:
+    floco::util::DateTime           time;
+    std::unordered_set<std::string> distTags;
+
+    PackumentVInfo(
+            floco::util::DateTime                  time
+    , const nlohmann::json                       & j
+    ,       std::unordered_set<std::string_view>   distTags = {}
+    ) : time( time ), VInfo( j )
+    {
+      for ( auto t : distTags ) { this->distTags.emplace( t ); }
+    }
+
+    PackumentVInfo( const Packument & p, floco::version_view version );
+};
+
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -51,6 +81,7 @@ class Packument {
     std::map<std::string, floco::version> dist_tags;
 
     std::map<floco::version, nlohmann::json> versions;
+    std::map<floco::version, PackumentVInfo> vinfos;
 
 
     Packument() {}

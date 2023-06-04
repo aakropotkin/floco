@@ -20,6 +20,24 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+PackumentVInfo::PackumentVInfo( const Packument     & p
+                              , floco::version_view   version
+                              )
+  : time( p.time.at( std::string( version ) ) )
+  , VInfo( p.versions.at( std::string( version ) ) )
+{
+  for ( auto & [tag, v] : p.dist_tags )
+    {
+      if ( v == version )
+        {
+          this->distTags.emplace( tag );
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 Packument::init( const nlohmann::json & j )
 {
@@ -45,6 +63,12 @@ Packument::init( const nlohmann::json & j )
   floco::util::tryGetJSONTo( j, "time",      this->time );
   floco::util::tryGetJSONTo( j, "dist-tags", this->dist_tags );
   floco::util::tryGetJSONTo( j, "versions",  this->versions );
+
+  for ( auto & [version, vj] : this->versions )
+    {
+      this->vinfos.emplace( version, PackumentVInfo( * this, version ) );
+    }
+
 }
 
 
