@@ -17,6 +17,9 @@ include/floco-sql.hh: gen-floco-sql.mk $(SQL_SCHEMAS)
 	printf 'static const char treesSchemaSQL[] = R"SQL(' >> "$@";
 	$(CAT) ../trees.sql >> "$@";
 	echo ')SQL";' >> "$@";
+	printf 'static const char packumentsSchemaSQL[] = R"SQL(' >> "$@";
+	$(CAT) ../packument.sql >> "$@";
+	echo ')SQL";' >> "$@";
 
 
 # ---------------------------------------------------------------------------- #

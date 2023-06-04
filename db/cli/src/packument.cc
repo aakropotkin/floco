@@ -26,7 +26,7 @@ PackumentVInfo::PackumentVInfo( const Packument     & p
   : time( p.time.at( std::string( version ) ) )
   , VInfo( p.versions.at( std::string( version ) ) )
 {
-  for ( auto & [tag, v] : p.dist_tags )
+  for ( auto & [tag, v] : p.distTags )
     {
       if ( v == version )
         {
@@ -61,7 +61,7 @@ Packument::init( const nlohmann::json & j )
 
   floco::util::tryGetJSONTo( j, "_rev",      this->_rev );
   floco::util::tryGetJSONTo( j, "time",      this->time );
-  floco::util::tryGetJSONTo( j, "dist-tags", this->dist_tags );
+  floco::util::tryGetJSONTo( j, "dist-tags", this->distTags );
   floco::util::tryGetJSONTo( j, "versions",  this->versions );
 
   for ( auto & [version, vj] : this->versions )
@@ -121,7 +121,7 @@ Packument::operator==( const Packument & other ) const
     ( this->_rev == other._rev ) &&
     ( this->name == other.name ) &&
     ( this->time == other.time ) &&
-    ( this->dist_tags == other.dist_tags ) &&
+    ( this->distTags == other.distTags ) &&
     ( this->versions == other.versions )
   ;
 }
@@ -144,7 +144,7 @@ to_json( nlohmann::json & j, const Packument & p )
   , { "_rev",      p._rev }
   , { "name",      p.name }
   , { "time",      p.time }
-  , { "dist-tags", p.dist_tags }
+  , { "dist-tags", p.distTags }
   , { "versions",  p.versions }
   };
 }

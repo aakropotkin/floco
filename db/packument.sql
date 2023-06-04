@@ -1,0 +1,62 @@
+-- ========================================================================== --
+--
+--
+--
+-- -------------------------------------------------------------------------- --
+
+CREATE TABLE IF NOT EXISTS SchemaVersion( version TEXT NOT NULL );
+INSERT OR IGNORE INTO SchemaVersion ( version ) VALUES ( '1.0.0' );
+
+
+-- -------------------------------------------------------------------------- --
+
+CREATE TABLE IF NOT EXISTS Packument (
+  _id       TEXT NOT NULL              -- `<name>'
+, _rev      TEXT NOT NULL DEFAULT '0'
+, name      TEXT NOT NULL
+, time      JSON DEFAULT '{}'
+, distTags  JSON DEFAULT '{}'
+, PRIMARY KEY ( _id, _rev )
+);
+
+
+-- -------------------------------------------------------------------------- --
+
+CREATE TABLE IF NOT EXISTS VInfo (
+  _id            TEXT NOT NULL  PRIMARY KEY  -- `<name>@<version>'
+, homepage       TEXT
+, description    TEXT
+, license        TEXT
+, repository     JSON
+, dist           JSON
+, _hasShrinkwrap BOOLEAN DEFAULT false
+);
+
+
+-- -------------------------------------------------------------------------- --
+
+CREATE TABLE IF NOT EXISTS PackumentVInfo (
+  _id       TEXT     NOT NULL  PRIMARY KEY  -- `<name>@<version>'
+, time      INTEGER  NOT NULL
+, distTags  JSON     DEFAULT '[]'
+);
+
+
+-- -------------------------------------------------------------------------- --
+
+CREATE VIEW IF NOT EXISTS v_VInfoJSON ( _id, json ) AS
+  SELECT v._id, json_patch( json( p.json ), json_object(
+    'homepage',       iif( v.homepage    = NULL, json( 'null' ), v.homepage )
+  , 'description',    iif( v.description = NULL, json( 'null' ), v.description )
+  , 'license',        iif( v.license     = NULL, json( 'null' ), v.license )
+  , 'repository',     json( iif( v.repository  = NULL, 'null', v.repository ) )
+  , 'dist',           json( iif( v.dist        = NULL, 'null', v.dist ) )
+  , '_hasShrinkWrap', iif( v._hasShrinkwrap, json( 'true' ), json( 'false' ) )
+  ) ) FROM VInfo v LEFT JOIN v_PjsCoreJSON p ON ( v._id = p._id );
+
+
+-- -------------------------------------------------------------------------- --
+--
+--
+--
+-- ========================================================================== --

@@ -78,7 +78,7 @@ class Packument {
      *   ...
      * }
      */
-    std::map<std::string, floco::version> dist_tags;
+    std::map<std::string, floco::version> distTags;
 
     std::map<floco::version, nlohmann::json> versions;
     std::map<floco::version, PackumentVInfo> vinfos;

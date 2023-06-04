@@ -98,7 +98,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
         , dependencies, devDependencies, devDependenciesMeta
         , peerDependencies, peerDependenciesMeta
         , os, cpu, engines
-     FROM PjsCores WHERE ( name = ? ) AND ( version = ? )
+     FROM PjsCore WHERE ( name = ? ) AND ( version = ? )
   )SQL" );
   cmd.bind( 1, this->name,    sqlite3pp::nocopy );
   cmd.bind( 2, this->version, sqlite3pp::nocopy );
@@ -127,7 +127,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
 PjsCore::sqlite3Write( sqlite3pp::database & db )
 {
   sqlite3pp::command cmd( db, R"SQL(
-    INSERT OR REPLACE INTO PjsCores (
+    INSERT OR REPLACE INTO PjsCore (
       name, version, bin
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta

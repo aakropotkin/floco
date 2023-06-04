@@ -8,7 +8,7 @@
 
 -- -------------------------------------------------------------------------- --
 
-INSERT OR REPLACE INTO Tarballs (
+INSERT OR REPLACE INTO Tarball (
   url, timestamp, safePerms, narHash
 ) VALUES (
   'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
@@ -20,7 +20,7 @@ INSERT OR REPLACE INTO Tarballs (
 
 -- -------------------------------------------------------------------------- --
 
-INSERT OR REPLACE INTO Files ( url, timestamp, narHash ) VALUES (
+INSERT OR REPLACE INTO File ( url, timestamp, narHash ) VALUES (
   'https://registry.npmjs.org/lodash'
 , unixepoch()
 , 'sha256-jjvl1QMuGrmdocN37IroTxG0GbT+baazaS+kA3ghMgM='

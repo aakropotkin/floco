@@ -10,7 +10,7 @@ INSERT OR IGNORE INTO SchemaVersion ( version ) VALUES ( '1.0.0' );
 
 -- -------------------------------------------------------------------------- --
 
-CREATE TABLE IF NOT EXISTS PjsCores (
+CREATE TABLE IF NOT EXISTS PjsCore (
   name                 TEXT    NOT NULL
 , version              TEXT    NOT NULL
 , dependencies         JSON    DEFAULT '{}'
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS PjsCores (
 
 -- -------------------------------------------------------------------------- --
 
-CREATE VIEW IF NOT EXISTS v_PjsCoresJSON ( key, json ) AS
-  SELECT name || '/' || version, json_object(
+CREATE VIEW IF NOT EXISTS v_PjsCoreJSON ( _id, json ) AS
+  SELECT name || '@' || version, json_object(
     'name',                 name
   , 'version',              version
   , 'dependencies',         json( dependencies )
@@ -41,14 +41,14 @@ CREATE VIEW IF NOT EXISTS v_PjsCoresJSON ( key, json ) AS
   , 'cpu',                  json( cpu )
   , 'engines',              json( engines )
   , 'bin',                  json( bin )
-  ) FROM PjsCores ORDER BY name;
+  ) FROM PjsCore ORDER BY name;
 
 
 -- -------------------------------------------------------------------------- --
 
 CREATE VIEW IF NOT EXISTS v_PkgVersions ( name, versions ) AS
   SELECT name, json_group_array( version )
-  FROM PjsCores GROUP BY name;
+  FROM PjsCore GROUP BY name;
 
 
 -- -------------------------------------------------------------------------- --

@@ -8,7 +8,7 @@
 
 -- -------------------------------------------------------------------------- --
 
-INSERT INTO PjsCores ( name, version, dependencies ) VALUES
+INSERT INTO PjsCore ( name, version, dependencies ) VALUES
   ( '@floco/phony', '4.2.0', '{"lodash":"*"}' )
 , ( '@floco/phony', '4.2.1', '{}' )
 ;

@@ -212,7 +212,7 @@ fi_get() {
     usage -f >&2;
     exit 1;
   fi
-  fi_run "SELECT * FROM v_TarballsJSON WHERE url = \"$_url\"";
+  fi_run "SELECT * FROM v_TarballJSON WHERE url = \"$_url\"";
 }
 
 

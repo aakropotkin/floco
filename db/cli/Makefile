@@ -52,9 +52,11 @@ LIBFLOCODB = libflocodb$(libExt)
 GEN_HEADERS    = floco-sql.hh
 BINS           = floco-db fetch
 LIBS           = $(LIBFLOCODB)
-SQL_SCHEMAS    = ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 COMMON_HEADERS = pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
 TESTS          = $(wildcard tests/*.cc)
+
+SQL_SCHEMAS =  ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+SQL_SCHEMAS += ../packument.sql
 
 
 # ---------------------------------------------------------------------------- #
