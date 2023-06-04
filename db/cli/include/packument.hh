@@ -23,11 +23,6 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-class Packument;
-
-
-/* -------------------------------------------------------------------------- */
-
 class PackumentVInfo : public VInfo {
   public:
     floco::util::DateTime           time      = (unsigned long) 0;
@@ -121,6 +116,12 @@ class Packument {
 
 void to_json( nlohmann::json & j, const Packument & p );
 void from_json( const nlohmann::json & j, Packument & p );
+
+
+/* -------------------------------------------------------------------------- */
+
+bool db_has( sqlite3pp::database & db, floco::ident_view name );
+bool db_stale( sqlite3pp::database & db, floco::ident_view name );
 
 
 /* -------------------------------------------------------------------------- */

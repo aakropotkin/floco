@@ -37,6 +37,8 @@ main( int argc, char * argv[], char ** envp )
 
   const char filename[] = "packument.db";
 
+  int ec = EXIT_SUCCESS;
+
   remove( filename );
   sqlite3pp::database db( filename );
   try
@@ -51,27 +53,39 @@ main( int argc, char * argv[], char ** envp )
       PackumentVInfo pvi  = p.versions.at( "4.17.21" );
       PackumentVInfo pvi2 = p2.versions.at( "4.17.21" );
 
-      db.disconnect();
-      remove( filename );
-
-      if ( pvi == pvi2 )
+      if ( pvi != pvi2 )
         {
-          return EXIT_SUCCESS;
-        }
-      else
-        {
-          return EXIT_FAILURE;
+          ec = EXIT_FAILURE;
         }
     }
-  catch ( ... )
+  catch ( std::exception & e )
     {
-      db.disconnect();
-      remove( filename );
-      return EXIT_FAILURE;
+      std::cerr << e.what() << std::endl;
+      ec = EXIT_FAILURE;
     }
 
-  // Unreachable
-  return EXIT_SUCCESS;
+  if ( ! floco::db::db_has( db, "lodash" ) )
+    {
+      std::cerr << "db_has( db, \"lodash\" )" << std::endl;
+      ec = EXIT_FAILURE;
+    }
+
+  if ( floco::db::db_has( db, "phony" ) )
+    {
+      std::cerr << "db_has( db, \"phony\" )" << std::endl;
+      ec = EXIT_FAILURE;
+    }
+
+  if ( ! floco::db::db_stale( db, "phony" ) )
+    {
+      std::cerr << "db_stale( db, \"phony\" )" << std::endl;
+      ec = EXIT_FAILURE;
+    }
+
+  db.disconnect();
+  remove( filename );
+
+  return ec;
 }
 
 

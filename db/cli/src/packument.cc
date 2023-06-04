@@ -32,7 +32,14 @@ PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
     SELECT time, distTags FROM PackumentVInfo WHERE ( _id = ? )
   )SQL" );
   cmd.bind( 1, this->_id, sqlite3pp::nocopy );
-  auto rsl = * cmd.begin();
+  auto b = cmd.begin();
+  if ( b == cmd.end() )
+    {
+      std::string msg =
+        "No such row '" + this->name + "@" + this->version + "'";
+      throw sqlite3pp::database_error( msg.c_str() );
+    }
+  auto rsl = * b;
 
   this->time = (unsigned long) rsl.get<int>( 0 );
 
@@ -186,7 +193,14 @@ Packument::Packument( sqlite3pp::database & db
     SELECT _rev, time, distTags FROM Packument WHERE ( name = ? )
   )SQL" );
   cmd.bind( 1, this->name, sqlite3pp::nocopy );
-  auto rsl = * cmd.begin();
+
+  auto b = cmd.begin();
+  if ( b == cmd.end() )
+    {
+      std::string msg = "No such row '" + this->name + "'";
+      throw sqlite3pp::database_error( msg.c_str() );
+    }
+  auto rsl = * b;
 
   const char * s = rsl.get<const char *>( 0 );
   if ( s != nullptr ) { this->_rev = s; }
@@ -271,6 +285,53 @@ from_json( const nlohmann::json & j, Packument & p )
 {
   Packument _p( j );
   p = _p;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  bool
+db_has( sqlite3pp::database & db, floco::ident_view name )
+{
+  sqlite3pp::query cmd( db
+  , "SELECT COUNT( _id ) FROM Packument WHERE ( name = ? )"
+  );
+  std::string _name( name );
+  cmd.bind( 1, _name, sqlite3pp::nocopy );
+  auto rsl = * cmd.begin();
+  return 0 < rsl.get<int>( 0 );
+}
+
+
+  bool
+db_stale( sqlite3pp::database & db, floco::ident_view name )
+{
+  sqlite3pp::query cmd( db
+  , "SELECT _rev FROM Packument WHERE ( name = ? )"
+  );
+  std::string _name( name );
+  cmd.bind( 1, _name, sqlite3pp::nocopy );
+  auto b = cmd.begin();
+  if ( b == cmd.end() )
+    {
+      return true;
+    }
+  auto rsl = * b;
+
+  std::string url = "https://registry.npmjs.org/";
+  url += name;
+
+  nlohmann::json j = floco::fetch::fetchJSON( url );
+  std::optional<std::string> _rev =
+    floco::util::maybeGetJSON<std::string>( j, "_rev" );
+  if ( _rev.has_value() )
+    {
+      return _rev.value() == std::string( rsl.get<const char *>( 0 ) );
+    }
+  else
+    {
+      return false;
+    }
 }
 
 
