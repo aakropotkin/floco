@@ -72,7 +72,7 @@ PjsCore::PjsCore( std::string_view url )
 
 /* -------------------------------------------------------------------------- */
 
-PjsCore::PjsCore( std::string_view name, std::string_view version )
+PjsCore::PjsCore( floco::ident_view name, floco::version_view version )
 {
   std::string url = "https://registry.npmjs.org/";
   url += name;
@@ -85,8 +85,8 @@ PjsCore::PjsCore( std::string_view name, std::string_view version )
 /* -------------------------------------------------------------------------- */
 
 PjsCore::PjsCore( sqlite3pp::database & db
-                , std::string_view name
-                , std::string_view version
+                , floco::ident_view     name
+                , floco::version_view   version
                 )
   : name( name ), version( version )
 {

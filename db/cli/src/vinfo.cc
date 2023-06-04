@@ -57,7 +57,7 @@ VInfo::VInfo( std::string_view url )
 }
 
 
-VInfo::VInfo( std::string_view name, std::string_view version )
+VInfo::VInfo( floco::ident_view name, floco::version_view version )
 {
   std::string url = "https://registry.npmjs.org/";
   url += name;

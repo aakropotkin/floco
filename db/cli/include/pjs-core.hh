@@ -19,6 +19,24 @@
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
+
+/* -------------------------------------------------------------------------- */
+
+typedef std::string       version;
+typedef std::string_view  version_view;
+
+typedef std::string       timestamp;
+typedef std::string_view  timestamp_view;
+
+typedef std::string       ident;
+typedef std::string_view  ident_view;
+
+typedef std::string       descriptor;
+typedef std::string_view  descriptor_view;
+
+
+/* -------------------------------------------------------------------------- */
+
   namespace db {
 
 /* -------------------------------------------------------------------------- */
@@ -29,8 +47,8 @@ class PjsCore {
     void init( const nlohmann::json & json );
 
   public:
-    std::string    name;
-    std::string    version              = "0.0.0-0";
+    floco::ident   name;
+    floco::version version              = "0.0.0-0";
     nlohmann::json bin                  = nlohmann::json::object();
     nlohmann::json dependencies         = nlohmann::json::object();
     nlohmann::json devDependencies      = nlohmann::json::object();
@@ -50,12 +68,12 @@ class PjsCore {
     PjsCore( std::string_view url );
 
     /** Read a `PjsCore' from `https://registry.npmjs.org'. */
-    PjsCore( std::string_view name, std::string_view version );
+    PjsCore( floco::ident_view name, floco::version_view version );
 
     /** Read a `PjsCore' from a SQLite3 database. */
     PjsCore( sqlite3pp::database & db
-           , std::string_view      name
-           , std::string_view      version
+           , floco::ident_view     name
+           , floco::version_view   version
            );
 
     /** Write a `PjsCore' to a SQLite3 database. */

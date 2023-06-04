@@ -42,7 +42,7 @@ class VInfo : public PjsCore {
     VInfo( std::string_view url );
 
     /** Read a `VInfo' from `https://registry.npmjs.org'. */
-    VInfo( std::string_view name, std::string_view version );
+    VInfo( floco::ident_view name, floco::version_view version );
 
     // /** Read a `VInfo' from a SQLite3 database. */
     // VInfo( sqlite3pp::database & db

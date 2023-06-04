@@ -57,12 +57,12 @@ Packument::Packument( std::string_view url )
 
 /* -------------------------------------------------------------------------- */
 
-  std::map<std::string_view, std::string_view>
-Packument::versionsBefore( std::string_view before ) const
+  std::map<floco::version_view, floco::timestamp_view>
+Packument::versionsBefore( floco::timestamp_view before ) const
 {
   std::tm b = floco::util::parseDateTime( before );
 
-  std::map<std::string_view, std::string_view> keeps;
+  std::map<floco::version_view, floco::timestamp_view> keeps;
 
   for ( auto & [version, timestamp] : this->time )
     {

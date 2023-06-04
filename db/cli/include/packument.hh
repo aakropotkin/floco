@@ -10,6 +10,7 @@
 #include <string>
 #include <nlohmann/json.hpp>      // for basic_json
 #include <nlohmann/json_fwd.hpp>  // for json
+#include "pjs-core.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -25,9 +26,10 @@ class Packument {
 
   public:
 
-    std::string _id;   /* I think this is always the same as `name' */
-    std::string _rev;  /* "24-3aa1e8e9698a86126ecb287c637ef0fc */
-    std::string name;
+    std::string  _id;   /* I think this is always the same as `name' */
+    std::string  _rev;  /* "24-3aa1e8e9698a86126ecb287c637ef0fc */
+    floco::ident name;
+
     /**
      * {
      *   "modified": "2022-06-29T06:45:35.755Z",
@@ -37,7 +39,8 @@ class Packument {
      *   "4.0.0": "..."
      * }
      */
-    std::map<std::string, std::string> time;
+    std::map<floco::version, floco::timestamp> time;
+
     /**
      * {
      *   "latest": "4.0.0",
@@ -45,16 +48,17 @@ class Packument {
      *   ...
      * }
      */
-    std::map<std::string, std::string>    dist_tags;
-    std::map<std::string, nlohmann::json> versions;
+    std::map<std::string, floco::version> dist_tags;
+
+    std::map<floco::version, nlohmann::json> versions;
 
 
     Packument() {}
     Packument( const nlohmann::json & j ) { this->init( j ); }
     Packument( std::string_view url );
 
-      std::map<std::string_view, std::string_view>
-    versionsBefore( std::string_view before ) const;
+      std::map<floco::version_view, floco::timestamp_view>
+    versionsBefore( floco::timestamp_view before ) const;
 
     // /** Read a `Packument' from a SQLite3 database. */
     // Packument( sqlite3pp::database & db
