@@ -133,6 +133,80 @@ from_json( const nlohmann::json & j, VInfo & v )
 
 /* -------------------------------------------------------------------------- */
 
+VInfo::VInfo( sqlite3pp::database & db
+            , floco::ident_view     name
+            , floco::version_view   version
+            )
+  : PjsCore( db, name, version )
+{
+  std::string _id( name );
+  _id += "@";
+  _id += version;
+  this->_id = _id;
+  sqlite3pp::query cmd(
+    db
+  , R"SQL(
+    SELECT homepage, description, license, repository, dist, _hasShrinkwrap
+    FROM VInfo WHERE ( id = ? )
+  )SQL" );
+  cmd.bind( 1, _id, sqlite3pp::nocopy );
+  auto rsl = * cmd.begin();
+
+  const char * s = rsl.get<const char *>( 0 );
+  if ( s != nullptr ) { this->homepage = std::string( s ); }
+
+  s = rsl.get<const char *>( 1 );
+  if ( s != nullptr ) { this->description = std::string( s ); }
+
+  s = rsl.get<const char *>( 2 );
+  if ( s != nullptr ) { this->license = std::string( s ); }
+
+  s = rsl.get<const char *>( 3 );
+  if ( s != nullptr ) { this->repository = nlohmann::json::parse( s ); }
+
+  s = rsl.get<const char *>( 4 );
+  if ( s != nullptr ) { this->dist = nlohmann::json::parse( s ); }
+
+  this->_hasShrinkwrap = rsl.get<int>( 5 ) != 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  static inline int
+bindStringOrNull(       sqlite3pp::command       & cmd
+                ,       int                        idx
+                , const std::string              & value
+                ,       sqlite3pp::copy_semantic   fcopy
+                )
+{
+  if ( value.empty() ) { return cmd.bind( idx, sqlite3pp::null_type() ); }
+  else                 { return cmd.bind( idx, value, fcopy ); }
+}
+
+  void
+VInfo::sqlite3Write( sqlite3pp::database & db ) const
+{
+  this->PjsCore::sqlite3Write( db );
+  sqlite3pp::command cmd( db, R"SQL(
+    INSERT OR REPLACE INTO VInfo (
+      _id, homepage, description, license, repository, dist, _hasShrinkwrap
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ? )
+  )SQL" );
+  /* We have to copy any fileds that aren't already `std::string' */
+  cmd.bind(              1, this->_id,               sqlite3pp::nocopy );
+  bindStringOrNull( cmd, 2, this->homepage,          sqlite3pp::nocopy );
+  bindStringOrNull( cmd, 3, this->description,       sqlite3pp::nocopy );
+  bindStringOrNull( cmd, 4, this->license,           sqlite3pp::nocopy );
+  cmd.bind(              5, this->repository.dump(), sqlite3pp::copy );
+  cmd.bind(              6, this->dist.dump(),       sqlite3pp::copy );
+  cmd.bind(              7, this->_hasShrinkwrap );
+  cmd.execute();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 

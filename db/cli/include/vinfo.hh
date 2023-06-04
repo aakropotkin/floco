@@ -44,14 +44,14 @@ class VInfo : public PjsCore {
     /** Read a `VInfo' from `https://registry.npmjs.org'. */
     VInfo( floco::ident_view name, floco::version_view version );
 
-    // /** Read a `VInfo' from a SQLite3 database. */
-    // VInfo( sqlite3pp::database & db
-    //      , std::string_view      name
-    //      , std::string_view      version
-    //      );
+    /** Read a `VInfo' from a SQLite3 database. */
+    VInfo( sqlite3pp::database & db
+         , floco::ident_view     name
+         , floco::version_view   version
+         );
 
-    // /** Write a `VInfo' to a SQLite3 database. */
-    // void sqlite3Write( sqlite3pp::database & db );
+    /** Write a `VInfo' to a SQLite3 database. */
+    void sqlite3Write( sqlite3pp::database & db ) const;
 
     /** Convert a `VInfo' to a JSON representation. */
     nlohmann::json toJSON() const;

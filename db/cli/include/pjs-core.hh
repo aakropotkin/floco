@@ -77,7 +77,7 @@ class PjsCore {
            );
 
     /** Write a `PjsCore' to a SQLite3 database. */
-    void sqlite3Write( sqlite3pp::database & db );
+    void sqlite3Write( sqlite3pp::database & db ) const;
 
     /** Convert a `PjsCore' to a JSON representation. */
     nlohmann::json toJSON() const;
