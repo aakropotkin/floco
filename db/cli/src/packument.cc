@@ -20,24 +20,6 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-PackumentVInfo::PackumentVInfo( const Packument     & p
-                              , floco::version_view   version
-                              )
-  : time( p.time.at( std::string( version ) ) )
-  , VInfo( p.versions.at( std::string( version ) ) )
-{
-  for ( auto & [tag, v] : p.distTags )
-    {
-      if ( v == version )
-        {
-          this->distTags.emplace( tag );
-        }
-    }
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 // TODO: define `PackumentVInfo::init( db, _id )' as a helper for this routine,
 // and a new constructor taking those args.
 PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
@@ -106,13 +88,28 @@ Packument::init( const nlohmann::json & j )
   floco::util::tryGetJSONTo( j, "_rev",      this->_rev );
   floco::util::tryGetJSONTo( j, "time",      this->time );
   floco::util::tryGetJSONTo( j, "dist-tags", this->distTags );
-  floco::util::tryGetJSONTo( j, "versions",  this->versions );
 
-  for ( auto & [version, vj] : this->versions )
+  nlohmann::json versions;
+  floco::util::tryGetJSONTo( j, "versions",  versions );
+
+  for ( auto & [version, vj] : versions.items() )
     {
-      this->vinfos.emplace( version, PackumentVInfo( * this, version ) );
+      std::unordered_set<std::string_view> distTags;
+      for ( auto & [tag, v] : this->distTags )
+        {
+          if ( version == v )
+            {
+              distTags.emplace( tag );
+            }
+        }
+      this->vinfos.emplace( version
+                          , PackumentVInfo(
+                              floco::util::DateTime( this->time.at( version ) )
+                            , vj
+                            , distTags
+                            )
+                          );
     }
-
 }
 
 
@@ -166,7 +163,7 @@ Packument::operator==( const Packument & other ) const
     ( this->name == other.name ) &&
     ( this->time == other.time ) &&
     ( this->distTags == other.distTags ) &&
-    ( this->versions == other.versions )
+    ( this->vinfos == other.vinfos )
   ;
 }
 
@@ -211,9 +208,6 @@ Packument::Packument( sqlite3pp::database & db
       else
         {
           this->vinfos.emplace( version, PackumentVInfo( db, name, version ) );
-          this->versions.emplace( version
-                                , this->vinfos.at( version ).toJSON()
-                                );
         }
     }
 }
@@ -252,13 +246,18 @@ Packument::sqlite3Write( sqlite3pp::database & db ) const
   void
 to_json( nlohmann::json & j, const Packument & p )
 {
+  nlohmann::json versions = nlohmann::json::object();
+  for ( auto & [version, pvi] : p.vinfos )
+    {
+      versions.emplace( version, pvi.toJSON() );
+    }
   j = nlohmann::json {
     { "_id",       p._id }
   , { "_rev",      p._rev }
   , { "name",      p.name }
   , { "time",      p.time }
   , { "dist-tags", p.distTags }
-  , { "versions",  p.versions }
+  , { "versions",  versions }
   };
 }
 

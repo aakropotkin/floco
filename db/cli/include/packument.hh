@@ -42,8 +42,6 @@ class PackumentVInfo : public VInfo {
       for ( auto t : distTags ) { this->distTags.emplace( t ); }
     }
 
-    PackumentVInfo( const Packument & p, floco::version_view version );
-
     /** Read a `PackumentVInfo' from a SQLite3 database. */
     PackumentVInfo( sqlite3pp::database & db
                   , floco::ident_view     name
@@ -90,7 +88,6 @@ class Packument {
      */
     std::map<std::string, floco::version> distTags;
 
-    std::map<floco::version, nlohmann::json> versions;
     std::map<floco::version, PackumentVInfo> vinfos;
 
     Packument() {}
