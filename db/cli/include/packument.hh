@@ -30,7 +30,7 @@ class Packument;
 
 class PackumentVInfo : public VInfo {
   public:
-    floco::util::DateTime           time;
+    floco::util::DateTime           time      = (unsigned long) 0;
     std::unordered_set<std::string> distTags;
 
     PackumentVInfo(
@@ -43,6 +43,16 @@ class PackumentVInfo : public VInfo {
     }
 
     PackumentVInfo( const Packument & p, floco::version_view version );
+
+    /** Read a `PackumentVInfo' from a SQLite3 database. */
+    PackumentVInfo( sqlite3pp::database & db
+                  , floco::ident_view     name
+                  , floco::version_view   version
+                  );
+
+    /** Write a `PackumentVInfo' to a SQLite3 database. */
+    void sqlite3Write( sqlite3pp::database & db ) const;
+
 };
 
 
@@ -93,11 +103,11 @@ class Packument {
 
     // /** Read a `Packument' from a SQLite3 database. */
     // Packument( sqlite3pp::database & db
-    //          , std::string_view      name
+    //          , std::ident_view       name
     //          );
 
     // /** Write a `Packument' to a SQLite3 database. */
-    // void sqlite3Write( sqlite3pp::database & db );
+    // void sqlite3Write( sqlite3pp::database & db ) const;
 
     /** Convert a `Packument' to a JSON representation. */
     nlohmann::json toJSON() const;

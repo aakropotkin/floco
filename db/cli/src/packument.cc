@@ -38,6 +38,50 @@ PackumentVInfo::PackumentVInfo( const Packument     & p
 
 /* -------------------------------------------------------------------------- */
 
+// TODO: define `PackumentVInfo::init( db, _id )' as a helper for this routine,
+// and a new constructor taking those args.
+PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
+                              , floco::ident_view     name
+                              , floco::version_view   version
+                              )
+  : VInfo( db, name, version )
+{
+  sqlite3pp::query cmd( db, R"SQL(
+    SELECT time, distTags FROM PackumentVInfo WHERE ( id = ? )
+  )SQL" );
+  cmd.bind( 1, this->_id, sqlite3pp::nocopy );
+  auto rsl = * cmd.begin();
+
+  const char * s = rsl.get<const char *>( 0 );
+  if ( s != nullptr ) { this->distTags = nlohmann::json::parse( s ); }
+
+  this->time = (unsigned long) rsl.get<int>( 1 );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+PackumentVInfo::sqlite3Write( sqlite3pp::database & db ) const
+{
+  this->VInfo::sqlite3Write( db );
+  sqlite3pp::command cmd( db, R"SQL(
+    INSERT OR REPLACE INTO PackumentVInfo ( _id, time, distTags )
+    VALUES ( ?, ?, ? )
+  )SQL" );
+  cmd.bind( 1, this->_id, sqlite3pp::nocopy );
+  cmd.bind( 2, (int) this->time.epoch() );
+
+  /* We have to copy any fileds that aren't already `std::string' */
+  nlohmann::json j = this->distTags;
+  cmd.bind( 3, j.dump(), sqlite3pp::copy );
+
+  cmd.execute();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 Packument::init( const nlohmann::json & j )
 {
@@ -148,6 +192,9 @@ to_json( nlohmann::json & j, const Packument & p )
   , { "versions",  p.versions }
   };
 }
+
+
+/* -------------------------------------------------------------------------- */
 
   void
 from_json( const nlohmann::json & j, Packument & p )

@@ -105,34 +105,6 @@ VInfo::operator!=( const VInfo & other ) const
 
 /* -------------------------------------------------------------------------- */
 
-  void
-to_json( nlohmann::json & j, const VInfo & v )
-{
-  to_json( j, (const PjsCore &) v );
-  j += {
-    { "_id",            v._id }
-  , { "homepage",       v.homepage }
-  , { "description",    v.description }
-  , { "license",        v.license }
-  , { "repository",     v.repository }
-  , { "dist",           v.dist }
-  , { "_hasShrinkwrap", v._hasShrinkwrap }
-  };
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-  void
-from_json( const nlohmann::json & j, VInfo & v )
-{
-  VInfo _v( j );
-  v = _v;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 // TODO: define `VInfo::init( db, _id )' as a helper for this routine, and a
 // new constructor taking those args.
 VInfo::VInfo( sqlite3pp::database & db
@@ -202,6 +174,34 @@ VInfo::sqlite3Write( sqlite3pp::database & db ) const
   cmd.bind(              6, this->dist.dump(),       sqlite3pp::copy );
   cmd.bind(              7, this->_hasShrinkwrap );
   cmd.execute();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+to_json( nlohmann::json & j, const VInfo & v )
+{
+  to_json( j, (const PjsCore &) v );
+  j += {
+    { "_id",            v._id }
+  , { "homepage",       v.homepage }
+  , { "description",    v.description }
+  , { "license",        v.license }
+  , { "repository",     v.repository }
+  , { "dist",           v.dist }
+  , { "_hasShrinkwrap", v._hasShrinkwrap }
+  };
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+from_json( const nlohmann::json & j, VInfo & v )
+{
+  VInfo _v( j );
+  v = _v;
 }
 
 
