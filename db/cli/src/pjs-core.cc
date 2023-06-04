@@ -90,9 +90,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
                 )
   : name( name ), version( version )
 {
-  sqlite3pp::query cmd(
-    db
-  , R"SQL(
+  sqlite3pp::query cmd( db, R"SQL(
     SELECT
       bin
     , dependencies, devDependencies, devDependenciesMeta

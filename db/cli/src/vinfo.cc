@@ -110,13 +110,13 @@ to_json( nlohmann::json & j, const VInfo & v )
 {
   to_json( j, (const PjsCore &) v );
   j += {
-    { "_id",                  v._id }
-  , { "homepage",             v.homepage }
-  , { "description",          v.description }
-  , { "license",              v.license }
-  , { "repository",           v.repository }
-  , { "dist",                 v.dist }
-  , { "_hasShrinkwrap",       v._hasShrinkwrap }
+    { "_id",            v._id }
+  , { "homepage",       v.homepage }
+  , { "description",    v.description }
+  , { "license",        v.license }
+  , { "repository",     v.repository }
+  , { "dist",           v.dist }
+  , { "_hasShrinkwrap", v._hasShrinkwrap }
   };
 }
 
@@ -133,6 +133,8 @@ from_json( const nlohmann::json & j, VInfo & v )
 
 /* -------------------------------------------------------------------------- */
 
+// TODO: define `VInfo::init( db, _id )' as a helper for this routine, and a
+// new constructor taking those args.
 VInfo::VInfo( sqlite3pp::database & db
             , floco::ident_view     name
             , floco::version_view   version
@@ -143,9 +145,7 @@ VInfo::VInfo( sqlite3pp::database & db
   _id += "@";
   _id += version;
   this->_id = _id;
-  sqlite3pp::query cmd(
-    db
-  , R"SQL(
+  sqlite3pp::query cmd( db, R"SQL(
     SELECT homepage, description, license, repository, dist, _hasShrinkwrap
     FROM VInfo WHERE ( id = ? )
   )SQL" );
