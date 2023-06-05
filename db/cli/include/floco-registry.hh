@@ -18,6 +18,21 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+// TODO: create `floco-config.h' configurable header.
+
+/**
+ * Number of seconds before cached lookups are invalidated.
+ * Default is 3,600s ( 1hr ), but this may be overridden globally;
+ */
+#ifdef FLOCO_REGISTRY_TTL
+  static unsigned long registryTTL = FLOCO_REGISTRY_TTL;
+#else
+  static unsigned long registryTTL = 3600;
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
 class PkgRegistry {
   public:
     std::string                  protocol = "https";
@@ -40,7 +55,7 @@ class PkgRegistry {
 
 /* -------------------------------------------------------------------------- */
 
-static const PkgRegistry defaultRegistry = PkgRegistry();
+extern PkgRegistry defaultRegistry;
 
 
 /* -------------------------------------------------------------------------- */

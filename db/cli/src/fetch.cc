@@ -17,6 +17,7 @@
 #include <nix/shared.hh>
 #include <nix/url.hh>
 #include <fstream>
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -29,10 +30,13 @@ namespace floco {
   std::string
 fetchFile( std::string_view url )
 {
+  // TODO: move this so you don't re-init on every fetch.
   nix::initNix();
   nix::initGC();
 
+  /* NOTE: Store settings use `nix::settings' not `nix::globalConfig'. */
   nix::evalSettings.pureEval = false;
+  nix::settings.tarballTtl   = floco::registry::registryTTL;
 
   nix::EvalState         state( {}, nix::openStore() );
   nix::ParsedURL         purl = nix::parseURL( std::string( url ) );

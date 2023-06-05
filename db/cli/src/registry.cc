@@ -14,6 +14,11 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+PkgRegistry defaultRegistry = PkgRegistry();
+
+
+/* -------------------------------------------------------------------------- */
+
   std::string
 PkgRegistry::getPackumentURL( floco::ident_view ident ) const
 {
