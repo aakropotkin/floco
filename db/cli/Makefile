@@ -49,14 +49,14 @@ INCLUDEDIR ?= $(PREFIX)/include
 
 LIBFLOCODB = libflocodb$(libExt)
 
-GEN_HEADERS    = floco-sql.hh
-BINS           = floco-db fetch
-LIBS           = $(LIBFLOCODB)
-COMMON_HEADERS = pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
-TESTS          = $(wildcard tests/*.cc)
-
-SQL_SCHEMAS =  ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
-SQL_SCHEMAS += ../packument.sql
+GEN_HEADERS    =  floco-sql.hh
+BINS           =  floco-db fetch
+LIBS           =  $(LIBFLOCODB)
+COMMON_HEADERS =  pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
+COMMON_HEADERS += registry.hh
+TESTS          =  $(wildcard tests/*.cc)
+SQL_SCHEMAS    =  ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
+SQL_SCHEMAS    += ../packument.sql
 
 
 # ---------------------------------------------------------------------------- #
@@ -116,6 +116,7 @@ src/vinfo.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh vinfo.hh)
 src/fetch.o: $(addprefix include/,fetch.hh)
 src/date.o: $(addprefix include/,date.hh)
 src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
+src/registry.o: $(addprefix include/,pjs-core.hh registry.hh)
 
 
 # ---------------------------------------------------------------------------- #
@@ -131,7 +132,7 @@ lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
 lib/$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
 lib/$(LIBFLOCODB): $(addprefix src/,pjs-core.o fetch.o packument.o date.o)
-lib/$(LIBFLOCODB): $(addprefix src/,vinfo.o bin-info.o)
+lib/$(LIBFLOCODB): $(addprefix src/,vinfo.o bin-info.o registry.o)
 	$(CXX) $^ $(LDFLAGS) -o "$@"
 
 

@@ -28,9 +28,9 @@ PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
                               )
   : VInfo( db, name, version )
 {
-  sqlite3pp::query cmd( db, R"SQL(
-    SELECT time, distTags FROM PackumentVInfo WHERE ( _id = ? )
-  )SQL" );
+  sqlite3pp::query cmd( db
+  , "SELECT time, distTags FROM PackumentVInfo WHERE ( _id = ? )"
+  );
   cmd.bind( 1, this->_id, sqlite3pp::nocopy );
   auto b = cmd.begin();
   if ( b == cmd.end() )
@@ -54,10 +54,10 @@ PackumentVInfo::PackumentVInfo( sqlite3pp::database & db
 PackumentVInfo::sqlite3Write( sqlite3pp::database & db ) const
 {
   this->VInfo::sqlite3Write( db );
-  sqlite3pp::command cmd( db, R"SQL(
-    INSERT OR REPLACE INTO PackumentVInfo ( _id, time, distTags )
-    VALUES ( ?, ?, ? )
-  )SQL" );
+  sqlite3pp::command cmd( db
+  , "INSERT OR REPLACE INTO PackumentVInfo ( _id, time, distTags )"
+    "VALUES ( ?, ?, ? )"
+  );
   cmd.bind( 1, this->_id, sqlite3pp::nocopy );
   cmd.bind( 2, (int) this->time.epoch() );
 
@@ -189,9 +189,9 @@ Packument::Packument( sqlite3pp::database & db
                     )
   : _id( name ), name( name )
 {
-  sqlite3pp::query cmd( db, R"SQL(
-    SELECT _rev, time, distTags FROM Packument WHERE ( name = ? )
-  )SQL" );
+  sqlite3pp::query cmd( db
+  , "SELECT _rev, time, distTags FROM Packument WHERE ( name = ? )"
+  );
   cmd.bind( 1, this->name, sqlite3pp::nocopy );
 
   auto b = cmd.begin();
@@ -234,10 +234,10 @@ Packument::Packument( sqlite3pp::database & db
   void
 Packument::sqlite3Write( sqlite3pp::database & db ) const
 {
-  sqlite3pp::command cmd( db, R"SQL(
-    INSERT OR REPLACE INTO Packument ( _id, _rev, name, time, distTags )
-    VALUES ( ?, ?, ?, ?, ? )
-  )SQL" );
+  sqlite3pp::command cmd( db
+  , "INSERT OR REPLACE INTO Packument ( _id, _rev, name, time, distTags )"
+    "VALUES ( ?, ?, ?, ?, ? )"
+  );
   cmd.bind( 1, this->_id,  sqlite3pp::nocopy );
   cmd.bind( 2, this->_rev, sqlite3pp::nocopy );
   cmd.bind( 3, this->name, sqlite3pp::nocopy );
