@@ -19,6 +19,7 @@
 #include <utility>                                        // for make_pair
 #include <vector>                                         // for vector
 #include "fetch.hh"                                       // for curlFile
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -59,11 +60,9 @@ VInfo::VInfo( std::string_view url )
 
 VInfo::VInfo( floco::ident_view name, floco::version_view version )
 {
-  std::string url = "https://registry.npmjs.org/";
-  url += name;
-  url += "/";
-  url += version;
-  this->init( floco::fetch::fetchJSON( url ) );
+  this->init( floco::fetch::fetchJSON(
+    floco::registry::defaultRegistry.getVInfoURL( name, version )
+  ) );
 }
 
 

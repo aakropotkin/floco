@@ -24,7 +24,6 @@ class PkgRegistry {
     std::string                  host     = "registry.npmjs.org";
     std::optional<PkgRegistry *> fallback = std::nullopt;
 
-    PkgRegistry() {}
     PkgRegistry(
       std::string_view             host     = "registry.npmjs.org"
     , std::string_view             protocol = "https"
@@ -41,7 +40,7 @@ class PkgRegistry {
 
 /* -------------------------------------------------------------------------- */
 
-static const PkgRegistry defaultRegistry();
+static const PkgRegistry defaultRegistry = PkgRegistry();
 
 
 /* -------------------------------------------------------------------------- */

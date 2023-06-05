@@ -21,6 +21,7 @@
 #include "fetch.hh"                                       // for curlFile
 #include "sqlite3pp.h"
 #include "util.hh"
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -74,11 +75,9 @@ PjsCore::PjsCore( std::string_view url )
 
 PjsCore::PjsCore( floco::ident_view name, floco::version_view version )
 {
-  std::string url = "https://registry.npmjs.org/";
-  url += name;
-  url += "/";
-  url += version;
-  this->init( floco::fetch::fetchJSON( url ) );
+  this->init( floco::fetch::fetchJSON(
+    floco::registry::defaultRegistry.getVInfoURL( name, version )
+  ) );
 }
 
 

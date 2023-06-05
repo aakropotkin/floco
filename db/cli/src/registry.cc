@@ -4,7 +4,7 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include "registry.hh"
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -15,7 +15,7 @@ namespace floco {
 /* -------------------------------------------------------------------------- */
 
   std::string
-PkgRegistry::getPackumentURL( floco::ident_view ident )
+PkgRegistry::getPackumentURL( floco::ident_view ident ) const
 {
   std::string s( this->protocol + "://" + this->host + "/" );
   s += ident;
@@ -26,7 +26,9 @@ PkgRegistry::getPackumentURL( floco::ident_view ident )
 /* -------------------------------------------------------------------------- */
 
   std::string
-PkgRegistry::getVInfoURL( floco::ident_view ident, floco::version_view version )
+PkgRegistry::getVInfoURL( floco::ident_view ident
+                        , floco::version_view version
+                        ) const
 {
   std::string s( this->protocol + "://" + this->host + "/" );
   s += ident;

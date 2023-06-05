@@ -12,6 +12,7 @@
 #include <nlohmann/json.hpp>      // for basic_json
 #include <nlohmann/json_fwd.hpp>  // for json
 #include "util.hh"
+#include "floco-registry.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -318,10 +319,10 @@ db_stale( sqlite3pp::database & db, floco::ident_view name )
     }
   auto rsl = * b;
 
-  std::string url = "https://registry.npmjs.org/";
-  url += name;
 
-  nlohmann::json j = floco::fetch::fetchJSON( url );
+  nlohmann::json j = floco::fetch::fetchJSON(
+    floco::registry::defaultRegistry.getPackumentURL( name )
+  );
   std::optional<std::string> _rev =
     floco::util::maybeGetJSON<std::string>( j, "_rev" );
   if ( _rev.has_value() )

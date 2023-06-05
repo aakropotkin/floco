@@ -53,7 +53,7 @@ GEN_HEADERS    =  floco-sql.hh
 BINS           =  floco-db fetch
 LIBS           =  $(LIBFLOCODB)
 COMMON_HEADERS =  pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
-COMMON_HEADERS += registry.hh
+COMMON_HEADERS += floco-registry.hh
 TESTS          =  $(wildcard tests/*.cc)
 SQL_SCHEMAS    =  ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 SQL_SCHEMAS    += ../packument.sql
@@ -113,10 +113,12 @@ clean: FORCE
 
 src/bin-info.o: $(addprefix include/,bin-info.hh)
 src/vinfo.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh vinfo.hh)
+src/vinfo.o: $(addprefix include/,floco-registry.hh)
 src/fetch.o: $(addprefix include/,fetch.hh)
 src/date.o: $(addprefix include/,date.hh)
 src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
-src/registry.o: $(addprefix include/,pjs-core.hh registry.hh)
+src/pjs-core.o: $(addprefix include/,floco-registry.hh)
+src/registry.o: $(addprefix include/,pjs-core.hh floco-registry.hh)
 
 
 # ---------------------------------------------------------------------------- #
