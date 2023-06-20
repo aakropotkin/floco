@@ -892,7 +892,7 @@ information needed to generate trees if they are not defined.
 - description :: Whether the dependency is distributed in registry tarballs alongside
 the consumer.
 
-This is sometimes used to include patched modules, but whenver
+This is sometimes used to include patched modules, but whenever
 possible bundling should be avoided in favor of tooling like =esbuild=
 or =webpack= because the effect bundled dependencies have on
 resolution is fraught.
