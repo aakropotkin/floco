@@ -13,6 +13,7 @@
 #include <string>                 // for allocator, basic_string, string
 #include <argparse/argparse.hpp>  // for ArgumentParser, Argument, operator<<
 #include <optional>
+#include "date.hh"
 #include "floco-sql.hh"           // for pjsCoreSchemaSQL
 #include "pjs-core.hh"            // for pjsJsonToSQL, db
 #include "sqlite3pp.h"
@@ -33,19 +34,26 @@ main( int argc, char * argv[], char ** envp )
 {
   argparse::ArgumentParser prog( "db", "0.1.0" );
   prog.add_description( "Operate on `floco' databases" );
-
-  argparse::ArgumentParser pack_cmd( "pack" );
-  pack_cmd.add_description( "Operate on a packument cache" );
-  pack_cmd.add_argument( "-r", "--registry" )
+  prog.add_argument( "-r", "--registry" )
     .help( "Registry to query from" )
     .metavar( "URL" )
     .default_value( std::string( "https://registry.npmjs.org" ) );
+
+  argparse::ArgumentParser pack_cmd( "pack" );
+  pack_cmd.add_description( "Operate on a packument cache" );
   pack_cmd.add_argument( "descriptor" )
     .required()
     .metavar( "IDENT[@VERSION]" )
     .help( "Package descriptor ( name + optional version ) to lookup" );
-
   prog.add_subparser( pack_cmd );
+
+  argparse::ArgumentParser vers_cmd( "versions" );
+  vers_cmd.add_description( "List all module versions" );
+  vers_cmd.add_argument( "ident" )
+    .required()
+    .metavar( "IDENT" )
+    .help( "Package identifier ( name ) to lookup" );
+  prog.add_subparser( vers_cmd );
 
   try
     {
@@ -58,20 +66,20 @@ main( int argc, char * argv[], char ** envp )
       return EXIT_FAILURE;
     }
 
+  auto url = prog.get<std::string>( "-r" );
+  const std::regex regURL( "((https?)://)?(.*)"
+                         , std::regex_constants::ECMAScript
+                         );
+  std::smatch reg_match;
+  std::regex_match( url, reg_match, regURL );
+  std::string proto;
+  if ( reg_match[2].matched ) { proto = reg_match[2]; }
+  else                        { proto = "https";      }
+  RegistryDb reg( (std::string) reg_match[3], proto );
+
   if ( prog.is_subcommand_used( "pack" ) )
     {
-      auto url   = pack_cmd.get<std::string>( "-r" );
       auto desc = pack_cmd.get<std::string>( "descriptor" );
-      const std::regex regURL( "((https?)://)?(.*)"
-                             , std::regex_constants::ECMAScript
-                             );
-
-      std::smatch reg_match;
-      std::regex_match( url, reg_match, regURL );
-      std::string proto;
-      if ( reg_match[2].matched ) { proto = reg_match[2]; }
-      else                        { proto = "https";      }
-      RegistryDb reg( (std::string) reg_match[3], proto );
 
       const std::regex descRE( "((@[^@/]+/)?([^@/]*))(@([^@]+))?"
                              , std::regex_constants::ECMAScript
@@ -93,6 +101,12 @@ main( int argc, char * argv[], char ** envp )
           Packument p = reg.get( ident );
           std::cout << p.toJSON().dump() << std::endl;
         }
+    }
+  else if ( prog.is_subcommand_used( "versions" ) )
+    {
+      std::string ident = vers_cmd.get<std::string>( "ident" );
+      Packument p = reg.get( ident );
+      std::cout << ( nlohmann::json( p.time ) ).dump() << std::endl;
     }
 
   return EXIT_SUCCESS;
