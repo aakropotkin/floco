@@ -19,9 +19,9 @@ SDIR="${SPATH%/*}";
 
 TVERSION="$( $NIX shell -f "$SDIR/default.nix" -c test; )";
 case "$TVERSION" in
-  v16.*) :; ;;
+  v19.*) :; ;;
   *)
-    echo "fail: Expected version 16.x but executable has '$TVERSION'" >&2;
+    echo "fail: Expected version 19.x but executable has '$TVERSION'" >&2;
     exit 1;
   ;;
 esac
@@ -57,9 +57,9 @@ esac
 # ---------------------------------------------------------------------------- #
 
 case "${DRV_NODE_VERSIONS[0]}" in
-  16.*) :; ;;
+  19.*) :; ;;
   *)
-    printf 'fail: Expected version 16.x but derivation references ' >&2;
+    printf 'fail: Expected version 19.x but derivation references ' >&2;
     echo "'${DRV_NODE_VERSIONS[0]}'" >&2;
     exit 4;
   ;;
