@@ -16,6 +16,7 @@
 #include "date.hh"
 #include "floco-sql.hh"           // for packumentsSchemaSQL
 #include "sqlite3pp.h"
+#include "floco-registry.hh"
 
 #include <ctime>
 #include <map>
@@ -31,6 +32,7 @@ using namespace floco::db;
   int
 main( int argc, char * argv[], char ** envp )
 {
+
   Packument p( (std::string_view) "https://registry.npmjs.org/lodash" );
 
   nlohmann::json j = p.toJSON();
@@ -84,6 +86,17 @@ main( int argc, char * argv[], char ** envp )
 
   db.disconnect();
   remove( filename );
+
+/* -------------------------------------------------------------------------- */
+
+  floco::registry::RegistryDb reg;
+
+  std::cerr << reg.getDbPath() << std::endl;
+  floco::db::PackumentVInfo pv = reg.get( "lodash", "4.17.21" );
+  std::cout << pv.toJSON().dump() << std::endl;
+
+
+/* -------------------------------------------------------------------------- */
 
   return ec;
 }

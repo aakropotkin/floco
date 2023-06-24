@@ -3,3 +3,4 @@ floco-db
 fetch
 packument
 libflocodb.*
+gmon.out

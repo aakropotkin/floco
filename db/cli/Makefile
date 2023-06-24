@@ -63,7 +63,7 @@ SQL_SCHEMAS    += ../packument.sql
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include' -ggdb3
+CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include'
 lib_CXXFLAGS = -shared -fPIC
 lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 
@@ -90,6 +90,14 @@ flocodb_LDFLAGS += -Wl,--enable-new-dtags '-Wl,-rpath,$$ORIGIN/../lib'
 
 # ---------------------------------------------------------------------------- #
 
+ifneq (,$(DEBUG))
+	CXXFLAGS += -ggdb3 -pg -fno-omit-frame-pointer
+	LDFLAGS  += -ggdb3 -pg -fno-omit-frame-pointer
+endif
+
+
+# ---------------------------------------------------------------------------- #
+
 .PHONY: gen-headers bin lib include
 gen-headers: $(addprefix include/,$(GEN_HEADERS))
 
@@ -108,7 +116,7 @@ clean: FORCE
 	-$(RM) result
 	-$(RM) -r $(PREFIX)
 	-$(RM) tests/$(TESTS:.cc=)
-	-$(RM) *.db
+	-$(RM) *.db gmon.out *.log
 
 
 # ---------------------------------------------------------------------------- #

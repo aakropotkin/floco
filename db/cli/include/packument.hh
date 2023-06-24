@@ -14,7 +14,6 @@
 #include "vinfo.hh"
 #include "date.hh"
 #include <unordered_set>
-#include "floco-registry.hh"
 #include <functional>
 
 
@@ -96,7 +95,7 @@ class Packument {
 
     /** Read a `Packument' from a SQLite3 database. */
     Packument( sqlite3pp::database & db
-             , floco::ident_view     name
+             , floco::ident_view     ident
              );
 
     /** Write a `Packument' to a SQLite3 database. */
@@ -122,20 +121,8 @@ void from_json( const nlohmann::json & j,       Packument & p );
 
 /* -------------------------------------------------------------------------- */
 
-bool db_has(   sqlite3pp::database & db, floco::ident_view name );
-bool db_stale( sqlite3pp::database & db, floco::ident_view name );
-
-
-/* -------------------------------------------------------------------------- */
-
-class PackumentDb {
-  private:
-    std::shared_ptr<floco::registry::PkgRegistry> registry;
-    std::string                                   ident;
-    std::shared_ptr<sqlite3pp::database>          db;
-
-  public:
-};  /* End `PackumentDb' */
+bool db_has(   sqlite3pp::database & db, floco::ident_view ident );
+bool db_stale( sqlite3pp::database & db, floco::ident_view ident );
 
 
 /* -------------------------------------------------------------------------- */

@@ -185,9 +185,9 @@ Packument::operator!=( const Packument & other ) const
 /* -------------------------------------------------------------------------- */
 
 Packument::Packument( sqlite3pp::database & db
-                    , floco::ident_view     name
+                    , floco::ident_view     ident
                     )
-  : _id( name ), name( name )
+  : _id( ident ), name( ident )
 {
   sqlite3pp::query cmd( db
   , "SELECT _rev, time, distTags FROM Packument WHERE ( name = ? )"
@@ -222,7 +222,7 @@ Packument::Packument( sqlite3pp::database & db
       else
         {
           this->versions.emplace( version
-                                , PackumentVInfo( db, name, version )
+                                , PackumentVInfo( db, ident, version )
                                 );
         }
     }
@@ -291,13 +291,15 @@ from_json( const nlohmann::json & j, Packument & p )
 /* -------------------------------------------------------------------------- */
 
   bool
-db_has( sqlite3pp::database & db, floco::ident_view name )
+db_has( sqlite3pp::database & db, floco::ident_view ident )
 {
   sqlite3pp::query cmd( db
   , "SELECT COUNT( _id ) FROM Packument WHERE ( name = ? )"
   );
-  std::string _name( name );
+  std::string      _name( ident );
   cmd.bind( 1, _name, sqlite3pp::nocopy );
+  auto _rsl = cmd.begin();
+  if ( _rsl == cmd.end() ) { return false; }
   auto rsl = * cmd.begin();
   return 0 < rsl.get<int>( 0 );
 }
@@ -306,19 +308,19 @@ db_has( sqlite3pp::database & db, floco::ident_view name )
 /* -------------------------------------------------------------------------- */
 
   bool
-db_stale( sqlite3pp::database & db, floco::ident_view name )
+db_stale( sqlite3pp::database & db, floco::ident_view ident )
 {
   sqlite3pp::query cmd( db
   , "SELECT _rev FROM Packument WHERE ( name = ? )"
   );
-  std::string _name( name );
+  std::string _name( ident );
   cmd.bind( 1, _name, sqlite3pp::nocopy );
   auto b = cmd.begin();
   if ( b == cmd.end() ) { return true; }
   auto rsl = * b;
 
   nlohmann::json j = floco::fetch::fetchJSON(
-    floco::registry::defaultRegistry.getPackumentURL( name )
+    floco::registry::defaultRegistry.getPackumentURL( ident )
   );
   std::optional<std::string> _rev =
     floco::util::maybeGetJSON<std::string>( j, "_rev" );
