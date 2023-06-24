@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pdef, pkgs, ... }: let
+{ lib, config, pdef, pkgs, nodePackage, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -60,7 +60,7 @@ in {
           pkgs.jq
           pkgs.floco-hooks
         ] ++ maybeLint ++ cfg.extraNativeBuildInputs;
-        buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
+        buildInputs = [nodePackage] ++ cfg.extraBuildInputs;
         dontUpdateAutotoolsGnuConfigScripts = true;
         configurePhase = ''
           runHook preConfigure;
