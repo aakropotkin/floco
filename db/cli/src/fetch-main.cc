@@ -20,7 +20,7 @@ main( int argc, char * argv[], char ** envp )
 
 /* -------------------------------------------------------------------------- */
 
-  argparse::ArgumentParser prog( "fetch" );
+  argparse::ArgumentParser prog( "fetch", "0.1.0" );
   prog.add_description( "Fetch a file from a URL" );
 
   prog.add_argument( "url" )
