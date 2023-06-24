@@ -50,9 +50,8 @@ in {
 
     dist = lib.mkDefault ( if pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
-        inherit lib;
+        inherit lib nodePackage;
         inherit (pkgs) system bash coreutils jq findutils gnused;
-        nodejs = nodePackage;
         pkgsFor = pkgs;
         src     = config.built.package;
         pjs = {
@@ -153,8 +152,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

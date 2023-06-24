@@ -8,6 +8,7 @@
 , lib          ? import ../../lib { inherit (nixpkgs) lib; }
 , system       ? builtins.currentSystem
 , pkgsFor      ? nixpkgs.legacyPackages.${system}
+, nodePackage  ? pkgsFor.nodejs-14_x
 , extraModules ? []
 }: let
 
@@ -19,7 +20,10 @@
       ../../modules/configs/use-fetchzip.nix
       {
         config._module.args.pkgs = pkgsFor;
-        config.floco.settings    = { inherit system; basedir = ./.; };
+        config.floco.settings    = {
+          inherit system nodePackage;
+          basedir = ./.;
+        };
       }
       ./floco-cfg.nix
     ] ++ ( lib.toList extraModules );

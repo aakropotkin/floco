@@ -4,15 +4,15 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs   ? ( import ../inputs ).nixpkgs.flake
-, system    ? builtins.currentSystem
-, pkgsFor   ? nixpkgs.legacyPackages.${system}
-, bash      ? pkgsFor.bash
-, coreutils ? pkgsFor.coreutils
-, jq        ? pkgsFor.jq
-, findutils ? pkgsFor.findutils
-, nodejs    ? pkgsFor.nodejs-slim-14_x
-, gnused    ? pkgsFor.gnused
+{ nixpkgs     ? ( import ../inputs ).nixpkgs.flake
+, system      ? builtins.currentSystem
+, pkgsFor     ? nixpkgs.legacyPackages.${system}
+, bash        ? pkgsFor.bash
+, coreutils   ? pkgsFor.coreutils
+, jq          ? pkgsFor.jq
+, findutils   ? pkgsFor.findutils
+, nodePackage ? pkgsFor.nodejs-slim
+, gnused      ? pkgsFor.gnused
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -29,7 +29,9 @@ in {
     version = "0.1.1";
   in derivation {
     name = pname + "-" + version;
-    inherit system pname version scripts bash coreutils findutils jq nodejs;
+    inherit
+      system pname version scripts bash coreutils findutils jq nodePackage
+    ;
     functions        = builtins.path { path = ./functions; };
     preferLocalBuild = true;
     allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
@@ -49,7 +51,7 @@ in {
             spath="$common_path:$coreutils/bin:$findutils/bin";
           ;;
           run-script.sh)
-            spath="$common_path:$nodejs/bin";
+            spath="$common_path:$nodePackage/bin";
           ;;
           *) spath="$common_path"; ;;
         esac
