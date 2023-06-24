@@ -106,7 +106,16 @@ main( int argc, char * argv[], char ** envp )
     {
       std::string ident = vers_cmd.get<std::string>( "ident" );
       Packument p = reg.get( ident );
-      std::cout << ( nlohmann::json( p.time ) ).dump() << std::endl;
+      nlohmann::json vs( p.time );
+      if ( auto search = vs.find( "created" ); search != vs.end() )
+        {
+          vs.erase( search );
+        }
+      if ( auto search = vs.find( "modified" ); search != vs.end() )
+        {
+          vs.erase( search );
+        }
+      std::cout << vs.dump() << std::endl;
     }
 
   return EXIT_SUCCESS;
