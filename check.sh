@@ -61,6 +61,8 @@ run_test "Packages Module" "$SDIR/tests/modules/packages/check.sh";
 
 run_test "Packages Module (dist)" "$SDIR/tests/modules/packages/dist/check.sh";
 
+run_test "Set Node Version" "$SDIR/tests/modules/packages/nodePackage/check.sh";
+
 run_test "Library Extensions" "$SDIR/tests/lib/check.sh";
 
 run_test "pdef (deserialized)"                                             \

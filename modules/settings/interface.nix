@@ -53,6 +53,16 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+      options.nodePackage = lib.mkOption {
+        description = lib.mdDoc ''
+          Node.js package used to build and install modules.
+        '';
+        type = nt.package;
+      };
+
+
+# ---------------------------------------------------------------------------- #
+
     };  # End `options.settings.type'
     default = {};
   };

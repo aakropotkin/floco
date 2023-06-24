@@ -1,0 +1,10 @@
+{
+  "name": "@floco/test",
+  "version": "4.2.0",
+  "bin": {
+    "test": "./bin.js"
+  },
+  "scripts": {
+    "clean": "rm -rf ./node_modules"
+  }
+}

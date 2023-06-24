@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, options, config, pkgs, pdef, packages, pdefs, ... }: let
+{ lib, options, config, pkgs, pdef, packages, pdefs, nodePackage, ... }: let
 
   nt = lib.types;
 
@@ -50,9 +50,8 @@ in {
 
     dist = lib.mkDefault ( if pdef.ltype == "file" then null else
       import ../../builders/dist.nix {
-        inherit lib;
+        inherit lib nodePackage;
         inherit (pkgs) system bash coreutils jq findutils gnused;
-        nodejs = pkgs.nodejs-slim-14_x;
         pkgsFor = pkgs;
         src     = config.built.package;
         pjs = {
@@ -75,7 +74,7 @@ in {
         IDENT             = pdef.ident;
         src               = config.source;
         nativeBuildInputs = [pkgs.jq];
-        buildInputs       = [pkgs.nodejs-14_x];
+        buildInputs       = [nodePackage];
         phases            = ["unpackPhase" "installPhase"];
         # TODO: adhere to `files' or `.{npm,git}ignore'
         installPhase = ''
@@ -119,7 +118,7 @@ in {
         NMTREE            = config.trees.global or config.trees.prod;
         src               = config.prepared;
         nativeBuildInputs = [pkgs.jq];
-        buildInputs       = [pkgs.nodejs-14_x];
+        buildInputs       = [nodePackage];
         buildCommand      = ''
           runHook preInstall;
 
@@ -153,8 +152,8 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
-
 }
+
 
 # ---------------------------------------------------------------------------- #
 #

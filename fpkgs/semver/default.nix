@@ -8,6 +8,7 @@
 , lib          ? import ../../lib { inherit (nixpkgs) lib; }
 , system       ? builtins.currentSystem
 , pkgsFor      ? nixpkgs.legacyPackages.${system}
+, nodePackage  ? pkgsFor.nodejs-14_x
 , extraModules ? []
 }: let
 

@@ -38,6 +38,7 @@ in {
             inherit pkgs pdef;
             inherit (config) packages pdefs;
             inherit (config.records) target;
+            inherit (config.settings) nodePackage;
           };
         };
       }

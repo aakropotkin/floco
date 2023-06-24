@@ -22,6 +22,7 @@ in {
       modules = [
         ../records
         ( { config, ... }: {
+
           imports = [
             ../settings/implementation.nix
             ../buildPlan/implementation.nix
@@ -30,14 +31,20 @@ in {
             ../packages/implementation.nix
             ../fetchers/implementation.nix
           ];
+
           config._module.args.pkgs = let
             nixpkgs = ( import ../../inputs ).nixpkgs.flake;
             pkgsFor = nixpkgs.legacyPackages.${config.settings.system};
-            withOv  = pkgsFor.extend ( import ../../overlay.nix );
+            ov      = lib.composeExtensions
+                        ( import ../../overlay.nix )
+                        ( _: _: { inherit (config.settings) nodePackage; } );
+            withOv  = pkgsFor.extend ov;
           in lib.mkOverride 999 withOv;
+
           config.settings.system = lib.mkIf (
             ( builtins.currentSystem or null ) == null
           ) ( lib.mkOverride 999 pkgs.system );
+
         } )
       ];
     };
