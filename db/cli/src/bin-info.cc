@@ -34,6 +34,9 @@ BinInfo::BinInfo( std::string_view name, std::string_view s )
   initByStrings( name, s );
 }
 
+
+/* -------------------------------------------------------------------------- */
+
 BinInfo::BinInfo( const nlohmann::json & j )
 {
   if ( j.type() != nlohmann::json::value_t::object )
@@ -44,6 +47,9 @@ BinInfo::BinInfo( const nlohmann::json & j )
     }
   this->initByObject( j );
 }
+
+
+/* -------------------------------------------------------------------------- */
 
 BinInfo::BinInfo( std::string_view name, const nlohmann::json & j )
 {
@@ -63,6 +69,9 @@ BinInfo::BinInfo( std::string_view name, const nlohmann::json & j )
       );
     }
 }
+
+
+/* -------------------------------------------------------------------------- */
 
   void
 BinInfo::initByStrings( std::string_view name, std::string_view s )
@@ -87,6 +96,9 @@ BinInfo::initByStrings( std::string_view name, std::string_view s )
     }
 }
 
+
+/* -------------------------------------------------------------------------- */
+
   void
 BinInfo::initByObject( const nlohmann::json & j )
 {
@@ -98,6 +110,8 @@ BinInfo::initByObject( const nlohmann::json & j )
 }
 
 
+/* -------------------------------------------------------------------------- */
+
   nlohmann::json
 BinInfo::toJSON() const
 {
@@ -105,10 +119,7 @@ BinInfo::toJSON() const
   if ( this->_isPairs )
     {
       j = nlohmann::json::object();
-      for ( auto & [bname, path] : this->_binPairs )
-        {
-          j[bname] = path;
-        }
+      for ( auto & [bname, path] : this->_binPairs ) { j[bname] = path; }
     }
   else
     {
@@ -116,6 +127,9 @@ BinInfo::toJSON() const
     }
   return j;
 }
+
+
+/* -------------------------------------------------------------------------- */
 
   std::string
 BinInfo::toSQLValue() const
@@ -161,14 +175,8 @@ from_json( const nlohmann::json & j, BinInfo & b )
     }
   else
     {
-      if ( j.contains( "bin" ) )
-        {
-          b = BinInfo( j["bin"] );
-        }
-      else
-        {
-          b = BinInfo( j );
-        }
+      if ( j.contains( "bin" ) ) { b = BinInfo( j["bin"] ); }
+      else                       { b = BinInfo( j );        }
     }
 }
 

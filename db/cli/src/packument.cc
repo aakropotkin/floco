@@ -93,8 +93,8 @@ Packument::init( const nlohmann::json & j )
       j.at( "_id" ).get_to( this->name );
     }
 
-  floco::util::tryGetJSONTo( j, "_rev",      this->_rev );
-  floco::util::tryGetJSONTo( j, "time",      this->time );
+  floco::util::tryGetJSONTo( j, "_rev",      this->_rev     );
+  floco::util::tryGetJSONTo( j, "time",      this->time     );
   floco::util::tryGetJSONTo( j, "dist-tags", this->distTags );
 
   nlohmann::json versions;
@@ -105,10 +105,7 @@ Packument::init( const nlohmann::json & j )
       std::unordered_set<std::string_view> distTags;
       for ( auto & [tag, v] : this->distTags )
         {
-          if ( version == v )
-            {
-              distTags.emplace( tag );
-            }
+          if ( version == v ) { distTags.emplace( tag ); }
         }
       this->versions.emplace( version
                           , PackumentVInfo(
@@ -166,15 +163,17 @@ Packument::toJSON() const
 Packument::operator==( const Packument & other ) const
 {
   return
-    ( this->_id == other._id ) &&
-    ( this->_rev == other._rev ) &&
-    ( this->name == other.name ) &&
-    ( this->time == other.time ) &&
+    ( this->_id == other._id )           &&
+    ( this->_rev == other._rev )         &&
+    ( this->name == other.name )         &&
+    ( this->time == other.time )         &&
     ( this->distTags == other.distTags ) &&
     ( this->versions == other.versions )
   ;
 }
 
+
+/* -------------------------------------------------------------------------- */
 
   bool
 Packument::operator!=( const Packument & other ) const
@@ -269,12 +268,12 @@ to_json( nlohmann::json & j, const Packument & p )
       versions.emplace( version, pvi.toJSON() );
     }
   j = nlohmann::json {
-    { "_id",       p._id }
-  , { "_rev",      p._rev }
-  , { "name",      p.name }
-  , { "time",      p.time }
+    { "_id",       p._id      }
+  , { "_rev",      p._rev     }
+  , { "name",      p.name     }
+  , { "time",      p.time     }
   , { "dist-tags", p.distTags }
-  , { "versions",  versions }
+  , { "versions",  versions   }
   };
 }
 
@@ -304,6 +303,8 @@ db_has( sqlite3pp::database & db, floco::ident_view name )
 }
 
 
+/* -------------------------------------------------------------------------- */
+
   bool
 db_stale( sqlite3pp::database & db, floco::ident_view name )
 {
@@ -313,12 +314,8 @@ db_stale( sqlite3pp::database & db, floco::ident_view name )
   std::string _name( name );
   cmd.bind( 1, _name, sqlite3pp::nocopy );
   auto b = cmd.begin();
-  if ( b == cmd.end() )
-    {
-      return true;
-    }
+  if ( b == cmd.end() ) { return true; }
   auto rsl = * b;
-
 
   nlohmann::json j = floco::fetch::fetchJSON(
     floco::registry::defaultRegistry.getPackumentURL( name )

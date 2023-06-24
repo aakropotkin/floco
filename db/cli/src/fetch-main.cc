@@ -48,10 +48,7 @@ main( int argc, char * argv[], char ** envp )
   auto url    = prog.get<std::string>( "url" );
   auto output = prog.get<std::string>( "output" );
 
-  if ( output == "-" )
-    {
-      output = "/dev/stdout";
-    }
+  if ( output == "-" ) { output = "/dev/stdout"; }
 
 
 /* -------------------------------------------------------------------------- */

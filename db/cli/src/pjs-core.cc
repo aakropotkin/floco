@@ -65,6 +65,8 @@ PjsCore::init( const nlohmann::json & json )
 }
 
 
+/* -------------------------------------------------------------------------- */
+
 PjsCore::PjsCore( std::string_view url )
 {
   this->init( floco::fetch::fetchJSON( url ) );
@@ -134,15 +136,15 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
   /* We have to copy any fileds that aren't already `std::string' */
   cmd.bind(  1, this->name,                        sqlite3pp::nocopy );
   cmd.bind(  2, this->version,                     sqlite3pp::nocopy );
-  cmd.bind(  3, this->bin.dump(),                  sqlite3pp::copy );
-  cmd.bind(  4, this->dependencies.dump(),         sqlite3pp::copy );
-  cmd.bind(  5, this->devDependencies.dump(),      sqlite3pp::copy );
-  cmd.bind(  6, this->devDependenciesMeta.dump(),  sqlite3pp::copy );
-  cmd.bind(  7, this->peerDependencies.dump(),     sqlite3pp::copy );
-  cmd.bind(  8, this->peerDependenciesMeta.dump(), sqlite3pp::copy );
-  cmd.bind(  9, this->os.dump(),                   sqlite3pp::copy );
-  cmd.bind( 10, this->cpu.dump(),                  sqlite3pp::copy );
-  cmd.bind( 11, this->engines.dump(),              sqlite3pp::copy );
+  cmd.bind(  3, this->bin.dump(),                  sqlite3pp::copy   );
+  cmd.bind(  4, this->dependencies.dump(),         sqlite3pp::copy   );
+  cmd.bind(  5, this->devDependencies.dump(),      sqlite3pp::copy   );
+  cmd.bind(  6, this->devDependenciesMeta.dump(),  sqlite3pp::copy   );
+  cmd.bind(  7, this->peerDependencies.dump(),     sqlite3pp::copy   );
+  cmd.bind(  8, this->peerDependenciesMeta.dump(), sqlite3pp::copy   );
+  cmd.bind(  9, this->os.dump(),                   sqlite3pp::copy   );
+  cmd.bind( 10, this->cpu.dump(),                  sqlite3pp::copy   );
+  cmd.bind( 11, this->engines.dump(),              sqlite3pp::copy   );
   cmd.execute();
 }
 
@@ -153,17 +155,17 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
 to_json( nlohmann::json & j, const PjsCore & p )
 {
   j = nlohmann::json {
-    { "name",                 p.name }
-  , { "version",              p.version }
-  , { "bin",                  p.bin }
-  , { "dependencies",         p.dependencies }
-  , { "devDependencies",      p.devDependencies }
-  , { "devDependenciesMeta",  p.devDependenciesMeta }
-  , { "peerDependencies",     p.peerDependencies }
+    { "name",                 p.name                 }
+  , { "version",              p.version              }
+  , { "bin",                  p.bin                  }
+  , { "dependencies",         p.dependencies         }
+  , { "devDependencies",      p.devDependencies      }
+  , { "devDependenciesMeta",  p.devDependenciesMeta  }
+  , { "peerDependencies",     p.peerDependencies     }
   , { "peerDependenciesMeta", p.peerDependenciesMeta }
-  , { "os",                   p.os }
-  , { "cpu",                  p.cpu }
-  , { "engines",              p.engines }
+  , { "os",                   p.os                   }
+  , { "cpu",                  p.cpu                  }
+  , { "engines",              p.engines              }
   };
 }
 
@@ -193,16 +195,16 @@ PjsCore::toJSON() const
 PjsCore::operator==( const PjsCore & other ) const
 {
   return
-    ( this->name == other.name ) &&
-    ( this->version == other.version ) &&
-    ( this->bin == other.bin ) &&
-    ( this->dependencies == other.dependencies ) &&
-    ( this->devDependencies == other.devDependencies ) &&
-    ( this->devDependenciesMeta == other.devDependenciesMeta ) &&
-    ( this->peerDependencies == other.peerDependencies ) &&
+    ( this->name == other.name )                                 &&
+    ( this->version == other.version )                           &&
+    ( this->bin == other.bin )                                   &&
+    ( this->dependencies == other.dependencies )                 &&
+    ( this->devDependencies == other.devDependencies )           &&
+    ( this->devDependenciesMeta == other.devDependenciesMeta )   &&
+    ( this->peerDependencies == other.peerDependencies )         &&
     ( this->peerDependenciesMeta == other.peerDependenciesMeta ) &&
-    ( this->os == other.os ) &&
-    ( this->cpu == other.cpu ) &&
+    ( this->os == other.os )                                     &&
+    ( this->cpu == other.cpu )                                   &&
     ( this->engines == other.engines )
   ;
 }

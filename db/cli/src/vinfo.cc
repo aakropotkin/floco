@@ -45,12 +45,11 @@ VInfo::init( const nlohmann::json & json )
       else if ( key == "dist" )           { this->dist           = value; }
       else if ( key == "_hasShrinkwrap" ) { this->_hasShrinkwrap = value; }
     }
-  if ( this->_id.empty() )
-    {
-      this->_id = this->name + "@" + this->version;
-    }
+  if ( this->_id.empty() ) { this->_id = this->name + "@" + this->version; }
 }
 
+
+/* -------------------------------------------------------------------------- */
 
 VInfo::VInfo( std::string_view url )
 {
@@ -85,12 +84,12 @@ VInfo::operator==( const VInfo & other ) const
   return
     ( * ( (PjsCore *) this ) ) == ( (PjsCore &) other ) &&
     /* VInfo Fields */
-    ( this->_id == other._id ) &&
-    ( this->homepage == other.homepage ) &&
-    ( this->description == other.description ) &&
-    ( this->license == other.license ) &&
-    ( this->repository == other.repository ) &&
-    ( this->dist == other.dist ) &&
+    ( this->_id == other._id )                       &&
+    ( this->homepage == other.homepage )             &&
+    ( this->description == other.description )       &&
+    ( this->license == other.license )               &&
+    ( this->repository == other.repository )         &&
+    ( this->dist == other.dist )                     &&
     ( this->_hasShrinkwrap == other._hasShrinkwrap )
   ;
 }
@@ -169,8 +168,8 @@ VInfo::sqlite3Write( sqlite3pp::database & db ) const
   bindStringOrNull( cmd, 2, this->homepage,          sqlite3pp::nocopy );
   bindStringOrNull( cmd, 3, this->description,       sqlite3pp::nocopy );
   bindStringOrNull( cmd, 4, this->license,           sqlite3pp::nocopy );
-  cmd.bind(              5, this->repository.dump(), sqlite3pp::copy );
-  cmd.bind(              6, this->dist.dump(),       sqlite3pp::copy );
+  cmd.bind(              5, this->repository.dump(), sqlite3pp::copy   );
+  cmd.bind(              6, this->dist.dump(),       sqlite3pp::copy   );
   cmd.bind(              7, this->_hasShrinkwrap );
   cmd.execute();
 }
@@ -183,12 +182,12 @@ to_json( nlohmann::json & j, const VInfo & v )
 {
   to_json( j, (const PjsCore &) v );
   j.merge_patch( {
-    { "_id",            v._id }
-  , { "homepage",       v.homepage }
-  , { "description",    v.description }
-  , { "license",        v.license }
-  , { "repository",     v.repository }
-  , { "dist",           v.dist }
+    { "_id",            v._id            }
+  , { "homepage",       v.homepage       }
+  , { "description",    v.description    }
+  , { "license",        v.license        }
+  , { "repository",     v.repository     }
+  , { "dist",           v.dist           }
   , { "_hasShrinkwrap", v._hasShrinkwrap }
   } );
 }

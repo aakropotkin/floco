@@ -38,8 +38,8 @@ fetchFile( std::string_view url )
   nix::evalSettings.pureEval = false;
   nix::settings.tarballTtl   = floco::registry::registryTTL;
 
-  nix::EvalState         state( {}, nix::openStore() );
-  nix::ParsedURL         purl = nix::parseURL( std::string( url ) );
+  nix::EvalState        state( {}, nix::openStore() );
+  nix::ParsedURL        purl = nix::parseURL( std::string( url ) );
   std::filesystem::path filepath( purl.path );
   std::string           _url( url );
 
@@ -50,6 +50,9 @@ fetchFile( std::string_view url )
   return state.store->toRealPath( rsl.storePath );
 
 }
+
+
+/* -------------------------------------------------------------------------- */
 
   std::string
 fetchFileTo( std::string_view url, std::string_view outfile, bool link )
