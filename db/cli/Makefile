@@ -23,6 +23,8 @@ UNAME      ?= uname
 MKDIR      ?= mkdir
 MKDIR_P    ?= $(MKDIR) -p
 CP         ?= cp
+TR         ?= tr
+SED        ?= sed
 
 
 # ---------------------------------------------------------------------------- #
@@ -211,6 +213,23 @@ all: gen-headers bin lib tests
 # ---------------------------------------------------------------------------- #
 
 include gen-floco-sql.mk
+
+
+# ---------------------------------------------------------------------------- #
+
+.PHONY: ccls
+ccls: ../../.ccls
+
+../../.ccls: FORCE
+	echo 'clang' > "$@";
+	{                                                                       \
+	  echo "$(CXXFLAGS) $(sqlite3_CFLAGS) $(nljson_CFLAGS) $(nix_CFLAGS)";  \
+	  echo "$(argparse_CFLAGS) $(boost_CFLAGS)";                            \
+	  if [[ -n "$(NIX_CC)" ]]; then                                         \
+	    $(CAT) "$(NIX_CC)/nix-support/libc-cflags";                         \
+	    $(CAT) "$(NIX_CC)/nix-support/libcxx-cxxflags";                     \
+	  fi;                                                                   \
+	}|$(TR) ' ' '\n'|$(SED) 's/-std=/%cpp -std=/' >> "$@";
 
 
 # ---------------------------------------------------------------------------- #

@@ -60,6 +60,21 @@ extern PkgRegistry defaultRegistry;
 
 /* -------------------------------------------------------------------------- */
 
+class RegistryDb : PkgRegistry {
+  private:
+    std::string                          _dbPath;
+    std::shared_ptr<sqlite3pp::database> _db;
+
+  public:
+    bool             exists();
+    std::string_view getPath() { return this->_dbPath; }
+
+    std::reference_wrapper<sqlite3pp::database> getDb();
+};
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::registry' */
 }  /* End Namespace `floco' */
 

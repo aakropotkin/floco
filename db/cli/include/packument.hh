@@ -14,6 +14,8 @@
 #include "vinfo.hh"
 #include "date.hh"
 #include <unordered_set>
+#include "floco-registry.hh"
+#include <functional>
 
 
 /* -------------------------------------------------------------------------- */
@@ -114,14 +116,26 @@ class Packument {
 
 /* -------------------------------------------------------------------------- */
 
-void to_json( nlohmann::json & j, const Packument & p );
-void from_json( const nlohmann::json & j, Packument & p );
+void to_json(         nlohmann::json & j, const Packument & p );
+void from_json( const nlohmann::json & j,       Packument & p );
 
 
 /* -------------------------------------------------------------------------- */
 
-bool db_has( sqlite3pp::database & db, floco::ident_view name );
+bool db_has(   sqlite3pp::database & db, floco::ident_view name );
 bool db_stale( sqlite3pp::database & db, floco::ident_view name );
+
+
+/* -------------------------------------------------------------------------- */
+
+class PackumentDb {
+  private:
+    std::shared_ptr<floco::registry::PkgRegistry> registry;
+    std::string                                   ident;
+    std::shared_ptr<sqlite3pp::database>          db;
+
+  public:
+};  /* End `PackumentDb' */
 
 
 /* -------------------------------------------------------------------------- */
