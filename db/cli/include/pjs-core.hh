@@ -88,6 +88,8 @@ class PjsCore {
     bool operator==( const PjsCore & other ) const;
     bool operator!=( const PjsCore & other ) const;
 
+    friend void from_json( const nlohmann::json & j, PjsCore & p );
+
 };
 
 

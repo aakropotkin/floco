@@ -156,9 +156,19 @@ Packument::versionsBefore( floco::timestamp_view before ) const
   nlohmann::json
 Packument::toJSON() const
 {
-  nlohmann::json j;
-  to_json( j, * this );
-  return j;
+  nlohmann::json versions = nlohmann::json::object();
+  for ( auto & [version, pvi] : this->versions )
+    {
+      versions.emplace( std::move( version ), pvi.toJSON() );
+    }
+  return nlohmann::json {
+    { "_id",       this->_id             }
+  , { "_rev",      this->_rev            }
+  , { "name",      this->name            }
+  , { "time",      this->time            }
+  , { "dist-tags", this->distTags        }
+  , { "versions",  std::move( versions ) }
+  };
 }
 
 
@@ -258,19 +268,7 @@ Packument::sqlite3Write( sqlite3pp::database & db ) const
   void
 to_json( nlohmann::json & j, const Packument & p )
 {
-  nlohmann::json versions = nlohmann::json::object();
-  for ( auto & [version, pvi] : p.versions )
-    {
-      versions.emplace( version, pvi.toJSON() );
-    }
-  j = nlohmann::json {
-    { "_id",       p._id      }
-  , { "_rev",      p._rev     }
-  , { "name",      p.name     }
-  , { "time",      p.time     }
-  , { "dist-tags", p.distTags }
-  , { "versions",  versions   }
-  };
+  j = p.toJSON();
 }
 
 
@@ -279,8 +277,7 @@ to_json( nlohmann::json & j, const Packument & p )
   void
 from_json( const nlohmann::json & j, Packument & p )
 {
-  Packument _p( j );
-  p = _p;
+  p.init( j );
 }
 
 

@@ -147,6 +147,8 @@ class Packument {
       return ! ( ( * this ) == other );
     }
 
+    friend void from_json( const nlohmann::json & j, Packument & p );
+
 };  /* End class `Packument' */
 
 

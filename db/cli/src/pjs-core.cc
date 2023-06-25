@@ -205,15 +205,14 @@ PjsCore::operator!=( const PjsCore & other ) const
   void
 to_json( nlohmann::json & j, const PjsCore & p )
 {
-  j = std::move( p.toJSON() );
+  j = p.toJSON();
 }
 
 
   void
 from_json( const nlohmann::json & j, PjsCore & p )
 {
-  PjsCore _p( j );
-  p = std::move( _p );
+  p.init( j );
 }
 
 

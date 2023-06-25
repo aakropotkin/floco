@@ -91,9 +91,17 @@ VInfo::VInfo( floco::ident_view name, floco::version_view version )
   nlohmann::json
 VInfo::toJSON() const
 {
-  nlohmann::json j;
-  to_json( j, * this );
-  return std::move( j );
+  nlohmann::json j = this->PjsCore::toJSON();
+  j.merge_patch( {
+    { "_id",            this->_id            }
+  , { "homepage",       this->homepage       }
+  , { "description",    this->description    }
+  , { "license",        this->license        }
+  , { "repository",     this->repository     }
+  , { "dist",           this->dist           }
+  , { "_hasShrinkwrap", this->_hasShrinkwrap }
+  } );
+  return j;
 }
 
 
@@ -201,16 +209,7 @@ VInfo::sqlite3Write( sqlite3pp::database & db ) const
   void
 to_json( nlohmann::json & j, const VInfo & v )
 {
-  to_json( j, (const PjsCore &) v );
-  j.merge_patch( {
-    { "_id",            v._id            }
-  , { "homepage",       v.homepage       }
-  , { "description",    v.description    }
-  , { "license",        v.license        }
-  , { "repository",     v.repository     }
-  , { "dist",           v.dist           }
-  , { "_hasShrinkwrap", v._hasShrinkwrap }
-  } );
+  j = v.toJSON();
 }
 
 
@@ -219,8 +218,7 @@ to_json( nlohmann::json & j, const VInfo & v )
   void
 from_json( const nlohmann::json & j, VInfo & v )
 {
-  VInfo _v( j );
-  v = _v;
+  v.init( j );
 }
 
 

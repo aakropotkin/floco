@@ -62,6 +62,7 @@ class VInfo : public PjsCore {
     bool operator==( const VInfo & other ) const;
     bool operator!=( const VInfo & other ) const;
 
+    friend void from_json( const nlohmann::json & j, VInfo & v );
 };
 
 
