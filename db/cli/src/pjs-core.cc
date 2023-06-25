@@ -38,28 +38,31 @@ PjsCore::init( const nlohmann::json & json )
 {
   for ( auto & [key, value] : json.items() )
     {
-      if ( key == "name" )              { this->name         = value; }
-      else if ( key == "version" )      { this->version      = value; }
-      else if ( key == "bin" )          { this->bin          = value; }
-      else if ( key == "dependencies" ) { this->dependencies = value; }
-      else if ( key == "os" )           { this->os           = value; }
-      else if ( key == "cpu" )          { this->cpu          = value; }
-      else if ( key == "engines" )      { this->engines      = value; }
+      if ( key == "name" )              { this->name    = std::move( value ); }
+      else if ( key == "version" )      { this->version = std::move( value ); }
+      else if ( key == "bin" )          { this->bin     = std::move( value ); }
+      else if ( key == "os" )           { this->os      = std::move( value ); }
+      else if ( key == "cpu" )          { this->cpu     = std::move( value ); }
+      else if ( key == "engines" )      { this->engines = std::move( value ); }
+      else if ( key == "dependencies" )
+        {
+          this->dependencies = std::move( value );
+        }
       else if ( key == "devDependencies" )
         {
-          this->devDependencies = value;
+          this->devDependencies = std::move( value );
         }
       else if ( key == "devDependenciesMeta" )
         {
-          this->devDependenciesMeta = value;
+          this->devDependenciesMeta = std::move( value );
         }
       else if ( key == "peerDependencies" )
         {
-          this->peerDependencies = value;
+          this->peerDependencies = std::move( value );
         }
       else if ( key == "peerDependenciesMeta" )
         {
-          this->peerDependenciesMeta = value;
+          this->peerDependenciesMeta = std::move( value );
         }
     }
 }
@@ -151,41 +154,22 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
 
 /* -------------------------------------------------------------------------- */
 
-  void
-to_json( nlohmann::json & j, const PjsCore & p )
-{
-  j = nlohmann::json {
-    { "name",                 p.name                 }
-  , { "version",              p.version              }
-  , { "bin",                  p.bin                  }
-  , { "dependencies",         p.dependencies         }
-  , { "devDependencies",      p.devDependencies      }
-  , { "devDependenciesMeta",  p.devDependenciesMeta  }
-  , { "peerDependencies",     p.peerDependencies     }
-  , { "peerDependenciesMeta", p.peerDependenciesMeta }
-  , { "os",                   p.os                   }
-  , { "cpu",                  p.cpu                  }
-  , { "engines",              p.engines              }
-  };
-}
-
-
-  void
-from_json( const nlohmann::json & j, PjsCore & p )
-{
-  PjsCore _p( j );
-  p = _p;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
   nlohmann::json
 PjsCore::toJSON() const
 {
-  nlohmann::json j;
-  to_json( j, * this );
-  return j;
+  return nlohmann::json {
+    { "name",                 this->name                 }
+  , { "version",              this->version              }
+  , { "bin",                  this->bin                  }
+  , { "dependencies",         this->dependencies         }
+  , { "devDependencies",      this->devDependencies      }
+  , { "devDependenciesMeta",  this->devDependenciesMeta  }
+  , { "peerDependencies",     this->peerDependencies     }
+  , { "peerDependenciesMeta", this->peerDependenciesMeta }
+  , { "os",                   this->os                   }
+  , { "cpu",                  this->cpu                  }
+  , { "engines",              this->engines              }
+  };
 }
 
 
@@ -213,6 +197,23 @@ PjsCore::operator==( const PjsCore & other ) const
 PjsCore::operator!=( const PjsCore & other ) const
 {
   return ! ( ( * this ) == other );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+to_json( nlohmann::json & j, const PjsCore & p )
+{
+  j = std::move( p.toJSON() );
+}
+
+
+  void
+from_json( const nlohmann::json & j, PjsCore & p )
+{
+  PjsCore _p( j );
+  p = std::move( _p );
 }
 
 

@@ -37,13 +37,34 @@ VInfo::init( const nlohmann::json & json )
   this->PjsCore::init( json );
   for ( auto & [key, value] : json.items() )
     {
-      if ( key == "_id" )                 { this->_id            = value; }
-      else if ( key == "homepage" )       { this->homepage       = value; }
-      else if ( key == "description" )    { this->description    = value; }
-      else if ( key == "license" )        { this->license        = value; }
-      else if ( key == "repository" )     { this->repository     = value; }
-      else if ( key == "dist" )           { this->dist           = value; }
-      else if ( key == "_hasShrinkwrap" ) { this->_hasShrinkwrap = value; }
+      if ( key == "_id" )
+        {
+          this->_id = std::move( value );
+        }
+      else if ( key == "homepage" )
+        {
+          this->homepage = std::move( value );
+        }
+      else if ( key == "description" )
+        {
+          this->description = std::move( value );
+        }
+      else if ( key == "license" )
+        {
+          this->license = std::move( value );
+        }
+      else if ( key == "repository" )
+        {
+          this->repository = std::move( value );
+        }
+      else if ( key == "dist" )
+        {
+          this->dist = std::move( value );
+        }
+      else if ( key == "_hasShrinkwrap" )
+        {
+          this->_hasShrinkwrap = std::move( value );
+        }
     }
   if ( this->_id.empty() ) { this->_id = this->name + "@" + this->version; }
 }
@@ -72,7 +93,7 @@ VInfo::toJSON() const
 {
   nlohmann::json j;
   to_json( j, * this );
-  return j;
+  return std::move( j );
 }
 
 
