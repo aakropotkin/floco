@@ -17,6 +17,7 @@ namespace floco {
   void
 DepInfoEnt::init( const nlohmann::json & j )
 {
+  this->_flags = 0b0100;
   for ( auto & [key, value] : j.items() )
     {
       if ( key == "descriptor" )    { this->descriptor = std::move( value ); }

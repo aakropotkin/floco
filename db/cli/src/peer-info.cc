@@ -17,6 +17,7 @@ namespace floco {
   void
 PeerInfoEnt::init( const nlohmann::json & j )
 {
+  this->optional = false;
   for ( auto & [key, value] : j.items() )
     {
       if ( key == "descriptor" )    { this->descriptor = std::move( value ); }
@@ -86,9 +87,9 @@ PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
 
   void
 PeerInfoEnt::sqlite3Write( sqlite3pp::database & db
-                        , floco::ident_view     parent_ident
-                        , floco::version_view   parent_version
-                        ) const
+                         , floco::ident_view     parent_ident
+                         , floco::version_view   parent_version
+                         ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
     INSERT OR REPLACE INTO PeerInfoEnts (
