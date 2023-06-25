@@ -26,6 +26,7 @@
         "packument"
         "default.nix"
         "pkg-fun.nix"
+        "doc"
       ];
     in if type == "directory"
        then bname != "out"

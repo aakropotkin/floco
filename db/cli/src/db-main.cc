@@ -32,12 +32,23 @@ using namespace floco::registry;
   int
 main( int argc, char * argv[], char ** envp )
 {
+
+/* -------------------------------------------------------------------------- */
+
+  /* Top level args */
+
   argparse::ArgumentParser prog( "db", "0.1.0" );
   prog.add_description( "Operate on `floco' databases" );
+
   prog.add_argument( "-r", "--registry" )
     .help( "Registry to query from" )
     .metavar( "URL" )
     .default_value( std::string( "https://registry.npmjs.org" ) );
+
+
+/* -------------------------------------------------------------------------- */
+
+  /* `db pack' subcommand */
 
   argparse::ArgumentParser pack_cmd( "pack" );
   pack_cmd.add_description( "Operate on a packument cache" );
@@ -47,6 +58,11 @@ main( int argc, char * argv[], char ** envp )
     .help( "Package descriptor ( name + optional version ) to lookup" );
   prog.add_subparser( pack_cmd );
 
+
+/* -------------------------------------------------------------------------- */
+
+  /* `db versions' subcommand */
+
   argparse::ArgumentParser vers_cmd( "versions" );
   vers_cmd.add_description( "List all module versions" );
   vers_cmd.add_argument( "ident" )
@@ -54,6 +70,9 @@ main( int argc, char * argv[], char ** envp )
     .metavar( "IDENT" )
     .help( "Package identifier ( name ) to lookup" );
   prog.add_subparser( vers_cmd );
+
+
+/* -------------------------------------------------------------------------- */
 
   try
     {
@@ -66,6 +85,11 @@ main( int argc, char * argv[], char ** envp )
       return EXIT_FAILURE;
     }
 
+
+/* -------------------------------------------------------------------------- */
+
+  /* Parse registry URL */
+
   auto url = prog.get<std::string>( "-r" );
   const std::regex regURL( "((https?)://)?(.*)"
                          , std::regex_constants::ECMAScript
@@ -76,6 +100,9 @@ main( int argc, char * argv[], char ** envp )
   if ( reg_match[2].matched ) { proto = reg_match[2]; }
   else                        { proto = "https";      }
   RegistryDb reg( (std::string) reg_match[3], proto );
+
+
+/* -------------------------------------------------------------------------- */
 
   if ( prog.is_subcommand_used( "pack" ) )
     {
@@ -118,8 +145,12 @@ main( int argc, char * argv[], char ** envp )
       std::cout << vs.dump() << std::endl;
     }
 
+
+/* -------------------------------------------------------------------------- */
+
   return EXIT_SUCCESS;
-}
+
+}  /* End `main' */
 
 
 /* -------------------------------------------------------------------------- *

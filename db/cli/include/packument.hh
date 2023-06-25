@@ -24,6 +24,11 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Manifest data for a specific version of a module which has been extended to
+ * include registry metadata concering "when a module was registered", and
+ * info related to downloading and verifying the integrity of the tarball.
+ */
 class PackumentVInfo : public VInfo {
   public:
     floco::util::DateTime           time      = (unsigned long) 0;
@@ -53,6 +58,11 @@ class PackumentVInfo : public VInfo {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A registry document containing all information about all versions of a
+ * module, where to download it, when each version was created, etc.
+ * `PackumentVInfo' records are sub-records of this document.
+ */
 class Packument {
 
   protected:
@@ -65,6 +75,12 @@ class Packument {
     floco::ident name;
 
     /**
+     * Maps package versions to the time they were published.
+     * Two additional entries `modified' and `created' also appear here
+     * which express the first publish date, and the most recent publish date.
+     *
+     * Example:
+     * @code
      * {
      *   "modified": "2022-06-29T06:45:35.755Z",
      *   "created": "...",
@@ -72,15 +88,22 @@ class Packument {
      *   ...
      *   "4.0.0": "..."
      * }
+     * @endcode
      */
     std::map<floco::version, floco::timestamp> time;
 
     /**
+     * Maps version aliases to real version numbers.
+     * This is similar to a "tagged ref" in many other tools.
+     *
+     * Example:
+     * @code
      * {
      *   "latest": "4.0.0",
      *   "pre": "4.1.0-pre",
      *   ...
      * }
+     * @endcode
      */
     std::map<std::string, floco::version> distTags;
 
