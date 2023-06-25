@@ -15,6 +15,8 @@
 #include "date.hh"
 #include <unordered_set>
 #include <functional>
+#include "fetch.hh"
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -110,16 +112,23 @@ class Packument {
     std::map<floco::version, PackumentVInfo> versions;
 
     Packument() {}
+    /** Read a `Packument' from JSON. */
     Packument( const nlohmann::json & j ) { this->init( j ); }
-    Packument( std::string_view url );
+    /** Fetch and read a `Packument' from a URL. */
+    Packument( std::string_view url )
+      : Packument( floco::fetch::fetchJSON( url ) )
+    {}
+    /** Fetch and read a `Packuemnt' from a registry by identifier ( name ). */
+    Packument( std::string_view ident, const registry::PkgRegistry & registry )
+      : Packument( (std::string_view) registry.getPackumentURL( ident ) )
+    {}
 
+    /** Get versions that were published before ( or equal to ) a timestamp. */
       std::map<floco::version_view, floco::timestamp_view>
     versionsBefore( floco::timestamp_view before ) const;
 
     /** Read a `Packument' from a SQLite3 database. */
-    Packument( sqlite3pp::database & db
-             , floco::ident_view     ident
-             );
+    Packument( sqlite3pp::database & db, floco::ident_view ident );
 
     /** Write a `Packument' to a SQLite3 database. */
     void sqlite3Write( sqlite3pp::database & db ) const;
@@ -131,9 +140,14 @@ class Packument {
     std::string id() const { return this->_id; }
 
     bool operator==( const Packument & other ) const;
-    bool operator!=( const Packument & other ) const;
 
-};
+      bool
+    operator!=( const Packument & other ) const
+    {
+      return ! ( ( * this ) == other );
+    }
+
+};  /* End class `Packument' */
 
 
 /* -------------------------------------------------------------------------- */

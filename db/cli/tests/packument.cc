@@ -17,6 +17,7 @@
 #include "floco-sql.hh"           // for packumentsSchemaSQL
 #include "sqlite3pp.h"
 #include "floco-registry.hh"
+#include "registry-db.hh"
 
 #include <ctime>
 #include <map>
@@ -57,6 +58,11 @@ main( int argc, char * argv[], char ** envp )
 
       if ( pvi != pvi2 )
         {
+          std::cerr << "fail: Serialization to DB differs." << std::endl;
+          if ( ( (PjsCore) pvi ) != ( (PjsCore) pvi2 ) )
+            {
+              std::cerr << "    : mismatch in PjsCore fields." << std::endl;
+            }
           ec = EXIT_FAILURE;
         }
     }
@@ -91,9 +97,9 @@ main( int argc, char * argv[], char ** envp )
 
   floco::registry::RegistryDb reg;
 
-  std::cerr << reg.getDbPath() << std::endl;
+  //std::cerr << reg.getDbPath() << std::endl;
   floco::db::PackumentVInfo pv = reg.get( "lodash", "4.17.21" );
-  std::cout << pv.toJSON().dump() << std::endl;
+  //std::cout << pv.toJSON().dump() << std::endl;
 
 
 /* -------------------------------------------------------------------------- */

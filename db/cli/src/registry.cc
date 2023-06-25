@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <filesystem>
 #include "floco-registry.hh"
+#include "registry-db.hh"
 #include "floco-sql.hh"
 
 

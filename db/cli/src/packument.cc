@@ -75,54 +75,59 @@ PackumentVInfo::sqlite3Write( sqlite3pp::database & db ) const
   void
 Packument::init( const nlohmann::json & j )
 {
-  try
+  for ( auto & [key, value] : j.items() )
     {
-      j.at( "_id" ).get_to( this->_id );
-    }
-  catch ( nlohmann::json::out_of_range & e )
-    {
-      j.at( "name" ).get_to( this->_id );
-    }
-
-  try
-    {
-      j.at( "name" ).get_to( this->name );
-    }
-  catch ( nlohmann::json::out_of_range & e )
-    {
-      j.at( "_id" ).get_to( this->name );
-    }
-
-  floco::util::tryGetJSONTo( j, "_rev",      this->_rev     );
-  floco::util::tryGetJSONTo( j, "time",      this->time     );
-  floco::util::tryGetJSONTo( j, "dist-tags", this->distTags );
-
-  nlohmann::json versions;
-  floco::util::tryGetJSONTo( j, "versions",  versions );
-
-  for ( auto & [version, vj] : versions.items() )
-    {
-      std::unordered_set<std::string_view> distTags;
-      for ( auto & [tag, v] : this->distTags )
+      if ( key == "_id" )
         {
-          if ( version == v ) { distTags.emplace( tag ); }
+          this->_id = std::move( value );
         }
-      this->versions.emplace( version
-                          , PackumentVInfo(
-                              floco::util::DateTime( this->time.at( version ) )
-                            , vj
-                            , distTags
-                            )
-                          );
+      else if ( key == "name" )
+        {
+          this->name = std::move( value );
+        }
+      else if ( key == "_rev" )
+        {
+          this->_rev = std::move( value );
+        }
+      else if ( key == "time" )
+        {
+          this->time = std::move( value );
+        }
+      else if ( key == "dist-tags" )
+        {
+          this->distTags = std::move( value );
+        }
+      else if ( key == "versions" )
+        {
+          for ( auto & [version, vj] : value.items() )
+            {
+              this->versions.emplace(
+                std::move( version )
+              , PackumentVInfo( (unsigned long) 0, std::move( vj ), {} )
+              );
+            }
+        }
     }
-}
 
+  /* Do a second pass and inject `dist-tags' into `PackumentVInfo' records. */
+  std::unordered_set<std::string_view> distTags;
+  for ( auto & [tag, v] : this->distTags )
+    {
+      this->versions.at( v ).distTags.emplace( tag );
+    }
 
-/* -------------------------------------------------------------------------- */
+  /* Do a second pass and inject `time' into `PackumentVInfo' records. */
+  for ( auto & [version, time] : this->time )
+    {
+      if ( ( version == "created" ) || ( version == "modified" ) ) { continue; }
+      this->versions.at( version ).time = floco::util::DateTime( time );
+    }
 
-Packument::Packument( std::string_view url )
-  : Packument( floco::fetch::fetchJSON( url ) )
-{}
+  /* Set `name'/`_id' if missing. */
+  if ( this->_id.empty() )       { this->_id  = this->name; }
+  else if ( this->name.empty() ) { this->name = this->_id;  }
+
+}  /* End `Packument::init()' */
 
 
 /* -------------------------------------------------------------------------- */
@@ -163,22 +168,13 @@ Packument::toJSON() const
 Packument::operator==( const Packument & other ) const
 {
   return
-    ( this->_id == other._id )           &&
-    ( this->_rev == other._rev )         &&
-    ( this->name == other.name )         &&
-    ( this->time == other.time )         &&
+    ( this->_id      == other._id      ) &&
+    ( this->_rev     == other._rev     ) &&
+    ( this->name     == other.name     ) &&
+    ( this->time     == other.time     ) &&
     ( this->distTags == other.distTags ) &&
     ( this->versions == other.versions )
   ;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-  bool
-Packument::operator!=( const Packument & other ) const
-{
-  return ! ( ( * this ) == other );
 }
 
 
@@ -296,10 +292,8 @@ db_has( sqlite3pp::database & db, floco::ident_view ident )
   sqlite3pp::query cmd( db
   , "SELECT COUNT( _id ) FROM Packument WHERE ( name = ? )"
   );
-  std::string      _name( ident );
+  std::string _name( ident );
   cmd.bind( 1, _name, sqlite3pp::nocopy );
-  auto _rsl = cmd.begin();
-  if ( _rsl == cmd.end() ) { return false; }
   auto rsl = * cmd.begin();
   return 0 < rsl.get<int>( 0 );
 }

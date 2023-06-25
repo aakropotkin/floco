@@ -18,6 +18,7 @@
 #include "pjs-core.hh"            // for pjsJsonToSQL, db
 #include "sqlite3pp.h"
 #include "floco-registry.hh"
+#include "registry-db.hh"
 
 
 /* -------------------------------------------------------------------------- */

@@ -82,14 +82,14 @@ VInfo::toJSON() const
 VInfo::operator==( const VInfo & other ) const
 {
   return
-    ( * ( (PjsCore *) this ) ) == ( (PjsCore &) other ) &&
+    ( ( * ( (PjsCore *) this ) ) == ( (PjsCore &) other ) ) &&
     /* VInfo Fields */
-    ( this->_id == other._id )                       &&
-    ( this->homepage == other.homepage )             &&
-    ( this->description == other.description )       &&
-    ( this->license == other.license )               &&
-    ( this->repository == other.repository )         &&
-    ( this->dist == other.dist )                     &&
+    ( this->_id            == other._id )            &&
+    ( this->homepage       == other.homepage )       &&
+    ( this->description    == other.description )    &&
+    ( this->license        == other.license )        &&
+    ( this->repository     == other.repository )     &&
+    ( this->dist           == other.dist )           &&
     ( this->_hasShrinkwrap == other._hasShrinkwrap )
   ;
 }
