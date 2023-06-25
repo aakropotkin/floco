@@ -165,7 +165,7 @@ DepInfo::DepInfo( sqlite3pp::database & db
     {
       this->deps.emplace(
         floco::ident( ( * i ).get<const char *>( 0 ) )
-      , DepInfo::Ent( descriptor( ( * i ).get<const char *>( 1 ) )
+      , DepInfo::Ent( ( * i ).get<const char *>( 1 )
                     , ( ( * i ).get<int>( 2 ) != 0 )
                     , ( ( * i ).get<int>( 3 ) != 0 )
                     , ( ( * i ).get<int>( 4 ) != 0 )
