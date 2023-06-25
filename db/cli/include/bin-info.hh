@@ -64,8 +64,8 @@ class BinInfo {
 
 
 /* `BinInfo' <--> JSON */
-void to_json( nlohmann::json & j, const BinInfo & b );
-void from_json( const nlohmann::json & j, BinInfo & b );
+void to_json(         nlohmann::json & j, const BinInfo & b );
+void from_json( const nlohmann::json & j,       BinInfo & b );
 
 
 /* -------------------------------------------------------------------------- */

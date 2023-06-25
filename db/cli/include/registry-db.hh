@@ -11,6 +11,7 @@
 #include "pjs-core.hh"
 #include <optional>
 #include "packument.hh"
+#include "util.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -19,33 +20,6 @@ namespace floco {
   namespace registry {
 
 /* -------------------------------------------------------------------------- */
-
-  static std::string
-getCacheDir()
-{
-  if ( const char * xdg = std::getenv( "XDG_CACHE_HOME" ) )
-    {
-      std::string path( xdg );
-      path += "/floco";
-      return path;
-    }
-  else if ( const char * home = std::getenv( "HOME" ) )
-    {
-      std::string path( home );
-      path += ".cache/floco";
-      return path;
-    }
-  else if ( const char * tmp = std::getenv( "TMP" ) )
-    {
-      std::string path( tmp );
-      path += "floco-cache";
-      return path;
-    }
-  else
-    {
-      return "/tmp/floco-cache";
-    }
-}
 
   static std::string
 sttb16s( size_t x )
@@ -68,14 +42,16 @@ class RegistryDb : PkgRegistry {
     , std::string_view             protocol = "https"
     , std::optional<PkgRegistry *> fallback = std::nullopt
     ) : PkgRegistry( host, protocol, fallback )
-      , _dbPath( getCacheDir() + "/registry-cache-v0/" +
+      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
+                 "/registry-cache-v0/" +
                  sttb16s( std::hash<std::string_view>{}( host ) ) + ".sqlite"
                )
     {}
 
     RegistryDb( PkgRegistry && reg )
       : PkgRegistry( std::move( reg ) )
-      , _dbPath( getCacheDir() + "/registry-cache-v0/" +
+      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
+                 "/registry-cache-v0/" +
                  sttb16s( std::hash<std::string_view>{}( reg.host ) ) +
                  ".sqlite"
                )
@@ -83,7 +59,8 @@ class RegistryDb : PkgRegistry {
 
     RegistryDb( const PkgRegistry & reg )
       : PkgRegistry( reg )
-      , _dbPath( getCacheDir() + "/registry-cache-v0/" +
+      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
+                 "/registry-cache-v0/" +
                  sttb16s( std::hash<std::string_view>{}( reg.host ) ) +
                  ".sqlite"
                )

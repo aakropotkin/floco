@@ -7,8 +7,6 @@
 #pragma once
 
 #include <string>
-#include <nlohmann/json.hpp>
-#include <optional>
 
 
 /* -------------------------------------------------------------------------- */
@@ -18,36 +16,25 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-template <typename ValueType>
-  static inline ValueType &
-tryGetJSONTo( const nlohmann::json & j, std::string_view key, ValueType & t )
-{
-  try
-    {
-      j.at( key ).get_to( t );
-    }
-  catch ( ... )
-    {}
-  return t;
-}
+class Env {
+  private:
+    std::string _home;
+    std::string _xdg_cache_home;
+    std::string _xdg_config_home;
+    std::string _tmp_dir;
+    std::string _floco_cache_dir;
+    std::string _floco_config_dir;
+  public:
+    std::string_view getHome();
+    std::string_view getCacheHome();
+    std::string_view getConfigHome();
+    std::string_view getCacheDir();
+    std::string_view getConfigDir();
+    std::string_view getTmpDir();
+};
 
 
-/* -------------------------------------------------------------------------- */
-
-template <typename ValueType>
-  static inline std::optional<ValueType>
-maybeGetJSON( const nlohmann::json & j, std::string_view key )
-{
-  ValueType v;
-  try
-    {
-      j.at( key ).get_to( v );
-      return v;
-    }
-  catch ( ... )
-    {}
-  return std::nullopt;
-}
+extern Env globalEnv;
 
 
 /* -------------------------------------------------------------------------- */

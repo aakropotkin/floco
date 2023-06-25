@@ -37,42 +37,13 @@ struct TestResult {
 
 /* -------------------------------------------------------------------------- */
 
-  TestResult
-test_maybeGetJSON()
-{
-  nlohmann::json j = { { "foo", "bar" } };
-
-  std::optional<std::string> s =
-    floco::util::maybeGetJSON<std::string>( j, "foo" );
-
-  if ( s.value_or( "NOPE" ) == "NOPE" )
-    {
-      return TestResult( "maybeGetJSON return 'std::nullopt' for valid key" );
-    }
-
-  s = floco::util::maybeGetJSON<std::string>( j, "bar" );
-
-  if ( s.value_or( "NOPE" ) != "NOPE" )
-    {
-      return TestResult(
-        "maybeGetJSON didn't return 'std::nullopt' for missing key"
-      );
-    }
-
-  return TestResult();
-}
-
-
-
-/* -------------------------------------------------------------------------- */
-
   int
 main( int argc, char * argv[], char ** envp )
 {
   test_status ec = test_status::pass;
   TestResult  rsl( test_status::error );
 
-  rsl = test_maybeGetJSON();
+  rsl = TestResult();
 
   if ( rsl.s != test_status::pass )
     {
