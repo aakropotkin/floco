@@ -110,13 +110,13 @@ DepInfoEnt::sqlite3Write( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind(  1, parent,           sqlite3pp::nocopy );
-  cmd.bind(  2, this->ident,      sqlite3pp::nocopy );
-  cmd.bind(  3, this->descriptor, sqlite3pp::nocopy );
-  cmd.bind(  4, this->runtime()  );
-  cmd.bind(  5, this->dev()      );
-  cmd.bind(  6, this->optional() );
-  cmd.bind(  7, this->bundled()  );
+  cmd.bind( 1, parent,           sqlite3pp::nocopy );
+  cmd.bind( 2, this->ident,      sqlite3pp::nocopy );
+  cmd.bind( 3, this->descriptor, sqlite3pp::nocopy );
+  cmd.bind( 4, this->runtime()  );
+  cmd.bind( 5, this->dev()      );
+  cmd.bind( 6, this->optional() );
+  cmd.bind( 7, this->bundled()  );
   cmd.execute();
 }
 

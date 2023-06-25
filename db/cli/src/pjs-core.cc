@@ -104,7 +104,14 @@ PjsCore::PjsCore( sqlite3pp::database & db
   )SQL" );
   cmd.bind( 1, this->name,    sqlite3pp::nocopy );
   cmd.bind( 2, this->version, sqlite3pp::nocopy );
-  auto rsl = * cmd.begin();
+  auto _rsl = cmd.begin();
+  if ( _rsl == cmd.end() )
+    {
+      std::string msg = "No such PjsCore: ident = '" + this->name +
+                        "', version = '" + this->version + "'.";
+      throw sqlite3pp::database_error( msg.c_str() );
+    }
+  auto rsl              = * _rsl;
   this->bin             = nlohmann::json::parse( rsl.get<const char *>( 0 ) );
   this->dependencies    = nlohmann::json::parse( rsl.get<const char *>( 1 ) );
   this->devDependencies = nlohmann::json::parse( rsl.get<const char *>( 2 ) );
