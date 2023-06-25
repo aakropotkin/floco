@@ -109,15 +109,16 @@ RegistryDb::getDb( bool create )
  db::Packument
 RegistryDb::get( floco::ident_view ident )
 {
-  if ( db::db_stale( this->getDb( true ), ident ) )
+  std::reference_wrapper<sqlite3pp::database> db = this->getDb( true );
+  if ( db::db_stale( db, ident ) )
     {
       db::Packument p( (std::string_view) this->getPackumentURL( ident ) );
-      p.sqlite3Write( this->getDb( true ) );
+      p.sqlite3Write( db );
       return p;
     }
   else
     {
-      return db::Packument( this->getDb( true ), ident );
+      return db::Packument( db, ident );
     }
 }
 
@@ -127,9 +128,10 @@ RegistryDb::get( floco::ident_view ident )
  db::PackumentVInfo
 RegistryDb::get( floco::ident_view ident, floco::version_view version )
 {
-  if ( db::db_has( this->getDb( true ), ident ) )
+  std::reference_wrapper<sqlite3pp::database> db = this->getDb( true );
+  if ( db::db_has( db, ident ) )
     {
-      db::Packument p( this->getDb( true  ), ident );
+      db::Packument p( db, ident );
       if ( auto search = p.versions.find( floco::version( version ) );
            search != p.versions.end()
          )
@@ -138,7 +140,7 @@ RegistryDb::get( floco::ident_view ident, floco::version_view version )
         }
     }
   db::Packument p( (std::string_view) this->getPackumentURL( ident ) );
-  p.sqlite3Write( this->getDb( true ) );
+  p.sqlite3Write( db );
   return p.versions.at( (std::string) version );
 }
 

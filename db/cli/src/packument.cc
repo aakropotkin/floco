@@ -111,16 +111,42 @@ Packument::init( const nlohmann::json & j )
 
   /* Do a second pass and inject `dist-tags' into `PackumentVInfo' records. */
   std::unordered_set<std::string_view> distTags;
-  for ( auto & [tag, v] : this->distTags )
+  for ( auto i = this->distTags.begin(); i != this->distTags.end(); ++i )
     {
-      this->versions.at( v ).distTags.emplace( tag );
+      try
+        {
+          this->versions.at( i->second ).distTags.emplace( i->first );
+        }
+      catch( const std::out_of_range & e )
+        {
+          /* Some versions are deprecated by deleting the `VInfo' record under
+           * `versions' - while their absolute URL will still allow users to
+           * see the packae, it will not appear in our record, and should be
+           * scrubbed from this record. */
+          this->distTags.erase( i );
+        }
     }
 
   /* Do a second pass and inject `time' into `PackumentVInfo' records. */
-  for ( auto & [version, time] : this->time )
+  for ( auto i = this->time.begin(); i != this->time.end(); ++i )
     {
-      if ( ( version == "created" ) || ( version == "modified" ) ) { continue; }
-      this->versions.at( version ).time = floco::util::DateTime( time );
+      if ( ( i->first == "created" ) || ( i->first == "modified" ) )
+        {
+          continue;
+        }
+      try
+        {
+          this->versions.at( i->first ).time =
+            floco::util::DateTime( i->second );
+        }
+      catch( const std::out_of_range & e )
+        {
+          /* Some versions are deprecated by deleting the `VInfo' record under
+           * `versions' - while their absolute URL will still allow users to
+           * see the packae, it will not appear in our record, and should be
+           * scrubbed from this record. */
+          this->time.erase( i );
+        }
     }
 
   /* Set `name'/`_id' if missing. */
@@ -313,11 +339,9 @@ db_stale( sqlite3pp::database & db, floco::ident_view ident )
   nlohmann::json j = floco::fetch::fetchJSON(
     floco::registry::defaultRegistry.getPackumentURL( ident )
   );
-  std::optional<std::string> _rev =
-    floco::util::maybeGetJSON<std::string>( j, "_rev" );
-  if ( _rev.has_value() )
+  if ( auto search = j.find( "_rev" ); search != j.end() )
     {
-      return _rev.value() == std::string( rsl.get<const char *>( 0 ) );
+      return ( * search ) == std::string( rsl.get<const char *>( 0 ) );
     }
   else
     {
