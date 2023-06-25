@@ -15,7 +15,7 @@ namespace floco {
 /* -------------------------------------------------------------------------- */
 
   void
-DepInfoEnt::init( const nlohmann::json & j )
+DepInfo::Ent::init( const nlohmann::json & j )
 {
   this->_flags = 0b0100;
   for ( auto & [key, value] : j.items() )
@@ -32,7 +32,7 @@ DepInfoEnt::init( const nlohmann::json & j )
 /* -------------------------------------------------------------------------- */
 
   nlohmann::json
-DepInfoEnt::toJSON() const
+DepInfo::Ent::toJSON() const
 {
   return nlohmann::json {
     { "descriptor", this->descriptor }
@@ -47,13 +47,13 @@ DepInfoEnt::toJSON() const
 /* -------------------------------------------------------------------------- */
 
   void
-to_json( nlohmann::json & j, const DepInfoEnt & e )
+to_json( nlohmann::json & j, const DepInfo::Ent & e )
 {
   j = e.toJSON();
 }
 
   void
-from_json( const nlohmann::json & j, DepInfoEnt & e )
+from_json( const nlohmann::json & j, DepInfo::Ent & e )
 {
   e.init( j );
 }
@@ -61,12 +61,11 @@ from_json( const nlohmann::json & j, DepInfoEnt & e )
 
 /* -------------------------------------------------------------------------- */
 
-DepInfoEnt::DepInfoEnt( sqlite3pp::database & db
-                      , floco::ident_view     parent_ident
-                      , floco::version_view   parent_version
-                      , floco::ident_view     ident
-                      )
-  : ident( ident )
+DepInfo::Ent::Ent( sqlite3pp::database & db
+                 , floco::ident_view     parent_ident
+                 , floco::version_view   parent_version
+                 , floco::ident_view     ident
+                 )
 {
   sqlite3pp::query cmd( db, R"SQL(
     SELECT descriptor, runtime, dev, optional, bundled FROM depInfoEnts
@@ -75,13 +74,13 @@ DepInfoEnt::DepInfoEnt( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,      sqlite3pp::nocopy );
-  cmd.bind( 2, this->ident, sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 2, std::string( ident ), sqlite3pp::copy );
   auto rsl = cmd.begin();
   if ( rsl == cmd.end() )
     {
       std::string msg = "No such depInfoEnt: parent = '" + parent +
-                        "', ident = '" + this->ident + "'.";
+                        "', ident = '" + std::string( ident ) + "'.";
       throw sqlite3pp::database_error( msg.c_str() );
     }
   this->descriptor = std::string( ( * rsl ).get<const char *>( 0 ) );
@@ -97,10 +96,11 @@ DepInfoEnt::DepInfoEnt( sqlite3pp::database & db
 /* -------------------------------------------------------------------------- */
 
   void
-DepInfoEnt::sqlite3Write( sqlite3pp::database & db
-                        , floco::ident_view     parent_ident
-                        , floco::version_view   parent_version
-                        ) const
+DepInfo::Ent::sqlite3Write( sqlite3pp::database & db
+                          , floco::ident_view     parent_ident
+                          , floco::version_view   parent_version
+                          , floco::ident_view     ident
+                          ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
     INSERT OR REPLACE INTO depInfoEnts (
@@ -111,9 +111,9 @@ DepInfoEnt::sqlite3Write( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,           sqlite3pp::nocopy );
-  cmd.bind( 2, this->ident,      sqlite3pp::nocopy );
-  cmd.bind( 3, this->descriptor, sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 2, std::string( ident ), sqlite3pp::copy );
+  cmd.bind( 3, this->descriptor,     sqlite3pp::nocopy );
   cmd.bind( 4, this->runtime()  );
   cmd.bind( 5, this->dev()      );
   cmd.bind( 6, this->optional() );
@@ -130,21 +130,19 @@ DepInfo::init( const nlohmann::json & j )
   this->deps.clear();
   for ( auto & [ident, e] : j.items() )
     {
-      DepInfoEnt d( ident, e );
-      this->deps.emplace( floco::ident_view( d.ident ), std::move( d ) );
+      this->deps.emplace( std::move( ident ), DepInfo::Ent( e ) );
     }
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-DepInfo::DepInfo( const std::list<DepInfoEnt> & deps )
+  nlohmann::json
+DepInfo::toJSON() const
 {
-  for ( const auto & _d : deps )
-    {
-      DepInfoEnt d( _d );
-      this->deps.emplace( floco::ident_view( d.ident ), std::move( d ) );
-    }
+  nlohmann::json j = nlohmann::json::object();
+  for ( auto & [ident, e] : this->deps ) { j.emplace( ident, e.toJSON() ); }
+  return j;
 }
 
 
@@ -155,18 +153,26 @@ DepInfo::DepInfo( sqlite3pp::database & db
                 , floco::version_view   parent_version
                 )
 {
-  // TODO
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-  nlohmann::json
-DepInfo::toJSON() const
-{
-  nlohmann::json j = nlohmann::json::object();
-  for ( auto & [ident, e] : this->deps ) { j.emplace( e.ident, e ); }
-  return j;
+  sqlite3pp::query cmd( db, R"SQL(
+    SELECT ident, descriptor, runtime, dev, optional, bundled FROM depInfoEnts
+    WHERE ( parent = ? )
+  )SQL" );
+  std::string parent( parent_ident );
+  parent += "/";
+  parent += parent_version;
+  cmd.bind( 1, parent, sqlite3pp::nocopy );
+  for ( auto i = cmd.begin(); i != cmd.end(); ++i )
+    {
+      this->deps.emplace(
+        floco::ident( ( * i ).get<const char *>( 0 ) )
+      , DepInfo::Ent( descriptor( ( * i ).get<const char *>( 1 ) )
+                    , ( ( * i ).get<int>( 2 ) != 0 )
+                    , ( ( * i ).get<int>( 3 ) != 0 )
+                    , ( ( * i ).get<int>( 4 ) != 0 )
+                    , ( ( * i ).get<int>( 5 ) != 0 )
+                    )
+      );
+    }
 }
 
 
@@ -178,7 +184,10 @@ DepInfo::sqlite3Write( sqlite3pp::database & db
                      , floco::version_view   parent_version
                      ) const
 {
-  // TODO
+  for ( const auto & [ident, e] : this->deps )
+    {
+      e.sqlite3Write( db, parent_ident, parent_version, ident );
+    }
 }
 
 
