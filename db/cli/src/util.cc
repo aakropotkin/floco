@@ -5,6 +5,7 @@
  * -------------------------------------------------------------------------- */
 
 #include <cstdlib>
+#include <cstring>
 #include "util.hh"
 #include <stdexcept>
 #include <filesystem>
@@ -32,6 +33,19 @@ Env::getHome()
         }
     }
   return this->_home;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  std::string_view
+Env::getTmpDir()
+{
+  if ( this->_tmp_dir.empty() )
+    {
+      this->_tmp_dir = std::filesystem::temp_directory_path();
+    }
+  return this->_tmp_dir;
 }
 
 
@@ -92,10 +106,23 @@ Env::getCacheDir()
         {
           this->_floco_cache_dir =  this->getCacheHome();
           this->_floco_cache_dir += "/floco";
-
         }
     }
   return this->_floco_cache_dir;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  std::string_view
+Env::getRegistryCacheDir()
+{
+  if ( this->_registry_cache_dir.empty() )
+    {
+      this->_registry_cache_dir =  this->getCacheDir();
+      this->_registry_cache_dir += "/registry-cache-v0";
+    }
+  return this->_registry_cache_dir;
 }
 
 
@@ -114,7 +141,6 @@ Env::getConfigDir()
         {
           this->_floco_config_dir =  this->getConfigHome();
           this->_floco_config_dir += "/floco";
-
         }
     }
   return this->_floco_config_dir;
@@ -123,20 +149,39 @@ Env::getConfigDir()
 
 /* -------------------------------------------------------------------------- */
 
-  std::string_view
-Env::getTmpDir()
+Env globalEnv;
+
+
+/* -------------------------------------------------------------------------- */
+
+  std::string
+sizeTypeTo16bitString( size_t x )
 {
-  if ( this->_tmp_dir.empty() )
-    {
-      this->_tmp_dir = std::filesystem::temp_directory_path();
-    }
-  return this->_tmp_dir;
+  static char buffer [64];
+  memset( buffer, '\0', sizeof( buffer ) );
+  snprintf( buffer, sizeof( buffer ), "%zx", x );
+  return std::string( buffer );
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-Env globalEnv;
+  std::string
+getStrFingerprint( std::string_view s )
+{
+  return sizeTypeTo16bitString( std::hash<std::string_view>{}( s ) );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  std::string
+getRegistryDbPath( std::string_view host )
+{
+  std::string path( globalEnv.getRegistryCacheDir() );
+  path += "/" + getStrFingerprint( host ) + ".sqlite";
+  return path;
+}
 
 
 /* -------------------------------------------------------------------------- */

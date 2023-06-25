@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <cstdlib>
 #include <string>
 #include "pjs-core.hh"
 #include <optional>
@@ -21,16 +20,6 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-  static std::string
-sttb16s( size_t x )
-{
-  static char buffer [64];
-  memset( buffer, '\0', sizeof( buffer ) );
-  snprintf( buffer, sizeof( buffer ), "%zx", x );
-  return std::string( buffer );
-}
-
-
 class RegistryDb : PkgRegistry {
   private:
     std::string                          _dbPath;
@@ -42,28 +31,16 @@ class RegistryDb : PkgRegistry {
     , std::string_view             protocol = "https"
     , std::optional<PkgRegistry *> fallback = std::nullopt
     ) : PkgRegistry( host, protocol, fallback )
-      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
-                 "/registry-cache-v0/" +
-                 sttb16s( std::hash<std::string_view>{}( host ) ) + ".sqlite"
-               )
+      , _dbPath( util::getRegistryDbPath( host ) )
     {}
 
     RegistryDb( PkgRegistry && reg )
       : PkgRegistry( std::move( reg ) )
-      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
-                 "/registry-cache-v0/" +
-                 sttb16s( std::hash<std::string_view>{}( reg.host ) ) +
-                 ".sqlite"
-               )
+      , _dbPath( util::getRegistryDbPath( reg.host ) )
     {}
 
     RegistryDb( const PkgRegistry & reg )
-      : PkgRegistry( reg )
-      , _dbPath( std::string( util::globalEnv.getCacheDir() ) +
-                 "/registry-cache-v0/" +
-                 sttb16s( std::hash<std::string_view>{}( reg.host ) ) +
-                 ".sqlite"
-               )
+      : PkgRegistry( reg ), _dbPath( util::getRegistryDbPath( reg.host ) )
     {}
 
     bool exists() const;
