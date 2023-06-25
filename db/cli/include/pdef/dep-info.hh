@@ -67,10 +67,7 @@ class DepInfo {
           this->initFlags( runtime, dev, optional, bundled );
         }
 
-        Ent( const nlohmann::json & j )
-        {
-          this->init( j );
-        }
+        Ent( const nlohmann::json & j ) { this->init( j ); }
 
         Ent( sqlite3pp::database & db
            , floco::ident_view     parent_ident
@@ -97,8 +94,8 @@ class DepInfo {
 
 /* -------------------------------------------------------------------------- */
 
-    /* key is a view of its value's `ident' string. */
     std::unordered_map<floco::ident, Ent> deps;
+
     DepInfo() = default;
     DepInfo( const nlohmann::json & j ) { this->init( j ); }
     DepInfo( sqlite3pp::database & db
