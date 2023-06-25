@@ -186,17 +186,17 @@ PjsCore::toJSON() const
 PjsCore::operator==( const PjsCore & other ) const
 {
   return
-    ( this->name == other.name )                                 &&
-    ( this->version == other.version )                           &&
-    ( this->bin == other.bin )                                   &&
-    ( this->dependencies == other.dependencies )                 &&
-    ( this->devDependencies == other.devDependencies )           &&
-    ( this->devDependenciesMeta == other.devDependenciesMeta )   &&
-    ( this->peerDependencies == other.peerDependencies )         &&
+    ( this->name                 == other.name                 ) &&
+    ( this->version              == other.version              ) &&
+    ( this->bin                  == other.bin                  ) &&
+    ( this->dependencies         == other.dependencies         ) &&
+    ( this->devDependencies      == other.devDependencies      ) &&
+    ( this->devDependenciesMeta  == other.devDependenciesMeta  ) &&
+    ( this->peerDependencies     == other.peerDependencies     ) &&
     ( this->peerDependenciesMeta == other.peerDependenciesMeta ) &&
-    ( this->os == other.os )                                     &&
-    ( this->cpu == other.cpu )                                   &&
-    ( this->engines == other.engines )
+    ( this->os                   == other.os                   ) &&
+    ( this->cpu                  == other.cpu                  ) &&
+    ( this->engines              == other.engines              )
   ;
 }
 
