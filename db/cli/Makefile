@@ -54,8 +54,9 @@ LIBFLOCODB = libflocodb$(libExt)
 GEN_HEADERS    =  floco-sql.hh
 BINS           =  floco-db fetch
 LIBS           =  $(LIBFLOCODB)
-COMMON_HEADERS =  pjs-core.hh fetch.hh packument.hh date.hh vinfo.hh bin-info.hh
-COMMON_HEADERS += floco-registry.hh registry-db.hh util.hh
+COMMON_HEADERS =  $(filter-out include/floco-sql.hh, $(wildcard include/*.h*))
+COMMON_HEADERS += $(wildcard include/*.ipp)
+COMMON_HEADERS += $(wildcard include/pdef/*.hh)
 TESTS          =  $(wildcard tests/*.cc)
 SQL_SCHEMAS    =  ../pjs-core.sql ../fetch-info.sql ../pdefs.sql ../trees.sql
 SQL_SCHEMAS    += ../packument.sql
@@ -63,7 +64,7 @@ SQL_SCHEMAS    += ../packument.sql
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS     = -std=c++17 '-I$(MAKEFILE_DIR)/include'
+CXXFLAGS     = '-I$(MAKEFILE_DIR)/include'
 lib_CXXFLAGS = -shared -fPIC
 lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 
@@ -103,7 +104,7 @@ gen-headers: $(addprefix include/,$(GEN_HEADERS))
 
 bin: $(addprefix bin/,$(BINS))
 lib: $(addprefix lib/,$(LIBS))
-include: $(addprefix include/,$(GEN_HEADERS) $(COMMON_HEADERS))
+include: $(addprefix include/,$(GEN_HEADERS)) $(COMMON_HEADERS)
 
 
 # ---------------------------------------------------------------------------- #
@@ -121,15 +122,7 @@ clean: FORCE
 
 # ---------------------------------------------------------------------------- #
 
-src/bin-info.o: $(addprefix include/,bin-info.hh)
-src/vinfo.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh vinfo.hh)
-src/vinfo.o: $(addprefix include/,floco-registry.hh)
-src/fetch.o: $(addprefix include/,fetch.hh)
-src/date.o: $(addprefix include/,date.hh)
-src/pjs-core.o: $(addprefix include/,floco-sql.hh pjs-core.hh fetch.hh)
-src/pjs-core.o: $(addprefix include/,floco-registry.hh)
-src/registry.o: $(addprefix include/,pjs-core.hh floco-registry.hh)
-src/util.o: $(addprefix include/,util.hh)
+src/*.o: $(COMMON_HEADERS) $(addprefix include/,$(GEN_HEADERS))
 
 
 # ---------------------------------------------------------------------------- #
@@ -144,9 +137,7 @@ lib/$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
 lib/$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
-lib/$(LIBFLOCODB): $(addprefix src/,pjs-core.o fetch.o packument.o date.o)
-lib/$(LIBFLOCODB): $(addprefix src/,vinfo.o bin-info.o registry.o)
-lib/$(LIBFLOCODB): $(addprefix src/,util.o)
+lib/$(LIBFLOCODB): $(filter-out src/%-main.o,$(wildcard src/*.o))
 	$(CXX) $^ $(LDFLAGS) -o "$@"
 
 
@@ -171,7 +162,7 @@ bin/fetch: src/fetch-main.cc lib/$(LIBFLOCODB)
 install: install-dirs install-bin install-lib install-include
 
 install-dirs: FORCE
-	$(MKDIR_P) $(BINDIR) $(LIBDIR) $(INCLUDEDIR)
+	$(MKDIR_P) $(BINDIR) $(LIBDIR) $(INCLUDEDIR)/pdef
 
 $(INCLUDEDIR)/%: include/% | install-dirs
 	$(CP) -- "$<" "$@"
@@ -184,7 +175,8 @@ $(BINDIR)/%: bin/% | install-dirs
 
 install-bin: $(addprefix $(BINDIR)/,$(BINS))
 install-lib: $(addprefix $(LIBDIR)/,$(LIBS))
-install-include: $(addprefix $(INCLUDEDIR)/,$(GEN_HEADERS) $(COMMON_HEADERS))
+install-include: $(addprefix $(INCLUDEDIR)/,$(GEN_HEADERS))
+install-include: $(patsubst include/,$(INCLUDEDIR)/,$(COMMON_HEADERS))
 
 
 # ---------------------------------------------------------------------------- #
