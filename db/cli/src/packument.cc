@@ -120,9 +120,9 @@ Packument::init( const nlohmann::json & j )
       catch( const std::out_of_range & e )
         {
           /* Some versions are deprecated by deleting the `VInfo' record under
-           * `versions' - while their absolute URL will still allow users to
-           * see the packae, it will not appear in our record, and should be
-           * scrubbed from this record. */
+           * `versions' - these records are NOT avaiable at their "absolute" URL
+           * either, and are no longer fetchable.
+           * Effectively the are unavaiable to users and should not be shown. */
           this->distTags.erase( i );
         }
     }
@@ -142,9 +142,9 @@ Packument::init( const nlohmann::json & j )
       catch( const std::out_of_range & e )
         {
           /* Some versions are deprecated by deleting the `VInfo' record under
-           * `versions' - while their absolute URL will still allow users to
-           * see the packae, it will not appear in our record, and should be
-           * scrubbed from this record. */
+           * `versions' - these records are NOT avaiable at their "absolute" URL
+           * either, and are no longer fetchable.
+           * Effectively the are unavaiable to users and should not be shown. */
           this->time.erase( i );
         }
     }
