@@ -35,10 +35,10 @@ DepInfoEnt::toJSON() const
 {
   return nlohmann::json {
     { "descriptor", this->descriptor }
-  , { "runtime",    this->runtime() }
-  , { "dev",        this->dev() }
+  , { "runtime",    this->runtime()  }
+  , { "dev",        this->dev()      }
   , { "optional",   this->optional() }
-  , { "bundled",    this->bundled() }
+  , { "bundled",    this->bundled()  }
   };
 }
 
@@ -67,7 +67,29 @@ DepInfoEnt::DepInfoEnt( sqlite3pp::database & db
                       )
   : ident( ident )
 {
-  // TODO
+  sqlite3pp::query cmd( db, R"SQL(
+    SELECT descriptor, runtime, dev, optional, bundled FROM depInfoEnts
+    WHERE ( parent = ? ) AND ( ident = ? )
+  )SQL" );
+  std::string parent( parent_ident );
+  parent += "/";
+  parent += parent_version;
+  cmd.bind( 1, parent,      sqlite3pp::nocopy );
+  cmd.bind( 2, this->ident, sqlite3pp::nocopy );
+  auto rsl = cmd.begin();
+  if ( rsl == cmd.end() )
+    {
+      std::string msg = "No such depInfoEnt: parent = '" + parent +
+                        "', ident = '" + this->ident + "'.";
+      throw sqlite3pp::database_error( msg.c_str() );
+    }
+  this->descriptor = std::string( ( * rsl ).get<const char *>( 0 ) );
+  this->initFlags(
+    ( ( * rsl ).get<int>( 1 ) != 0 )
+  , ( ( * rsl ).get<int>( 2 ) != 0 )
+  , ( ( * rsl ).get<int>( 3 ) != 0 )
+  , ( ( * rsl ).get<int>( 4 ) != 0 )
+  );
 }
 
 
@@ -79,9 +101,24 @@ DepInfoEnt::sqlite3Write( sqlite3pp::database & db
                         , floco::version_view   parent_version
                         ) const
 {
-  // TODO
+  sqlite3pp::command cmd( db, R"SQL(
+    INSERT OR REPLACE INTO DepInfoEnts (
+      parent, ident, descriptor, runtime, dev, optional, bundled
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ? )
+  )SQL" );
+  /* We have to copy any fileds that aren't already `std::string' */
+  std::string parent( parent_ident );
+  parent += "/";
+  parent += parent_version;
+  cmd.bind(  1, parent,           sqlite3pp::nocopy );
+  cmd.bind(  2, this->ident,      sqlite3pp::nocopy );
+  cmd.bind(  3, this->descriptor, sqlite3pp::nocopy );
+  cmd.bind(  4, this->runtime()  );
+  cmd.bind(  5, this->dev()      );
+  cmd.bind(  6, this->optional() );
+  cmd.bind(  7, this->bundled()  );
+  cmd.execute();
 }
-
 
 
 /* -------------------------------------------------------------------------- */

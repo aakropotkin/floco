@@ -137,7 +137,8 @@ lib/$(LIBFLOCODB): LDFLAGS  += $(lib_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--as-needed
 lib/$(LIBFLOCODB): LDFLAGS  += $(nix_LDFLAGS) $(sqlite3_LDFLAGS)
 lib/$(LIBFLOCODB): LDFLAGS  += -Wl,--no-as-needed
-lib/$(LIBFLOCODB): $(filter-out src/%-main.o,$(wildcard src/*.o))
+lib/$(LIBFLOCODB):                                                       \
+	$(patsubst %.cc,%.o,$(filter-out src/%-main.cc,$(wildcard src/*.cc)))
 	$(CXX) $^ $(LDFLAGS) -o "$@"
 
 
