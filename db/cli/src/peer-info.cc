@@ -63,7 +63,7 @@ PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
   : ident( ident )
 {
   sqlite3pp::query cmd( db, R"SQL(
-    SELECT descriptor, optional, FROM depInfoEnts
+    SELECT descriptor, optional FROM peerInfoEnts
     WHERE ( parent = ? ) AND ( ident = ? )
   )SQL" );
   std::string parent( parent_ident );
@@ -74,7 +74,7 @@ PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
   auto rsl = cmd.begin();
   if ( rsl == cmd.end() )
     {
-      std::string msg = "No such depInfoEnt: parent = '" + parent +
+      std::string msg = "No such peerInfoEnt: parent = '" + parent +
                         "', ident = '" + this->ident + "'.";
       throw sqlite3pp::database_error( msg.c_str() );
     }
@@ -92,7 +92,7 @@ PeerInfoEnt::sqlite3Write( sqlite3pp::database & db
                          ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
-    INSERT OR REPLACE INTO PeerInfoEnts (
+    INSERT OR REPLACE INTO peerInfoEnts (
       parent, ident, descriptor, optional
     ) VALUES ( ?, ?, ?, ? )
   )SQL" );

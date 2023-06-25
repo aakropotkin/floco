@@ -103,7 +103,7 @@ DepInfoEnt::sqlite3Write( sqlite3pp::database & db
                         ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
-    INSERT OR REPLACE INTO DepInfoEnts (
+    INSERT OR REPLACE INTO depInfoEnts (
       parent, ident, descriptor, runtime, dev, optional, bundled
     ) VALUES ( ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
