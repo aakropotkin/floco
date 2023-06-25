@@ -23,7 +23,7 @@ namespace floco {
 class SysInfoEngineEnt {
   public:
     std::string            id;
-    std::list<std::string> value;
+    std::list<std::string> value = { "*" };
 
     SysInfoEngineEnt() = default;
 
@@ -33,8 +33,8 @@ class SysInfoEngineEnt {
     ) : id( id ), value( value )
     {}
 
-    SysInfoEngineEnt(       std::string_view    id
-                    , const nlohmann::json    & j
+    SysInfoEngineEnt(       std::string_view   id
+                    , const nlohmann::json   & j
                     )
       : id( id ), value( j )
     {}
@@ -51,7 +51,7 @@ class SysInfoEngineEnt {
                                , floco::version_view   parent_version
                                ) const;
 
-    friend void from_json( const  nlohmann::json & j, SysInfoEngineEnt & e );
+    friend void from_json( const nlohmann::json & j, SysInfoEngineEnt & e );
 
 };  /* End `SysInfoEngineEnt' */
 

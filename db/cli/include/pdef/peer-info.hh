@@ -58,7 +58,7 @@ class PeerInfoEnt {
                                , floco::version_view   parent_version
                                ) const;
 
-    friend void from_json( const  nlohmann::json & j, PeerInfoEnt & e );
+    friend void from_json( const nlohmann::json & j, PeerInfoEnt & e );
 
 };  /* End `PeerInfoEnt' */
 
