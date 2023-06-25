@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <list>
 #include <bitset>
 #include <nlohmann/json.hpp>      // for basic_json
 #include <string>                 // for string, basic_string, hash, allocator
@@ -89,6 +90,38 @@ class DepInfoEnt {
 /* `DepInfoEnt' <--> JSON */
 void to_json(         nlohmann::json & j, const DepInfoEnt & e );
 void from_json( const nlohmann::json & j,       DepInfoEnt & e );
+
+
+/* -------------------------------------------------------------------------- */
+
+class DepInfo {
+
+  private:
+    void init( const nlohmann::json & j );
+
+  public:
+    /* key is a view of its value's `ident' string. */
+    std::unordered_map<floco::ident_view, DepInfoEnt> deps;
+    DepInfo() = default;
+    DepInfo( const nlohmann::json & j ) { this->init( j ); }
+    DepInfo( const std::list<DepInfoEnt> & deps );
+    DepInfo( sqlite3pp::database & db
+           , floco::ident_view     parent_ident
+           , floco::version_view   parent_version
+           );
+
+    nlohmann::json toJSON() const;
+    void           sqlite3Write( sqlite3pp::database & db
+                               , floco::ident_view     parent_ident
+                               , floco::version_view   parent_version
+                               ) const;
+
+    friend void from_json( const nlohmann::json & j, DepInfo & d );
+};
+
+/* `DepInfo' <--> JSON */
+void to_json(         nlohmann::json & j, const DepInfo & d );
+void from_json( const nlohmann::json & j,       DepInfo & d );
 
 
 /* -------------------------------------------------------------------------- */

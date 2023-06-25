@@ -124,6 +124,82 @@ DepInfoEnt::sqlite3Write( sqlite3pp::database & db
 
 /* -------------------------------------------------------------------------- */
 
+  void
+DepInfo::init( const nlohmann::json & j )
+{
+  this->deps.clear();
+  for ( auto & [ident, e] : j.items() )
+    {
+      DepInfoEnt d( ident, e );
+      this->deps.emplace( floco::ident_view( d.ident ), std::move( d ) );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+DepInfo::DepInfo( const std::list<DepInfoEnt> & deps )
+{
+  for ( const auto & _d : deps )
+    {
+      DepInfoEnt d( _d );
+      this->deps.emplace( floco::ident_view( d.ident ), std::move( d ) );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+DepInfo::DepInfo( sqlite3pp::database & db
+                , floco::ident_view     parent_ident
+                , floco::version_view   parent_version
+                )
+{
+  // TODO
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  nlohmann::json
+DepInfo::toJSON() const
+{
+  nlohmann::json j = nlohmann::json::object();
+  for ( auto & [ident, e] : this->deps ) { j.emplace( e.ident, e ); }
+  return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+DepInfo::sqlite3Write( sqlite3pp::database & db
+                     , floco::ident_view     parent_ident
+                     , floco::version_view   parent_version
+                     ) const
+{
+  // TODO
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+to_json( nlohmann::json & j, const DepInfo & d )
+{
+  j = d.toJSON();
+}
+
+
+  void
+from_json( const nlohmann::json & j, DepInfo & d )
+{
+  d.init( j );
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
