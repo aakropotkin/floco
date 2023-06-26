@@ -34,6 +34,13 @@ enum ltype {
 ltype            parseLtype( std::string_view l );
 std::string_view ltypeToString( const ltype & l );
 
+NLOHMANN_JSON_SERIALIZE_ENUM( ltype, {
+  { LT_NONE, nullptr }
+, { LT_FILE, "file"  }
+, { LT_DIR,  "dir"   }
+, { LT_LINK, "link"  }
+} )
+
 
 /* -------------------------------------------------------------------------- */
 

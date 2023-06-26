@@ -78,15 +78,10 @@ PdefCore::init( const nlohmann::json & j )
   this->reset();
   for ( auto & [key, value] : j.items() )
     {
-      if ( key == "key" )     { this->key     = value; }
-      if ( key == "ident" )   { this->ident   = value; }
-      if ( key == "version" ) { this->version = value; }
-
-      if ( key == "ltype" )
-        {
-          this->ltype = floco::parseLtype( (std::string) value );
-        }
-
+      if ( key == "key" )       { this->key       = value; }
+      if ( key == "ident" )     { this->ident     = value; }
+      if ( key == "version" )   { this->version   = value; }
+      if ( key == "ltype" )     { this->ltype     = value; }
       if ( key == "fetcher" )   { this->fetcher   = value; }
       if ( key == "fetchInfo" ) { this->fetchInfo = value; }
 
