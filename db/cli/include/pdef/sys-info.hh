@@ -7,8 +7,8 @@
 #pragma once
 
 #include <list>
-#include <nlohmann/json.hpp>      // for basic_json
-#include <string>                 // for string, basic_string, hash, allocator
+#include <nlohmann/json.hpp>
+#include <string>
 #include "sqlite3pp.h"
 #include "pjs-core.hh"
 #include <unordered_map>
