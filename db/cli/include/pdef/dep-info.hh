@@ -89,7 +89,7 @@ class DepInfo {
 
         friend void from_json( const nlohmann::json & j, Ent & e );
 
-    };  /* End `DepInfo::Ent' */
+    };  /* End class `DepInfo::Ent' */
 
 
 /* -------------------------------------------------------------------------- */
@@ -110,13 +110,17 @@ class DepInfo {
                                ) const;
 
     friend void from_json( const nlohmann::json & j, DepInfo & d );
-};
+
+};  /* End class `DepInfo' */
+
+
+/* -------------------------------------------------------------------------- */
 
 /* `DepInfo' <--> JSON */
 void to_json(         nlohmann::json & j, const DepInfo & d );
 void from_json( const nlohmann::json & j,       DepInfo & d );
 
-/* `DepInfoEnt' <--> JSON */
+/* `DepInfo::Ent' <--> JSON */
 void to_json(         nlohmann::json & j, const DepInfo::Ent & e );
 void from_json( const nlohmann::json & j,       DepInfo::Ent & e );
 

@@ -7,8 +7,8 @@
 #pragma once
 
 #include <bitset>
-#include <nlohmann/json.hpp>      // for basic_json
-#include <string>                 // for string, basic_string, hash, allocator
+#include <nlohmann/json.hpp>
+#include <string>
 #include "sqlite3pp.h"
 #include "pjs-core.hh"
 
@@ -20,37 +20,62 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-class PeerInfoEnt {
+class PeerInfo {
+
   private:
     void init( const nlohmann::json & j );
 
   public:
-    floco::ident      ident;
-    floco::descriptor descriptor = "*";
-    bool              optional   = false;
 
-    PeerInfoEnt() = default;
+/* -------------------------------------------------------------------------- */
 
-    PeerInfoEnt(
-      std::string_view ident
-    , std::string_view descriptor = "*"
-    , bool optional               = false
-    ) : ident( ident ), descriptor( descriptor ), optional( optional )
-    {}
+    class Ent {
+      private:
+        void init( const nlohmann::json & j );
 
-    PeerInfoEnt(       floco::ident_view   ident
-               , const nlohmann::json    & j
-               )
-      : ident( ident )
-    {
-      this->init( j );
-    }
+      public:
+        floco::ident      ident;
+        floco::descriptor descriptor = "*";
+        bool              optional   = false;
 
-    PeerInfoEnt( sqlite3pp::database & db
-               , floco::ident_view     parent_ident
-               , floco::version_view   parent_version
-               , floco::ident_view     ident
-               );
+        Ent() = default;
+
+        Ent( std::string_view descriptor = "*"
+           , bool optional               = false
+           )
+          : descriptor( descriptor ), optional( optional )
+        {}
+
+        Ent( const nlohmann::json & j ) { this->init( j ); }
+
+        Ent( sqlite3pp::database & db
+           , floco::ident_view     parent_ident
+           , floco::version_view   parent_version
+           , floco::ident_view     ident
+           );
+
+        nlohmann::json toJSON() const;
+        void           sqlite3Write( sqlite3pp::database & db
+                                   , floco::ident_view     parent_ident
+                                   , floco::version_view   parent_version
+                                   , floco::ident_view     ident
+                                   ) const;
+
+        friend void from_json( const nlohmann::json & j, Ent & e );
+
+    };  /* End class `PeerInfo::Ent' */
+
+
+/* -------------------------------------------------------------------------- */
+
+    std::unordered_map<floco::ident, Ent> peers;
+
+    PeerInfo() = default;
+    PeerInfo( const nlohmann::json & j ) { this->init( j ); }
+    PeerInfo( sqlite3pp::database & db
+            , floco::ident_view     parent_ident
+            , floco::version_view   parent_version
+            );
 
     nlohmann::json toJSON() const;
     void           sqlite3Write( sqlite3pp::database & db
@@ -58,14 +83,20 @@ class PeerInfoEnt {
                                , floco::version_view   parent_version
                                ) const;
 
-    friend void from_json( const nlohmann::json & j, PeerInfoEnt & e );
+    friend void from_json( const nlohmann::json & j, PeerInfo & d );
 
-};  /* End `PeerInfoEnt' */
+};  /* End class `PeerInfo' */
 
 
-/* `PeerInfoEnt' <--> JSON */
-void to_json(         nlohmann::json & j, const PeerInfoEnt & e );
-void from_json( const nlohmann::json & j,       PeerInfoEnt & e );
+/* -------------------------------------------------------------------------- */
+
+/* `PeerInfo' <--> JSON */
+void to_json(         nlohmann::json & j, const PeerInfo & e );
+void from_json( const nlohmann::json & j,       PeerInfo & e );
+
+/* `PeerInfo::Ent' <--> JSON */
+void to_json(         nlohmann::json & j, const PeerInfo::Ent & e );
+void from_json( const nlohmann::json & j,       PeerInfo::Ent & e );
 
 
 /* -------------------------------------------------------------------------- */

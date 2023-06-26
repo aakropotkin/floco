@@ -113,7 +113,7 @@ clean: FORCE
 	-$(RM) $(GEN_HEADERS) $(addprefix include/,$(GEN_HEADERS))
 	-$(RM) $(addprefix bin/,$(BINS))
 	-$(RM) $(addprefix lib/,$(LIBS))
-	-$(RM) src/*.o
+	-$(RM) **/*.o
 	-$(RM) result
 	-$(RM) -r $(PREFIX)
 	-$(RM) tests/$(TESTS:.cc=)
@@ -122,7 +122,7 @@ clean: FORCE
 
 # ---------------------------------------------------------------------------- #
 
-src/*.o: $(COMMON_HEADERS) $(addprefix include/,$(GEN_HEADERS))
+src/%.o: $(COMMON_HEADERS) $(addprefix include/,$(GEN_HEADERS))
 
 
 # ---------------------------------------------------------------------------- #

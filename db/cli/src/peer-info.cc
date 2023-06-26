@@ -15,7 +15,7 @@ namespace floco {
 /* -------------------------------------------------------------------------- */
 
   void
-PeerInfoEnt::init( const nlohmann::json & j )
+PeerInfo::Ent::init( const nlohmann::json & j )
 {
   this->optional = false;
   for ( auto & [key, value] : j.items() )
@@ -29,7 +29,7 @@ PeerInfoEnt::init( const nlohmann::json & j )
 /* -------------------------------------------------------------------------- */
 
   nlohmann::json
-PeerInfoEnt::toJSON() const
+PeerInfo::Ent::toJSON() const
 {
   return nlohmann::json {
     { "descriptor", this->descriptor }
@@ -41,13 +41,13 @@ PeerInfoEnt::toJSON() const
 /* -------------------------------------------------------------------------- */
 
   void
-to_json( nlohmann::json & j, const PeerInfoEnt & e )
+to_json( nlohmann::json & j, const PeerInfo::Ent & e )
 {
   j = e.toJSON();
 }
 
   void
-from_json( const nlohmann::json & j, PeerInfoEnt & e )
+from_json( const nlohmann::json & j, PeerInfo::Ent & e )
 {
   e.init( j );
 }
@@ -55,12 +55,11 @@ from_json( const nlohmann::json & j, PeerInfoEnt & e )
 
 /* -------------------------------------------------------------------------- */
 
-PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
-                        , floco::ident_view     parent_ident
-                        , floco::version_view   parent_version
-                        , floco::ident_view     ident
-                        )
-  : ident( ident )
+PeerInfo::Ent::Ent( sqlite3pp::database & db
+                  , floco::ident_view     parent_ident
+                  , floco::version_view   parent_version
+                  , floco::ident_view     ident
+                  )
 {
   sqlite3pp::query cmd( db, R"SQL(
     SELECT descriptor, optional FROM peerInfoEnts
@@ -69,13 +68,13 @@ PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,      sqlite3pp::nocopy );
-  cmd.bind( 2, this->ident, sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 2, std::string( ident ), sqlite3pp::copy   );
   auto rsl = cmd.begin();
   if ( rsl == cmd.end() )
     {
       std::string msg = "No such peerInfoEnt: parent = '" + parent +
-                        "', ident = '" + this->ident + "'.";
+                        "', ident = '" + std::string( ident ) + "'.";
       throw sqlite3pp::database_error( msg.c_str() );
     }
   this->descriptor = std::string( ( * rsl ).get<const char *>( 0 ) );
@@ -86,10 +85,11 @@ PeerInfoEnt::PeerInfoEnt( sqlite3pp::database & db
 /* -------------------------------------------------------------------------- */
 
   void
-PeerInfoEnt::sqlite3Write( sqlite3pp::database & db
-                         , floco::ident_view     parent_ident
-                         , floco::version_view   parent_version
-                         ) const
+PeerInfo::Ent::sqlite3Write( sqlite3pp::database & db
+                           , floco::ident_view     parent_ident
+                           , floco::version_view   parent_version
+                           , floco::ident_view     ident
+                           ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
     INSERT OR REPLACE INTO peerInfoEnts (
@@ -100,11 +100,92 @@ PeerInfoEnt::sqlite3Write( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,           sqlite3pp::nocopy );
-  cmd.bind( 2, this->ident,      sqlite3pp::nocopy );
-  cmd.bind( 3, this->descriptor, sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 2, std::string( ident ), sqlite3pp::copy   );
+  cmd.bind( 3, this->descriptor,     sqlite3pp::nocopy );
   cmd.bind( 4, this->optional );
   cmd.execute();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+PeerInfo::init( const nlohmann::json & j )
+{
+  this->peers.clear();
+  for ( auto & [ident, e] : j.items() )
+    {
+      this->peers.emplace( std::move( ident ), PeerInfo::Ent( e ) );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  nlohmann::json
+PeerInfo::toJSON() const
+{
+  nlohmann::json j = nlohmann::json::object();
+  for ( auto & [ident, e] : this->peers ) { j.emplace( ident, e.toJSON() ); }
+  return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+PeerInfo::PeerInfo( sqlite3pp::database & db
+                  , floco::ident_view     parent_ident
+                  , floco::version_view   parent_version
+                  )
+{
+  sqlite3pp::query cmd( db, R"SQL(
+    SELECT ident, descriptor, optional FROM peerInfoEnts WHERE ( parent = ? )
+  )SQL" );
+  std::string parent( parent_ident );
+  parent += "/";
+  parent += parent_version;
+  cmd.bind( 1, parent, sqlite3pp::nocopy );
+  for ( auto i = cmd.begin(); i != cmd.end(); ++i )
+    {
+      this->peers.emplace(
+        floco::ident( ( * i ).get<const char *>( 0 ) )
+      , PeerInfo::Ent( ( * i ).get<const char *>( 1 )
+                     , ( ( * i ).get<int>( 2 ) != 0 )
+                     )
+      );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+PeerInfo::sqlite3Write( sqlite3pp::database & db
+                      , floco::ident_view     parent_ident
+                      , floco::version_view   parent_version
+                      ) const
+{
+  for ( const auto & [ident, e] : this->peers )
+    {
+      e.sqlite3Write( db, parent_ident, parent_version, ident );
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+to_json( nlohmann::json & j, const PeerInfo & d )
+{
+  j = d.toJSON();
+}
+
+
+  void
+from_json( const nlohmann::json & j, PeerInfo & d )
+{
+  d.init( j );
 }
 
 
