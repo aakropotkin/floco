@@ -11,6 +11,7 @@
 #include <string>                 // for string, basic_string, hash, allocator
 #include "sqlite3pp.h"
 #include "pjs-core.hh"
+#include <unordered_map>
 
 
 /* -------------------------------------------------------------------------- */
@@ -20,45 +21,44 @@ namespace floco {
 
 /* -------------------------------------------------------------------------- */
 
-class SysInfoEngineEnt {
+class SysInfo {
+
+  private:
+    void init( const nlohmann::json & j );
+
   public:
-    std::string            id;
-    std::list<std::string> value = { "*" };
 
-    SysInfoEngineEnt() = default;
+    std::list<std::string>                                  cpu     = { "*" };
+    std::list<std::string>                                  os      = { "*" };
+    std::unordered_map<std::string, std::list<std::string>> engines;
 
-    SysInfoEngineEnt(
-            std::string_view         id
-    , const std::list<std::string> & value
-    ) : id( id ), value( value )
-    {}
+    SysInfo() = default;
 
-    SysInfoEngineEnt(       std::string_view   id
-                    , const nlohmann::json   & j
-                    )
-      : id( id ), value( j )
-    {}
+    SysInfo( const nlohmann::json & j ) { this->init( j ); }
 
-    SysInfoEngineEnt( sqlite3pp::database & db
-                    , floco::ident_view     parent_ident
-                    , floco::version_view   parent_version
-                    , std::string_view      id
-                    );
+    SysInfo( sqlite3pp::database & db
+           , floco::ident_view     parent_ident
+           , floco::version_view   parent_version
+           );
+
+    void sqlite3WriteEngines( sqlite3pp::database & db
+                            , floco::ident_view     parent_ident
+                            , floco::version_view   parent_version
+                            ) const;
+    void sqlite3WriteCore( sqlite3pp::database & db
+                         , floco::ident_view     parent_ident
+                         , floco::version_view   parent_version
+                         ) const;
 
     nlohmann::json toJSON() const;
-    void           sqlite3Write( sqlite3pp::database & db
-                               , floco::ident_view     parent_ident
-                               , floco::version_view   parent_version
-                               ) const;
+    friend void from_json( const nlohmann::json & j, SysInfo & e );
 
-    friend void from_json( const nlohmann::json & j, SysInfoEngineEnt & e );
-
-};  /* End `SysInfoEngineEnt' */
+};  /* End class `SysInfo' */
 
 
-/* `SysInfoEngineEnt' <--> JSON */
-void to_json(         nlohmann::json & j, const SysInfoEngineEnt & e );
-void from_json( const nlohmann::json & j,       SysInfoEngineEnt & e );
+/* `SysInfo' <--> JSON */
+void to_json(         nlohmann::json & j, const SysInfo & e );
+void from_json( const nlohmann::json & j,       SysInfo & e );
 
 
 /* -------------------------------------------------------------------------- */
