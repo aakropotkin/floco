@@ -185,11 +185,11 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
     ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
-  cmd.bind( 1, this->key,     sqlite3pp::copy );
-  cmd.bind( 2, this->ident,   sqlite3pp::copy );
-  cmd.bind( 3, this->version, sqlite3pp::copy );
+  cmd.bind( 1, this->key,     sqlite3pp::nocopy );
+  cmd.bind( 2, this->ident,   sqlite3pp::nocopy );
+  cmd.bind( 3, this->version, sqlite3pp::nocopy );
   cmd.bind( 4, std::string( ltypeToString( this->ltype ) ), sqlite3pp::copy );
-  cmd.bind( 5, this->fetcher, sqlite3pp::copy );
+  cmd.bind( 5, this->fetcher, sqlite3pp::nocopy );
   std::string fetchInfoJSON = this->fetchInfo.dump();
   cmd.bind( 6, fetchInfoJSON, sqlite3pp::copy );
 
@@ -217,7 +217,7 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
       cmd.bind( 10 ); /* null */
     }
 
-  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::copy );
+  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::nocopy );
   cmd.bind( 12, this->fsInfo.gypfile ? 1 : 0 );
   cmd.bind( 13, this->fsInfo.shrinkwrap ? 1 : 0 );
 
@@ -254,8 +254,8 @@ PdefCore::PdefCore( sqlite3pp::database & db
     , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
     FROM pdefs WHERE ( ident = ? ) AND ( version = ? )
     )SQL" );
-    cmd.bind( 1, this->ident,   sqlite3pp::copy );
-    cmd.bind( 2, this->version, sqlite3pp::copy );
+    cmd.bind( 1, this->ident,   sqlite3pp::nocopy );
+    cmd.bind( 2, this->version, sqlite3pp::nocopy );
 
     auto _i = cmd.begin();
     auto i  = * _i;
