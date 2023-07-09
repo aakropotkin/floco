@@ -10,7 +10,6 @@
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
-  namespace db {
 
 /* -------------------------------------------------------------------------- */
 
@@ -32,8 +31,8 @@ SysInfo::init( const nlohmann::json & j )
 /* -------------------------------------------------------------------------- */
 
 SysInfo::SysInfo( sqlite3pp::database & db
-                , floco::ident_view     parent_ident
-                , floco::version_view   parent_version
+                , ident_view            parent_ident
+                , version_view          parent_version
                 )
 {
   sqlite3pp::query coreCmd( db, R"SQL(
@@ -74,8 +73,8 @@ SysInfo::SysInfo( sqlite3pp::database & db
 
   void
 SysInfo::sqlite3WriteEngines( sqlite3pp::database & db
-                            , floco::ident_view     parent_ident
-                            , floco::version_view   parent_version
+                            , ident_view            parent_ident
+                            , version_view          parent_version
                             ) const
 {
   /* We have to copy any fileds that aren't already `std::string' */
@@ -99,8 +98,8 @@ SysInfo::sqlite3WriteEngines( sqlite3pp::database & db
 
   void
 SysInfo::sqlite3WriteCore( sqlite3pp::database & db
-                         , floco::ident_view     parent_ident
-                         , floco::version_view   parent_version
+                         , ident_view            parent_ident
+                         , version_view          parent_version
                          ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
@@ -151,7 +150,6 @@ from_json( const nlohmann::json & j, SysInfo & e )
 
 /* -------------------------------------------------------------------------- */
 
-  }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
 

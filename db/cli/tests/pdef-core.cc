@@ -42,7 +42,7 @@ test_PdefCore_toJSON()
 {
   try
     {
-      floco::db::PdefCore p;
+      floco::PdefCore p;
       p.key       = "lodash/4.17.21";
       p.ident     = "lodash";
       p.version   = "4.17.21";

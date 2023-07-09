@@ -10,7 +10,6 @@
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
-  namespace db {
 
 /* -------------------------------------------------------------------------- */
 
@@ -56,9 +55,9 @@ from_json( const nlohmann::json & j, PeerInfo::Ent & e )
 /* -------------------------------------------------------------------------- */
 
 PeerInfo::Ent::Ent( sqlite3pp::database & db
-                  , floco::ident_view     parent_ident
-                  , floco::version_view   parent_version
-                  , floco::ident_view     ident
+                  , ident_view     parent_ident
+                  , version_view   parent_version
+                  , ident_view     ident
                   )
 {
   sqlite3pp::query cmd( db, R"SQL(
@@ -86,9 +85,9 @@ PeerInfo::Ent::Ent( sqlite3pp::database & db
 
   void
 PeerInfo::Ent::sqlite3Write( sqlite3pp::database & db
-                           , floco::ident_view     parent_ident
-                           , floco::version_view   parent_version
-                           , floco::ident_view     ident
+                           , ident_view     parent_ident
+                           , version_view   parent_version
+                           , ident_view     ident
                            ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
@@ -135,8 +134,8 @@ PeerInfo::toJSON() const
 /* -------------------------------------------------------------------------- */
 
 PeerInfo::PeerInfo( sqlite3pp::database & db
-                  , floco::ident_view     parent_ident
-                  , floco::version_view   parent_version
+                  , ident_view            parent_ident
+                  , version_view          parent_version
                   )
 {
   sqlite3pp::query cmd( db, R"SQL(
@@ -149,7 +148,7 @@ PeerInfo::PeerInfo( sqlite3pp::database & db
   for ( auto i = cmd.begin(); i != cmd.end(); ++i )
     {
       this->peers.emplace(
-        floco::ident( ( * i ).get<const char *>( 0 ) )
+        ident( ( * i ).get<const char *>( 0 ) )
       , PeerInfo::Ent( ( * i ).get<const char *>( 1 )
                      , ( ( * i ).get<int>( 2 ) != 0 )
                      )
@@ -162,8 +161,8 @@ PeerInfo::PeerInfo( sqlite3pp::database & db
 
   void
 PeerInfo::sqlite3Write( sqlite3pp::database & db
-                      , floco::ident_view     parent_ident
-                      , floco::version_view   parent_version
+                      , ident_view            parent_ident
+                      , version_view          parent_version
                       ) const
 {
   for ( const auto & [ident, e] : this->peers )
@@ -191,7 +190,6 @@ from_json( const nlohmann::json & j, PeerInfo & d )
 
 /* -------------------------------------------------------------------------- */
 
-  }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
 

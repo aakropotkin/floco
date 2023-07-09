@@ -44,10 +44,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM( ltype, {
 
 /* -------------------------------------------------------------------------- */
 
-  namespace db {
-
-/* -------------------------------------------------------------------------- */
-
 class PdefCore {
 
   private:
@@ -106,7 +102,6 @@ void to_json(         nlohmann::json & j, const PdefCore & p );
 
 /* -------------------------------------------------------------------------- */
 
-  }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
 

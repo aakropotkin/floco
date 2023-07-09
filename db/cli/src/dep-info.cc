@@ -10,7 +10,6 @@
 /* -------------------------------------------------------------------------- */
 
 namespace floco {
-  namespace db {
 
 /* -------------------------------------------------------------------------- */
 
@@ -62,9 +61,9 @@ from_json( const nlohmann::json & j, DepInfo::Ent & e )
 /* -------------------------------------------------------------------------- */
 
 DepInfo::Ent::Ent( sqlite3pp::database & db
-                 , floco::ident_view     parent_ident
-                 , floco::version_view   parent_version
-                 , floco::ident_view     ident
+                 , ident_view     parent_ident
+                 , version_view   parent_version
+                 , ident_view     ident
                  )
 {
   sqlite3pp::query cmd( db, R"SQL(
@@ -97,9 +96,9 @@ DepInfo::Ent::Ent( sqlite3pp::database & db
 
   void
 DepInfo::Ent::sqlite3Write( sqlite3pp::database & db
-                          , floco::ident_view     parent_ident
-                          , floco::version_view   parent_version
-                          , floco::ident_view     ident
+                          , ident_view     parent_ident
+                          , version_view   parent_version
+                          , ident_view     ident
                           ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
@@ -149,8 +148,8 @@ DepInfo::toJSON() const
 /* -------------------------------------------------------------------------- */
 
 DepInfo::DepInfo( sqlite3pp::database & db
-                , floco::ident_view     parent_ident
-                , floco::version_view   parent_version
+                , ident_view            parent_ident
+                , version_view          parent_version
                 )
 {
   sqlite3pp::query cmd( db, R"SQL(
@@ -164,7 +163,7 @@ DepInfo::DepInfo( sqlite3pp::database & db
   for ( auto i = cmd.begin(); i != cmd.end(); ++i )
     {
       this->deps.emplace(
-        floco::ident( ( * i ).get<const char *>( 0 ) )
+        ident( ( * i ).get<const char *>( 0 ) )
       , DepInfo::Ent( ( * i ).get<const char *>( 1 )
                     , ( ( * i ).get<int>( 2 ) != 0 )
                     , ( ( * i ).get<int>( 3 ) != 0 )
@@ -180,8 +179,8 @@ DepInfo::DepInfo( sqlite3pp::database & db
 
   void
 DepInfo::sqlite3Write( sqlite3pp::database & db
-                     , floco::ident_view     parent_ident
-                     , floco::version_view   parent_version
+                     , ident_view            parent_ident
+                     , version_view          parent_version
                      ) const
 {
   for ( const auto & [ident, e] : this->deps )
@@ -209,7 +208,6 @@ from_json( const nlohmann::json & j, DepInfo & d )
 
 /* -------------------------------------------------------------------------- */
 
-  }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
 
