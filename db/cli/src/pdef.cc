@@ -5,6 +5,7 @@
  *
  * -------------------------------------------------------------------------- */
 
+#include <cassert>
 #include "pdef.hh"
 #include "floco/exception.hh"
 
@@ -234,6 +235,55 @@ PdefCore::sqlite3Write( sqlite3pp::database & db ) const
   this->sysInfo.sqlite3WriteEngines( db, this->ident, this->version );
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+PdefCore::PdefCore( sqlite3pp::database & db
+                  , floco::ident_view     ident
+                  , floco::version_view   version
+                  )
+  : ident( ident ), version( version )
+{
+  {
+    sqlite3pp::query cmd( db, R"SQL(
+      SELECT key, ltype, fetcher, fetchInfo
+    , lifecycle_build, lifecycle_install
+    , binInfo_binDir, binInfo_binPairs
+    , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
+    FROM pdefs WHERE ( ident = ? ) AND ( version = ? )
+    )SQL" );
+    cmd.bind( 1, this->ident,   sqlite3pp::nocopy );
+    cmd.bind( 2, this->version, sqlite3pp::nocopy );
+
+    auto _i = cmd.begin();
+    assert( _i == cmd.end() );
+    auto i = * _i;
+    this->key       = i.get<const char *>( 0 );
+    this->ltype     = parseLtype( i.get<const char *>( 1 ) );
+    this->fetcher   = i.get<const char *>( 2 );
+    this->fetchInfo = nlohmann::json::parse( i.get<const char *>( 3 ) );
+
+    this->lifecycle.build   = i.get<int>( 4 ) != 0;
+    this->lifecycle.install = i.get<int>( 5 ) != 0;
+
+    try { this->binInfo.binDir = i.get<const char *>( 6 ); }
+    catch( ... ) {}
+    try
+      {
+        this->binInfo.binPairs =
+          nlohmann::json::parse( i.get<const char *>( 7 ) );
+      }
+    catch( ... ) {}
+
+    this->fsInfo.dir        = i.get<const char *>( 8 );
+    this->fsInfo.gypfile    = i.get<int>(  9 ) != 0;
+    this->fsInfo.shrinkwrap = i.get<int>( 10 ) != 0;
+  }
+
+  this->depInfo  = DepInfo(  db, this->ident, this->version );
+  this->peerInfo = PeerInfo( db, this->ident, this->version );
+  this->sysInfo  = SysInfo(  db, this->ident, this->version );
+}
 
 
 /* -------------------------------------------------------------------------- */
