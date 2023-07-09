@@ -88,8 +88,8 @@ class PdefCore {
 
     nlohmann::json toJSON() const;
 
-    void sqlite3WriteCore() const;
-    void sqlite3Write()     const;
+    void sqlite3WriteCore( sqlite3pp::database & db ) const;
+    void sqlite3Write(     sqlite3pp::database & db ) const;
 
     friend void from_json( const nlohmann::json & j, PdefCore & p );
 

@@ -173,14 +173,14 @@ to_JSON( nlohmann::json & j, const PdefCore & p )
 /* -------------------------------------------------------------------------- */
 
   void
-PdefCore::sqlite3WriteCore() const
+PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
 {
   // TODO
 }
 
 
   void
-PdefCore::sqlite3Write() const
+PdefCore::sqlite3Write( sqlite3pp::database & db ) const
 {
   // TODO
 }
