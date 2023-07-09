@@ -61,7 +61,7 @@ class PdefCore {
     floco::ltype   ltype   = LT_NONE;
 
     std::string    fetcher   = "composed";
-    nlohmann::json fetchInfo;
+    nlohmann::json fetchInfo = nlohmann::json::object();
 
     struct {
       bool build   = false;
