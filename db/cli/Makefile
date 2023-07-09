@@ -64,7 +64,7 @@ SQL_SCHEMAS    += ../packument.sql
 
 # ---------------------------------------------------------------------------- #
 
-CXXFLAGS     = '-I$(MAKEFILE_DIR)/include'
+CXXFLAGS     = -I$(MAKEFILE_DIR)/include
 lib_CXXFLAGS = -shared -fPIC
 lib_LDFLAGS  = -shared -fPIC -Wl,--no-undefined
 

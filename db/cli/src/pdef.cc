@@ -122,6 +122,36 @@ PdefCore::init( const nlohmann::json & j )
 
 /* -------------------------------------------------------------------------- */
 
+  nlohmann::json
+PdefCore::toJSON() const
+{
+  nlohmann::json j = {
+    { "key", this->key }
+  , { "ident", this->ident }
+  , { "version", this->version }
+  , { "type", this->ltype }
+  };
+  return j;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  void
+from_json( const nlohmann::json & j, PdefCore & p )
+{
+  p.init( j );
+}
+
+  void
+to_JSON( nlohmann::json & j, const PdefCore & p )
+{
+  j = p.toJSON();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 

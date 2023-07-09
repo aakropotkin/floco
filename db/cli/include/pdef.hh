@@ -97,7 +97,7 @@ class PdefCore {
 
     friend void from_json( const nlohmann::json & j, PdefCore & p );
 
-};  /* End class `pdefCore' */
+};  /* End class `PdefCore' */
 
 
 void from_json( const nlohmann::json & j,       PdefCore & p );

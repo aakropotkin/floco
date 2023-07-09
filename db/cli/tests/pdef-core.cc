@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>      // for basic_json
 #include <optional>
 #include <string>                 // for allocator, basic_string, string
-#include "pjs-core.hh"
+#include "pdef.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -38,18 +38,24 @@ struct TestResult {
 /* -------------------------------------------------------------------------- */
 
   TestResult
-test_PjsCore_constructorsRegistry()
+test_PdefCore_toJSON()
 {
   try
     {
-      floco::db::PjsCore p0(
-        (std::string_view) "https://registry.npmjs.org/lodash/4.17.21"
-      );
-      floco::db::PjsCore p1( "lodash", "4.17.21" );
-      if ( p0 != p1 )
+      floco::db::PdefCore p;
+      p.key       = "lodash/4.17.21";
+      p.ident     = "lodash";
+      p.version   = "4.17.21";
+      p.ltype     = floco::LT_FILE;
+      p.fetchInfo = nlohmann::json {
+        { "type", "tarball" }
+      , { "url", "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz" }
+      };
+      nlohmann::json j = p.toJSON();
+      if ( p.key != j["key"] )
         {
           return TestResult(
-            "PjsCore constructors registry URLs produced different results"
+            "PdefCore toJSON failed to match the original key"
           );
         }
     }
@@ -57,7 +63,7 @@ test_PjsCore_constructorsRegistry()
     {
       return TestResult(
         test_status::error
-      , "ERROR: Failed to construct PjsCore(s) from registry fetcher(s)"
+      , "ERROR: Failed to convert PdefCore(s) to JSON"
       );
     }
   return TestResult();
@@ -72,7 +78,7 @@ main( int argc, char * argv[], char ** envp )
   test_status ec = test_status::pass;
   TestResult  rsl( test_status::error );
 
-  rsl = test_PjsCore_constructorsRegistry();
+  rsl = test_PdefCore_toJSON();
 
   if ( rsl.s != test_status::pass )
     {
