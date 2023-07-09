@@ -254,8 +254,8 @@ PdefCore::PdefCore( sqlite3pp::database & db
     cmd.bind( 1, this->ident,   sqlite3pp::nocopy );
     cmd.bind( 2, this->version, sqlite3pp::nocopy );
 
-    auto _i = cmd.begin();
-    auto i  = * _i;
+    auto i = * cmd.begin();
+
     this->key       = i.get<const char *>( 0 );
     this->ltype     = parseLtype( i.get<const char *>( 1 ) );
     this->fetcher   = i.get<const char *>( 2 );
