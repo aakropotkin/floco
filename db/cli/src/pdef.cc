@@ -175,14 +175,63 @@ to_JSON( nlohmann::json & j, const PdefCore & p )
   void
 PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
 {
-  // TODO
+  sqlite3pp::command cmd( db, R"SQL(
+    INSERT OR REPLACE INTO pdefs (
+      key, ident, version, ltype, fetcher, fetchInfo
+    , lifecycle_build, lifecycle_install
+    , binInfo_binDir, binInfo_binPairs
+    , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+  )SQL" );
+  /* We have to copy any fileds that aren't already `std::string' */
+  cmd.bind( 1, this->key,     sqlite3pp::nocopy );
+  cmd.bind( 2, this->ident,   sqlite3pp::nocopy );
+  cmd.bind( 3, this->version, sqlite3pp::nocopy );
+  cmd.bind( 4, std::string( ltypeToString( this->ltype ) ), sqlite3pp::copy );
+  cmd.bind( 5, this->fetcher, sqlite3pp::nocopy );
+  cmd.bind( 6, this->fetchInfo.dump(), sqlite3pp::copy );
+
+  cmd.bind( 7, this->lifecycle.build );
+  cmd.bind( 8, this->lifecycle.install );
+
+  if ( this->binInfo.binDir.has_value() )
+    {
+      cmd.bind( 9, this->binInfo.binDir.value(), sqlite3pp::copy );
+    }
+  else
+    {
+      cmd.bind( 9 ); /* null */
+    }
+
+  if ( this->binInfo.binPairs.has_value() )
+    {
+      cmd.bind( 10
+              , nlohmann::json( this->binInfo.binPairs.value() ).dump()
+              , sqlite3pp::copy
+              );
+    }
+  else
+    {
+      cmd.bind( 10 ); /* null */
+    }
+
+  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::nocopy );
+  cmd.bind( 12, this->fsInfo.gypfile );
+  cmd.bind( 13, this->fsInfo.shrinkwrap );
+
+  cmd.execute();
 }
 
 
   void
 PdefCore::sqlite3Write( sqlite3pp::database & db ) const
 {
-  // TODO
+  this->sqlite3WriteCore( db );
+
+  this->depInfo.sqlite3Write(        db, this->ident, this->version );
+  this->peerInfo.sqlite3Write(       db, this->ident, this->version );
+  this->sysInfo.sqlite3WriteCore(    db, this->ident, this->version );
+  this->sysInfo.sqlite3WriteEngines( db, this->ident, this->version );
 }
 
 
