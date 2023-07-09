@@ -176,6 +176,23 @@ to_JSON( nlohmann::json & j, const PdefCore & p )
 
 /* -------------------------------------------------------------------------- */
 
+  void
+PdefCore::sqlite3WriteCore() const
+{
+  // TODO
+}
+
+
+  void
+PdefCore::sqlite3Write() const
+{
+  // TODO
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::db' */
 }  /* End Namespace `floco' */
 
