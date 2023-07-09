@@ -5,7 +5,6 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include <cassert>
 #include "pdef.hh"
 #include "floco/exception.hh"
 
@@ -256,8 +255,7 @@ PdefCore::PdefCore( sqlite3pp::database & db
     cmd.bind( 2, this->version, sqlite3pp::nocopy );
 
     auto _i = cmd.begin();
-    assert( _i == cmd.end() );
-    auto i = * _i;
+    auto i  = * _i;
     this->key       = i.get<const char *>( 0 );
     this->ltype     = parseLtype( i.get<const char *>( 1 ) );
     this->fetcher   = i.get<const char *>( 2 );
