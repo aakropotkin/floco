@@ -125,11 +125,36 @@ PdefCore::init( const nlohmann::json & j )
   nlohmann::json
 PdefCore::toJSON() const
 {
+  nlohmann::json binInfo = nlohmann::json::object();
+  if ( this->binInfo.binDir.has_value() )
+    {
+      binInfo.emplace( "binDir", this->binInfo.binDir.value() );
+    }
+  if ( this->binInfo.binPairs.has_value() )
+    {
+      binInfo.emplace( "binPairs", this->binInfo.binDir.value() );
+    }
+
   nlohmann::json j = {
-    { "key", this->key }
-  , { "ident", this->ident }
-  , { "version", this->version }
-  , { "type", this->ltype }
+    { "key",       this->key       }
+  , { "ident",     this->ident     }
+  , { "version",   this->version   }
+  , { "type",      this->ltype     }
+  , { "fetcher",   this->fetcher   }
+  , { "fetchInfo", this->fetchInfo }
+  , { "lifecycle", { { "build",   this->lifecycle.build   }
+                   , { "install", this->lifecycle.install }
+                   }
+    }
+  , { "binInfo", std::move( binInfo ) }
+  , { "fsInfo",  { { "dir",        this->fsInfo.dir        }
+                 , { "gypfile",    this->fsInfo.gypfile    }
+                 , { "shrinkwrap", this->fsInfo.shrinkwrap }
+                 }
+    }
+  , { "depInfo",  this->depInfo  }
+  , { "peerInfo", this->peerInfo }
+  , { "sysInfo",  this->sysInfo  }
   };
   return j;
 }
