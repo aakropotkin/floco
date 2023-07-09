@@ -135,7 +135,7 @@ PdefCore::toJSON() const
       binInfo.emplace( "binPairs", this->binInfo.binDir.value() );
     }
 
-  nlohmann::json j = {
+  return {
     { "key",       this->key       }
   , { "ident",     this->ident     }
   , { "version",   this->version   }
@@ -156,7 +156,6 @@ PdefCore::toJSON() const
   , { "peerInfo", this->peerInfo }
   , { "sysInfo",  this->sysInfo  }
   };
-  return j;
 }
 
 
