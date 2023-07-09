@@ -263,8 +263,8 @@ PdefCore::PdefCore( sqlite3pp::database & db
     this->key       = i.get<const char *>( 0 );
     this->ltype     = parseLtype( i.get<const char *>( 1 ) );
     this->fetcher   = i.get<const char *>( 2 );
-    std::string fi = i.get<const char *>( 3 );
-    this->fetchInfo = nlohmann::json::parse( i.get<const char *>( 3 ) );
+    std::string fi  = i.get<const char *>( 3 );
+    this->fetchInfo = nlohmann::json::parse( std::move( fi ) );
 
     this->lifecycle.build   = i.get<int>( 4 ) != 0;
     this->lifecycle.install = i.get<int>( 5 ) != 0;
@@ -277,7 +277,7 @@ PdefCore::PdefCore( sqlite3pp::database & db
     try
       {
         std::string bps = i.get<const char *>( 7 );
-        this->binInfo.binPairs = nlohmann::json::parse( bps );
+        this->binInfo.binPairs = nlohmann::json::parse( std::move( bps ) );
       }
     catch( ... )
       {
