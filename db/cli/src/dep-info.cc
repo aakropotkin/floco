@@ -73,7 +73,7 @@ DepInfo::Ent::Ent( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::copy );
   cmd.bind( 2, std::string( ident ), sqlite3pp::copy );
   auto rsl = cmd.begin();
   if ( rsl == cmd.end() )
@@ -110,14 +110,14 @@ DepInfo::Ent::sqlite3Write( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::copy );
   cmd.bind( 2, std::string( ident ), sqlite3pp::copy );
-  cmd.bind( 3, this->descriptor,     sqlite3pp::nocopy );
+  cmd.bind( 3, this->descriptor,     sqlite3pp::copy );
   cmd.bind( 4, this->runtime()  );
   cmd.bind( 5, this->dev()      );
   cmd.bind( 6, this->optional() );
   cmd.bind( 7, this->bundled()  );
-  cmd.execute();
+  cmd.execute_all();
 }
 
 
@@ -159,7 +159,7 @@ DepInfo::DepInfo( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent, sqlite3pp::nocopy );
+  cmd.bind( 1, parent, sqlite3pp::copy );
   for ( auto i = cmd.begin(); i != cmd.end(); ++i )
     {
       this->deps.emplace(

@@ -67,7 +67,7 @@ PeerInfo::Ent::Ent( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,               sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::copy );
   cmd.bind( 2, std::string( ident ), sqlite3pp::copy   );
   auto rsl = cmd.begin();
   if ( rsl == cmd.end() )
@@ -99,11 +99,11 @@ PeerInfo::Ent::sqlite3Write( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent,               sqlite3pp::nocopy );
-  cmd.bind( 2, std::string( ident ), sqlite3pp::copy   );
-  cmd.bind( 3, this->descriptor,     sqlite3pp::nocopy );
+  cmd.bind( 1, parent,               sqlite3pp::copy );
+  cmd.bind( 2, std::string( ident ), sqlite3pp::copy );
+  cmd.bind( 3, this->descriptor,     sqlite3pp::copy );
   cmd.bind( 4, this->optional );
-  cmd.execute();
+  cmd.execute_all();
 }
 
 
@@ -144,7 +144,7 @@ PeerInfo::PeerInfo( sqlite3pp::database & db
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
-  cmd.bind( 1, parent, sqlite3pp::nocopy );
+  cmd.bind( 1, parent, sqlite3pp::copy );
   for ( auto i = cmd.begin(); i != cmd.end(); ++i )
     {
       this->peers.emplace(

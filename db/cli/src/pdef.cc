@@ -7,6 +7,7 @@
 
 #include "pdef.hh"
 #include "floco/exception.hh"
+#include "floco-sql.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -184,15 +185,16 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
     ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
-  cmd.bind( 1, this->key,     sqlite3pp::nocopy );
-  cmd.bind( 2, this->ident,   sqlite3pp::nocopy );
-  cmd.bind( 3, this->version, sqlite3pp::nocopy );
+  cmd.bind( 1, this->key,     sqlite3pp::copy );
+  cmd.bind( 2, this->ident,   sqlite3pp::copy );
+  cmd.bind( 3, this->version, sqlite3pp::copy );
   cmd.bind( 4, std::string( ltypeToString( this->ltype ) ), sqlite3pp::copy );
-  cmd.bind( 5, this->fetcher, sqlite3pp::nocopy );
-  cmd.bind( 6, this->fetchInfo.dump(), sqlite3pp::copy );
+  cmd.bind( 5, this->fetcher, sqlite3pp::copy );
+  std::string fetchInfoJSON = this->fetchInfo.dump();
+  cmd.bind( 6, fetchInfoJSON, sqlite3pp::copy );
 
-  cmd.bind( 7, this->lifecycle.build );
-  cmd.bind( 8, this->lifecycle.install );
+  cmd.bind( 7, this->lifecycle.build ? 1 : 0 );
+  cmd.bind( 8, this->lifecycle.install ? 1 : 0 );
 
   if ( this->binInfo.binDir.has_value() )
     {
@@ -215,17 +217,18 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
       cmd.bind( 10 ); /* null */
     }
 
-  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::nocopy );
-  cmd.bind( 12, this->fsInfo.gypfile );
-  cmd.bind( 13, this->fsInfo.shrinkwrap );
+  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::copy );
+  cmd.bind( 12, this->fsInfo.gypfile ? 1 : 0 );
+  cmd.bind( 13, this->fsInfo.shrinkwrap ? 1 : 0 );
 
-  cmd.execute();
+  cmd.execute_all();
 }
 
 
   void
 PdefCore::sqlite3Write( sqlite3pp::database & db ) const
 {
+  db.execute( pdefsSchemaSQL );
   this->sqlite3WriteCore( db );
 
   this->depInfo.sqlite3Write(        db, this->ident, this->version );
@@ -251,33 +254,39 @@ PdefCore::PdefCore( sqlite3pp::database & db
     , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
     FROM pdefs WHERE ( ident = ? ) AND ( version = ? )
     )SQL" );
-    cmd.bind( 1, this->ident,   sqlite3pp::nocopy );
-    cmd.bind( 2, this->version, sqlite3pp::nocopy );
+    cmd.bind( 1, this->ident,   sqlite3pp::copy );
+    cmd.bind( 2, this->version, sqlite3pp::copy );
 
-    auto i = * cmd.begin();
+    auto _i = cmd.begin();
+    auto i  = * _i;
 
     this->key       = i.get<const char *>( 0 );
     this->ltype     = parseLtype( i.get<const char *>( 1 ) );
     this->fetcher   = i.get<const char *>( 2 );
+    std::string fi = i.get<const char *>( 3 );
     this->fetchInfo = nlohmann::json::parse( i.get<const char *>( 3 ) );
 
     this->lifecycle.build   = i.get<int>( 4 ) != 0;
     this->lifecycle.install = i.get<int>( 5 ) != 0;
 
     try { this->binInfo.binDir = i.get<const char *>( 6 ); }
-    catch( ... ) {}
+    catch( ... )
+      {
+        this->binInfo.binDir = std::nullopt;
+      }
     try
       {
-        this->binInfo.binPairs =
-          nlohmann::json::parse( i.get<const char *>( 7 ) );
+        std::string bps = i.get<const char *>( 7 );
+        this->binInfo.binPairs = nlohmann::json::parse( bps );
       }
-    catch( ... ) {}
-
+    catch( ... )
+      {
+        this->binInfo.binPairs = std::nullopt;
+      }
     this->fsInfo.dir        = i.get<const char *>( 8 );
     this->fsInfo.gypfile    = i.get<int>(  9 ) != 0;
     this->fsInfo.shrinkwrap = i.get<int>( 10 ) != 0;
   }
-
   this->depInfo  = DepInfo(  db, this->ident, this->version );
   this->peerInfo = PeerInfo( db, this->ident, this->version );
   this->sysInfo  = SysInfo(  db, this->ident, this->version );

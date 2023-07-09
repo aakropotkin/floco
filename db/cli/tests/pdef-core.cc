@@ -4,6 +4,8 @@
  *
  * -------------------------------------------------------------------------- */
 
+#include <cstdio>
+#include <filesystem>
 #include <stddef.h>               // for NULL
 #include <iostream>               // for operator<<, endl, basic_ostream
 #include <nlohmann/json.hpp>      // for basic_json
@@ -38,7 +40,7 @@ struct TestResult {
 /* -------------------------------------------------------------------------- */
 
   TestResult
-test_PdefCore_toJSON()
+test_PdefCore_toJSON1()
 {
   try
     {
@@ -72,21 +74,78 @@ test_PdefCore_toJSON()
 
 /* -------------------------------------------------------------------------- */
 
+  TestResult
+test_PdefCore_sqlite3Write1()
+{
+  const char * dbPath = std::tmpnam( nullptr );
+  try
+    {
+      sqlite3pp::database db( dbPath );
+
+      floco::PdefCore p0;
+      p0.key       = "lodash/4.17.21";
+      p0.ident     = "lodash";
+      p0.version   = "4.17.21";
+      p0.ltype     = floco::LT_FILE;
+      p0.fetchInfo = nlohmann::json {
+        { "type", "tarball" }
+      , { "url", "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz" }
+      };
+      p0.sqlite3Write( db );
+      floco::PdefCore p1( db, "lodash", "4.17.21" );
+
+      if ( p0.key != p1.key )
+        {
+          std::filesystem::remove( dbPath );
+          return TestResult(
+            "PdefCore <--> SQL failed to match the original key"
+          );
+        }
+
+    }
+  catch( std::exception & e )
+    {
+      std::cerr << e.what() << std::endl;
+      std::filesystem::remove( dbPath );
+      return TestResult(
+        test_status::error
+      , "ERROR: Failed to convert PdefCore(s) to SQL"
+      );
+    }
+  catch( ... )
+    {
+      std::cerr << "Unrecognized error" << std::endl;
+      std::filesystem::remove( dbPath );
+      return TestResult(
+        test_status::error
+      , "ERROR: Failed to convert PdefCore(s) to SQL"
+      );
+    }
+  std::filesystem::remove( dbPath );
+  return TestResult();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   int
 main( int argc, char * argv[], char ** envp )
 {
   test_status ec = test_status::pass;
   TestResult  rsl( test_status::error );
 
-  rsl = test_PdefCore_toJSON();
-
+  rsl = test_PdefCore_toJSON1();
   if ( rsl.s != test_status::pass )
     {
       std::cerr << rsl.msg << std::endl;
-      if ( ec != test_status::error )
-        {
-          ec = test_status::fail;
-        }
+      if ( ec != test_status::error ) { ec = test_status::fail; }
+    }
+
+  rsl = test_PdefCore_sqlite3Write1();
+  if ( rsl.s != test_status::pass )
+    {
+      std::cerr << rsl.msg << std::endl;
+      if ( ec != test_status::error ) { ec = test_status::fail; }
     }
 
   return (int) ec;

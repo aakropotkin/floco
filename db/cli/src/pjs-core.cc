@@ -102,8 +102,8 @@ PjsCore::PjsCore( sqlite3pp::database & db
     , os, cpu, engines
     FROM PjsCore WHERE ( name = ? ) AND ( version = ? )
   )SQL" );
-  cmd.bind( 1, this->name,    sqlite3pp::nocopy );
-  cmd.bind( 2, this->version, sqlite3pp::nocopy );
+  cmd.bind( 1, this->name,    sqlite3pp::copy );
+  cmd.bind( 2, this->version, sqlite3pp::copy );
   auto _rsl = cmd.begin();
   if ( _rsl == cmd.end() )
     {
@@ -144,17 +144,17 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
     ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
-  cmd.bind(  1, this->name,                        sqlite3pp::nocopy );
-  cmd.bind(  2, this->version,                     sqlite3pp::nocopy );
-  cmd.bind(  3, this->bin.dump(),                  sqlite3pp::copy   );
-  cmd.bind(  4, this->dependencies.dump(),         sqlite3pp::copy   );
-  cmd.bind(  5, this->devDependencies.dump(),      sqlite3pp::copy   );
-  cmd.bind(  6, this->devDependenciesMeta.dump(),  sqlite3pp::copy   );
-  cmd.bind(  7, this->peerDependencies.dump(),     sqlite3pp::copy   );
-  cmd.bind(  8, this->peerDependenciesMeta.dump(), sqlite3pp::copy   );
-  cmd.bind(  9, this->os.dump(),                   sqlite3pp::copy   );
-  cmd.bind( 10, this->cpu.dump(),                  sqlite3pp::copy   );
-  cmd.bind( 11, this->engines.dump(),              sqlite3pp::copy   );
+  cmd.bind(  1, this->name,                        sqlite3pp::copy );
+  cmd.bind(  2, this->version,                     sqlite3pp::copy );
+  cmd.bind(  3, this->bin.dump(),                  sqlite3pp::copy );
+  cmd.bind(  4, this->dependencies.dump(),         sqlite3pp::copy );
+  cmd.bind(  5, this->devDependencies.dump(),      sqlite3pp::copy );
+  cmd.bind(  6, this->devDependenciesMeta.dump(),  sqlite3pp::copy );
+  cmd.bind(  7, this->peerDependencies.dump(),     sqlite3pp::copy );
+  cmd.bind(  8, this->peerDependenciesMeta.dump(), sqlite3pp::copy );
+  cmd.bind(  9, this->os.dump(),                   sqlite3pp::copy );
+  cmd.bind( 10, this->cpu.dump(),                  sqlite3pp::copy );
+  cmd.bind( 11, this->engines.dump(),              sqlite3pp::copy );
   cmd.execute();
 }
 

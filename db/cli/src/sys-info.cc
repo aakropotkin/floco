@@ -36,7 +36,8 @@ SysInfo::SysInfo( sqlite3pp::database & db
                 )
 {
   sqlite3pp::query coreCmd( db, R"SQL(
-    SELECT sysInfo_cpu, sysInfo_os FROM pdefs WHERE ( parent = ? )
+    SELECT sysInfo_cpu, sysInfo_os FROM pdefs
+    WHERE ( ident = ? ) AND ( version = ? )
   )SQL" );
   sqlite3pp::query engsCmd( db, R"SQL(
     SELECT id, value FROM sysInfoEngineEnts WHERE ( parent = ? )
@@ -46,8 +47,9 @@ SysInfo::SysInfo( sqlite3pp::database & db
   parent += "/";
   parent += parent_version;
 
-  coreCmd.bind( 1, parent, sqlite3pp::nocopy );
-  engsCmd.bind( 1, parent, sqlite3pp::nocopy );
+  coreCmd.bind( 1, std::string( parent_ident ),   sqlite3pp::copy );
+  coreCmd.bind( 2, std::string( parent_version ), sqlite3pp::copy );
+  engsCmd.bind( 1, parent,                        sqlite3pp::copy );
 
   auto rsl = coreCmd.begin();
   if ( rsl == coreCmd.end() )
@@ -88,10 +90,10 @@ SysInfo::sqlite3WriteEngines( sqlite3pp::database & db
           parent, id, value
         ) VALUES ( ?, ?, ? )
       )SQL" );
-      cmd.bind( 1, parent,                         sqlite3pp::nocopy );
-      cmd.bind( 2, id,                             sqlite3pp::nocopy );
+      cmd.bind( 1, parent,                         sqlite3pp::copy );
+      cmd.bind( 2, id,                             sqlite3pp::copy );
       cmd.bind( 3, nlohmann::json( value ).dump(), sqlite3pp::copy );
-      cmd.execute();
+      cmd.execute_all();
     }
 }
 
@@ -104,19 +106,18 @@ SysInfo::sqlite3WriteCore( sqlite3pp::database & db
 {
   sqlite3pp::command cmd( db, R"SQL(
     INSERT OR REPLACE INTO pdefs (
-      key, ident, version, sysInfo_cpu, sysInfo_os
-    ) VALUES ( ?, ?, ?, ?, ? )
+      ident, version, sysInfo_cpu, sysInfo_os
+    ) VALUES ( ?, ?, ?, ? )
   )SQL" );
   std::string parent( parent_ident );
   parent += "/";
   parent += parent_version;
   /* We have to copy any fileds that aren't already `std::string' */
-  cmd.bind( 1, parent,                             sqlite3pp::nocopy );
-  cmd.bind( 2, std::string( parent_ident ),        sqlite3pp::nocopy );
-  cmd.bind( 3, std::string( parent_version ),      sqlite3pp::nocopy );
-  cmd.bind( 4, nlohmann::json( this->cpu ).dump(), sqlite3pp::copy   );
-  cmd.bind( 5, nlohmann::json( this->os ).dump(),  sqlite3pp::copy   );
-  cmd.execute();
+  cmd.bind( 1, std::string( parent_ident ),        sqlite3pp::copy );
+  cmd.bind( 2, std::string( parent_version ),      sqlite3pp::copy );
+  cmd.bind( 3, nlohmann::json( this->cpu ).dump(), sqlite3pp::copy   );
+  cmd.bind( 4, nlohmann::json( this->os ).dump(),  sqlite3pp::copy   );
+  cmd.execute_all();
 }
 
 
