@@ -113,9 +113,9 @@ PdefCore::init( const nlohmann::json & j )
             }
         }
 
-      if ( key == "depInfo" )  { from_json( value, this->depInfo );  }
-      if ( key == "peerInfo" ) { from_json( value, this->peerInfo ); }
-      if ( key == "sysInfo" )  { from_json( value, this->sysInfo );  }
+      if ( key == "depInfo" )  { this->depInfo  = value; }
+      if ( key == "peerInfo" ) { this->peerInfo = value; }
+      if ( key == "sysInfo" )  { this->sysInfo  = value; }
     }
 }
 
