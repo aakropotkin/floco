@@ -39,6 +39,7 @@
   , peerDependencies
   , peerDependenciesMeta
   , optionalDependencies
+  , bundledDependencies
   , requires
   , os
   , cpu
