@@ -86,6 +86,12 @@ class PdefCore {
             , floco::version_view   version
             );
 
+    PdefCore( const db::PjsCore & pjs  );
+    PdefCore(       db::PjsCore && pjs );
+
+    PdefCore & operator=(       db::PjsCore && pjs );
+    PdefCore & operator=( const db::PjsCore &  pjs );
+
     nlohmann::json toJSON() const;
 
     void sqlite3WriteCore( sqlite3pp::database & db ) const;

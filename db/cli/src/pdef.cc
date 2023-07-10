@@ -295,6 +295,38 @@ PdefCore::PdefCore( sqlite3pp::database & db
 
 /* -------------------------------------------------------------------------- */
 
+PdefCore::PdefCore( const db::PjsCore & pjs )
+  : ident( pjs.name )
+  , version( pjs.version )
+  , key( pjs.name + "/" + pjs.version )
+{
+}
+
+PdefCore::PdefCore( db::PjsCore && pjs )
+{
+
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  PdefCore &
+PdefCore::operator=( db::PjsCore && pjs )
+{
+
+  return * this;
+}
+
+  PdefCore &
+PdefCore::operator=( const db::PjsCore &  pjs )
+{
+
+  return * this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 }  /* End Namespace `floco' */
 
 
