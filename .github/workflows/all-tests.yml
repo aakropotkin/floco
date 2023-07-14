@@ -44,10 +44,9 @@ jobs:
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     steps:
       - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@11f4ad19be46fd34c005a2864996d8f197fb51c6
+      - uses: cachix/install-nix-action@v22
         with:
-          install_url: https://releases.nixos.org/nix/nix-2.13.3/install
-          nix_path: nixpkgs=channel:nixpkgs-22.05
+          nix_path: nixpkgs=channel:nixpkgs-23.05
           extra_nix_config: |
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
