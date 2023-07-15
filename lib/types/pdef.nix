@@ -45,9 +45,7 @@
 
 
   sysOsList = let
-    base = [
-      "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess" "win32"
-    ];
+    base = ["darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess" "win32"];
   in ["*" "unknown"] ++ base ++ ( map ( s: "!" + s ) base );
 
   sysOssType = let
@@ -73,9 +71,7 @@
 
 
   sysCpuList = let
-    base = [
-      "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel" "riscv64"
-    ];
+    base = ["x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel" "riscv64"];
   in ["*" "unknown"] ++ base ++ ( map ( s: "!" + s ) base );
 
   sysCpusType = let
