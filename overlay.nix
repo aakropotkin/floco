@@ -60,4 +60,6 @@ final: prev: {
     pkgsFor = final;
   } );
 
+  db = final.callPackage ./db/cli {};
+
 }

@@ -98,6 +98,7 @@
         semver
         pacote
         arborist
+        db
       ;
       default = pkgsFor.floco;
     } );

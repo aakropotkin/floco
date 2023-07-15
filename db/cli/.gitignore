@@ -5,3 +5,4 @@ packument
 libflocodb.*
 gmon.out
 doc
+*.o

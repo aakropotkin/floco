@@ -218,7 +218,7 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
     }
 
   cmd.bind( 11, this->fsInfo.dir, sqlite3pp::nocopy );
-  cmd.bind( 12, this->fsInfo.gypfile ? 1 : 0 );
+  cmd.bind( 12, this->fsInfo.gypfile    ? 1 : 0 );
   cmd.bind( 13, this->fsInfo.shrinkwrap ? 1 : 0 );
 
   cmd.execute_all();
@@ -269,11 +269,9 @@ PdefCore::PdefCore( sqlite3pp::database & db
     this->lifecycle.build   = i.get<int>( 4 ) != 0;
     this->lifecycle.install = i.get<int>( 5 ) != 0;
 
-    try { this->binInfo.binDir = i.get<const char *>( 6 ); }
-    catch( ... )
-      {
-        this->binInfo.binDir = std::nullopt;
-      }
+    try          { this->binInfo.binDir = i.get<const char *>( 6 ); }
+    catch( ... ) { this->binInfo.binDir = std::nullopt;             }
+
     try
       {
         std::string bps = i.get<const char *>( 7 );
@@ -283,10 +281,12 @@ PdefCore::PdefCore( sqlite3pp::database & db
       {
         this->binInfo.binPairs = std::nullopt;
       }
+
     this->fsInfo.dir        = i.get<const char *>( 8 );
     this->fsInfo.gypfile    = i.get<int>(  9 ) != 0;
     this->fsInfo.shrinkwrap = i.get<int>( 10 ) != 0;
   }
+
   this->depInfo  = DepInfo(  db, this->ident, this->version );
   this->peerInfo = PeerInfo( db, this->ident, this->version );
   this->sysInfo  = SysInfo(  db, this->ident, this->version );
@@ -299,12 +299,43 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
   : ident( pjs.name )
   , version( pjs.version )
   , key( pjs.name + "/" + pjs.version )
+  , fetcher( "unknown" )
 {
+  // TODO
+  // DepInfo
+  // PeerInfo
+
+  if ( pjs.bin.is_string() )
+    {
+      /* Could be either a directory or path to a `.js' file. */
+      if ( size_t l = pjs.bin.size();
+           ( 3 < l                 ) &&
+           ( pjs.bin[l - 3] == '.' ) &&
+           ( pjs.bin[l - 2] == 'j' ) &&
+           ( pjs.bin[l - 1] == 's' )
+         )
+        {
+          this->binInfo.binPairs = { { pjs.name, pjs.bin } };
+        }
+      else
+        {
+          this->binInfo.binDir = pjs.bin;
+        }
+    }
+  else
+    {
+      assert( pjs.bin.is_object() );  // TODO: throw
+      this->binInfo.binPairs = pjs.bin;
+    }
+
+  this->sysInfo.cpu     = pjs.cpu;
+  this->sysInfo.os      = pjs.os;
+  this->sysInfo.engines = pjs.engines;
 }
 
 PdefCore::PdefCore( db::PjsCore && pjs )
 {
-
+  // TODO
 }
 
 
@@ -313,14 +344,14 @@ PdefCore::PdefCore( db::PjsCore && pjs )
   PdefCore &
 PdefCore::operator=( db::PjsCore && pjs )
 {
-
+  // TODO
   return * this;
 }
 
   PdefCore &
 PdefCore::operator=( const db::PjsCore &  pjs )
 {
-
+  // TODO
   return * this;
 }
 

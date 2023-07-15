@@ -55,9 +55,12 @@ class PjsCore {
     nlohmann::json devDependenciesMeta  = nlohmann::json::object();
     nlohmann::json peerDependencies     = nlohmann::json::object();
     nlohmann::json peerDependenciesMeta = nlohmann::json::object();
-    nlohmann::json os                   = nlohmann::json::array( { "*" } );
     nlohmann::json cpu                  = nlohmann::json::array( { "*" } );
+    nlohmann::json os                   = nlohmann::json::array( { "*" } );
     nlohmann::json engines              = nlohmann::json::object();
+
+    // TODO: optionalDependencies
+    // TODO: bundledDependencies/bundleDependencies
 
     PjsCore() {}
 

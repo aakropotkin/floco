@@ -177,6 +177,51 @@ DepInfo::DepInfo( sqlite3pp::database & db
 
 /* -------------------------------------------------------------------------- */
 
+DepInfo::DepInfo( const db::PjsCore & pjs )
+{
+  auto madd = [&]( std::string_view ident )
+  {
+    std::string i( ident );
+    if ( this->deps.find( i ) != this->deps.end() )
+      {
+        this->deps.emplace( std::move( i ), DepInfo::Ent() );
+      }
+  };
+
+  for ( const auto & [ident, descriptor] : pjs.dependencies.items() )
+    {
+      madd( ident );
+      this->deps.at( ident ).descriptor = descriptor;
+      this->deps.at( ident )._flags.set( 0, true );
+    }
+
+  for ( const auto & [ident, descriptor] : pjs.devDependencies.items() )
+    {
+      madd( ident );
+      this->deps.at( ident ).descriptor = descriptor;
+      this->deps.at( ident )._flags.set( 1, true );
+    }
+
+  for ( const auto & [ident, meta] : pjs.devDependenciesMeta.items() )
+    {
+      madd( ident );
+      for ( const auto & [key, value] : meta.items() )
+        {
+          if ( key == "optional" )
+            {
+              this->deps.at( ident )._flags.set( 2, true );
+            }
+        }
+      this->deps.at( ident )._flags.set( 1, true );
+    }
+
+  // TODO: optionalDependencies
+  // TODO: bundledDependencies
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 DepInfo::sqlite3Write( sqlite3pp::database & db
                      , ident_view            parent_ident

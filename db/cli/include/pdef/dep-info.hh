@@ -30,6 +30,7 @@ class DepInfo {
 /* -------------------------------------------------------------------------- */
 
     class Ent {
+      friend class DepInfo;
       private:
         /** runtime, dev, optional, bundled */
         std::bitset<4> _flags = 0b0100;
@@ -52,7 +53,7 @@ class DepInfo {
 
         Ent() = default;
 
-        Ent( floco::descriptor_view descriptor = "*"
+        Ent( floco::descriptor_view descriptor
            , bool                   runtime    = false
            , bool                   dev        = true
            , bool                   optional   = false
@@ -98,6 +99,12 @@ class DepInfo {
            , floco::ident_view     parent_ident
            , floco::version_view   parent_version
            );
+    DepInfo( const db::PjsCore &  pjs );
+    // TODO:
+    //DepInfo(       db::PjsCore && pjs );
+
+    //DepInfo & operator=( const db::PjsCore &  pjs );
+    //DepInfo & operator=(       db::PjsCore && pjs );
 
     nlohmann::json toJSON() const;
     void           sqlite3Write( sqlite3pp::database & db
