@@ -6,6 +6,7 @@
 
 { lib }: {
 
+  # FIXME: this doesn't handle `!<PART>' properly.
   checkSystemSupportFor = config: {
     stdenv   ? throw "checkSystemSupport: You must pass an arg"
   , platform ? stdenv.hostPlatform
@@ -15,7 +16,7 @@
       archPart = builtins.head m;
       archOk   = let
         hasStar  = builtins.elem "*" config.sysInfo.cpu;
-        pn       = builtins.partition ( lib.hasPrefix "!" ) config.system.cpu;
+        pn       = builtins.partition ( lib.hasPrefix "!" ) config.sysInfo.cpu;
         hasMatch = builtins.elem archPart pn.wrong;
         hasNope  = builtins.elem ( "!" + archPart ) pn.right;
         pred     = assert ( ( builtins.length pn.right ) == 0 ) ||
@@ -26,7 +27,7 @@
       osPart = builtins.elemAt m 1;
       osOk   = let
         hasStar  = builtins.elem "*" config.sysInfo.os;
-        pn       = builtins.partition ( lib.hasPrefix "!" ) config.system.os;
+        pn       = builtins.partition ( lib.hasPrefix "!" ) config.sysInfo.os;
         hasMatch = builtins.elem archPart pn.wrong;
         hasNope  = builtins.elem ( "!" + archPart ) pn.right;
         pred     = assert ( ( builtins.length pn.right ) == 0 ) ||
