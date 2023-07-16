@@ -215,8 +215,41 @@ DepInfo::DepInfo( const db::PjsCore & pjs )
       this->deps.at( ident )._flags.set( 1, true );
     }
 
-  // TODO: optionalDependencies
-  // TODO: bundledDependencies
+  for ( const auto & [ident, descriptor] : pjs.optionalDependencies.items() )
+    {
+      madd( ident );
+      this->deps.at( ident ).descriptor = descriptor;
+      this->deps.at( ident )._flags.set( 0, true );
+      this->deps.at( ident )._flags.set( 3, true );
+    }
+
+  if ( pjs.bundledDependencies.is_array() )
+    {
+      for ( const auto & ident :
+              (std::vector<std::string>) pjs.bundledDependencies
+          )
+        {
+          madd( ident );
+          this->deps.at( ident )._flags.set( 0, true );
+          this->deps.at( ident )._flags.set( 4, true );
+        }
+    }
+  else if ( pjs.bundledDependencies.is_boolean() )
+   {
+     if ( pjs.bundledDependencies )
+       {
+         for ( auto & [ident, ent] : this->deps )
+           {
+             if ( ent.runtime() ) { ent._flags.set( 4, true ); }
+           }
+       }
+    }
+  else
+    {
+      throw ( "Unexpected bundledDependencies type: " +
+              std::string( pjs.bundledDependencies.type_name() )
+            );
+    }
 }
 
 

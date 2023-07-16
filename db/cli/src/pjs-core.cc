@@ -64,6 +64,14 @@ PjsCore::init( const nlohmann::json & json )
         {
           this->peerDependenciesMeta = std::move( value );
         }
+      else if ( key == "optionalDependencies" )
+        {
+          this->optionalDependencies = std::move( value );
+        }
+      else if ( key == "bundledDependencies" )
+        {
+          this->bundledDependencies = std::move( value );
+        }
     }
 }
 
@@ -99,6 +107,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
       bin
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta
+    , optionalDependencies, bundledDependencies
     , os, cpu, engines
     FROM PjsCore WHERE ( name = ? ) AND ( version = ? )
   )SQL" );
@@ -124,9 +133,15 @@ PjsCore::PjsCore( sqlite3pp::database & db
   this->peerDependenciesMeta =
     nlohmann::json::parse( rsl.get<const char *>( 5 ) );
 
-  this->os      = nlohmann::json::parse( rsl.get<const char *>( 6 ) );
-  this->cpu     = nlohmann::json::parse( rsl.get<const char *>( 7 ) );
-  this->engines = nlohmann::json::parse( rsl.get<const char *>( 8 ) );
+  this->optionalDependencies =
+    nlohmann::json::parse( rsl.get<const char *>( 6 ) );
+
+  this->bundledDependencies =
+    nlohmann::json::parse( rsl.get<const char *>( 7 ) );
+
+  this->os      = nlohmann::json::parse( rsl.get<const char *>(  8 ) );
+  this->cpu     = nlohmann::json::parse( rsl.get<const char *>(  9 ) );
+  this->engines = nlohmann::json::parse( rsl.get<const char *>( 10 ) );
 }
 
 
@@ -140,8 +155,9 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
       name, version, bin
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta
+    , optionalDependencies, bundledDependencies
     , os, cpu, engines
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
   cmd.bind(  1, this->name,                        sqlite3pp::copy );
@@ -152,9 +168,11 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
   cmd.bind(  6, this->devDependenciesMeta.dump(),  sqlite3pp::copy );
   cmd.bind(  7, this->peerDependencies.dump(),     sqlite3pp::copy );
   cmd.bind(  8, this->peerDependenciesMeta.dump(), sqlite3pp::copy );
-  cmd.bind(  9, this->os.dump(),                   sqlite3pp::copy );
-  cmd.bind( 10, this->cpu.dump(),                  sqlite3pp::copy );
-  cmd.bind( 11, this->engines.dump(),              sqlite3pp::copy );
+  cmd.bind(  9, this->optionalDependencies.dump(), sqlite3pp::copy );
+  cmd.bind( 10, this->bundledDependencies.dump(),  sqlite3pp::copy );
+  cmd.bind( 11, this->os.dump(),                   sqlite3pp::copy );
+  cmd.bind( 12, this->cpu.dump(),                  sqlite3pp::copy );
+  cmd.bind( 13, this->engines.dump(),              sqlite3pp::copy );
   cmd.execute();
 }
 
@@ -173,6 +191,8 @@ PjsCore::toJSON() const
   , { "devDependenciesMeta",  this->devDependenciesMeta  }
   , { "peerDependencies",     this->peerDependencies     }
   , { "peerDependenciesMeta", this->peerDependenciesMeta }
+  , { "optionalDependencies", this->optionalDependencies }
+  , { "bundledDependencies",  this->bundledDependencies  }
   , { "os",                   this->os                   }
   , { "cpu",                  this->cpu                  }
   , { "engines",              this->engines              }
@@ -194,6 +214,8 @@ PjsCore::operator==( const PjsCore & other ) const
     ( this->devDependenciesMeta  == other.devDependenciesMeta  ) &&
     ( this->peerDependencies     == other.peerDependencies     ) &&
     ( this->peerDependenciesMeta == other.peerDependenciesMeta ) &&
+    ( this->optionalDependencies == other.optionalDependencies ) &&
+    ( this->bundledDependencies  == other.bundledDependencies  ) &&
     ( this->os                   == other.os                   ) &&
     ( this->cpu                  == other.cpu                  ) &&
     ( this->engines              == other.engines              )

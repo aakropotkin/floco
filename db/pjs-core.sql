@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS PjsCore (
 , devDependenciesMeta  JSON    DEFAULT '{}'
 , peerDependencies     JSON    DEFAULT '{}'
 , peerDependenciesMeta JSON    DEFAULT '{}'
+, optionalDependencies JSON    DEFAULT '{}'
+, bundledDependencies  JSON    DEFAULT '[]'
 , os                   JSON    DEFAULT '["*"]'
 , cpu                  JSON    DEFAULT '["*"]'
 , engines              JSON    DEFAULT '{}'
@@ -37,6 +39,8 @@ CREATE VIEW IF NOT EXISTS v_PjsCoreJSON ( _id, json ) AS
   , 'devDependenciesMeta',  json( devDependenciesMeta )
   , 'peerDependencies',     json( peerDependencies )
   , 'peerDependenciesMeta', json( peerDependenciesMeta )
+  , 'optionalDependencies', json( optionalDependencies )
+  , 'bundledDependencies',  json( bundledDependencies )
   , 'os',                   json( os )
   , 'cpu',                  json( cpu )
   , 'engines',              json( engines )
