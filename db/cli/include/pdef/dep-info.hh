@@ -94,14 +94,15 @@ class DepInfo {
     std::unordered_map<floco::ident, Ent> deps;
 
     DepInfo() = default;
-    explicit DepInfo( const nlohmann::json & j ) { this->init( j ); }
     DepInfo( sqlite3pp::database & db
            , floco::ident_view     parent_ident
            , floco::version_view   parent_version
            );
     DepInfo( const db::PjsCore & pjs );
 
-    DepInfo & operator=( const db::PjsCore &  pjs );
+    explicit DepInfo( const nlohmann::json & j ) { this->init( j ); }
+
+    DepInfo & operator=( const db::PjsCore & pjs );
 
     nlohmann::json toJSON() const;
     void           sqlite3Write( sqlite3pp::database & db

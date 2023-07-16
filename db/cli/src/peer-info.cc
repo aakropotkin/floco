@@ -55,9 +55,9 @@ from_json( const nlohmann::json & j, PeerInfo::Ent & e )
 /* -------------------------------------------------------------------------- */
 
 PeerInfo::Ent::Ent( sqlite3pp::database & db
-                  , ident_view     parent_ident
-                  , version_view   parent_version
-                  , ident_view     ident
+                  , ident_view            parent_ident
+                  , version_view          parent_version
+                  , ident_view            ident
                   )
 {
   sqlite3pp::query cmd( db, R"SQL(
@@ -85,9 +85,9 @@ PeerInfo::Ent::Ent( sqlite3pp::database & db
 
   void
 PeerInfo::Ent::sqlite3Write( sqlite3pp::database & db
-                           , ident_view     parent_ident
-                           , version_view   parent_version
-                           , ident_view     ident
+                           , ident_view            parent_ident
+                           , version_view          parent_version
+                           , ident_view            ident
                            ) const
 {
   sqlite3pp::command cmd( db, R"SQL(
@@ -154,6 +154,51 @@ PeerInfo::PeerInfo( sqlite3pp::database & db
                      )
       );
     }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+  PeerInfo &
+PeerInfo::operator=( const db::PjsCore & pjs )
+{
+  this->peers = {};
+  auto madd  = [&]( std::string_view ident )
+  {
+    std::string i( ident );
+    if ( this->peers.find( i ) != this->peers.end() )
+      {
+        this->peers.emplace( std::move( i ), PeerInfo::Ent() );
+      }
+  };
+
+  for ( const auto & [ident, descriptor] : pjs.peerDependencies.items() )
+    {
+      madd( ident );
+      this->peers.at( ident ).descriptor = descriptor;
+    }
+
+  for ( const auto & [ident, meta] : pjs.peerDependenciesMeta.items() )
+    {
+      madd( ident );
+      for ( const auto & [key, value] : meta.items() )
+        {
+          if ( key == "optional" )
+            {
+              this->peers.at( ident ).optional = true;
+            }
+        }
+    }
+
+  return * this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+PeerInfo::PeerInfo( const db::PjsCore & pjs )
+{
+  this->operator=( pjs );
 }
 
 

@@ -110,9 +110,9 @@ PdefCore::init( const nlohmann::json & j )
             }
         }
 
-      if ( key == "depInfo" )  { from_json( value, this->depInfo ); }
-      if ( key == "peerInfo" ) { this->peerInfo = value;            }
-      if ( key == "sysInfo" )  { this->sysInfo  = value;            }
+      if ( key == "depInfo" )  { from_json( value, this->depInfo  ); }
+      if ( key == "peerInfo" ) { from_json( value, this->peerInfo ); }
+      if ( key == "sysInfo" )  { this->sysInfo = value;              }
     }
 }
 
@@ -302,9 +302,8 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
   , ltype( LT_NONE )
   , fetcher( "unknown" )
 {
-  // TODO
-  // DepInfo
-  // PeerInfo
+  this->depInfo  = pjs;
+  this->peerInfo = pjs;
 
   if ( pjs.bin.is_string() )
     {
@@ -334,25 +333,46 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
   this->sysInfo.engines = pjs.engines;
 }
 
-PdefCore::PdefCore( db::PjsCore && pjs )
-{
-  // TODO
-}
-
 
 /* -------------------------------------------------------------------------- */
 
   PdefCore &
-PdefCore::operator=( db::PjsCore && pjs )
+PdefCore::operator=( const db::PjsCore & pjs )
 {
-  // TODO
-  return * this;
-}
+  this->ident   = pjs.name;
+  this->version = pjs.version;
+  this->key     = pjs.name + "/" + pjs.version;
+  /* XXX: Do not set `ltype', `fetcher', or `fetchInfo' */
 
-  PdefCore &
-PdefCore::operator=( const db::PjsCore &  pjs )
-{
-  // TODO
+  this->depInfo  = pjs;
+  this->peerInfo = pjs;
+
+  if ( pjs.bin.is_string() )
+    {
+      /* Could be either a directory or path to a `.js' file. */
+      if ( size_t l = pjs.bin.size();
+           ( 3 < l                 ) &&
+           ( pjs.bin[l - 3] == '.' ) &&
+           ( pjs.bin[l - 2] == 'j' ) &&
+           ( pjs.bin[l - 1] == 's' )
+         )
+        {
+          this->binInfo.binPairs = { { pjs.name, pjs.bin } };
+        }
+      else
+        {
+          this->binInfo.binDir = pjs.bin;
+        }
+    }
+  else
+    {
+      assert( pjs.bin.is_object() );  // TODO: throw
+      this->binInfo.binPairs = pjs.bin;
+    }
+
+  this->sysInfo.cpu     = pjs.cpu;
+  this->sysInfo.os      = pjs.os;
+  this->sysInfo.engines = pjs.engines;
   return * this;
 }
 

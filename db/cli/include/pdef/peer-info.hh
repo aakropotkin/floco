@@ -33,14 +33,13 @@ class PeerInfo {
         void init( const nlohmann::json & j );
 
       public:
-        floco::ident      ident;
         floco::descriptor descriptor = "*";
         bool              optional   = false;
 
         Ent() = default;
 
-        Ent( std::string_view descriptor = "*"
-           , bool optional               = false
+        Ent( std::string_view descriptor
+           , bool             optional   = false
            )
           : descriptor( descriptor ), optional( optional )
         {}
@@ -70,11 +69,15 @@ class PeerInfo {
     std::unordered_map<floco::ident, Ent> peers;
 
     PeerInfo() = default;
-    PeerInfo( const nlohmann::json & j ) { this->init( j ); }
     PeerInfo( sqlite3pp::database & db
             , floco::ident_view     parent_ident
             , floco::version_view   parent_version
             );
+    PeerInfo( const db::PjsCore & pjs );
+
+    explicit PeerInfo( const nlohmann::json & j ) { this->init( j ); }
+
+    PeerInfo & operator=( const db::PjsCore & pjs );
 
     nlohmann::json toJSON() const;
     void           sqlite3Write( sqlite3pp::database & db
