@@ -110,9 +110,9 @@ PdefCore::init( const nlohmann::json & j )
             }
         }
 
-      if ( key == "depInfo" )  { this->depInfo  = value; }
-      if ( key == "peerInfo" ) { this->peerInfo = value; }
-      if ( key == "sysInfo" )  { this->sysInfo  = value; }
+      if ( key == "depInfo" )  { from_json( value, this->depInfo ); }
+      if ( key == "peerInfo" ) { this->peerInfo = value;            }
+      if ( key == "sysInfo" )  { this->sysInfo  = value;            }
     }
 }
 
@@ -299,6 +299,7 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
   : ident( pjs.name )
   , version( pjs.version )
   , key( pjs.name + "/" + pjs.version )
+  , ltype( LT_NONE )
   , fetcher( "unknown" )
 {
   // TODO

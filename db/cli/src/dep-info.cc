@@ -177,9 +177,11 @@ DepInfo::DepInfo( sqlite3pp::database & db
 
 /* -------------------------------------------------------------------------- */
 
-DepInfo::DepInfo( const db::PjsCore & pjs )
+  DepInfo &
+DepInfo::operator=( const db::PjsCore & pjs )
 {
-  auto madd = [&]( std::string_view ident )
+  this->deps = {};
+  auto madd  = [&]( std::string_view ident )
   {
     std::string i( ident );
     if ( this->deps.find( i ) != this->deps.end() )
@@ -250,8 +252,17 @@ DepInfo::DepInfo( const db::PjsCore & pjs )
               std::string( pjs.bundledDependencies.type_name() )
             );
     }
+
+  return * this;
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+DepInfo::DepInfo( const db::PjsCore &  pjs )
+{
+  this->operator=( pjs );
+}
 
 /* -------------------------------------------------------------------------- */
 
