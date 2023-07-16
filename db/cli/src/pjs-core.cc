@@ -198,36 +198,6 @@ PjsCore::toJSON() const
 
 /* -------------------------------------------------------------------------- */
 
-  bool
-PjsCore::operator==( const PjsCore & other ) const
-{
-  return
-    ( this->name                 == other.name                 ) &&
-    ( this->version              == other.version              ) &&
-    ( this->bin                  == other.bin                  ) &&
-    ( this->dependencies         == other.dependencies         ) &&
-    ( this->devDependencies      == other.devDependencies      ) &&
-    ( this->devDependenciesMeta  == other.devDependenciesMeta  ) &&
-    ( this->peerDependencies     == other.peerDependencies     ) &&
-    ( this->peerDependenciesMeta == other.peerDependenciesMeta ) &&
-    ( this->optionalDependencies == other.optionalDependencies ) &&
-    ( this->bundledDependencies  == other.bundledDependencies  ) &&
-    ( this->os                   == other.os                   ) &&
-    ( this->cpu                  == other.cpu                  ) &&
-    ( this->engines              == other.engines              ) &&
-    ( this->scripts              == other.scripts              )
-  ;
-}
-
-  bool
-PjsCore::operator!=( const PjsCore & other ) const
-{
-  return ! ( ( * this ) == other );
-}
-
-
-/* -------------------------------------------------------------------------- */
-
   void
 to_json( nlohmann::json & j, const PjsCore & p )
 {

@@ -88,8 +88,8 @@ class PjsCore {
     /** Get the `<name>@<version>` identifier used by NPM registries. */
     std::string id() const { return this->name + "@" + this->version; }
 
-    bool operator==( const PjsCore & other ) const;
-    bool operator!=( const PjsCore & other ) const;
+    bool operator==( const PjsCore & other ) const = default;
+    bool operator!=( const PjsCore & other ) const = default;
 
     friend void from_json( const nlohmann::json & j, PjsCore & p );
 
