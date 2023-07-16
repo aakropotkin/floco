@@ -73,6 +73,40 @@ SysInfo::SysInfo( sqlite3pp::database & db
 
 /* -------------------------------------------------------------------------- */
 
+SysInfo::SysInfo( const db::PjsCore & pjs )
+  : cpu( pjs.cpu ), os( pjs.os ), engines( pjs.engines )
+{}
+
+SysInfo::SysInfo( db::PjsCore && pjs )
+  : cpu( std::move( pjs.cpu ) )
+  , os( std::move( pjs.os ) )
+  , engines( std::move( pjs.engines ) )
+{}
+
+
+/* -------------------------------------------------------------------------- */
+
+  SysInfo &
+SysInfo::operator=( const db::PjsCore & pjs )
+{
+  this->cpu     = pjs.cpu;
+  this->os      = pjs.os;
+  this->engines = pjs.engines;
+  return * this;
+}
+
+  SysInfo &
+SysInfo::operator=( db::PjsCore && pjs )
+{
+  this->cpu     = std::move( pjs.cpu );
+  this->os      = std::move( pjs.os );
+  this->engines = std::move( pjs.engines );
+  return * this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 SysInfo::sqlite3WriteEngines( sqlite3pp::database & db
                             , ident_view            parent_ident

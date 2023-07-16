@@ -87,6 +87,8 @@ class PeerInfo {
 
     friend void from_json( const nlohmann::json & j, PeerInfo & d );
 
+    friend class db::PjsCore;
+
 };  /* End class `PeerInfo' */
 
 

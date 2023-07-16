@@ -86,6 +86,8 @@ class DepInfo {
 
         friend void from_json( const nlohmann::json & j, Ent & e );
 
+        friend class db::PjsCore;
+
     };  /* End class `DepInfo::Ent' */
 
 

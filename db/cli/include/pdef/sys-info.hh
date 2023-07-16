@@ -33,12 +33,18 @@ class SysInfo {
 
     SysInfo() = default;
 
-    SysInfo( const nlohmann::json & j ) { this->init( j ); }
+    explicit SysInfo( const nlohmann::json & j ) { this->init( j ); }
 
     SysInfo( sqlite3pp::database & db
            , floco::ident_view     parent_ident
            , floco::version_view   parent_version
            );
+
+    SysInfo( const db::PjsCore &  pjs );
+    SysInfo(       db::PjsCore && pjs );
+
+    SysInfo & operator=( const db::PjsCore &  pjs );
+    SysInfo & operator=(       db::PjsCore && pjs );
 
     void sqlite3WriteEngines( sqlite3pp::database & db
                             , floco::ident_view     parent_ident
@@ -50,7 +56,9 @@ class SysInfo {
                          ) const;
 
     nlohmann::json toJSON() const;
+
     friend void from_json( const nlohmann::json & j, SysInfo & e );
+    friend class db::PjsCore;
 
 };  /* End class `SysInfo' */
 

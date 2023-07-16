@@ -112,7 +112,7 @@ PdefCore::init( const nlohmann::json & j )
 
       if ( key == "depInfo" )  { from_json( value, this->depInfo  ); }
       if ( key == "peerInfo" ) { from_json( value, this->peerInfo ); }
-      if ( key == "sysInfo" )  { this->sysInfo = value;              }
+      if ( key == "sysInfo" )  { from_json( value, this->sysInfo  ); }
     }
 }
 
@@ -304,6 +304,7 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
 {
   this->depInfo  = pjs;
   this->peerInfo = pjs;
+  this->sysInfo  = pjs;
 
   if ( pjs.bin.is_string() )
     {
@@ -327,10 +328,6 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
       assert( pjs.bin.is_object() );  // TODO: throw
       this->binInfo.binPairs = pjs.bin;
     }
-
-  this->sysInfo.cpu     = pjs.cpu;
-  this->sysInfo.os      = pjs.os;
-  this->sysInfo.engines = pjs.engines;
 }
 
 
@@ -346,6 +343,7 @@ PdefCore::operator=( const db::PjsCore & pjs )
 
   this->depInfo  = pjs;
   this->peerInfo = pjs;
+  this->sysInfo  = pjs;
 
   if ( pjs.bin.is_string() )
     {
@@ -370,9 +368,6 @@ PdefCore::operator=( const db::PjsCore & pjs )
       this->binInfo.binPairs = pjs.bin;
     }
 
-  this->sysInfo.cpu     = pjs.cpu;
-  this->sysInfo.os      = pjs.os;
-  this->sysInfo.engines = pjs.engines;
   return * this;
 }
 
