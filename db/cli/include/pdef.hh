@@ -16,6 +16,7 @@
 #include "pdef/dep-info.hh"
 #include "pdef/peer-info.hh"
 #include "pdef/sys-info.hh"
+#include "pdef/bin-info.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -64,10 +65,7 @@ class PdefCore {
       bool install = false;
     } lifecycle;
 
-    struct {
-      std::optional<std::string>                                  binDir;
-      std::optional<std::unordered_map<std::string, std::string>> binPairs;
-    } binInfo;
+    BinInfo binInfo;
 
     struct {
       std::string dir        = ".";

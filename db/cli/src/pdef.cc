@@ -46,24 +46,21 @@ ltypeToString( const ltype & l )
   void
 PdefCore::reset()
 {
-  this->key               = "";
-  this->ident             = "";
+  this->key               = {};
+  this->ident             = {};
   this->version           = "0.0.0-0";
   this->ltype             = floco::LT_NONE;
   this->fetcher           = "composed";
   this->fetchInfo         = nlohmann::json::object();
   this->lifecycle.build   = false;
   this->lifecycle.install = false;
-  this->binInfo.binDir    = std::nullopt;
-  this->binInfo.binPairs  = std::nullopt;
+  this->binInfo.reset();
   this->fsInfo.dir        = ".";
   this->fsInfo.gypfile    = false;
   this->fsInfo.shrinkwrap = false;
-  this->depInfo.deps      = {};
-  this->peerInfo.peers    = {};
-  this->sysInfo.cpu       = { "*" };
-  this->sysInfo.os        = { "*" };
-  this->sysInfo.engines   = {};
+  this->depInfo.reset();
+  this->peerInfo.reset();
+  this->sysInfo.reset();
 }
 
 
@@ -91,14 +88,7 @@ PdefCore::init( const nlohmann::json & j )
             }
         }
 
-      if ( key == "binInfo" )
-        {
-          for ( auto & [bkey, bvalue] : value.items() )
-            {
-              if ( bkey == "binDir" )   { this->binInfo.binDir   = bvalue; }
-              if ( bkey == "binPairs" ) { this->binInfo.binPairs = bvalue; }
-            }
-        }
+      if ( key == "binInfo" ) { from_json( value, this->binInfo ); }
 
       if ( key == "fsInfo" )
         {
@@ -122,16 +112,6 @@ PdefCore::init( const nlohmann::json & j )
   nlohmann::json
 PdefCore::toJSON() const
 {
-  nlohmann::json binInfo = nlohmann::json::object();
-  if ( this->binInfo.binDir.has_value() )
-    {
-      binInfo.emplace( "binDir", this->binInfo.binDir.value() );
-    }
-  if ( this->binInfo.binPairs.has_value() )
-    {
-      binInfo.emplace( "binPairs", this->binInfo.binDir.value() );
-    }
-
   return {
     { "key",       this->key       }
   , { "ident",     this->ident     }
@@ -143,7 +123,7 @@ PdefCore::toJSON() const
                    , { "install", this->lifecycle.install }
                    }
     }
-  , { "binInfo", std::move( binInfo ) }
+  , { "binInfo", this->binInfo }
   , { "fsInfo",  { { "dir",        this->fsInfo.dir        }
                  , { "gypfile",    this->fsInfo.gypfile    }
                  , { "shrinkwrap", this->fsInfo.shrinkwrap }
@@ -165,7 +145,7 @@ from_json( const nlohmann::json & j, PdefCore & p )
 }
 
   void
-to_JSON( nlohmann::json & j, const PdefCore & p )
+to_json( nlohmann::json & j, const PdefCore & p )
 {
   j = p.toJSON();
 }
@@ -180,9 +160,8 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
     INSERT OR REPLACE INTO pdefs (
       key, ident, version, ltype, fetcher, fetchInfo
     , lifecycle_build, lifecycle_install
-    , binInfo_binDir, binInfo_binPairs
     , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
   cmd.bind( 1, this->key,     sqlite3pp::nocopy );
@@ -196,30 +175,9 @@ PdefCore::sqlite3WriteCore( sqlite3pp::database & db ) const
   cmd.bind( 7, this->lifecycle.build ? 1 : 0 );
   cmd.bind( 8, this->lifecycle.install ? 1 : 0 );
 
-  if ( this->binInfo.binDir.has_value() )
-    {
-      cmd.bind( 9, this->binInfo.binDir.value(), sqlite3pp::copy );
-    }
-  else
-    {
-      cmd.bind( 9 ); /* null */
-    }
-
-  if ( this->binInfo.binPairs.has_value() )
-    {
-      cmd.bind( 10
-              , nlohmann::json( this->binInfo.binPairs.value() ).dump()
-              , sqlite3pp::copy
-              );
-    }
-  else
-    {
-      cmd.bind( 10 ); /* null */
-    }
-
-  cmd.bind( 11, this->fsInfo.dir, sqlite3pp::nocopy );
-  cmd.bind( 12, this->fsInfo.gypfile    ? 1 : 0 );
-  cmd.bind( 13, this->fsInfo.shrinkwrap ? 1 : 0 );
+  cmd.bind(  9, this->fsInfo.dir, sqlite3pp::nocopy );
+  cmd.bind( 10, this->fsInfo.gypfile    ? 1 : 0 );
+  cmd.bind( 11, this->fsInfo.shrinkwrap ? 1 : 0 );
 
   cmd.execute_all();
 }
@@ -231,6 +189,7 @@ PdefCore::sqlite3Write( sqlite3pp::database & db ) const
   db.execute( pdefsSchemaSQL );
   this->sqlite3WriteCore( db );
 
+  this->binInfo.sqlite3Write(        db, this->ident, this->version );
   this->depInfo.sqlite3Write(        db, this->ident, this->version );
   this->peerInfo.sqlite3Write(       db, this->ident, this->version );
   this->sysInfo.sqlite3WriteCore(    db, this->ident, this->version );
@@ -250,7 +209,6 @@ PdefCore::PdefCore( sqlite3pp::database & db
     sqlite3pp::query cmd( db, R"SQL(
       SELECT key, ltype, fetcher, fetchInfo
     , lifecycle_build, lifecycle_install
-    , binInfo_binDir, binInfo_binPairs
     , fsInfo_dir, fsInfo_gypfile, fsInfo_shrinkwrap
     FROM pdefs WHERE ( ident = ? ) AND ( version = ? )
     )SQL" );
@@ -269,27 +227,15 @@ PdefCore::PdefCore( sqlite3pp::database & db
     this->lifecycle.build   = i.get<int>( 4 ) != 0;
     this->lifecycle.install = i.get<int>( 5 ) != 0;
 
-    try          { this->binInfo.binDir = i.get<const char *>( 6 ); }
-    catch( ... ) { this->binInfo.binDir = std::nullopt;             }
-
-    try
-      {
-        std::string bps = i.get<const char *>( 7 );
-        this->binInfo.binPairs = nlohmann::json::parse( std::move( bps ) );
-      }
-    catch( ... )
-      {
-        this->binInfo.binPairs = std::nullopt;
-      }
-
-    this->fsInfo.dir        = i.get<const char *>( 8 );
-    this->fsInfo.gypfile    = i.get<int>(  9 ) != 0;
-    this->fsInfo.shrinkwrap = i.get<int>( 10 ) != 0;
+    this->fsInfo.dir        = i.get<const char *>( 6 );
+    this->fsInfo.gypfile    = i.get<int>( 7 ) != 0;
+    this->fsInfo.shrinkwrap = i.get<int>( 8 ) != 0;
   }
 
   this->depInfo  = DepInfo(  db, this->ident, this->version );
   this->peerInfo = PeerInfo( db, this->ident, this->version );
   this->sysInfo  = SysInfo(  db, this->ident, this->version );
+  this->binInfo  = BinInfo(  db, this->ident, this->version );
 }
 
 
@@ -302,32 +248,10 @@ PdefCore::PdefCore( const db::PjsCore & pjs )
   , ltype( LT_NONE )
   , fetcher( "unknown" )
 {
+  this->binInfo  = pjs;
   this->depInfo  = pjs;
   this->peerInfo = pjs;
   this->sysInfo  = pjs;
-
-  if ( pjs.bin.is_string() )
-    {
-      /* Could be either a directory or path to a `.js' file. */
-      if ( size_t l = pjs.bin.size();
-           ( 3 < l                 ) &&
-           ( pjs.bin[l - 3] == '.' ) &&
-           ( pjs.bin[l - 2] == 'j' ) &&
-           ( pjs.bin[l - 1] == 's' )
-         )
-        {
-          this->binInfo.binPairs = { { pjs.name, pjs.bin } };
-        }
-      else
-        {
-          this->binInfo.binDir = pjs.bin;
-        }
-    }
-  else
-    {
-      assert( pjs.bin.is_object() );  // TODO: throw
-      this->binInfo.binPairs = pjs.bin;
-    }
 }
 
 
@@ -341,32 +265,10 @@ PdefCore::operator=( const db::PjsCore & pjs )
   this->key     = pjs.name + "/" + pjs.version;
   /* XXX: Do not set `ltype', `fetcher', or `fetchInfo' */
 
+  this->binInfo  = pjs;
   this->depInfo  = pjs;
   this->peerInfo = pjs;
   this->sysInfo  = pjs;
-
-  if ( pjs.bin.is_string() )
-    {
-      /* Could be either a directory or path to a `.js' file. */
-      if ( size_t l = pjs.bin.size();
-           ( 3 < l                 ) &&
-           ( pjs.bin[l - 3] == '.' ) &&
-           ( pjs.bin[l - 2] == 'j' ) &&
-           ( pjs.bin[l - 1] == 's' )
-         )
-        {
-          this->binInfo.binPairs = { { pjs.name, pjs.bin } };
-        }
-      else
-        {
-          this->binInfo.binDir = pjs.bin;
-        }
-    }
-  else
-    {
-      assert( pjs.bin.is_object() );  // TODO: throw
-      this->binInfo.binPairs = pjs.bin;
-    }
 
   return * this;
 }

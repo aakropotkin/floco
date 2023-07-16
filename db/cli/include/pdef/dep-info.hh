@@ -86,8 +86,6 @@ class DepInfo {
 
         friend void from_json( const nlohmann::json & j, Ent & e );
 
-        friend class db::PjsCore;
-
     };  /* End class `DepInfo::Ent' */
 
 
@@ -112,7 +110,20 @@ class DepInfo {
                                , floco::version_view   parent_version
                                ) const;
 
+    void reset()        { this->deps = {};            }
+    auto size()   const { return this->deps.size();   }
+    auto empty()  const { return this->deps.empty();  }
+    auto begin()        { return this->deps.begin();  }
+    auto begin()  const { return this->deps.begin();  }
+    auto cbegin()       { return this->deps.cbegin(); }
+    auto end()          { return this->deps.end();    }
+    auto end()    const { return this->deps.end();    }
+    auto cend()         { return this->deps.cend();   }
+
+
     friend void from_json( const nlohmann::json & j, DepInfo & d );
+
+    friend class db::PjsCore;
 
 };  /* End class `DepInfo' */
 

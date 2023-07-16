@@ -16,9 +16,7 @@ namespace floco {
   void
 SysInfo::init( const nlohmann::json & j )
 {
-  this->cpu.clear();
-  this->os.clear();
-  this->engines.clear();
+  this->reset();
   for ( auto & [key, value] : j.items() )
     {
       if ( key == "os" )           { this->os      = value; }

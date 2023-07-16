@@ -57,6 +57,8 @@ class SysInfo {
 
     nlohmann::json toJSON() const;
 
+    void reset() { this->cpu = {}; this->os = {}; this->engines = {}; }
+
     friend void from_json( const nlohmann::json & j, SysInfo & e );
     friend class db::PjsCore;
 

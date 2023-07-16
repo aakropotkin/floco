@@ -85,6 +85,16 @@ class PeerInfo {
                                , floco::version_view   parent_version
                                ) const;
 
+    void reset()        { this->peers = {};            }
+    auto size()   const { return this->peers.size();   }
+    auto empty()  const { return this->peers.empty();  }
+    auto begin()        { return this->peers.begin();  }
+    auto begin()  const { return this->peers.begin();  }
+    auto cbegin()       { return this->peers.cbegin(); }
+    auto end()          { return this->peers.end();    }
+    auto end()    const { return this->peers.end();    }
+    auto cend()         { return this->peers.cend();   }
+
     friend void from_json( const nlohmann::json & j, PeerInfo & d );
 
     friend class db::PjsCore;
