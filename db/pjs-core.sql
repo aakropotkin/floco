@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS PjsCore (
 , cpu                  JSON    DEFAULT '["*"]'
 , engines              JSON    DEFAULT '{}'
 , bin                  JSON    DEFAULT NULL
+, scripts              JSON    DEFAULT '{}'
 , PRIMARY KEY ( name, version )
 );
 
@@ -45,6 +46,7 @@ CREATE VIEW IF NOT EXISTS v_PjsCoreJSON ( _id, json ) AS
   , 'cpu',                  json( cpu )
   , 'engines',              json( engines )
   , 'bin',                  json( bin )
+  , 'scripts',              json( scripts )
   ) FROM PjsCore ORDER BY name;
 
 

@@ -60,6 +60,7 @@ class PjsCore {
     nlohmann::json cpu                  = nlohmann::json::array( { "*" } );
     nlohmann::json os                   = nlohmann::json::array( { "*" } );
     nlohmann::json engines              = nlohmann::json::object();
+    nlohmann::json scripts              = nlohmann::json::object();
 
     PjsCore() {}
 

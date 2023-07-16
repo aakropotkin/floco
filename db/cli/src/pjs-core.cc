@@ -36,41 +36,34 @@ namespace floco {
   void
 PjsCore::init( const nlohmann::json & json )
 {
-  for ( auto & [key, value] : json.items() )
+  for ( const auto & [key, value] : json.items() )
     {
-      if ( key == "name" )              { this->name    = std::move( value ); }
-      else if ( key == "version" )      { this->version = std::move( value ); }
-      else if ( key == "bin" )          { this->bin     = std::move( value ); }
-      else if ( key == "os" )           { this->os      = std::move( value ); }
-      else if ( key == "cpu" )          { this->cpu     = std::move( value ); }
-      else if ( key == "engines" )      { this->engines = std::move( value ); }
-      else if ( key == "dependencies" )
-        {
-          this->dependencies = std::move( value );
-        }
-      else if ( key == "devDependencies" )
-        {
-          this->devDependencies = std::move( value );
-        }
+      if ( key == "name" )                  { this->name             = value; }
+      else if ( key == "version" )          { this->version          = value; }
+      else if ( key == "bin" )              { this->bin              = value; }
+      else if ( key == "os" )               { this->os               = value; }
+      else if ( key == "cpu" )              { this->cpu              = value; }
+      else if ( key == "engines" )          { this->engines          = value; }
+      else if ( key == "engines" )          { this->engines          = value; }
+      else if ( key == "scripts" )          { this->scripts          = value; }
+      else if ( key == "dependencies" )     { this->dependencies     = value; }
+      else if ( key == "devDependencies" )  { this->devDependencies  = value; }
+      else if ( key == "peerDependencies" ) { this->peerDependencies = value; }
       else if ( key == "devDependenciesMeta" )
         {
-          this->devDependenciesMeta = std::move( value );
-        }
-      else if ( key == "peerDependencies" )
-        {
-          this->peerDependencies = std::move( value );
+          this->devDependenciesMeta = value;
         }
       else if ( key == "peerDependenciesMeta" )
         {
-          this->peerDependenciesMeta = std::move( value );
+          this->peerDependenciesMeta = value;
         }
       else if ( key == "optionalDependencies" )
         {
-          this->optionalDependencies = std::move( value );
+          this->optionalDependencies = value;
         }
       else if ( key == "bundledDependencies" )
         {
-          this->bundledDependencies = std::move( value );
+          this->bundledDependencies = value;
         }
     }
 }
@@ -108,7 +101,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta
     , optionalDependencies, bundledDependencies
-    , os, cpu, engines
+    , os, cpu, engines, scripts
     FROM PjsCore WHERE ( name = ? ) AND ( version = ? )
   )SQL" );
   cmd.bind( 1, this->name,    sqlite3pp::copy );
@@ -142,6 +135,7 @@ PjsCore::PjsCore( sqlite3pp::database & db
   this->os      = nlohmann::json::parse( rsl.get<const char *>(  8 ) );
   this->cpu     = nlohmann::json::parse( rsl.get<const char *>(  9 ) );
   this->engines = nlohmann::json::parse( rsl.get<const char *>( 10 ) );
+  this->scripts = nlohmann::json::parse( rsl.get<const char *>( 11 ) );
 }
 
 
@@ -156,8 +150,8 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
     , dependencies, devDependencies, devDependenciesMeta
     , peerDependencies, peerDependenciesMeta
     , optionalDependencies, bundledDependencies
-    , os, cpu, engines
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+    , os, cpu, engines, scripts
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
   )SQL" );
   /* We have to copy any fileds that aren't already `std::string' */
   cmd.bind(  1, this->name,                        sqlite3pp::copy );
@@ -173,6 +167,7 @@ PjsCore::sqlite3Write( sqlite3pp::database & db ) const
   cmd.bind( 11, this->os.dump(),                   sqlite3pp::copy );
   cmd.bind( 12, this->cpu.dump(),                  sqlite3pp::copy );
   cmd.bind( 13, this->engines.dump(),              sqlite3pp::copy );
+  cmd.bind( 14, this->scripts.dump(),              sqlite3pp::copy );
   cmd.execute();
 }
 
@@ -196,6 +191,7 @@ PjsCore::toJSON() const
   , { "os",                   this->os                   }
   , { "cpu",                  this->cpu                  }
   , { "engines",              this->engines              }
+  , { "scripts",              this->scripts              }
   };
 }
 
@@ -218,7 +214,8 @@ PjsCore::operator==( const PjsCore & other ) const
     ( this->bundledDependencies  == other.bundledDependencies  ) &&
     ( this->os                   == other.os                   ) &&
     ( this->cpu                  == other.cpu                  ) &&
-    ( this->engines              == other.engines              )
+    ( this->engines              == other.engines              ) &&
+    ( this->scripts              == other.scripts              )
   ;
 }
 
