@@ -91,6 +91,9 @@ class PjsCore {
     bool operator==( const PjsCore & other ) const = default;
     bool operator!=( const PjsCore & other ) const = default;
 
+    bool hasBuildScript()   const;
+    bool hasInstallScript() const;
+
     friend void from_json( const nlohmann::json & j, PjsCore & p );
 
 };

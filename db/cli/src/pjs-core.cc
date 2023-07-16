@@ -198,6 +198,41 @@ PjsCore::toJSON() const
 
 /* -------------------------------------------------------------------------- */
 
+  bool
+PjsCore::hasBuildScript() const
+{
+  for ( const auto & [name, _] : this->scripts.items() )
+    {
+      if ( ( name == "prebuild"  ) ||
+           ( name == "build"     ) ||
+           ( name == "postbuild" )
+         )
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+  bool
+PjsCore::hasInstallScript() const
+{
+  for ( const auto & [name, _] : this->scripts.items() )
+    {
+      if ( ( name == "preinstall"  ) ||
+           ( name == "install"     ) ||
+           ( name == "postinstall" )
+         )
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
   void
 to_json( nlohmann::json & j, const PjsCore & p )
 {
