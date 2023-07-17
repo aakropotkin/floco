@@ -26,6 +26,7 @@
       if config.path == "" then null else
       if config.path == "node_modules/${ident}" then "" else
       if config.isRoot then searchUp ( dirOf config.path ) else
+      if m == null then null else
       builtins.head m;
     rsl =
       if virtual == null then null else
