@@ -8,6 +8,7 @@
 , lib          ? floco.lib
 , system       ? builtins.currentSystem
 , extraModules ? []
+, pkgs         ? import <nixpkgs> {currentSystem = system;}
 }: let
 
 # ---------------------------------------------------------------------------- #
@@ -65,8 +66,50 @@ in {
   inherit (pkg) lint;
 } ) // ( if ! lib.isDerivation pkg.test then {} else {
   inherit (pkg) test;
-} )
+} ) // {
+  # ---------------------------------------------------------------------------- #
 
+  # A fast devshell example
+  # caches the node_modules tree (hash) providing the following features
+  # - blazingly fast
+  # - updates only when necessary
+  # - updates only what has changes
+  #
+  devShell = pkgs.mkShell {
+    buildInputs = [
+      # Use the same configured nodejs for the shell env
+      # 'config.floco.settings.nodePackage = pkgs.nodejs-18_x;'
+      fmod.config.floco.settings.nodePackage
+      # Add more build inputs here as needed
+      # ...
+    ];
+
+    # This shell hook uses `pkgs.rsync` for superfast node_modules and incremental updates on changes
+    #
+    # rsync the node_modules folder
+    # - way faster than copying everything again, because it only replaces updated files
+    # - rsync can be restarted from any point, if failed or aborted mid execution.
+    # Options:
+    # -a            -> all files recursive, preserve symlinks, etc.
+    # --delete      -> removes deleted files
+    # --chmod=+ug+w -> make folder writeable by user+group
+    #               ->  You can turn this on/off. Depending on your need for write-access to the node_modules folder
+    shellHook = ''
+      ID=${pkg.built.tree}
+      currID=$(cat .floco/.node_modules_id 2> /dev/null)
+
+      mkdir -p .floco
+      if [[ "$ID" != "$currID" || ! -d "node_modules"  ]];
+      then
+        ${pkgs.rsync}/bin/rsync -a --chmod=ug+w  --delete ${pkg.built.tree}/node_modules/ ./node_modules/
+        echo -n $ID > .floco/.node_modules_id
+        echo "floco ok: node_modules updated"
+      fi
+
+      export PATH="$PATH:$(realpath ./node_modules)/.bin"
+    '';
+  };
+}
 
 # ---------------------------------------------------------------------------- #
 #

@@ -42,20 +42,20 @@ in {
 
     # Remove `node_modules/typescript' since it will instead be accessed
     # using `PATH'.
-    built.tree = let
-      noTs = cfg.trees.dev.overrideAttrs ( prev: {
-        treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
-      } );
-    in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) (
-      lib.mkForce noTs
-    );
+    # built.tree = let
+    #   noTs = cfg.trees.dev.overrideAttrs ( prev: {
+    #     treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
+    #   } );
+    # in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) (
+    #   lib.mkForce noTs
+    # );
 
-    built.extraBuildInputs = let
-      tsVersion =
-        baseNameOf cfg.trees.supported."node_modules/typescript".key;
-    in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) [
-      config.floco.packages."typescript".${tsVersion}.global
-    ];
+    # built.extraBuildInputs = let
+    #   tsVersion =
+    #     baseNameOf cfg.trees.supported."node_modules/typescript".key;
+    # in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) [
+    #   config.floco.packages."typescript".${tsVersion}.global
+    # ];
 
 
 # ---------------------------------------------------------------------------- #
