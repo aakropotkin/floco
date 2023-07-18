@@ -19,7 +19,7 @@ SysInfo::init( const nlohmann::json & j )
   this->reset();
   for ( auto & [key, value] : j.items() )
     {
-      if ( key == "os" )           { this->os      = value; }
+           if ( key == "os" )      { this->os      = value; }
       else if ( key == "cpu" )     { this->cpu     = value; }
       else if ( key == "engines" ) { this->engines = value; }
     }

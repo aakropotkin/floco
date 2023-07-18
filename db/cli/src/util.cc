@@ -6,9 +6,14 @@
 
 #include <cstdlib>
 #include <cstring>
-#include "util.hh"
 #include <stdexcept>
 #include <filesystem>
+#include "util.hh"
+#include <nix/fetchers.hh>
+#include <nix/store-api.hh>
+#include <nix/shared.hh>
+#include <nix/eval-inline.hh>
+#include "floco-registry.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -182,6 +187,26 @@ getRegistryDbPath( std::string_view host )
   path += "/" + getStrFingerprint( host ) + ".sqlite";
   return path;
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+static bool didInitNix = false;
+
+  void
+initNix()
+{
+  if ( didInitNix ) { return; }
+  nix::initNix();
+  nix::initGC();
+
+  /* NOTE: Store settings use `nix::settings' not `nix::globalConfig'. */
+  nix::evalSettings.pureEval = false;
+  nix::settings.tarballTtl   = floco::registry::registryTTL;
+
+  didInitNix = true;
+}
+
 
 
 /* -------------------------------------------------------------------------- */

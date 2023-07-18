@@ -52,6 +52,11 @@ std::string getRegistryDbPath( std::string_view host );
 
 /* -------------------------------------------------------------------------- */
 
+void initNix();
+
+
+/* -------------------------------------------------------------------------- */
+
   }  /* End Namespace `floco::util' */
 }  /* End Namespace `floco' */
 

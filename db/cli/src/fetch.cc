@@ -4,19 +4,20 @@
  *
  * -------------------------------------------------------------------------- */
 
-#include "fetch.hh"
-#include <cstdio>                // for fclose, fopen, fwrite, FILE, size_t
-#include <cstdlib>               // for EXIT_FAILURE, EXIT_SUCCESS, size_t
-#include <functional>            // for _Placeholder, bind, _1, _2, _3, func...
-#include <iostream>              // for operator<<, endl, basic_ostream, ost...
-#include <memory>                // for allocator
-#include <filesystem>            // for path
+#include <cstdio>
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <filesystem>
 #include <nix/fetchers.hh>
 #include <nix/eval-inline.hh>
 #include <nix/store-api.hh>
 #include <nix/shared.hh>
 #include <nix/url.hh>
+#include "fetch.hh"
 #include <fstream>
+#include "util.hh"
 #include "floco-registry.hh"
 
 
@@ -30,13 +31,7 @@ namespace floco {
   std::string
 fetchFile( std::string_view url )
 {
-  // TODO: move this so you don't re-init on every fetch.
-  nix::initNix();
-  nix::initGC();
-
-  /* NOTE: Store settings use `nix::settings' not `nix::globalConfig'. */
-  nix::evalSettings.pureEval = false;
-  nix::settings.tarballTtl   = floco::registry::registryTTL;
+  util::initNix();
 
   nix::EvalState        state( {}, nix::openStore() );
   nix::ParsedURL        purl = nix::parseURL( std::string( url ) );
