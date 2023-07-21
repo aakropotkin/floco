@@ -2,7 +2,7 @@ final: prev: {
 
   lib = import ./lib { inherit (prev) lib; };
 
-  # Try to use `nodejs-14_x', then `nodejs-16_x', falling back to `nodejs'.
+  # Try to use `nodejs-18_x', then `nodejs-20_x', falling back to `nodejs'.
   # If the package is missing or marked as unavailable ( usually resulting from
   # a users `nixpkgs.config.permittedInsecurePackages' setting ).
   nodePackage = let
@@ -12,7 +12,7 @@ final: prev: {
       a = builtins.getAttr attrName final;
     in if ! ( builtins.hasAttr attrName final )  then fallback else
        if ( ( a.meta or {} ).available or true ) then a        else fallback;
-  in ifAvailableOr "nodejs-14_x" ( ifAvailableOr "nodejs-16_x" final.nodejs );
+  in ifAvailableOr "nodejs-18_x" ( ifAvailableOr "nodejs-20_x" final.nodejs );
 
   inherit (import ./setup {
     inherit (final) system bash coreutils findutils jq gnused nodePackage;
@@ -41,8 +41,7 @@ final: prev: {
   pacote = import ./fpkgs/pacote {
     nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
     inherit (final) system lib;
-    # XXX: this must be `14.x'
-    nodePackage = final.nodejs-14_x;
+    nodePackage = final.nodejs-18_x;
     pkgsFor     = final;
   };
 
@@ -57,9 +56,8 @@ final: prev: {
       inherit (final)
         stdenv boost nlohmann_json treeFor semver bash darwin pkg-config nix
       ;
-      # XXX: this must be `14.x'
-      nodejs = final.nodejs-14_x;
-      npm    = final.nodejs-14_x.pkgs.npm;
+      nodejs = final.nodejs-18_x;
+      npm    = final.nodejs-18_x.pkgs.npm;
     };
 
   floco = prev.lib.makeOverridable ( import ./pkgs/cli/pkg-fun.nix ) {

@@ -18,7 +18,7 @@
 
 # ---------------------------------------------------------------------------- #
 
-  # Try to use `nodejs-14_x', then `nodejs-16_x', falling back to `nodejs'.
+  # Try to use `nodejs-18_x', then `nodejs-20_x', falling back to `nodejs'.
   # If the package is missing or marked as unavailable ( usually resulting from
   # a users `nixpkgs.config.permittedInsecurePackages' setting ).
   config.settings.nodePackage = let
@@ -29,7 +29,7 @@
     in if ! ( builtins.hasAttr attrName pkgs )   then fallback else
        if ( ( a.meta or {} ).available or true ) then a        else fallback;
   in lib.mkDefault (
-    ifAvailableOr "nodejs-14_x" ( ifAvailableOr "nodejs-16_x" pkgs.nodejs )
+    ifAvailableOr "nodejs-18_x" ( ifAvailableOr "nodejs-20_x" pkgs.nodejs )
   );
 
 
