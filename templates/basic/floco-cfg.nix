@@ -7,11 +7,23 @@
 
 {
   imports = let
-    ifExist = builtins.filter builtins.pathExists [
-      ./pdefs.nix       # Generated `pdefs.nix'
-      ./foverrides.nix  # Explicit config
-    ];
-  in ifExist ++ [
+    maybePdefs =
+      if builtins.pathExists ./pdefs.nix  then [./pdefs.nix] else
+      if builtins.pathExists ./pdefs.json then [{
+        _file  = ./pdefs.json;
+        config = let
+          c = builtins.fromJSON ( builtins.readFile ./pdefs.json );
+        in c.config or c;
+      }] else [];
+    maybeFoverrides =
+      if builtins.pathExists ./foverrides.nix  then [./foverrides.nix] else
+      if builtins.pathExists ./foverrides.json then [{
+        _file  = ./foverrides.json;
+        config = let
+          c = builtins.fromJSON ( builtins.readFile ./foverrides.json );
+        in c.config or c;
+      }] else [];
+  in maybePdefs ++ maybeFoverrides ++ [
     # CHANGEME: If you depend on other `floco' projects, you can import their
     # `floco-cfg.nix' files here to make those configs available.
   ];
