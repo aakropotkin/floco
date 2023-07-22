@@ -1,3 +1,4 @@
+# -*- mode: sh; sh-shell: bash; -*-
 # ============================================================================ #
 #
 # Overrides certain defaults and extends the Nixpkgs' `stdenv' builder.
@@ -8,10 +9,11 @@
 # From `default-builder.sh'
 
 if [ -f .attrs.sh ]; then
+  #shellcheck disable=SC2091
   . .attrs.sh;
 fi
 
-source "$stdenv/setup";
+source "${stdenv?}/setup";
 
 
 # ---------------------------------------------------------------------------- #
@@ -42,6 +44,7 @@ cleanupNmDir() {
 
 # Override the default `installCheckPhase' to accept a list of hooks.
 
+#shellcheck disable=SC2034
 declare -a preCheckHooks checkHooks postCheckHooks;
 
 checkPhase() {
@@ -55,6 +58,7 @@ checkPhase() {
 
 # Override the default `installCheckPhase' to accept a list of hooks.
 
+#shellcheck disable=SC2034
 declare -a preInstallCheckHooks installCheckHooks postInstallCheckHooks;
 
 installCheckPhase() {

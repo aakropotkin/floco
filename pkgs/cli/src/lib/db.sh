@@ -41,10 +41,29 @@ export FLOCO_LIBDIR;
 
 # ---------------------------------------------------------------------------- #
 
-# db_init PATH
-# ------------
+#FLOCO_MANIFEST_DB_VERSION=1;
+#FLOCO_PDEFS_DB_VERSION=1;
+#FLOCO_FETCH_INFO_DB_VERSION=1;
+#FLOCO_TREE_INFO_DB_VERSION=1;
+
+
+# ---------------------------------------------------------------------------- #
+
+FLOCO_MDB="$FLOCO_DBDIR/manifests.db";
+FLOCO_PDB="$FLOCO_DBDIR/pdefs.db";
+FLOCO_FDB="$FLOCO_DBDIR/fetch-info.db";
+export FLOCO_MDB FLOCO_PDB FLOCO_FDB;
+
+#FLOCO_TDB="$FLOCO_DBDIR/tree-info.db";
+#FLOCO_TDB;
+
+
+# ---------------------------------------------------------------------------- #
+
+# pdb_init PATH
+# -------------
 # Create a new `pdefs.db'
-db_init() {
+pdb_init() {
   local _db;
   _db="${1:-$PWD/pdefs.db}";
   if [[ -d "$_db" ]]; then
@@ -52,7 +71,7 @@ db_init() {
   fi
   $SQLITE "$_db" < "$FLOCO_SQLDIR/pdefs.sql";
 }
-export -f db_init;
+export -f pdb_init;
 
 
 # ---------------------------------------------------------------------------- #
@@ -71,10 +90,10 @@ is_sql_db() {
 
 # ---------------------------------------------------------------------------- #
 
-# db_run [PATH] ARGS
-# ------------------
+# pdb_run [PATH] ARGS
+# -------------------
 # Run `sqlite3' commands directly on a `pdefs.db'
-db_run() {
+pdb_run() {
   local _db;
   if [[ -r "$1/pdefs.db" ]]; then
     _db="$1/pdefs.db";
@@ -91,7 +110,7 @@ db_run() {
   fi
   $SQLITE "$_db" "$@";
 }
-export -f db_run;
+export -f pdb_run;
 
 
 # ---------------------------------------------------------------------------- #
@@ -101,8 +120,8 @@ if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
   _cmd="$1";
   shift;
   case "$_cmd" in
-    init)   db_init "$@"; ;;
-    run)    db_run "$@"; ;;
+    init)   pdb_init "$@"; ;;
+    run)    pdb_run "$@"; ;;
     # add)    db_add "$@"; ;;
     # remove) db_remove "$@"; ;;
     # show)   db_show "$@"; ;;
