@@ -207,7 +207,7 @@ do_copy() {
     ;
     ${CHOWN:-chown} -R "$OWNER:$GROUP" "$TO";
     pushd "$FROM" >/dev/null;
-    ${FIND:-find} . -type f -executable -exec $CHMOD a+x "$TO/{}" \; ;
+    ${FIND:-find} . -type f -executable -exec "$CHMOD" a+x "$TO/{}" \; ;
     popd >/dev/null;
   else
     ${CP:-cp} -r --reflink=auto -T -- "$FROM" "$TO";
@@ -301,10 +301,10 @@ pjsIsScript() {
 
 
 pjsPatchNodeShebang() {
-  local timestamp oldInterpreterLine oldPath arg0 args;
+  local timestamp oldInterpreterLine oldPath arg0;
   pjsIsScript "$1"||return 0;
   read -r oldInterpreterLine < "$1";
-  read -r oldPath arg0 args <<< "${oldInterpreterLine:2}";
+  read -r oldPath arg0 <<< "${oldInterpreterLine:2}";
   # Only modify `node' shebangs.
   case "$oldPath $arg0" in
     */bin/env\ *node) :; ;;
