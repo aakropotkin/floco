@@ -252,10 +252,10 @@
 # ---------------------------------------------------------------------------- #
 
   runType = type: x:
-    ( lib.evalOptionValue [] ( lib.mkOption { inherit type; } ) [{
+    ( lib.modules.mergeDefinitions [] type [{
         file  = "<libfloco>/types.nix:runType(${type.name})";
         value = x.config or x;
-      }] ).value;
+      }] ).mergedValue;
 
   #runType = type: x: let
   #  toDef = e: {

@@ -297,7 +297,7 @@
         file = "<libfloco>/types/graph.nix:treeForRoot";
         inherit value;
       } ) refModules;
-    in ( lib.evalOptionValue [] ( lib.mkOption { type = t; } ) asDefs ).value;
+    in ( lib.modules.mergeDefinitions [] t asDefs ).mergedValue;
 
   in builtins.mapAttrs ( path: node: node // {
     referrers = refs.${path}.referrers or [];
