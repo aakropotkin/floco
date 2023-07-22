@@ -6,6 +6,7 @@
 
 { lib }: {
 
+  # FIXME: this doesn't handle `!<PART>' properly.
   checkSystemSupportFor = config: {
     stdenv   ? throw "checkSystemSupport: You must pass an arg"
   , platform ? stdenv.hostPlatform
@@ -13,11 +14,27 @@
   }: let
       m        = builtins.match "(.*)-([^-]+)" system;
       archPart = builtins.head m;
-      archOk   = ( builtins.elem "*" config.sysInfo.cpu ) ||
-                 ( builtins.elem archPart config.sysInfo.cpu );
+      archOk   = let
+        hasStar  = builtins.elem "*" config.sysInfo.cpu;
+        pn       = builtins.partition ( lib.hasPrefix "!" ) config.sysInfo.cpu;
+        hasMatch = builtins.elem archPart pn.wrong;
+        hasNope  = builtins.elem ( "!" + archPart ) pn.right;
+        pred     = assert ( ( builtins.length pn.right ) == 0 ) ||
+                          ( ( builtins.length pn.wrong ) == 0 );
+                   if ( builtins.length pn.right ) == 0 then hasMatch
+                                                        else ! hasNope;
+      in hasStar || pred;
       osPart = builtins.elemAt m 1;
-      osOk   = ( builtins.elem "*" config.sysInfo.os ) ||
-               ( builtins.elem osPart config.sysInfo.os );
+      osOk   = let
+        hasStar  = builtins.elem "*" config.sysInfo.os;
+        pn       = builtins.partition ( lib.hasPrefix "!" ) config.sysInfo.os;
+        hasMatch = builtins.elem archPart pn.wrong;
+        hasNope  = builtins.elem ( "!" + archPart ) pn.right;
+        pred     = assert ( ( builtins.length pn.right ) == 0 ) ||
+                          ( ( builtins.length pn.wrong ) == 0 );
+                   if ( builtins.length pn.right ) == 0 then hasMatch
+                                                        else ! hasNope;
+      in hasStar || pred;
     in archOk && osOk;
 
 }

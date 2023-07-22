@@ -8,7 +8,12 @@
 
 # ---------------------------------------------------------------------------- #
 
-  pjs   = lib.importJSON ./package.json;
+  pjs = let
+    msg = "foverrides.nix: Expected to find `package.json' to lookup " +
+          "package name/version, but no such file exists at: " +
+          ( toString ./package.json );
+  in if builtins.pathExists ./package.json then lib.importJSON ./package.json
+                                           else throw msg;
   ident = pjs.name;
   inherit (pjs) version;
 
@@ -42,20 +47,28 @@ in {
 
     # Remove `node_modules/typescript' since it will instead be accessed
     # using `PATH'.
-    built.tree = let
-      noTs = cfg.trees.dev.overrideAttrs ( prev: {
-        treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
-      } );
-    in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) (
-      lib.mkForce noTs
-    );
+    ##built.tree = let
+    ##  noTs = cfg.trees.dev.overrideAttrs ( prev: {
+    ##    treeInfo = removeAttrs prev.treeInfo ["node_modules/typescript"];
+    ##  } );
+    ##in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) (
+    ##  lib.mkForce noTs
+    ##);
 
-    built.extraBuildInputs = let
-      tsVersion =
-        baseNameOf cfg.trees.supported."node_modules/typescript".key;
-    in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) [
-      config.floco.packages."typescript".${tsVersion}.global
-    ];
+    ##built.extraBuildInputs = let
+    ##  tsVersion =
+    ##    baseNameOf cfg.trees.supported."node_modules/typescript".key;
+    ##in lib.mkIf ( cfg.trees.supported ? "node_modules/typescript" ) [
+    ##  config.floco.packages."typescript".${tsVersion}.global
+    ##];
+
+
+    # The `copyTree' which will cause the `node_modules/' directory to be copied
+    # and made writable at when `build' scripts are run.
+    # This can help resolve common issues with packages using tools like
+    # `angular' which modify the contents of their `node_modules/' directory
+    # at build time.
+    ##built.copyTree = true;
 
 
 # ---------------------------------------------------------------------------- #

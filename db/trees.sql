@@ -4,6 +4,12 @@
 --
 -- -------------------------------------------------------------------------- --
 
+CREATE TABLE IF NOT EXISTS SchemaVersion( version TEXT NOT NULL );
+INSERT OR IGNORE INTO SchemaVersion ( version ) VALUES ( '0.1.0' );
+
+
+-- -------------------------------------------------------------------------- --
+
 CREATE TABLE IF NOT EXISTS treeInfo(
   treeId   INTEGER PRIMARY KEY
 , parent   TEXT                    NOT NULL  -- key
