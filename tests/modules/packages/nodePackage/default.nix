@@ -19,7 +19,7 @@
       {
         config.floco.settings = {
           inherit system;
-          nodePackage = pkgsFor.nodejs-19_x;
+          nodePackage = pkgsFor.nodejs-18_x;
         };
       }
     ];
