@@ -63,6 +63,14 @@ in {
     ##];
 
 
+    # The `copyTree' which will cause the `node_modules/' directory to be copied
+    # and made writable at when `build' scripts are run.
+    # This can help resolve common issues with packages using tools like
+    # `angular' which modify the contents of their `node_modules/' directory
+    # at build time.
+    ##built.copyTree = true;
+
+
 # ---------------------------------------------------------------------------- #
 
   };  # End target package overrides
