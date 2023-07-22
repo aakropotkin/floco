@@ -1,4 +1,5 @@
 result
 result-*
 .ccls-cache
+.ccls
 *.swp

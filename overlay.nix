@@ -2,17 +2,21 @@ final: prev: {
 
   lib = import ./lib { inherit (prev) lib; };
 
-  # Try to use `nodejs-14_x', then `nodejs-16_x', falling back to `nodejs'.
-  # If the package is missing or marked as unavailable ( usually resulting from
-  # a users `nixpkgs.config.permittedInsecurePackages' setting ).
-  nodePackage = let
-    # If a package is marked as available use it, otherwise fall back to a
-    # second option.
-    ifAvailableOr = attrName: fallback: let
-      a = builtins.getAttr attrName final;
-    in if ! ( builtins.hasAttr attrName final )  then fallback else
-       if ( ( a.meta or {} ).available or true ) then a        else fallback;
-  in ifAvailableOr "nodejs-14_x" ( ifAvailableOr "nodejs-16_x" final.nodejs );
+  nodePackage = final.nodejs;
+
+  # TODO: 2023-07-22 `npm-9.8.0' fails to build because of failures in `man-db'
+  # ( a dependency of `util-linux' ).
+  # Remove this block when it has been fixed upstream.
+  npm = final.nodePackage.pkgs.npm.overrideAttrs ( aprev: let
+    # Disable manpage translation for `util-linux' dependency.
+    # This isn't passed in as an arg to `npm', so we search for it in
+    # `buildInputs' and apply our override "in place".
+    replace = drv:
+      if ( drv.pname or drv.name ) != "util-linux" then drv else
+      drv.override { translateManpages = false; };
+  in {
+    buildInputs = map replace aprev.buildInputs;
+  } );
 
   inherit (import ./setup {
     inherit (final) system bash coreutils findutils jq gnused nodePackage;
@@ -21,9 +25,8 @@ final: prev: {
   inherit (import ./updaters {
     nixpkgs   = throw "floco: Nixpkgs should not be referenced from flake";
     nix-flake = throw "floco: Nix should not be referenced from flake";
-    inherit (final) system bash coreutils jq gnused nix nodePackage;
-    npm      = final.nodePackage.pkgs.npm;
-    flakeRef = ./.;
+    flakeRef  = ./.;
+    inherit (final) system bash coreutils jq gnused nix nodePackage npm;
   }) floco-updaters;
 
   treeFor = import ./pkgs/treeFor {
@@ -40,10 +43,9 @@ final: prev: {
 
   pacote = import ./fpkgs/pacote {
     nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
-    inherit (final) system lib;
-    # XXX: this must be `14.x'
-    nodePackage = final.nodejs-14_x;
-    pkgsFor     = final;
+    inherit (final) system lib nodePackage;
+    pkgsFor = final;
+
   };
 
   arborist = import ./fpkgs/arborist {
@@ -56,15 +58,15 @@ final: prev: {
     prev.lib.makeOverridable ( import ./pkgs/nix-plugin/pkg-fun.nix ) {
       inherit (final)
         stdenv boost nlohmann_json treeFor semver bash darwin pkg-config nix
+        npm
       ;
-      # XXX: this must be `14.x'
-      nodejs = final.nodejs-14_x;
-      npm    = final.nodejs-14_x.pkgs.npm;
+      nodejs = final.nodePackage;
     };
 
   floco = prev.lib.makeOverridable ( import ./pkgs/cli/pkg-fun.nix ) {
-    inherit (final) lib stdenv bash coreutils gnugrep jq makeWrapper sqlite nix;
-    npm = final.nodePackage.pkgs.npm;
+    inherit (final)
+      lib stdenv bash coreutils gnugrep jq makeWrapper sqlite nix npm
+    ;
   };
 
   pkgslib = ( prev.pkgslib or {} ) // ( import ./pkgs/lib {

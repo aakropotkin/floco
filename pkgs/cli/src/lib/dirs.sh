@@ -31,6 +31,30 @@ export REALPATH;
 
 # ---------------------------------------------------------------------------- #
 
+: "${HOME:=/homeless/shelter}";
+export HOME;
+
+
+# ---------------------------------------------------------------------------- #
+
+: "${XDG_CACHE_HOME:=$HOME/.cache}";
+: "${XDG_CONFIG_HOME:=$HOME/.config}";
+: "${XDG_DATA_HOME:=$HOME/.local/share}";
+: "${XDG_STATE_HOME:=$HOME/.local/state}";
+export XDG_CACHE_HOME XDG_CONFIG_HOME XDG_STATE_HOME;
+
+
+# ---------------------------------------------------------------------------- #
+
+: "${FLOCO_CACHEDIR:=$XDG_CACHE_HOME/floco}";
+: "${FLOCO_DATADIR:=$XDG_DATA_HOME/floco}";
+: "${FLOCO_STATEDIR:=$XDG_STATE_HOME/floco}";
+: "${FLOCO_DBDIR:=$FLOCO_CACHEDIR/dbs}";
+export FLOCO_CACHEDIR FLOCO_DATADIR FLOCO_STATEDIR FLOCO_DBDIR;
+
+
+# ---------------------------------------------------------------------------- #
+
 FLOCO_LIBDIR="$( $REALPATH "${BASH_SOURCE[0]%/*}"; )";
 FLOCO_LIBEXECDIR="$( $REALPATH "$FLOCO_LIBDIR/../libexec"; )";
 FLOCO_NIXDIR="$( $REALPATH "$FLOCO_LIBDIR/../nix"; )";
@@ -44,7 +68,7 @@ export FLOCO_LIBDIR FLOCO_LIBEXECDIR FLOCO_NIXDIR FLOCO_NIX_LIBDIR FLOCO_SQLDIR;
 : "${SPATH=}";
 : "${SDIR=}";
 : "${_as_me=}";
-  export SPATH SDIR _as_me;
+export SPATH SDIR _as_me;
 
 # setScriptVars "$0" "${BASH_SOURCE[@]}"
 # --------------------------------------
