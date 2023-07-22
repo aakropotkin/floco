@@ -44,10 +44,9 @@
 # ---------------------------------------------------------------------------- #
 
 
-  sysOsList = [
-    "*" "darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess"
-    "win32" "unknown"
-  ];
+  sysOsList = let
+    base = ["darwin" "freebsd" "netbsd" "linux" "openbsd" "sunprocess" "win32"];
+  in ["*" "unknown"] ++ base ++ ( map ( s: "!" + s ) base );
 
   sysOssType = let
     base = lib.libfloco.uniqueListOf ( nt.enum sysOsList );
@@ -71,10 +70,9 @@
 # ---------------------------------------------------------------------------- #
 
 
-  sysCpuList = [
-    "*" "x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel"
-    "riscv64" "unknown"
-  ];
+  sysCpuList = let
+    base = ["x86_64" "i686" "aarch" "aarch64" "powerpc64le" "mipsel" "riscv64"];
+  in ["*" "unknown"] ++ base ++ ( map ( s: "!" + s ) base );
 
   sysCpusType = let
     base = lib.libfloco.uniqueListOf ( nt.enum sysCpuList );

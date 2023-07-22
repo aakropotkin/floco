@@ -101,8 +101,8 @@ in {
           peerDependencies     = true;
           peerDependenciesMeta = true;
           optionalDependencies = true;
-          bundledDependencies  = true;
-          bundleDependencies   = true;
+          #bundledDependencies  = true;
+          #bundleDependencies   = true;
           dev                  = true;
           peer                 = true;
           optional             = true;
@@ -135,7 +135,25 @@ in {
           if plentKey == "" then plock.version or "0.0.0-0" else
           ( realEntry plentKey ).version
         );
-      in ix // {
+
+        bund' = let
+          b = values.bundledDependencies or values.bundleDependencies or null;
+        in assert     ( values ? bundledDependencies ) ->
+                  ( ! ( values ? bundleDependencies  ) );
+           assert     ( values ? bundleDependencies  ) ->
+                  ( ! ( values ? bundledDependencies ) );
+           assert builtins.elem ( builtins.typeOf b ) [
+             "null" "bool" "list"
+           ];
+           if b == null then {} else
+           if builtins.isList  then { bundledDependencies = b; } else
+           if ! b then {} else {
+            bundledDependencies = builtins.attrNames (
+              ( values.dependencies or {} ) // ( values.requires or {} )
+            );
+          };
+
+      in ix // bund' // {
         inherit ident version;
 
         key = ident + "/" + version;

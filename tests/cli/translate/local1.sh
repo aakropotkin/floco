@@ -117,22 +117,12 @@ declare -a tmp_files tmp_dirs;
 tmp_files=();
 tmp_dirs=();
 
-mktmp_auto() {
-  local _f;
-  _f="$( $MKTEMP "$@"; )";
-  case " $* " in
-    *\ -d\ *|*\ --directory\ *) tmp_dirs+=( "$_f" ); ;;
-    *)                          tmp_files+=( "$_f" ); ;;
-  esac
-  echo "$_f";
-}
-
 
 # ---------------------------------------------------------------------------- #
 
 cleanup() {
-  rm -f "${tmp_files[@]}";
-  rm -rf "${tmp_dirs[@]}";
+  echo rm -f "${tmp_files[@]}";
+  echo rm -rf "${tmp_dirs[@]}";
 }
 
 _es=0;
@@ -141,7 +131,8 @@ trap '_es="$?"; cleanup; exit "$_es";' HUP TERM INT QUIT EXIT;
 
 # ---------------------------------------------------------------------------- #
 
-OUTDIR="$( mktmp_auto -d; )";
+OUTDIR="$( $MKTEMP -d; )";
+tmp_dirs+=( "$OUTDIR" );
 pushd "$OUTDIR" >/dev/null;
 
 echo '
@@ -162,7 +153,8 @@ echo '
 
 $NIX run "$FLAKE_REF" -- translate --json;
 
-TARGET_ENT="$( mktmp_auto; )";
+TARGET_ENT="$( $MKTEMP; )";
+tmp_files+=( "$TARGET_ENT" );
 # XXX: This only works when `PKG' is a raw identifier.
 $JQ '.floco.pdefs["@floco/phony"]["4.2.0"]' ./pdefs.json > "$TARGET_ENT";
 
@@ -187,14 +179,12 @@ export FLAKE_REF;
 $NIX build --show-trace -f - <<'EOF'
 let
   floco   = builtins.getFlake ( builtins.getEnv "FLAKE_REF" );
-  pkgsFor = floco.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.extend
-              floco.overlays.default;
   inherit (floco) lib;
   mod = lib.evalModules {
     modules = [
       "${floco}/modules/top"
       ( lib.modules.importJSON ./pdefs.json )
-      { _module.args.pkgs = pkgsFor; }
+      { config.floco.settings.system = builtins.currentSystem; }
     ];
   };
   pkg = mod.config.floco.packages."@floco/phony"."4.2.0";

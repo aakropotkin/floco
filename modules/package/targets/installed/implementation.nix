@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ lib, config, pdef, pkgs, ... }: let
+{ lib, config, pdef, pkgs, nodePackage, ... }: let
 
 # ---------------------------------------------------------------------------- #
 
@@ -59,11 +59,11 @@ in {
           maybeXcbuild = if pkgs.stdenv.isDarwin then [pkgs.xcbuild] else [];
         in [
           pkgs.jq
-          pkgs.nodejs-14_x.pkgs.node-gyp
-          pkgs.nodejs-14_x.python
+          nodePackage.pkgs.node-gyp
+          nodePackage.python
           pkgs.floco-hooks
         ] ++ maybeXcbuild ++ maybeTest ++ cfg.extraNativeBuildInputs;
-        buildInputs = [pkgs.nodejs-14_x] ++ cfg.extraBuildInputs;
+        buildInputs = [nodePackage] ++ cfg.extraBuildInputs;
         configurePhase = ''
           runHook preConfigure;
 

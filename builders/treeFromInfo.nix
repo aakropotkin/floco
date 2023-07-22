@@ -92,7 +92,7 @@ in {
     PATH    = "${coreutils}/bin:${findutils}/bin:${jq}/bin:${bash}/bin";
     args = ["-eu" "-o" "pipefail" "-c" ( ''
       mkdir -p "$out/node_modules";
-    '' + cmdFile.text )];
+    '' + "bash ${cmdFile}" )];
   };
 
 

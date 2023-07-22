@@ -8,7 +8,8 @@ let
   lib = import ../../lib {};
 in ( import ./util.nix { inherit lib; } )     ++
    ( import ./closures.nix { inherit lib; } ) ++
-   ( import ./tree { inherit lib; } )
+   ( import ./tree { inherit lib; } ) ++
+   ( import ./sys.nix { inherit lib; } )
 
 
 # ---------------------------------------------------------------------------- #

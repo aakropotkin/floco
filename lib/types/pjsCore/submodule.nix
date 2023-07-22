@@ -32,6 +32,10 @@ in {
     peerDependencies     = lib.mkDepAttrsOption;
     peerDependenciesMeta = lib.mkDepMetasOption;
     optionalDependencies = lib.mkDepAttrsOption;
+    bundledDependencies  = lib.mkOption {
+      type    = nt.either nt.bool ( nt.listOf nt.str );
+      default = [];
+    };
 
     os  = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };
     cpu = lib.mkOption { type = nt.listOf nt.str; default = ["*"]; };

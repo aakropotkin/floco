@@ -4,16 +4,16 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ nixpkgs   ? ( import ../inputs ).nixpkgs.flake
-, system    ? builtins.currentSystem
-, pkgsFor   ? nixpkgs.legacyPackages.${system}
-, bash      ? pkgsFor.bash
-, coreutils ? pkgsFor.coreutils
-, jq        ? pkgsFor.jq
-, nodejs    ? pkgsFor.nodejs-slim-14_x
-, npm       ? pkgsFor.nodejs-14_x.pkgs.npm
-, gnused    ? pkgsFor.gnused
-, nix-flake ?
+{ nixpkgs     ? ( import ../inputs ).nixpkgs.flake
+, system      ? builtins.currentSystem
+, pkgsFor     ? nixpkgs.legacyPackages.${system}
+, bash        ? pkgsFor.bash
+, coreutils   ? pkgsFor.coreutils
+, jq          ? pkgsFor.jq
+, nodePackage ? pkgsFor.nodejs
+, npm         ? nodePackage.pkgs.npm
+, gnused      ? pkgsFor.gnused
+, nix-flake   ?
   builtins.getFlake "github:NixOS/nix/${builtins.nixVersion or "2.12.0"}"
 , nix      ? nix-flake.packages.${system}.nix
 , flakeRef ? ../.
@@ -34,14 +34,14 @@ in {
       name = pname + "-" + version;
       inherit
         system pname version scripts flakeRef
-        bash coreutils jq nodejs gnused npm nix
+        bash coreutils jq nodePackage gnused npm nix
       ;
       preferLocalBuild = true;
       allowSubstitutes = ( builtins.currentSystem or "unknown" ) != system;
       PATH    = "${coreutils}/bin:${gnused}/bin";
       builder = "${bash}/bin/bash";
       args    = ["-eu" "-o" "pipefail" "-c" ''
-        common_path="$bash/bin:$jq/bin:$coreutils/bin:$nodejs/bin";
+        common_path="$bash/bin:$jq/bin:$coreutils/bin:$nodePackage/bin";
         mkdir -p "$out/bin";
         for script in $scripts; do
           bname="''${script##*/}";

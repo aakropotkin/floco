@@ -76,17 +76,20 @@ in {
 # ---------------------------------------------------------------------------- #
 
     deserializeFetchInfo = lib.mkDefault ( _file: s: let
-      fp = if builtins.isPath _file then toString _file else
-           builtins.unsafeDiscardStringContext _file;
-      rp = if builtins.pathExists ( fp + "/." ) then /. + fp else
-           /. + ( dirOf fp );
+      isDir = x: ( builtins.readFileType x ) == "directory";
+      fp    = if builtins.isPath _file then toString _file else
+              builtins.unsafeDiscardStringContext _file;
+      rp = if isDir fp then /. + fp else /. + ( dirOf fp );
       p  = if builtins.isAttrs s then s.path else
            if builtins.isPath s then s else
            lib.removePrefix "path:" s;
-      path'  = if lib.isAbspath p then p else rp + ( "/" + p );
+      abs'   = if lib.isAbspath p then p else rp + ( "/" + p );
+      path'  = if builtins.isPath abs' then abs' else /. + abs';
       attrs' = if builtins.isAttrs s then s else {};
     in attrs' // {
-      path = if builtins.isPath path' then path' else /. + path';
+      # We might still have an absolute path to a file at this point, so coerce
+      # it to a directory.
+      path = if isDir path' then path' else dirOf path';
     } );
 
 

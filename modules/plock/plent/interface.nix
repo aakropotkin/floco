@@ -40,6 +40,14 @@ in {
 
 # ---------------------------------------------------------------------------- #
 
+    bundleDependencies = lib.mkOption {
+      type    = nt.either nt.bool ( nt.listOf nt.str );
+      default = {};
+    };
+
+
+# ---------------------------------------------------------------------------- #
+
     resolved = lib.mkOption {
       type    = nt.str;
       default = ".";

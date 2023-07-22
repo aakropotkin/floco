@@ -11,20 +11,20 @@ in {
   name ? ( baseNameOf pjs.name ) + "-" + pjs.version + ".tgz"
 , pjs  ? lib.importJSON ( src + "/package.json" )
 , src
-, lib       ? import ../lib { inherit (nixpkgs) lib; }
-, system    ? builtins.currentSystem
-, pkgsFor   ? nixpkgs.legacyPackages.${system}
-, pacote    ? import ../fpkgs/pacote { inherit lib system pkgsFor; }
-, bash      ? pkgsFor.bash
-, coreutils ? pkgsFor.coreutils
-, jq        ? pkgsFor.jq
-, findutils ? pkgsFor.findutils
-, nodejs    ? pkgsFor.nodejs-slim-14_x
-, gnused    ? pkgsFor.gnused
+, lib         ? import ../lib { inherit (nixpkgs) lib; }
+, system      ? builtins.currentSystem
+, pkgsFor     ? nixpkgs.legacyPackages.${system}
+, pacote      ? import ../fpkgs/pacote { inherit lib system pkgsFor; }
+, bash        ? pkgsFor.bash
+, coreutils   ? pkgsFor.coreutils
+, jq          ? pkgsFor.jq
+, findutils   ? pkgsFor.findutils
+, nodePackage ? pkgsFor.nodejs-slim-14_x
+, gnused      ? pkgsFor.gnused
 
 , doUnpatch   ? true
 , floco-utils ? ( import ../setup {
-    inherit system bash coreutils jq findutils nodejs gnused;
+    inherit system bash coreutils jq findutils nodePackage gnused;
   } ).floco-utils
 
 }: let
