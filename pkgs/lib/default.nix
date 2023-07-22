@@ -9,7 +9,7 @@
 , system  ? args.pkgsFor.system or builtins.currentSystem
 , pkgsFor ? nixpkgs.legacyPackages.${system}.extend ( import ../../overlay.nix )
 , semver  ? pkgsFor.semver
-, nodejs  ? pkgsFor.nodejs-18_x
+, nodejs  ? pkgsFor.nodejs
 , treeFor ? pkgsFor.semver
 , bash    ? pkgsFor.bash
 , ...

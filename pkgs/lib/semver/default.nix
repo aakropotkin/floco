@@ -10,7 +10,7 @@
 , pkgsFor ?
   nixpkgs.legacyPackages.${system}.extend ( import ../../../overlay.nix )
 , semver ? pkgsFor.semver
-, nodejs ? pkgsFor.nodejs-18_x
+, nodejs ? pkgsFor.nodejs
 , bash   ? pkgsFor.bash
 , ...
 } @ args: {
