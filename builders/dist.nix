@@ -19,7 +19,7 @@ in {
 , coreutils   ? pkgsFor.coreutils
 , jq          ? pkgsFor.jq
 , findutils   ? pkgsFor.findutils
-, nodePackage ? pkgsFor.nodejs-slim-18_x
+, nodePackage ? pkgsFor.nodejs-slim
 , gnused      ? pkgsFor.gnused
 
 , doUnpatch   ? true
