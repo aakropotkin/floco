@@ -45,7 +45,6 @@ final: prev: {
     nixpkgs = throw "floco: Nixpkgs should not be referenced from flake";
     inherit (final) system lib nodePackage;
     pkgsFor = final;
-
   };
 
   arborist = import ./fpkgs/arborist {
