@@ -146,7 +146,7 @@ in {
              "null" "bool" "list"
            ];
            if b == null then {} else
-           if builtins.isList  then { bundledDependencies = b; } else
+           if builtins.isList b then { bundledDependencies = b; } else
            if ! b then {} else {
             bundledDependencies = builtins.attrNames (
               ( values.dependencies or {} ) // ( values.requires or {} )
