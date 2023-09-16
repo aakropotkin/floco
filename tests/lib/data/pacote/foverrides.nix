@@ -29,7 +29,7 @@ in {
 
     ##installed = { pkgs, ... }: {
     ##  extraBuildInputs = [
-    ##    pkgs.pkgconfig
+    ##    pkgs.pkg-config
     ##  ];
     ##};
 

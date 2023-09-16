@@ -7,7 +7,7 @@
       pkgs.zeromq
     ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
       # Only add these for when the host system is `darwin'.
-      pkgs.pkgconfig
+      pkgs.pkg-config
       pkgs.libsodium.dev
     ] );
 

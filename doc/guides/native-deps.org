@@ -431,7 +431,7 @@ research above.
         pkgs.zeromq
       ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
         # Only add these for when the host system is `darwin'.
-        pkgs.pkgconfig
+        pkgs.pkg-config
         pkgs.libsodium.dev
       ] );
 
@@ -484,7 +484,7 @@ Here's another draft of =foverrides.nix=:
         pkgs.zeromq
       ] ++ ( if ! pkgs.stdenv.hostPlatform.isDarwin then [] else [
         # Only add these for when the host system is `darwin'.
-        pkgs.pkgconfig
+        pkgs.pkg-config
         pkgs.libsodium.dev
       ] );
 
